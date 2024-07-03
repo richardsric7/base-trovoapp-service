@@ -22,6 +22,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -58,6 +59,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
     wallet = appState.userInfo!.getWalletByAlias(viewData['alias']);
+    print('viewData ========>>>>>>>>>> $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -185,6 +187,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
                               value: viewData['transactionStatus']
                                   .toString()
                                   .capitalizeFirst!),
+                          displayInfo(
+                              key: "blockchainproof".tr(),
+                              value: viewData['id'].toString().capitalizeFirst!,
+                              isTransId: true),
                           SizedBox(
                             height: height / 50,
                           ),
@@ -301,7 +307,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
     );
   }
 
-  Widget displayInfo({required String key, required String value}) {
+  Widget displayInfo(
+      {required String key, required String value, bool isTransId = false}) {
     return Column(
       children: [
         Container(
@@ -317,16 +324,58 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold),
               ),
-              Text(
-                value,
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
+              if (isTransId) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: GestureDetector(
+                        onTap: () => appState.goToWebView(
+                            getExplorerBaseUrl(appState.walletMode) + value),
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: IconButton(
+                        onPressed: () => {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: value,
+                            ),
+                          ),
+                          showSnackBar("transactionid".tr(), context),
+                        },
+                        icon: Icon(
+                          Icons.copy,
+                          size: 20,
+                        ),
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ] else ...[
+                Text(
+                  value,
+                  overflow: TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ]
             ],
           ),
         ),

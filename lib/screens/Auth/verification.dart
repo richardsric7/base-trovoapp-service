@@ -234,8 +234,7 @@ class _VeryficationState extends State<Veryfication> {
 
     if (responseData['statusCode'] == 200) {
       fetchNotifications(state);
-      getFiatRates(publicKey, secretKey, publicKey,
-          state.userInfo!.username!.trim().replaceAll(' ', ''), state);
+      getFiatRates(state);
       await storeUserInfo(responseData['data']);
       hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
@@ -274,6 +273,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData()
         .storeInsertData('secretKey', <String>[state.tempSecretKey]);
     await StoreData().storeInsertData('restartedAfterSwitch', false);
+    await StoreData().storeInsertData('walletMode', state.walletMode);
     await StoreData()
         .storeInsertData('biometricsEnabled', state.biometricEnabled);
 

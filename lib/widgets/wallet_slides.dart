@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
@@ -97,7 +96,7 @@ class _WalletSlideState extends State<WalletSlide> {
                       Container(
                         width: width / 2.5,
                         child: Text(
-                          truncate(widget.alias, length: 12),
+                          widget.alias,
                           style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -219,7 +218,7 @@ class _WalletSlideState extends State<WalletSlide> {
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
           e.code == auth_error.notAvailable) {
-        biometricsErrorAlert(context);
+        biometricsErrorAlert(context, callback: toggleHideBalance);
       }
     }
   }

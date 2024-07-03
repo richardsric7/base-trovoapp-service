@@ -140,6 +140,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                   ),
                 );
               } else if (snapshot.hasData) {
+                print('response: ${snapshot.data}');
                 var membershipGrades = snapshot.data!['membershipGrades'];
                 var tiers = snapshot.data!['patronTiers'];
                 var patronPackages = snapshot.data!['patronPackages'];
@@ -323,6 +324,18 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       ),
                     ),
                     SizedBox(height: height / 10),
+                    ButtonOutlined(
+                      "cancelsubscription".tr(),
+                      notifier.getwihitecolor,
+                      notifier.getbluewhitecolor,
+                      borderColor: notifier.getbluewhitecolor,
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: CreatePasswordPageConfig);
+                      },
+                    ),
+                    SizedBox(height: height / 50),
                     Button(
                       "viewpatronplans".tr(),
                       notifier.getbluecolor,

@@ -618,7 +618,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
-        // print('messagelenth: $messageLength');
+        hideLoader(context);
         postProcessData(
             context, messageShown, messageLength, responseData['data'],
             callback: () {
@@ -661,6 +661,14 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       );
 
       if (responseData['statusCode'] == 200) {
+        await updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          appState.userInfo!.username,
+          appState,
+          forceRefresh: true,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': "sharedaccessenabledsuccessfully".tr(),
           'message': "sharedaccessenabledsuccessfully2"
@@ -676,6 +684,8 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                 BottomHomePageConfig,
                 WalletPreparationViewPageConfig,
               ]);
+              appState.setActiveTokenizationWalletPublicKey = null;
+              appState.viewData = null;
             } else {
               appState.currentAction =
                   PageAction(state: PageState.addAll, pages: [
@@ -691,14 +701,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
             }
           },
         };
-        updateUserInfo(
-          appState.primaryWallet.signer!,
-          appState.secretKeys[0],
-          appState.primaryWallet.publicKey,
-          appState.userInfo!.username,
-          appState,
-          forceRefresh: true,
-        );
         hideLoader(context);
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);

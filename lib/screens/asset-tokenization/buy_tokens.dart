@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -24,10 +25,15 @@ class BuyTokens extends StatefulWidget {
 class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  final _formKey = GlobalKey<FormState>();
+  final amountController = TextEditingController();
+  final quantityController = TextEditingController();
+
+  double amount = 0;
+  double quantity = 0;
   List<String> currencies = [
-    'e-Naira',
-    'TROV',
-    'XBN',
+    'NGN',
+    'USD',
   ];
 
   getdarkmodepreviousstate() async {
@@ -65,153 +71,212 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    var tokenizedAsset = appState.tokenizedAsset!;
+    var selectedCurrency = 'NGN';
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            CustomAppBar(
-              context,
-              notifier.getwihitecolor,
-              'Buy Atlantis 1',
-              notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
-            SizedBox(
-              height: height / 30,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Select Currency',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getCurrencyOptions,
-                null,
-                'Select currency',
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              CustomAppBar(
                 context,
-                null,
+                notifier.getwihitecolor,
+                'Buy ${tokenizedAsset.assetName}',
+                notifier.getbluewhitecolor,
+                height: height / 15,
+              ).getBar(),
+              SizedBox(
+                height: height / 30,
               ),
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Quantity of Atlantis 1',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'Select Currency',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      selectedCurrency = value.toString();
+                    });
+                  },
+                  getCurrencyOptions,
+                  selectedCurrency,
+                  'Select currency',
+                  context,
+                  null,
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Quantity',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Amount',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'Quantity of ${tokenizedAsset.assetCode}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Amount',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      'Quantity',
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      300.sp,
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: true,
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          var a = int.tryParse(value);
+                          if (a != null) {
+                            var pricePerToken = tokenizedAsset.pricePerToken!;
+                            amountController.text =
+                                ((a * pricePerToken)).toString();
+                          }
+                        });
+                      },
+                      controller: quantityController,
+                      onSaved: (value) {
+                        quantity = double.parse(value);
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Button(
-              'Pay',
-              notifier.getbluecolor,
-              wihitecolor,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: ConfirmBuyViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(
-              height: height / 10,
-            ),
-          ],
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'Amount',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      'Amount',
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      300.sp,
+                      onChanged: (value) {
+                        setState(() {
+                          var a = int.tryParse(value);
+                          if (a != null) {
+                            var pricePerToken = tokenizedAsset.pricePerToken!;
+                            quantityController.text =
+                                ((a / pricePerToken)).toString();
+                          }
+                        });
+                      },
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: true,
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      controller: amountController,
+                      onSaved: (value) {
+                        amount = double.parse(value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 30,
+              ),
+              Button(
+                'Pay',
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () {
+                  var form = _formKey.currentState;
+                  if (form!.validate()) {
+                    form.save();
+                    appState.viewData = {
+                      'amount': amount,
+                      'quantity': quantity,
+                    };
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ConfirmBuyViewPageConfig,
+                    );
+                  }
+                },
+              ),
+              SizedBox(
+                height: height / 10,
+              ),
+            ],
+          ),
         ),
       ),
     );

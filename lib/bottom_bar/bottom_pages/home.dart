@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -53,13 +56,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
+  late Future<List<TokenizedAsset>> listOfTokenizations;
 
   Map<String, DashboardAssetListMode> listModes = {
     'Asset Tokens': DashboardAssetListMode.TokenizedAssets,
     'Other Tokens': DashboardAssetListMode.OtherAssets,
   };
   final Authenticator _authenticator = Authenticator();
-  bool hideBalance = false;
 
   @override
   void initState() {
@@ -73,6 +76,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
+    listOfTokenizations = fetchTokenizationList();
   }
 
   void tabListener() {
@@ -98,6 +102,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void dispose() {
     _tabController.dispose();
     StoreData().storeInsertData('assetOrderings', appState.assetOrderings);
+    listOfTokenizations = fetchTokenizationList();
     super.dispose();
   }
 
@@ -200,6 +205,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ),
                     ),
                   ],
+                  SizedBox(
+                    height: height / 50,
+                  ),
                   GestureDetector(
                     onTap: () {
                       changeTabPage(appState, ButtomTabPage.Wallets.index);
@@ -233,7 +241,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 15.0),
+                                  horizontal: 20.0, vertical: 20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment:
@@ -261,11 +269,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                             SizedBox(),
                                             GestureDetector(
                                               onTap: () {
-                                                if (hideBalance) {
+                                                if (appState.hideBalances) {
                                                   authenticateAndToggle();
                                                 } else
                                                   setState(() {
-                                                    hideBalance = !hideBalance;
+                                                    appState.hideBalances =
+                                                        !appState.hideBalances;
+                                                    for (var i = 0;
+                                                        i <
+                                                            appState
+                                                                .hideWalletList
+                                                                .length;
+                                                        i++) {
+                                                      appState.hideWalletList[
+                                                          i] = true;
+                                                    }
+                                                    StoreData().storeInsertData(
+                                                        'hideWalletList',
+                                                        appState
+                                                            .hideWalletList);
                                                   });
                                               },
                                               child: Icon(
@@ -281,7 +303,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   SizedBox(
-                                    height: height / 98.0,
+                                    height: height / 50,
                                   ),
                                   Container(
                                     width: width / 1.8,
@@ -297,7 +319,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   if (appState.defaultCurrency != 'USD') ...[
-                                    SizedBox(height: 2),
+                                    SizedBox(height: 10),
                                     Text(
                                       getBalance(
                                           '${totalAccountBalanceInUSD} USD'),
@@ -324,8 +346,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
                   if (!noXbnBalance) ...[
-                    // area of new screen
-                    // //////////////////
+                    SizedBox(
+                      height: height / 50,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Column(
@@ -350,11 +373,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     tabs: [
                                       Tab(
                                         height: 20,
-                                        text: "Primary Listing".tr(),
+                                        text: "primaryoffers".tr(),
                                       ),
                                       Tab(
                                         height: 20,
-                                        text: "Secondary Listing".tr(),
+                                        text: "secondarylisting".tr(),
                                       ),
                                     ],
                                   ),
@@ -390,51 +413,148 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget listingTabs() {
     return Container(
-      height: height / 1.60,
+      height: height / 1.77,
       child: TabBarView(
         controller: _tabController,
         children: [
           SingleChildScrollView(
             child: Column(
               children: [
-                for (var i = 0; i < listOfAssets.length; i++) ...[
-                  GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
+                FutureBuilder<List<TokenizedAsset>>(
+                  future: listOfTokenizations,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SizedBox(
+                        height: height / 2,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            backgroundColor: notifier.getbluecolor,
+                            valueColor: new AlwaysStoppedAnimation<Color>(
+                              notifier.getgreencolor,
+                            ),
+                            strokeWidth: 3.0,
+                          ),
+                        ),
                       );
-                    },
-                    child: assetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
-                  ),
-                ],
-                SizedBox(height: height / 20),
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: height / 2,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "somethingwentwrong".tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      listOfTokenizations =
+                                          fetchTokenizationList();
+                                    });
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            notifier.getbluecolor!),
+                                  ),
+                                  child: Text(
+                                    "retry".tr(),
+                                    style: TextStyle(
+                                      fontFamily: fontsemibold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else if (snapshot.hasData) {
+                        var records = snapshot.data!;
+                        return Column(
+                          children: [
+                            if (records.isNotEmpty) ...[
+                              for (var item in records) ...[
+                                GestureDetector(
+                                  onTap: () {
+                                    appState.tokenizedAsset = item;
+                                    appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: TokenizedAssetDetailViewPageConfig,
+                                    );
+                                  },
+                                  child: assetTile(item),
+                                ),
+                              ],
+                            ] else ...[
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  height: height / 2,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "nothingtoshowhere2".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontbody),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ]
+                          ],
+                        );
+                      }
+                    }
+                    return Text(
+                      '',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: fontsemibold,
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
           SingleChildScrollView(
             child: Column(
               children: [
-                for (var i = 0; i < listOfAssets.length; i++) ...[
-                  GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
-                      );
-                    },
-                    child: assetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: height / 2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "nothingtoshowhere2".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-                SizedBox(height: height / 20),
+                )
               ],
             ),
           ),
@@ -642,7 +762,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type, isSubscribed) {
+  Widget assetTile(TokenizedAsset asset) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -656,59 +776,84 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         child: ListTile(
           title: Row(
             children: [
-              Image.network(
-                imageUrl,
-                height: 35,
-                width: 35,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/trovo.png',
-                    height: 35,
-                    width: 35,
-                  );
-                },
-              ),
+              if (asset.assetLogo != null) ...[
+                Image.memory(
+                  base64Decode(asset.assetLogo!),
+                  height: 35,
+                  width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
+                ),
+              ] else ...[
+                Image.asset(
+                  'assets/images/trovo.png',
+                  height: 35,
+                  width: 35,
+                ),
+              ],
               SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getblck,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      type,
+              Container(
+                width: width / 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${asset.assetName!} (${asset.assetCode})',
                       style: TextStyle(
                         fontSize: 12,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                         color: notifier.getblck,
                       ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                      child: Text(
+                        asset.assetSector!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getblck,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           trailing: ElevatedButton(
             onPressed: () async {
-              isSubscribed
+              asset.isSubscribed ?? false
                   ? showUnSubscribePopup(
                       context,
-                      onDone: () {},
+                      assetCode: asset.assetCode!,
+                      onDone: (walletPublicKey) {
+                        setState(() {
+                          asset.isSubscribed = false;
+                        });
+                      },
+                      dropdownItems: getUnsubscribableWallets(asset),
                     )
                   : showSubscribePopup(
                       context,
-                      onDone: () {},
+                      assetCode: asset.assetCode!,
+                      onDone: (walletPublicKey) async {
+                        setState(() {
+                          asset.isSubscribed = true;
+                        });
+                      },
                       dropdownItems: getStandardWallets,
                     );
             },
             style: ButtonStyle(
+              padding: MaterialStateProperty.all(
+                EdgeInsets.symmetric(vertical: 0, horizontal: 6),
+              ),
               overlayColor:
                   MaterialStateProperty.all<Color>(notifier.getsplashgrey),
               backgroundColor:
@@ -728,22 +873,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
             ),
             child: Container(
-              width: width / 4,
+              width: width / 5,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isSubscribed ? 'Subscribed' : 'Subscribe',
+                    asset.isSubscribed ?? false ? 'Subscribed' : 'Subscribe',
                     style: TextStyle(
                         fontFamily: fontsemibold,
-                        fontSize: 11,
+                        fontSize: 10,
                         color: notifier.getwihitecolor),
                   ),
                   Icon(
-                      isSubscribed
+                      asset.isSubscribed ?? false
                           ? Icons.check_circle
                           : Icons.add_circle_rounded,
-                      size: 18,
+                      size: 15,
                       color: notifier.getwihitecolor),
                 ],
               ),
@@ -757,6 +902,27 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
+  }
+
+  List<DropdownMenuItem<String>> getUnsubscribableWallets(
+      TokenizedAsset asset) {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.where((wallet) {
+      return wallet.tokenizedAssets != null &&
+          wallet.tokenizedAssets!
+              .where((a) =>
+                  a.assetName == asset.assetName &&
+                  a.assetCode == asset.assetCode)
+              .isNotEmpty;
+    }).forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
@@ -916,7 +1082,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     IconData icon;
     if (appState.hideBalances) icon = CupertinoIcons.eye;
 
-    if (hideBalance)
+    if (appState.hideBalances)
       icon = CupertinoIcons.eye;
     else
       icon = CupertinoIcons.eye_slash;
@@ -932,7 +1098,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     showPasswordDialog(context, () {
       setState(() {
-        hideBalance = !hideBalance;
+        appState.hideBalances = !appState.hideBalances;
       });
     });
   }
@@ -942,7 +1108,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       bool result = await _authenticator.authenticateMe();
       if (result) {
         setState(() {
-          hideBalance = !hideBalance;
+          appState.hideBalances = !appState.hideBalances;
         });
       }
     } on PlatformException catch (e) {
@@ -957,7 +1123,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     String text;
     if (appState.hideBalances) text = hideBalanceText;
 
-    if (hideBalance)
+    if (appState.hideBalances)
       text = hideBalanceText;
     else
       text = balance;
@@ -976,7 +1142,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatNumber(balance);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
   }
 
   String get totalAccountBalanceInUSD {
@@ -990,7 +1156,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatNumber(balance);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
+  }
+
+  Future<List<TokenizedAsset>> fetchTokenizationList() async {
+    List<TokenizedAsset> tokenizedAssets = [];
+    if (appState.tempTokenizedAssetList.isEmpty) {
+      var savedAssets = await StoreData().storeGetData('tokenizedAsset');
+      if (savedAssets != null) {
+        for (int i = 0; i < savedAssets.length; i++) {
+          print(savedAssets[i]);
+          var a = TokenizedAsset().deserializeJson(savedAssets[i]);
+          a.usdPrice = 1.47;
+          a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+          tokenizedAssets.add(a);
+        }
+      }
+    }
+    appState.tempTokenizedAssetList = tokenizedAssets;
+    return tokenizedAssets;
   }
 }
 

@@ -53,7 +53,7 @@ class StoreData {
   storeInsertData(key, value) async {
     await store.record(key).put(await _db, value, merge: true);
 
-    print('$key : $value data Inserted successfully !!');
+    print('$key data Inserted successfully !!');
   }
 
   storeGetData(key) async {

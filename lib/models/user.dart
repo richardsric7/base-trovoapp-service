@@ -276,4 +276,14 @@ class UserInfo {
 
     return wallets;
   }
+
+  List<Wallet> get getStandardWalletsWithInitiatorAccess {
+    List<Wallet> wallets = [];
+    for (var wallet in this.allWallets) {
+      if (wallet.walletType == 0 && wallet.isSharedWalletAndCanInitiate) {
+        wallets.add(wallet);
+      }
+    }
+    return wallets;
+  }
 }

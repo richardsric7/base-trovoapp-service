@@ -9,6 +9,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -38,32 +39,21 @@ class _WalletPreparationState extends State<WalletPreparation>
   List<DropdownMenuItem<String>> get getMintingWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getMintingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      if (wallet.isSharedWalletAndCanInitiate) {
+        wallets.add(DropdownMenuItem(
+            child: Text(
+              wallet.alias!,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: wallet.publicKey));
+      }
     });
     return wallets;
   }
 
-  List<DropdownMenuItem<String>> get getMarketMakingWallets {
+  List<DropdownMenuItem<String>> get getStandardWalletsWithInitiatorAccess {
     List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getMarketMakingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
-  List<DropdownMenuItem<String>> get getStandardWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWallets.forEach((wallet) {
+    appState.userInfo!.getStandardWalletsWithInitiatorAccess.forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
@@ -114,9 +104,24 @@ class _WalletPreparationState extends State<WalletPreparation>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
+                if (appState.activeTokenizationWalletPublicKey == null) {
+                  popup(context,
+                      title: 'Error',
+                      message: 'Please select your asset tokenization wallet');
+                  return;
+                }
+
+                if (appState.activeDistributionWalletPublicKey == null) {
+                  popup(context,
+                      title: 'Error',
+                      message: 'Please select your asset distribution wallet');
+                  return;
+                }
+
+                appState.viewData = null;
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    page: TokenizeAssetViewPageConfig);
+                    page: SetupAndComplianceViewPageConfig);
               },
             ),
             SizedBox(
@@ -155,7 +160,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "selectmintingwallet".tr(),
+                "selectissuingwallet".tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontFamily: fontsemibold,
@@ -180,12 +185,12 @@ class _WalletPreparationState extends State<WalletPreparation>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: dropdown(
-            (value) {},
+            (value) {
+              appState.setActiveTokenizationWalletPublicKey = value;
+            },
             getMintingWallets,
             null,
-            appState.userInfo!.getMintingWallets.length > 0
-                ? appState.userInfo!.getMintingWallets.first.alias
-                : '',
+            getHintTextForMintingWallet(),
             context,
             null,
           ),
@@ -199,7 +204,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Text(
-                "selectmarketmakingwallet".tr(),
+                "selectdistributionwallet".tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontFamily: fontsemibold,
@@ -224,18 +229,36 @@ class _WalletPreparationState extends State<WalletPreparation>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: dropdown(
-            (value) {},
-            getMarketMakingWallets,
+            (value) {
+              appState.setActiveDistributionWalletPublicKey = value;
+            },
+            getStandardWalletsWithInitiatorAccess,
             null,
-            appState.userInfo!.getMarketMakingWallets.length > 0
-                ? appState.userInfo!.getMarketMakingWallets.first.alias
-                : '',
+            getHintTextForDistribution(),
             context,
             null,
           ),
         ),
       ],
     );
+  }
+
+  String getHintTextForMintingWallet() {
+    var wallet = appState.userInfo!.getMintingWallets.where(
+        (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
+
+    return wallet.length > 0
+        ? wallet.first.alias!
+        : 'Select tokenization wallet';
+  }
+
+  String getHintTextForDistribution() {
+    var wallet = appState.userInfo!.getStandardWalletsWithInitiatorAccess.where(
+        (w) => w.publicKey == appState.activeDistributionWalletPublicKey);
+
+    return wallet.length > 0
+        ? wallet.first.alias!
+        : 'Select distribution wallet';
   }
 
   Widget CheckItem(

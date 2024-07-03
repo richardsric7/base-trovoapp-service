@@ -1,23 +1,35 @@
+import 'dart:convert';
 import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/models/wallets_list_view_data.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
+import 'package:trovo_wallet/storage/cache.dart';
+import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
 import '../router/page_actions.dart';
 import '../router/ui_pages.dart';
 import '../screens/shared_access/shared_access.dart';
 import '../storage/state.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
 
 popup(context,
     {required String title,
@@ -117,7 +129,9 @@ popup(context,
       });
 }
 
-Future<bool?> biometricsErrorAlert(BuildContext context) {
+Future<bool?> biometricsErrorAlert(BuildContext context,
+    {void Function()? callback}) {
+  var appState = Provider.of<DataProvider>(context, listen: false);
   return showDialog<bool>(
       context: context,
       builder: (context) {
@@ -131,7 +145,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                     fontSize: 14.0,
                     fontFamily: fontbody,
                     fontWeight: FontWeight.bold,
-                    color: Colors.teal),
+                    color: Colors.blue[900]),
               ),
               onPressed: () => Navigator.of(
                 context,
@@ -145,11 +159,42 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                       fontSize: 14.0,
                       fontFamily: fontbody,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal),
+                      color: Colors.blue[900]),
                 ),
                 onPressed: () async {
-                  await AppSettings.openAppSettings();
+                  await AppSettings.openAppSettings(
+                      type: AppSettingsType.security);
                 }),
+            TextButton(
+                child: Text(
+                  "Disable biometrics",
+                  style: TextStyle(
+                      fontSize: 14.0,
+                      fontFamily: fontbody,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900]),
+                ),
+                onPressed: () async {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: SettingsViewPageConfig);
+                }),
+            if (callback != null) ...[
+              TextButton(
+                  child: Text(
+                    "usepasswordinstead".tr(),
+                    style: TextStyle(
+                        fontSize: 14.0,
+                        fontFamily: fontbody,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900]),
+                  ),
+                  onPressed: () async {
+                    showPasswordDialog(context, () {
+                      callback();
+                      Navigator.of(context).pop();
+                    });
+                  }),
+            ],
           ],
           content: Container(
             decoration: const BoxDecoration(
@@ -3705,11 +3750,16 @@ void viewOnlySharedWalletOptions(
 }
 
 showDocumentUploadPopup(context, String title,
-    {required void Function() onDone,
+    {required void Function(String selectedOption, PlatformFile file) onDone,
     required List<DropdownMenuItem<String>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  final _formKey = GlobalKey<FormState>();
+  String selectedOption =
+      dropdownItems.length > 0 ? dropdownItems.first.value! : "";
+  String errorMsg = '';
+  PlatformFile? file = null;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -3727,198 +3777,249 @@ showDocumentUploadPopup(context, String title,
                     Radius.circular(23),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          title,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {},
-                        dropdownItems,
-                        null,
-                        "purchasereceipt".tr(),
-                        context,
-                        null,
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: Container(
-                        width: width / 2.5,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0)),
-                          color: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                        ),
-                        child: Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                onPressed: () => {},
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.file_copy_outlined,
-                                      size: 20,
-                                      // color: notifier.getbluewhitecolor,
-                                    ),
-                                    SizedBox(
-                                      width: width / 50,
-                                    ),
-                                    Text(
-                                      "selectfile".tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontFamily: fontbody,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Center(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15,
+                                fontFamily: fontsemibold),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: Container(
-                        width: width / 2.5,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0)),
-                          color: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
+                      if (dropdownItems.length > 0) ...[
+                        SizedBox(
+                          height: height / 50,
                         ),
-                        child: Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                onPressed: () => {},
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.camera,
-                                      size: 20,
-                                      // color: notifier.getbluewhitecolor,
-                                    ),
-                                    SizedBox(
-                                      width: width / 50,
-                                    ),
-                                    Text(
-                                      "takephoto".tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontFamily: fontbody,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: CustomTextFormField.textField(
-                            "urltofile".tr(),
-                            notifier.getbluecolor,
+                          child: dropdown(
+                            (value) {
+                              selectedOption = value.toString();
+                              setStateForDialog(() {});
+                            },
+                            dropdownItems,
                             null,
-                            notifier.getgrey,
+                            selectedOption,
+                            context,
                             null,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            70.sp,
-                            200.sp,
-                            // controller: referrerController,
-                            // validator: validateReferrer,
-                            onSaved: (value) {},
                           ),
                         ),
                       ],
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                      if (selectedOption == "Other") ...[
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        CustomTextFormField.textField(
+                          'enterfiletitle'.tr(),
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          50,
+                          270,
+                          validator: (value) {
+                            if (selectedOption == "Other" &&
+                                value.toString().isEmpty) {
+                              return "pleaseenterfiletitle".tr();
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            setStateForDialog(() {
+                              selectedOption = value.trim();
+                            });
+                          },
+                        ),
+                      ],
+                      if (file != null) ...[
+                        Container(
+                          width: width / 2.0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                truncate(file!.name, length: 15),
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
+                              IconButton(
+                                icon: Icon(
+                                  CupertinoIcons.delete,
+                                  size: 20,
+                                ),
+                                onPressed: (() {
+                                  setStateForDialog(() {
+                                    file = null;
+                                  });
+                                }),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: Container(
+                          width: width / 2.5,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10.0)),
+                            color: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
+                          ),
+                          child: Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TextButton(
+                                  onPressed: () async {
+                                    errorMsg = '';
+                                    file = await getFile();
+                                    if (file != null && file!.size > 900000) {
+                                      errorMsg = "filesizeerror".tr();
+                                      file = null;
+                                    }
+                                    setStateForDialog(() {});
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.file_copy_outlined,
+                                        size: 20,
+                                        // color: notifier.getbluewhitecolor,
+                                      ),
+                                      SizedBox(
+                                        width: width / 50,
+                                      ),
+                                      Text(
+                                        "selectfile".tr(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        child: Text(
-                          "upload".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      Container(
+                        width: width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              errorMsg,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final form = _formKey.currentState;
+                            if (!form!.validate()) return;
+
+                            if (file == null) {
+                              errorMsg = 'selectfiletoupload'.tr();
+                              setStateForDialog(() {});
+                              return;
+                            }
+
+                            form.save();
+
+                            Navigator.of(context).pop(); // dismiss dialog,
+                            onDone(selectedOption, file!);
+                          },
+                          style: ButtonStyle(
+                            fixedSize: MaterialStateProperty.all(
+                              Size(width / 1.5, height / 20),
+                            ),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluecolor),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "upload".tr(),
+                            style: TextStyle(
+                                color: wihitecolor, fontFamily: fontbody),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
+                  ),
                 ),
               ));
         });
       });
 }
 
-showSubscribePopup(context,
-    {required void Function() onDone,
-    required List<DropdownMenuItem<String>> dropdownItems}) async {
+Future<PlatformFile?>? getFile() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
+    withData: true,
+  );
+
+  if (result == null) {
+    print('User canceled the picker');
+    return null;
+  }
+
+  PlatformFile file = result.files.single;
+
+  return file;
+}
+
+showSubscribePopup(
+  context, {
+  required void Function(String walletPublicKey) onDone,
+  required String assetCode,
+  required List<DropdownMenuItem<String>> dropdownItems,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -3951,7 +4052,7 @@ showSubscribePopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmsubscribewithwallet".tr(args: ['Atlantis 1']),
+                          "confirmsubscribewithwallet".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -3963,7 +4064,9 @@ showSubscribePopup(context,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
-                        (value) {},
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
                         dropdownItems,
                         null,
                         "choosewallet".tr(),
@@ -3971,24 +4074,23 @@ showSubscribePopup(context,
                         null,
                       ),
                     ),
-                    // SizedBox(
-                    //   height: height / 70,
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         'Change wallet',
-                    //         textAlign: TextAlign.center,
-                    //         style: TextStyle(
-                    //             color: notifier.getbluewhitecolor,
-                    //             fontSize: 12,
-                    //             fontFamily: fontsemibold),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -3996,8 +4098,15 @@ showSubscribePopup(context,
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4070,11 +4179,15 @@ showSubscribePopup(context,
 
 showUnSubscribePopup(
   context, {
-  required void Function() onDone,
+  required String assetCode,
+  required void Function(String walletPublicKey) onDone,
+  required List<DropdownMenuItem<String>> dropdownItems,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4107,8 +4220,7 @@ showUnSubscribePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmunsubscribewithwallet"
-                              .tr(args: ["Atlantis 1"]),
+                          "confirmunsubscribewithwallet".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4117,6 +4229,36 @@ showUnSubscribePopup(
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: dropdown(
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
+                        dropdownItems,
+                        null,
+                        "choosewallet".tr(),
+                        context,
+                        null,
+                      ),
+                    ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4124,8 +4266,15 @@ showUnSubscribePopup(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4197,11 +4346,14 @@ showUnSubscribePopup(
 }
 
 showBuyTokenPopup(context,
-    {required void Function() onDone,
+    {required void Function(String walletPublicKey) onDone,
+    required String assetCode,
     required List<DropdownMenuItem<String>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4234,7 +4386,7 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "addmoretokens".tr(args: ["Atlantis"]),
+                          "addmoretokens".tr(args: ['[${assetCode}]']),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4246,7 +4398,9 @@ showBuyTokenPopup(context,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
-                        (value) {},
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
                         dropdownItems,
                         null,
                         "choosewallet".tr(),
@@ -4254,24 +4408,23 @@ showBuyTokenPopup(context,
                         null,
                       ),
                     ),
-                    // SizedBox(
-                    //   height: height / 70,
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         'Change wallet',
-                    //         textAlign: TextAlign.center,
-                    //         style: TextStyle(
-                    //             color: notifier.getbluewhitecolor,
-                    //             fontSize: 12,
-                    //             fontFamily: fontsemibold),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4279,8 +4432,15 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4621,6 +4781,1053 @@ showSwitchModePopup(context,
                     ),
                     SizedBox(height: height / 50),
                   ],
+                ),
+              ));
+        });
+      });
+}
+
+late List<String> walletTypes = [
+  'Standard',
+  'Issuing/Asset Tokenization',
+  'Bulk Payment'
+];
+
+List<DropdownMenuItem<String>> get walletTypeDropdownItems {
+  var dropdownItems = walletTypes
+      .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                wallet,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          value: walletTypes.indexOf(wallet).toString()))
+      .toList();
+
+  return dropdownItems;
+}
+
+addSubWalletPopup(context) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  final Authenticator _authenticator = Authenticator();
+  late Account primaryWalletKeyPair;
+  late Account newSubWalletKeyPair;
+  int selectedWalletType = ((appState.returnView != null &&
+              appState.returnView!.pages != null) &&
+          appState.returnView!.pages!.contains(WalletPreparationViewPageConfig))
+      ? 1
+      : 0;
+  String? tag;
+  String password = '';
+  String? description;
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  final _formKey = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
+  WalletAction? action = WalletAction.createNew;
+  String? secretKey;
+  var userInfo = appState.userInfo!;
+  var walletView = WalletView.addSubWallet;
+
+  tag = '';
+  password = '';
+  description = '';
+
+  void sendFullDataToServer(responseBody, context) async {
+    showLoader(context);
+    var appState = Provider.of<DataProvider>(context, listen: false);
+    var userInfo = appState.userInfo!;
+
+    try {
+      // get primary signature
+      var primarySignature = TrovoWalletSDK().signBase64Txn(
+        primaryWalletKeyPair.secretKey,
+        responseBody['transaction'],
+        responseBody['networkPassPhrase'],
+      );
+
+      // get secondary signature
+      var subWalletSignature = TrovoWalletSDK().signBase64Txn(
+        newSubWalletKeyPair.secretKey,
+        responseBody['transaction'],
+        responseBody['networkPassPhrase'],
+      );
+
+      responseBody['primarySignature'] = primarySignature;
+      responseBody['subWalletSignature'] = subWalletSignature;
+
+      String requestBody = jsonEncode(responseBody);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/users/subwallet',
+        body: requestBody,
+        signer: primaryWalletKeyPair.publicKey,
+        secretKey: primaryWalletKeyPair.secretKey,
+        publicKey: primaryWalletKeyPair.publicKey,
+      );
+
+      if (responseData['statusCode'] == 200) {
+        // add the secret key of this new subwallet to
+        // the existing list of secrets
+        appState.secretKeys.add(newSubWalletKeyPair.secretKey);
+        // store back the list of secret keys but this time it
+        // contains the secret key of the newly created subwallet
+        await StoreData().storeInsertData('secretKey', appState.secretKeys);
+        await updateUserInfo(
+          appState.primaryWallet.signer,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          userInfo.username,
+          appState,
+          forceRefresh: true,
+        );
+        // add the new subwallet to appState and
+        // set the newly created subwallet as the activeWallet
+        appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+            (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
+        appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
+        // move to next page
+        appState.currentAction = PageAction(
+            state: PageState.addPage, page: CongratulationsPageConfig);
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop(false);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['error']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+
+    hideLoader(context);
+  }
+
+  postProcessSubwalletData(messageShown, messageLength, data, context) {
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                print('postProcessData: $messageShown'),
+                postProcessSubwalletData(
+                    messageShown, messageLength, data, context),
+              });
+
+      messageShown++;
+      return;
+    }
+
+    sendFullDataToServer(data, context);
+    return;
+  }
+
+  void sendDataToServer(
+    context,
+  ) async {
+    showLoader(context);
+
+    try {
+      // make initial request to the server using the
+      // following credentials
+      Map map = {
+        "publickey": newSubWalletKeyPair.publicKey,
+        "walletTag": tag,
+        "WalletDescription": description,
+        // "assetIssuerWallet": isAssetIssuerWallet,
+        "walletType": selectedWalletType,
+      };
+      String requestBody = jsonEncode(map);
+
+      print(requestBody);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/users/subwallet',
+        body: requestBody,
+        signer: primaryWalletKeyPair.publicKey,
+        secretKey: primaryWalletKeyPair.secretKey,
+        publicKey: primaryWalletKeyPair.publicKey,
+      );
+
+      print('response: $responseData');
+
+      if (responseData['statusCode'] == 200) {
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        await postProcessSubwalletData(
+            messageShown, messageLength, responseData['data'], context);
+        // print('sending full data to server.........');
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+    hideLoader(context);
+  }
+
+  void handleAuthorization(_formKey, appState, context) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (password == appState.password!) {
+      sendDataToServer(context);
+    } else {
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
+    }
+  }
+
+  void toggleSwitch(context) async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        sendDataToServer(context);
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  String? validatePassword(String? value) {
+    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
+
+    if (value.length < 6) return "use6charsormoreforpassword".tr();
+
+    return null;
+  }
+
+  String? validateDescription(String? value) {
+    if (value!.isEmpty) return "enterwalletdesc".tr();
+
+    return null;
+  }
+
+  String? validateTag(String? value) {
+    if (value!.isEmpty) return "enterwallettag".tr();
+
+    String pattern = r'^[a-zA-Z0-9\_]*$';
+    RegExp regex = new RegExp(pattern);
+
+    if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return "invalidtagname".tr();
+    }
+
+    return null;
+  }
+
+  var show = showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: walletView == WalletView.addSubWallet
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Center(
+                                child: Text(
+                                  "addsubwallet".tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 20,
+                                    fontFamily: fontsemibold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Form(
+                              key: _formKey2,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Card(
+                                      shadowColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                      ),
+                                      color: notifier.isDark
+                                          ? notifier.getbluecolor90
+                                          : notifier.getaddsubwalletgrey,
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            SizedBox(
+                                              height: height / 50,
+                                            ),
+                                            Container(
+                                              width: width / 1.4,
+                                              child: Text(
+                                                "abouttocreatesubwallet".tr(),
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontFamily: fontsemibold,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: height / 50,
+                                            ),
+                                            Text(
+                                              "chooseamethod".tr(),
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: height / 50,
+                                            ),
+                                            Row(
+                                              children: [
+                                                SizedBox(
+                                                  width: width / 10,
+                                                ),
+                                                Transform.scale(
+                                                  scale: 1.5,
+                                                  child: Radio<WalletAction>(
+                                                    value: WalletAction.import,
+                                                    groupValue: action,
+                                                    activeColor: notifier
+                                                        .getbluewhitecolor,
+                                                    fillColor: MaterialStateColor
+                                                        .resolveWith((states) =>
+                                                            notifier
+                                                                .getbluewhitecolor),
+                                                    onChanged: (value) => {
+                                                      setStateForDialog(
+                                                        () {
+                                                          action = value;
+                                                        },
+                                                      )
+                                                    },
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "importexistingwallet".tr(),
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontFamily: fontsemibold,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                SizedBox(
+                                                  width: width / 10,
+                                                ),
+                                                Transform.scale(
+                                                  scale: 1.5,
+                                                  child: Radio<WalletAction>(
+                                                    value:
+                                                        WalletAction.createNew,
+                                                    activeColor: notifier
+                                                        .getbluewhitecolor,
+                                                    fillColor: MaterialStateColor
+                                                        .resolveWith((states) =>
+                                                            notifier
+                                                                .getbluewhitecolor),
+                                                    groupValue: action,
+                                                    onChanged: (value) => {
+                                                      setStateForDialog(
+                                                        () {
+                                                          action = value;
+                                                        },
+                                                      )
+                                                    },
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "createnewwallet".tr(),
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontFamily: fontsemibold,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: height / 50,
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      width: width / 1.5,
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                          color: notifier
+                                                              .getbluecolor,
+                                                        ),
+                                                        borderRadius:
+                                                            const BorderRadius
+                                                                .all(
+                                                                Radius.circular(
+                                                                    15.0)),
+                                                      ),
+                                                      child: dropdown(
+                                                        (newValue) async {
+                                                          selectedWalletType =
+                                                              int.parse(newValue
+                                                                  .toString());
+                                                        },
+                                                        walletTypeDropdownItems,
+                                                        selectedWalletType
+                                                            .toString(),
+                                                        null,
+                                                        context,
+                                                        null,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  height: height / 50,
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: height / 30,
+                                  ),
+                                  // Tag name
+                                  CustomTextFormField.textField(
+                                    "tag".tr(),
+                                    notifier.getbluecolor,
+                                    Icons.tag,
+                                    notifier.getgrey,
+                                    notifier.getbluewhitecolor,
+                                    notifier.getblck,
+                                    notifier.getgrey,
+                                    70,
+                                    300,
+                                    initialValue: tag,
+                                    onChanged: (value) {
+                                      // setState(() {
+                                      //   tag = value.trim().replaceAll(' ', '');
+                                      // });
+                                    },
+                                    onSaved: (value) {
+                                      print('tag: $value');
+                                      tag = value.trim().replaceAll(' ', '');
+                                    },
+                                    keyboardtype: TextInputType.text,
+                                    maxLength: 12,
+                                    validator: validateTag,
+                                    helperText: tag == null || tag!.isEmpty
+                                        ? ''
+                                        : "${appState.userInfo!.username}_$tag",
+                                  ),
+                                  SizedBox(height: height / 50),
+                                  CustomTextFormField.textField(
+                                    "description".tr(),
+                                    notifier.getbluecolor,
+                                    Icons.description,
+                                    notifier.getgrey,
+                                    notifier.getbluewhitecolor,
+                                    notifier.getblck,
+                                    notifier.getgrey,
+                                    70,
+                                    300,
+                                    initialValue: description,
+                                    onSaved: (value) {
+                                      print('description: $value');
+                                      description = value;
+                                    },
+                                    keyboardtype: TextInputType.text,
+                                    maxLength: 100,
+                                    validator: validateDescription,
+                                  ),
+                                  if (action == WalletAction.import) ...[
+                                    SizedBox(height: height / 50),
+                                    // Secret Key
+                                    CustomPasswordFormField(
+                                      "secretkey".tr(),
+                                      notifier.getbluecolor,
+                                      Icons.lock,
+                                      notifier.getgrey,
+                                      notifier.getbluewhitecolor,
+                                      notifier.getblck,
+                                      70,
+                                      300,
+                                      validator: (value) {
+                                        var trimmedVal =
+                                            value!.trim().replaceAll(' ', '');
+                                        if (trimmedVal.isEmpty) {
+                                          return "entersecretkeyempty".tr();
+                                        }
+
+                                        if (trimmedVal.length < 56) {
+                                          return "secretkeyinvalid".tr();
+                                        }
+
+                                        try {
+                                          TrovoWalletSDK()
+                                              .parseSecretKey(value);
+                                        } catch (e) {
+                                          return 'Secret Key is invalid';
+                                        }
+
+                                        return null;
+                                      },
+                                      onSaved: (value) {
+                                        print('${"email".tr()}: $value');
+                                        secretKey =
+                                            value!.trim().replaceAll(' ', '');
+                                      },
+                                      maxLength: 56,
+                                    ),
+                                  ],
+                                  SizedBox(height: height / 30),
+                                  Button(
+                                    "continuee".tr(),
+                                    notifier.getbluecolor,
+                                    wihitecolor,
+                                    width: width / 1.5,
+                                    onTap: () {
+                                      var form = _formKey2.currentState;
+                                      if (!form!.validate()) {
+                                        return;
+                                      }
+
+                                      form.save();
+
+                                      primaryWalletKeyPair = TrovoWalletSDK()
+                                          .parseSecretKey(
+                                              appState.secretKeys[0]);
+
+                                      setStateForDialog(() {
+                                        if (action == WalletAction.import) {
+                                          try {
+                                            // parse supplied secret to get the keypair
+                                            newSubWalletKeyPair =
+                                                TrovoWalletSDK()
+                                                    .parseSecretKey(secretKey);
+                                          } catch (e) {
+                                            popup(context,
+                                                title: "error".tr(),
+                                                message:
+                                                    "invalidsecretkey".tr());
+                                          }
+                                        } else {
+                                          // generate keypair for the new subwallet
+                                          newSubWalletKeyPair =
+                                              TrovoWalletSDK().createAccount();
+                                        }
+                                        walletView =
+                                            WalletView.confirmAddSubWallet;
+                                        // appState.walletView.actionIcon =
+                                        //     Icons.arrow_circle_left_outlined;
+                                        // appState.walletView.actionText = "back".tr();
+                                        password = '';
+                                        secretKey = '';
+                                      });
+                                    },
+                                  ),
+                                  SizedBox(height: height / 70),
+                                  TextButton(
+                                    child: Text(
+                                      "cancel".tr(),
+                                      style: TextStyle(
+                                        fontSize: 14.0,
+                                        fontFamily: fontbody,
+                                        fontWeight: FontWeight.bold,
+                                        color: notifier.getbluecolor,
+                                      ),
+                                    ),
+                                    onPressed: () => Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(false),
+                                  ),
+                                  SizedBox(height: height / 20),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(children: [
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Center(
+                              child: Text(
+                                "addsubwallet".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 20,
+                                  fontFamily: fontsemibold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Card(
+                              shadowColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              color: notifier.isDark
+                                  ? notifier.getbluecolor90
+                                  : notifier.getaddsubwalletgrey,
+                              child: Center(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Container(
+                                        width: width / 1.4,
+                                        child: Text(
+                                          "requesttocreatesubwallet".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold,
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Text(
+                                        "tag".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${userInfo.username!}_$tag",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Text(
+                                        "description".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      Text(
+                                        description ?? '',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Text(
+                                        "method".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      Text(
+                                        action == WalletAction.import
+                                            ? "importsubwallet".tr()
+                                            : "createnewsubwallet".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Text(
+                                        "wallettype".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      Text(
+                                        walletTypes[selectedWalletType],
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Text(
+                                        "publickey".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15.0),
+                                        child: Text(
+                                          newSubWalletKeyPair.publicKey,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontFamily: fontbody,
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 20,
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15.0),
+                                        child: Text(
+                                          "willattractcharges".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontFamily: fontbody,
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: height / 30,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: height / 50),
+                          // Secret Key
+                          CustomPasswordFormField(
+                            "password".tr(),
+                            notifier.getbluecolor,
+                            Icons.lock,
+                            notifier.getgrey,
+                            notifier.getbluewhitecolor,
+                            notifier.getblck,
+                            70,
+                            300,
+                            validator: validatePassword,
+                            textInputAction: TextInputAction.done,
+                            onChanged: (value) {
+                              setStateForDialog(() {
+                                password = value!.trim().replaceAll(' ', '');
+                              });
+                            },
+                            // onSubmitted: (value) {
+                            //   print('email: $value');
+                            //   secretKey = value!.trim().replaceAll(' ', '');
+                            // },
+                            onSaved: (value) {
+                              print('email: $value');
+                              secretKey = value!.trim().replaceAll(' ', '');
+                            },
+                          ),
+                          SizedBox(height: height / 50),
+                          if (appState.biometricEnabled &&
+                              password.isEmpty) ...[
+                            Button(
+                              "authorizewithbiometrics".tr(),
+                              notifier.getbluecolor,
+                              wihitecolor,
+                              onTap: () => {toggleSwitch(context)},
+                              width: width / 1.5,
+                            ),
+                          ] else ...[
+                            Button(
+                              "authorize".tr(),
+                              notifier.getbluecolor,
+                              wihitecolor,
+                              onTap: () => {
+                                handleAuthorization(_formKey, appState, context)
+                              },
+                              width: width / 1.5,
+                            ),
+                          ],
+                          SizedBox(height: height / 70),
+                          TextButton(
+                              child: Text(
+                                "back".tr(),
+                                style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontFamily: fontbody,
+                                    fontWeight: FontWeight.bold,
+                                    color: notifier.getbluewhitecolor),
+                              ),
+                              onPressed: () {
+                                print('clicked 0o');
+                                setStateForDialog(() {
+                                  walletView = WalletView.addSubWallet;
+                                });
+                              }),
+                          SizedBox(height: height / 20),
+                        ]),
+                ),
+              ));
+        });
+      });
+
+  return show;
+}
+
+showCreateTokenizationWalletPopup(context) async {
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(20),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/empty_folder.png',
+                          // height: 50,
+                          width: 250,
+                        ),
+                        Text(
+                          "To proceed with tokenization, kindly follow the following steps:",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Text(
+                          // "youhavenoinitiatoraccess2".tr(),
+                          "1. Create a Tokenization Wallet ",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Text(
+                          // "youhavenoinitiatoraccess3".tr(),
+                          "2. Add the relevant accounts to the Wallet with the appropriate access for each account",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            appState.returnView = PageAction(
+                                state: PageState.addAll,
+                                pages: [
+                                  BottomHomePageConfig,
+                                  WalletPreparationViewPageConfig
+                                ]);
+                            addSubWalletPopup(context);
+                          },
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all<Color>(
+                                notifier.getsplashgrey),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluewhitecolor),
+                            side: MaterialStateProperty.all(
+                              BorderSide(
+                                  color: notifier.getbluewhitecolor,
+                                  width: 1,
+                                  style: BorderStyle.solid),
+                            ),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Container(
+                            // width: width / 1.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_circle_rounded,
+                                  size: 20,
+                                  color: notifier.getwihitecolor,
+                                ),
+                                SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  "createnewwallet".tr(),
+                                  style: TextStyle(
+                                      fontFamily: fontsemibold,
+                                      fontSize: 12,
+                                      color: notifier.getwihitecolor),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                                child: Text(
+                                  "close".tr(),
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontFamily: fontbody,
+                                    fontWeight: FontWeight.bold,
+                                    color: notifier.getbluecolor,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  appState.returnView = null;
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop(false);
+                                }),
+                          ],
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
+                  ),
                 ),
               ));
         });

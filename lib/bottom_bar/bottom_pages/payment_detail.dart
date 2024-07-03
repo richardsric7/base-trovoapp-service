@@ -252,7 +252,12 @@ class _PaymentDetails extends State<PaymentDetails>
                                           onPressed: () => {
                                             Clipboard.setData(
                                               ClipboardData(
-                                                text: viewData.toPublicKey!,
+                                                text: viewData
+                                                            .transactionDirection! ==
+                                                        TransactionDirection
+                                                            .Send
+                                                    ? viewData.fromPublicKey!
+                                                    : viewData.toPublicKey!,
                                               ),
                                             ),
                                             showSnackBar(

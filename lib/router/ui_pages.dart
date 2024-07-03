@@ -13,6 +13,7 @@ const String BackupPath = '/backup';
 const String FingerprintPath = '/fingerprint';
 const String BottomHomePath = '/home';
 const String WebViewPath = '/webview';
+const String PdfViewPath = '/pdfview';
 const String QrScannerPath = '/qrScanner';
 const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
@@ -102,6 +103,9 @@ const String MarketTradeInfoViewPath = '/MarketTradeInfoView';
 const String MarketPairsViewPath = '/MarketPairsView';
 const String SetupAndComplianceViewPath = '/SetupAndComplianceView';
 const String AllWalletsViewPath = '/AllWallets';
+const String AssetTokenDetailsViewPath = '/AssetTokenDetails';
+const String ConfirmTokenizationDetailsViewPath = '/ConfirmTokenizationDetails';
+const String TokenizationFeePaymentViewPath = '/TokenizationFeePayment';
 
 enum Pages {
   Splash,
@@ -117,6 +121,7 @@ enum Pages {
   Fingerprint,
   BottomHome,
   WebView,
+  PdfView,
   QrScanner,
   SearchView,
   NotificationsView,
@@ -206,6 +211,9 @@ enum Pages {
   MarketPairsView,
   SetupAndComplianceView,
   AllWalletsView,
+  AssetTokenDetailsView,
+  ConfirmTokenizationDetailsView,
+  TokenizationFeePaymentView
 }
 
 class PageConfiguration {
@@ -285,6 +293,11 @@ PageConfiguration WebViewPageConfig = PageConfiguration(
     key: 'WebView',
     path: WebViewPath,
     uiPage: Pages.WebView,
+    currentPageAction: null);
+PageConfiguration PdfViewPageConfig = PageConfiguration(
+    key: 'PdfView',
+    path: PdfViewPath,
+    uiPage: Pages.PdfView,
     currentPageAction: null);
 PageConfiguration QrScannerPageConfig = PageConfiguration(
     key: 'QrScanner',
@@ -702,4 +715,19 @@ PageConfiguration AllWalletsViewPageConfig = PageConfiguration(
     key: 'AllWalletsView',
     path: AllWalletsViewPath,
     uiPage: Pages.AllWalletsView,
+    currentPageAction: null);
+PageConfiguration AssetTokenDetailsViewPageConfig = PageConfiguration(
+    key: 'AssetTokenDetailsView',
+    path: AssetTokenDetailsViewPath,
+    uiPage: Pages.AssetTokenDetailsView,
+    currentPageAction: null);
+PageConfiguration ConfirmTokenizationDetailsViewPageConfig = PageConfiguration(
+    key: 'ConfirmTokenizationDetailsView',
+    path: ConfirmTokenizationDetailsViewPath,
+    uiPage: Pages.ConfirmTokenizationDetailsView,
+    currentPageAction: null);
+PageConfiguration TokenizationFeePaymentViewPageConfig = PageConfiguration(
+    key: 'TokenizationFeePaymentView',
+    path: TokenizationFeePaymentViewPath,
+    uiPage: Pages.TokenizationFeePaymentView,
     currentPageAction: null);

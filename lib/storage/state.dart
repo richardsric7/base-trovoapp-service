@@ -5,13 +5,14 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:trovo_wallet/models/deposit_transaction_model.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -185,6 +186,21 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String? activeTokenizationWalletPublicKey;
+  set setActiveTokenizationWalletPublicKey(value) {
+    activeTokenizationWalletPublicKey = value;
+    notifyListeners();
+  }
+
+  String? activeDistributionWalletPublicKey;
+  set setActiveDistributionWalletPublicKey(value) {
+    activeDistributionWalletPublicKey = value;
+    notifyListeners();
+  }
+
+  TokenizedAsset? tokenizedAsset = null;
+  List<TokenizedAsset> tempTokenizedAssetList = [];
+
   String tempUsername = '';
   set setTempUsername(value) {
     tempUsername = value;
@@ -252,6 +268,12 @@ class DataProvider with ChangeNotifier {
   var defaultAssets = [];
   set setDefaultAssets(assets) {
     defaultAssets = assets;
+    notifyListeners();
+  }
+
+  dynamic tokenizationData = {};
+  set setTokenizationData(data) {
+    tokenizationData = data;
     notifyListeners();
   }
 
@@ -441,6 +463,12 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
+      String result = await FCM().getPushNotificationToken();
+
+      var token = result.split('|').first;
+      DateTime createdAt = DateTime.parse(result.split('|').last);
+      var dateDifference = DateTime.now().difference(createdAt);
+
       await updateUserInfo(
         userInfo!.wallets![0].signer,
         secretKeys[0],
@@ -448,7 +476,10 @@ class DataProvider with ChangeNotifier {
         userInfo!.username,
         this,
         forceRefresh: true,
+        pnt: dateDifference.inDays > 10 ? token : null,
       );
+      await getFiatRates(this);
+      print('fiatRates ${fiatRate['NGN']}');
       notifyListeners();
     } catch (e) {
       // print(e);
@@ -637,6 +668,8 @@ class DataProvider with ChangeNotifier {
       return Future.error('Error! ${e}');
     }
   }
+
+  String? pdfUrl;
 
   // view data is where all the data that a particular view needs
   // to do its work is. So when you want to pass any data from one view to

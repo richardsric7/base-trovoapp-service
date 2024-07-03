@@ -207,7 +207,7 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
           .replaceAll(',', ''));
     }
   }
-  return formatNumber(balance);
+  return formatHistoryNumber(double.parse(balance.toString()), 1000000);
 }
 
 Widget buildExpandable(context) {
@@ -470,71 +470,78 @@ Widget iconDropdown(
 }
 
 Widget dropdown(
-  void Function(Object?) onChanged,
-  List<DropdownMenuItem<Object>> items,
-  Object? value,
-  String? hint,
-  BuildContext context,
-  List<Widget> Function(BuildContext)? selectedItemBuilder,
-) {
+    void Function(Object?) onChanged,
+    List<DropdownMenuItem<Object>> items,
+    Object? value,
+    String? hint,
+    BuildContext context,
+    List<Widget> Function(BuildContext)? selectedItemBuilder,
+    {String? Function(Object?)? validator}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: true);
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 5.0),
-    child: DropdownButtonFormField(
-      selectedItemBuilder: selectedItemBuilder,
-      isDense: true,
-      isExpanded: true,
-      hint: Container(
-        // width: 150, //and here
-        child: hint != null
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    hint,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              )
-            : null,
-      ),
-      dropdownColor:
-          notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(10),
+    child: Column(
+      children: [
+        DropdownButtonFormField(
+          selectedItemBuilder: selectedItemBuilder,
+          isDense: true,
+          isExpanded: true,
+          validator: validator,
+          hint: Container(
+            // width: 150, //and here
+            child: hint != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        hint,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  )
+                : null,
+          ),
+          dropdownColor: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            filled: true,
+            fillColor: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          value: value,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: notifier.getbluewhitecolor,
+          ),
+          elevation: 0,
+          style: TextStyle(
+            color: notifier.getbluewhitecolor,
+            fontSize: 15,
+            fontFamily: fontsemibold,
+            fontWeight: FontWeight.w500,
+          ),
+          onChanged: onChanged,
+          items: items,
         ),
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor:
-            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
-      ),
-      value: value,
-      icon: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: notifier.getbluewhitecolor,
-      ),
-      elevation: 0,
-      style: TextStyle(
-        color: notifier.getbluewhitecolor,
-        fontSize: 15,
-        fontFamily: fontsemibold,
-        fontWeight: FontWeight.w500,
-      ),
-      onChanged: onChanged,
-      items: items,
+      ],
     ),
   );
 }
@@ -688,7 +695,7 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
     elevation: notifier.isDark ? 0 : 3,
     shadowColor: Colors.black,
     color: notifier.gettilewihitecolor,
-    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
@@ -705,14 +712,18 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width / 1.2,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      value,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),

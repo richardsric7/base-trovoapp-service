@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -9,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -45,6 +48,9 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    var tokenizedAsset = appState.tokenizedAsset!;
+    var amount = appState.viewData!['amount'];
+    var quantity = appState.viewData!['quantity'];
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -54,7 +60,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Buy Atlantis 1',
+              'Buy ${tokenizedAsset.assetName}',
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
@@ -91,7 +97,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '2 Tokens',
+                        '${quantity} ${tokenizedAsset.assetCode} Tokens',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -104,7 +110,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        'of Atlantis Asset',
+                        'of [${tokenizedAsset.assetName}] Asset',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -130,7 +136,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '200 TROV',
+                        '${amount} ${tokenizedAsset.assetQuoteCurrency}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -139,24 +145,24 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        '\$0.20',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
+                      // SizedBox(
+                      //   height: height / 70,
+                      // ),
+                      // Text(
+                      //   '\$0.20',
+                      //   textAlign: TextAlign.center,
+                      //   style: TextStyle(
+                      //     fontSize: 14,
+                      //     height: 1.4,
+                      //     fontFamily: fontbody,
+                      //     color: notifier.getbluewhitecolor,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: height / 30,
                       ),
                       Text(
-                        'pay with',
+                        'Pay with',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -171,15 +177,23 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset(
-                            'assets/images/trovo.png',
-                            height: height / 30,
+                          Image.memory(
+                            base64Decode(tokenizedAsset.assetLogo!),
+                            height: 35,
+                            width: 35,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                height: 35,
+                                width: 35,
+                              );
+                            },
                           ),
                           SizedBox(
                             width: width / 30,
                           ),
                           Text(
-                            'Efizee',
+                            '${appState.activeWallet!.alias}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -205,11 +219,21 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
               'Confirm Payment',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {
+              onTap: () async {
+                tokenizedAsset.amount = amount;
+                var wallet = appState.activeWallet!;
+                if (wallet.tokenizedAssets == null) {
+                  wallet.tokenizedAssets = [];
+                }
+
+                wallet.tokenizedAssets!.add(tokenizedAsset);
+                showLoader(context);
+                await Future.delayed(Duration(seconds: 5));
+                hideLoader(context);
                 appState.viewData![SuccessViewPageConfig.key] = {
                   'title': 'Purchase Successful',
                   'message':
-                      'Your purchase of [Atlantis 1] tokens was successful.',
+                      'Your purchase of [${tokenizedAsset.assetName} (${tokenizedAsset.assetCode})] tokens was successful.',
                 };
                 appState.currentAction = PageAction(
                     state: PageState.replace, page: SuccessViewPageConfig);

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:trovo_wallet/functions/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -361,6 +363,109 @@ Future<Map> makePutRequestForMultipartFile({
     request.files.add(await http.MultipartFile.fromPath(
         'profilePicture', multipartFilePath,
         contentType: MediaType('image', 'jpeg')));
+    var response = await request.send();
+    var responseString = await response.stream.bytesToString();
+    print("The statucode is: ${response.statusCode}");
+    print("The Response Body is: ${responseString}");
+
+    return {
+      'statusCode': response.statusCode,
+      'data': responseString,
+    };
+  } on SocketException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print('No Internet connection 😑');
+    // return {'statusCode': 505, 'data': 'No Internet connection'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "SocketException",
+      "message": "No Internet connection"
+    };
+    return {'statusCode': 505, 'data': errorResponse};
+  } on HttpException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print("Couldn't find the post 😱");
+    // return {'statusCode': 505, 'data': "Couldn't find the post. Try again"};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "HttpException",
+      "message": "Couldn't find the post"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on FormatException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print("Bad response format 👎");
+    // return {'statusCode': 505, 'data': 'Bad response format'};
+
+    Map errorResponse = {
+      "data": "$e",
+      "error": "FormatException",
+      "message": "Bad response format"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on TimeoutException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    print("Request Time Out");
+    // return {'statusCode': 505, 'data': 'Request Time Out'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "TimeoutException",
+      "message": "Request Time Out"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on Exception catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // return {'statusCode': 505, 'data': 'Request failed. Try again'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "UnknownException",
+      "message": "Unknown error. Try again"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  }
+}
+
+Future<Map> makePutRequestForMultipartDocumentUpload({
+  required String uri,
+  required String signer,
+  required String secretKey,
+  required String publicKey,
+  required PlatformFile file,
+  required String tokenizedAssetId,
+  required int documentType,
+  required String documentTitle,
+}) async {
+  Map<String, String> headers = await getRequestHeader(
+    uri: uri,
+    signer: signer,
+    secretKey: secretKey,
+    publicKey: publicKey,
+  );
+
+  //print('frist body: $body, pubkey: $publicKey, url: $baseUrlTest$uri');
+
+  try {
+    var request = await http.MultipartRequest(
+        'PUT', Uri.parse(await getTrovoAppBaseURL() + uri));
+    Map<String, String> map = {
+      "tokenizedAssetID": tokenizedAssetId,
+      "documentType": documentType.toString(),
+      "documentTitle": documentTitle,
+    };
+    print('mappppppppppp $map');
+    request.headers.addAll(headers);
+    request.fields.addAll(map);
+    final mimeType = lookupMimeType(file.path!);
+    final contentType = mimeType != null ? MediaType.parse(mimeType) : null;
+    request.files.add(await http.MultipartFile.fromPath(
+      'documentFile',
+      file.path!,
+      contentType: contentType,
+    ));
     var response = await request.send();
     var responseString = await response.stream.bytesToString();
     print("The statucode is: ${response.statusCode}");

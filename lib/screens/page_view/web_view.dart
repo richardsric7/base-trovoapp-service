@@ -44,6 +44,9 @@ class TrovoWebViewState extends State<TrovoWebView> {
     if (Platform.isAndroid) WebView.platform = AndroidWebView();
   }
 
+  // Reference to webview controller
+  WebViewController? _controller;
+
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
@@ -69,14 +72,28 @@ class TrovoWebViewState extends State<TrovoWebView> {
                     isLoading = true;
                   })
                 },
-                onPageFinished: (value) => {
-                  print('finished loading.$value'),
+                onWebViewCreated: (WebViewController webViewController) {
+                  // Get reference to WebView controller to access it globally
+                  _controller = webViewController;
+                },
+                onPageFinished: (value) {
+                  print('finished loading.$value');
                   setState(() {
                     print('setting state...');
                     isLoading = false;
                     hideLoader(context);
-                  })
+                  });
+
+                  // In the final result page we check the url to make sure  it is the last page.if (url.contains('/finalresponse.html')) {
+                  _controller?.runJavascript('''
+                        const pdfjs = require('pdfs-dist');
+                        pdfjs.getPdfInfo('(link unavailable)', (info) => {
+                          console.log(info);
+                        });
+
+                      ''');
                 },
+                onWebResourceError: (error) => {print('error $error')},
               ),
               if (isLoading) ...[
                 Container(
