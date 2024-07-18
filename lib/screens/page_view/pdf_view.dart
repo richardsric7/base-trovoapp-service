@@ -50,7 +50,7 @@ class _PdfViewerState extends State<PdfViewer> {
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    getFileFromUrl(appState.viewData!['pdfUrl'].toString())
+    getFileFromUrl(appState.pdfUrl!)
         .then(
           (value) => {
             setState(() {
@@ -194,5 +194,11 @@ class _PdfViewerState extends State<PdfViewer> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    appState.pdfUrl = null;
+    super.dispose();
   }
 }

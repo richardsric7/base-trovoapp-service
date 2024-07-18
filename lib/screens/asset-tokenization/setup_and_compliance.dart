@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -768,184 +767,184 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   ],
                 ),
               ],
-              if (offeringType == 0 && hasCustodianAgreement) ...[
-                SizedBox(
-                  height: height / 15,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        child: Text(
-                          "secapproval".tr(),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: Container(
-                    width: width,
-                    child: Text(
-                      "pleasefillapprovalinfo".tr(),
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Container(
-                    width: width,
-                    child: Text(
-                      "isyourassetapproved".tr(),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        Transform.scale(
-                          scale: 1,
-                          child: Radio<bool>(
-                            value: true,
-                            groupValue: hasSecApproval,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor),
-                            onChanged: (value) => {
-                              setState(
-                                () {
-                                  hasSecApproval = value!;
-                                },
-                              )
-                            },
-                          ),
-                        ),
-                        Text(
-                          "yes".tr(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Transform.scale(
-                          scale: 1,
-                          child: Radio<bool>(
-                            value: false,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor),
-                            groupValue: hasSecApproval,
-                            onChanged: (value) => {
-                              setState(
-                                () {
-                                  hasSecApproval = value!;
-                                },
-                              )
-                            },
-                          ),
-                        ),
-                        Text(
-                          "no".tr(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                if (hasSecApproval) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "secapprovalid".tr(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  CustomTextFormField.textField(
-                    'enterapprovalidnumber'.tr(),
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    notifier.getprefixicon,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70,
-                    350,
-                    initialValue: secApprovalId,
-                    validator: (value) {
-                      if (hasSecApproval && value.isEmpty) {
-                        return "pleaseentersecapprovalid".tr();
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      secApprovalId = value.trim().replaceAll(' ', '');
-                    },
-                  ),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: TextButton(
-                      onPressed: () async {},
-                      child: Text(
-                        "pleaseapplytosec".tr(),
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+              // if (offeringType == 0 && hasCustodianAgreement) ...[
+              //   SizedBox(
+              //     height: height / 15,
+              //   ),
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              //     child: Row(
+              //       children: [
+              //         Container(
+              //           child: Text(
+              //             "secapproval".tr(),
+              //             style: TextStyle(
+              //               fontSize: 18,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              //     child: Container(
+              //       width: width,
+              //       child: Text(
+              //         "pleasefillapprovalinfo".tr(),
+              //         textAlign: TextAlign.left,
+              //         style: TextStyle(
+              //           fontSize: 15,
+              //           fontFamily: fontbody,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              //   SizedBox(
+              //     height: height / 50,
+              //   ),
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 15),
+              //     child: Container(
+              //       width: width,
+              //       child: Text(
+              //         "isyourassetapproved".tr(),
+              //         style: TextStyle(
+              //           fontSize: 13,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              //   Row(
+              //     children: [
+              //       Row(
+              //         children: [
+              //           Transform.scale(
+              //             scale: 1,
+              //             child: Radio<bool>(
+              //               value: true,
+              //               groupValue: hasSecApproval,
+              //               activeColor: notifier.getbluewhitecolor,
+              //               fillColor: MaterialStateColor.resolveWith(
+              //                   (states) => notifier.getbluewhitecolor),
+              //               onChanged: (value) => {
+              //                 setState(
+              //                   () {
+              //                     hasSecApproval = value!;
+              //                   },
+              //                 )
+              //               },
+              //             ),
+              //           ),
+              //           Text(
+              //             "yes".tr(),
+              //             style: TextStyle(
+              //               fontSize: 14,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //       Row(
+              //         children: [
+              //           Transform.scale(
+              //             scale: 1,
+              //             child: Radio<bool>(
+              //               value: false,
+              //               activeColor: notifier.getbluewhitecolor,
+              //               fillColor: MaterialStateColor.resolveWith(
+              //                   (states) => notifier.getbluewhitecolor),
+              //               groupValue: hasSecApproval,
+              //               onChanged: (value) => {
+              //                 setState(
+              //                   () {
+              //                     hasSecApproval = value!;
+              //                   },
+              //                 )
+              //               },
+              //             ),
+              //           ),
+              //           Text(
+              //             "no".tr(),
+              //             style: TextStyle(
+              //               fontSize: 14,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ],
+              //   ),
+              //   SizedBox(
+              //     height: height / 50,
+              //   ),
+              //   if (hasSecApproval) ...[
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 15),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             "secapprovalid".tr(),
+              //             style: TextStyle(
+              //               fontSize: 13,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       height: height / 70,
+              //     ),
+              //     CustomTextFormField.textField(
+              //       'enterapprovalidnumber'.tr(),
+              //       notifier.getbluecolor,
+              //       null,
+              //       notifier.getgrey,
+              //       notifier.getprefixicon,
+              //       notifier.getblck,
+              //       notifier.getgrey,
+              //       70,
+              //       350,
+              //       initialValue: secApprovalId,
+              //       validator: (value) {
+              //         if (hasSecApproval && value.isEmpty) {
+              //           return "pleaseentersecapprovalid".tr();
+              //         }
+              //         return null;
+              //       },
+              //       onSaved: (value) {
+              //         secApprovalId = value.trim().replaceAll(' ', '');
+              //       },
+              //     ),
+              //   ] else ...[
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              //       child: TextButton(
+              //         onPressed: () async {},
+              //         child: Text(
+              //           "pleaseapplytosec".tr(),
+              //           textAlign: TextAlign.left,
+              //           style: TextStyle(
+              //             decoration: TextDecoration.underline,
+              //             fontSize: 13,
+              //             fontFamily: fontsemibold,
+              //             color: notifier.getbluewhitecolor,
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ],
             ],
             SizedBox(
               height: height / 20,
@@ -994,6 +993,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
+      var marketMakingWallet = appState.activeDistributionWalletPublicKey!;
       // var newData = {...data as Map};
 
       // newData["assetSector"] = selectedAssetSectorId;
@@ -1019,7 +1019,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "approvedAssetCustodianId": selectedAssetCustodian.length > 0
             ? int.parse(selectedAssetCustodian)
             : 1,
-        // "marketMakingWallet": marketMakingWallet.publicKey,
+        "marketMakingWallet": marketMakingWallet,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
         "assetCountryLocation": selectedCountry,
@@ -1039,7 +1039,25 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
-        appState.viewData = responseData['data'];
+        if (appState.viewData != null) {
+          var newData = {...appState.viewData!};
+          newData["assetSector"] = selectedAssetSectorId;
+          newData["assetSubSector"] = selectedAssetSubSectorId;
+          newData["assetType"] = selectedAssetTypeId;
+          newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
+          newData["approvedAssetCustodianId"] =
+              selectedAssetCustodian.length > 0
+                  ? int.parse(selectedAssetCustodian)
+                  : 1;
+          newData["marketMakingWallet"] = marketMakingWallet;
+          newData["secApproval"] = hasSecApproval ? 1 : 0;
+          newData["secApprovalIdNumber"] = secApprovalId;
+          newData["assetCountryLocation"] = selectedCountry;
+          appState.viewData = newData;
+        } else {
+          appState.viewData = responseData['data'];
+        }
+
         appState.currentAction = PageAction(
             state: PageState.addPage, page: TokenizeAssetViewPageConfig);
       } else {

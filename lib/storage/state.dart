@@ -5,6 +5,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:trovo_wallet/models/deposit_transaction_model.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
@@ -192,6 +193,15 @@ class DataProvider with ChangeNotifier {
     activeTokenizationWalletPublicKey = value;
     notifyListeners();
   }
+
+  String? activeDistributionWalletPublicKey;
+  set setActiveDistributionWalletPublicKey(value) {
+    activeDistributionWalletPublicKey = value;
+    notifyListeners();
+  }
+
+  TokenizedAsset? tokenizedAsset = null;
+  List<TokenizedAsset> tempTokenizedAssetList = [];
 
   String tempUsername = '';
   set setTempUsername(value) {
@@ -660,6 +670,8 @@ class DataProvider with ChangeNotifier {
       return Future.error('Error! ${e}');
     }
   }
+
+  String? pdfUrl;
 
   // view data is where all the data that a particular view needs
   // to do its work is. So when you want to pass any data from one view to

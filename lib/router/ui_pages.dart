@@ -103,6 +103,9 @@ const String MarketTradeInfoViewPath = '/MarketTradeInfoView';
 const String MarketPairsViewPath = '/MarketPairsView';
 const String SetupAndComplianceViewPath = '/SetupAndComplianceView';
 const String AllWalletsViewPath = '/AllWallets';
+const String AssetTokenDetailsViewPath = '/AssetTokenDetails';
+const String ConfirmTokenizationDetailsViewPath = '/ConfirmTokenizationDetails';
+const String TokenizationFeePaymentViewPath = '/TokenizationFeePayment';
 
 enum Pages {
   Splash,
@@ -208,6 +211,9 @@ enum Pages {
   MarketPairsView,
   SetupAndComplianceView,
   AllWalletsView,
+  AssetTokenDetailsView,
+  ConfirmTokenizationDetailsView,
+  TokenizationFeePaymentView
 }
 
 class PageConfiguration {
@@ -709,4 +715,19 @@ PageConfiguration AllWalletsViewPageConfig = PageConfiguration(
     key: 'AllWalletsView',
     path: AllWalletsViewPath,
     uiPage: Pages.AllWalletsView,
+    currentPageAction: null);
+PageConfiguration AssetTokenDetailsViewPageConfig = PageConfiguration(
+    key: 'AssetTokenDetailsView',
+    path: AssetTokenDetailsViewPath,
+    uiPage: Pages.AssetTokenDetailsView,
+    currentPageAction: null);
+PageConfiguration ConfirmTokenizationDetailsViewPageConfig = PageConfiguration(
+    key: 'ConfirmTokenizationDetailsView',
+    path: ConfirmTokenizationDetailsViewPath,
+    uiPage: Pages.ConfirmTokenizationDetailsView,
+    currentPageAction: null);
+PageConfiguration TokenizationFeePaymentViewPageConfig = PageConfiguration(
+    key: 'TokenizationFeePaymentView',
+    path: TokenizationFeePaymentViewPath,
+    uiPage: Pages.TokenizationFeePaymentView,
     currentPageAction: null);

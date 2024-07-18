@@ -128,17 +128,14 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 30,
             ),
             Button(
-              "completetokenization".tr(),
+              "proceed".tr(),
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {
-                appState.viewData![SuccessViewPageConfig.key] = {
-                  'title': '',
-                  'message':
-                      'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
-                };
+              onTap: () async {
                 appState.currentAction = PageAction(
-                    state: PageState.replace, page: SuccessViewPageConfig);
+                  state: PageState.addPage,
+                  page: ConfirmTokenizationDetailsViewPageConfig,
+                );
               },
             ),
             SizedBox(
