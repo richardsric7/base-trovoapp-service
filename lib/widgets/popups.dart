@@ -6235,7 +6235,7 @@ showCreateTokenizationWalletPopup(context) async {
                           width: 250,
                         ),
                         Text(
-                          "toproceedwithotp".tr(),
+                          "toproceedwithtokenization".tr(),
                           textAlign: TextAlign.justify,
                           style: TextStyle(
                             fontSize: 13,

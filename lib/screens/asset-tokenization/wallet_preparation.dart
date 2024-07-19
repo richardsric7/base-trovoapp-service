@@ -118,7 +118,7 @@ class _WalletPreparationState extends State<WalletPreparation>
                   return;
                 }
 
-                appState.viewData = null;
+                appState.viewData = {};
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: SetupAndComplianceViewPageConfig);

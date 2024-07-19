@@ -94,7 +94,6 @@ class _BackupState extends State<Backup> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  state.backupSecrets.clear();
                   gotoNext();
                 },
               ),
@@ -126,7 +125,9 @@ class _BackupState extends State<Backup> {
 
   gotoNext() async {
     if ((state.returnView != null && state.returnView!.pages != null) &&
-        state.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+            state.returnView!.pages!
+                .contains(WalletPreparationViewPageConfig) ||
+        state.backupSecrets.length > 1) {
       state.currentAction = PageAction(
           state: PageState.addPage, page: SharedAccessViewPageConfig);
     } else if (state.isFirstTime) {
