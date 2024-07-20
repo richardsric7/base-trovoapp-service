@@ -56,6 +56,7 @@ class CustomTextFormField {
     keyboardtype,
     helperText,
     inputFormatters,
+    focusNode,
     controller,
     buildCounter,
     readOnly = false,
@@ -111,6 +112,7 @@ class CustomTextFormField {
         controller: controller,
         onSaved: onSaved,
         onTap: onTap,
+        focusNode: focusNode,
         buildCounter: buildCounter,
       ),
     );

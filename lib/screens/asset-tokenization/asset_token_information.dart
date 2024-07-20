@@ -424,6 +424,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                               : 0;
                           totalTokenHeldByManager =
                               numberOfTokenToBeIssued - numberOfTokenToBeSold;
+
+                          pricePerToken = (double.parse(
+                                  data['assetCurrentValue'].toString()) /
+                              numberOfTokenToBeIssued);
                         });
                       },
                       onSaved: (value) {

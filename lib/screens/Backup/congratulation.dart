@@ -74,7 +74,7 @@ class _Congratulations extends State<Congratulations> {
                     context,
                     () {
                       Navigator.of(context).pop();
-                      appState.viewData![EnsurePrivacyPageConfig.key] = null;
+                      appState.viewData?[EnsurePrivacyPageConfig.key] = null;
                       appState.currentAction = PageAction(
                           state: PageState.addPage,
                           page: EnsurePrivacyPageConfig);
