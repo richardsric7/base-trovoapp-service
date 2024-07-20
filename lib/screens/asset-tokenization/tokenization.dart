@@ -382,6 +382,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                           page:
                                               ConfirmTokenizationDetailsViewPageConfig,
                                         );
+                                        // appState.viewData = records[i];
+                                        // appState.activeTokenizationWalletPublicKey =
+                                        //     appState.viewData![
+                                        //         'issuingWalletPublicKey'];
+                                        // appState.currentAction = PageAction(
+                                        //   state: PageState.addPage,
+                                        //   page:
+                                        //       SetupAndComplianceViewPageConfig,
+                                        // );
                                       },
                                       child: assetTile(
                                         records[i].assetLogo ?? '',
@@ -682,6 +691,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         var a = TokenizedAsset().deserializeJson(savedAssets[i]);
         a.usdPrice = 1.47;
         a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+        a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+            a.numberOfTokenToBeIssued!);
         tokenizedAssets.add(a);
       }
     }

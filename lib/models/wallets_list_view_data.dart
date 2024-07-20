@@ -13,4 +13,9 @@ class WalletsListViewData {
 
 enum WalletAction { import, createNew }
 
-enum WalletView { listWallets, addSubWallet, confirmAddSubWallet }
+enum WalletView {
+  listWallets,
+  addSubWallet,
+  confirmAddSubWallet,
+  addDistributionWallet
+}

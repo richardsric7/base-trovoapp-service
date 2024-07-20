@@ -890,10 +890,14 @@ Widget getDrawer(
           ),
           onTap: () {
             Navigator.pop(context);
+            appState.backupSecrets = [
+              appState.secretKeys[appState.secretKeys.length - 4],
+              appState.secretKeys[appState.secretKeys.length - 3],
+            ];
             appState.currentAction = PageAction(
               state: PageState.addPage,
               page: appState.introducedSharedAccess
-                  ? WelcomeToSharedAccessViewPageConfig
+                  ? SharedAccessViewPageConfig
                   : WelcomeToSharedAccessViewPageConfig,
             );
           },
@@ -998,7 +1002,12 @@ Widget getDrawer(
           onTap: () {
             // go to the definition of appState.viewData
             // to learn more about viewData
-            appState.viewData![EnsurePrivacyPageConfig.key] = {
+            if (appState.viewData?[EnsurePrivacyPageConfig.key] == null) {
+              appState.viewData = {
+                EnsurePrivacyPageConfig.key: {},
+              };
+            }
+            appState.viewData?[EnsurePrivacyPageConfig.key] = {
               'rel': 'backupAll',
             };
             appState.currentAction = PageAction(

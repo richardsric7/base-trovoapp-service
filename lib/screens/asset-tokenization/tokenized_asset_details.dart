@@ -243,11 +243,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
-                    label: 'Price Per Asset',
-                    value:
-                        '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-                    extraValue:
-                        '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}'),
+                  label: 'Price Per Asset',
+                  value:
+                      '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
+                  extraValue: '',
+                ),
+                // '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}'),
                 SizedBox(
                   width: width / 50,
                 ),

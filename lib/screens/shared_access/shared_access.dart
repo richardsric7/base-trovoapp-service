@@ -11,6 +11,7 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/permission.dart';
 import 'package:trovo_wallet/models/wallet.dart';
@@ -43,7 +44,7 @@ class _SharedAccessState extends State<SharedAccess>
   late RefreshController _refreshController;
   List<Wallet>? shareableWallets;
   Wallet? activeWallet;
-  dynamic selectedWallet = '';
+  String selectedWallet = '';
   dynamic selectedFilter = 'All';
   List<String> accessTypes = ['Viewer', 'Approver'];
   List<String> filter = ['All', 'Viewer', 'Initiator', 'Approver'];
@@ -62,6 +63,7 @@ class _SharedAccessState extends State<SharedAccess>
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
   var userFullnames = {};
+  var sharedAccessWalletsRecord = [];
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
   ApprovalsListFilterType filterType =
@@ -220,6 +222,8 @@ class _SharedAccessState extends State<SharedAccess>
     getdarkmodepreviousstate();
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
+    shareableWallets = appState.userInfo!.getShareableWallets;
+    activeWallet = appState.activeWallet;
     appState.totalRecords = 0;
     appState.filterTransactionStatus = 'Pending';
     appState.filterQuery = "&transactionStatus=PENDING";
@@ -228,13 +232,26 @@ class _SharedAccessState extends State<SharedAccess>
       query: appState.filterQuery,
     );
     appState.sharedAccesstabController = TabController(length: 3, vsync: this);
+    selectedWallet = shareableWallets!.first.publicKey!;
+
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
-        appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+            appState.returnView!.pages!
+                .contains(WalletPreparationViewPageConfig) ||
+        appState.backupSecrets.length > 1) {
       appState.clearAccessList = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         appState.sharedAccesstabController.animateTo(2,
             duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
       });
+
+      if (appState.backupSecrets.isNotEmpty) {
+        Account account =
+            TrovoWalletSDK().parseSecretKey(appState.backupSecrets.first);
+        activeWallet = shareableWallets!
+            .where((wallet) => wallet.publicKey == account.publicKey)
+            .first;
+        selectedWallet = account.publicKey;
+      }
     }
   }
 
@@ -245,7 +262,10 @@ class _SharedAccessState extends State<SharedAccess>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     shareableWallets = appState.userInfo!.getShareableWallets;
-    activeWallet = appState.activeWallet;
+    if (shareableWallets!.where((w) => w.publicKey == selectedWallet).isEmpty) {
+      print('isempty');
+      selectedWallet = shareableWallets!.first.publicKey!;
+    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -1491,16 +1511,42 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   void submitSharedAccessForm() {
+    sharedAccessWalletsRecord.add({
+      'viewers': viewers,
+      'addApprovers': addApprovers,
+      'approvers': approvers,
+      'noOfApprovers': addApprovers ? noOfApprovers : 0,
+      'noOfApprovalsNeeded': addApprovers ? noOfApprovalsNeeded : 0,
+      'initiators': initiators,
+      'userFullnames': userFullnames,
+      'wallet': activeWallet,
+    });
+
+    if (appState.backupSecrets.length > 1 &&
+        sharedAccessWalletsRecord.length == 1) {
+      setState(() {
+        viewers.clear();
+        addApprovers = false;
+        approvers.clear();
+        initiators.clear();
+        userFullnames.clear();
+        currentStep = 0;
+      });
+      Account account =
+          TrovoWalletSDK().parseSecretKey(appState.backupSecrets.last);
+      activeWallet = shareableWallets!
+          .where((wallet) => wallet.publicKey == account.publicKey)
+          .first;
+      selectedWallet = account.publicKey;
+      popup(context,
+          title: 'Important',
+          message:
+              'Continue to add shared access to your new distribution wallet.');
+      return;
+    }
+
     appState.viewData = {
-      AddSharedAccessDetailsViewPageConfig.key: {
-        'viewers': viewers,
-        'addApprovers': addApprovers,
-        'approvers': approvers,
-        'noOfApprovers': addApprovers ? noOfApprovers : 0,
-        'noOfApprovalsNeeded': addApprovers ? noOfApprovalsNeeded : 0,
-        'initiators': initiators,
-        'userFullnames': userFullnames,
-      }
+      AddSharedAccessDetailsViewPageConfig.key: sharedAccessWalletsRecord,
     };
 
     appState.currentAction = PageAction(
@@ -1760,7 +1806,6 @@ class _SharedAccessState extends State<SharedAccess>
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
-
         if (activeWallet!.isPrimaryWallet || activeWallet!.walletType == 2) ...[
           // show nothing...
         ] else ...[
@@ -2599,7 +2644,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,
                 ),
-                value: shareableWallets!.first.publicKey,
+                value: selectedWallet,
                 icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
                   color: notifier.getbluewhitecolor,
@@ -2613,7 +2658,7 @@ class _SharedAccessState extends State<SharedAccess>
                 onChanged: (newValue) {
                   setState(() {
                     selectedWallet = newValue!;
-                    appState.activeWallet = shareableWallets!
+                    activeWallet = shareableWallets!
                         .firstWhere((wallet) => wallet.publicKey == newValue);
                     addApprovers = false;
                     initiators = [];
