@@ -104,8 +104,10 @@ class _Congratulations extends State<Congratulations> {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: FingerprintPageConfig);
     } else if ((appState.returnView != null &&
-            appState.returnView!.pages != null) &&
-        appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+                appState.returnView!.pages != null) &&
+            appState.returnView!.pages!
+                .contains(WalletPreparationViewPageConfig) ||
+        appState.backupSecrets.length > 1) {
       appState.currentAction = PageAction(
           state: PageState.addPage, page: SharedAccessViewPageConfig);
     } else {

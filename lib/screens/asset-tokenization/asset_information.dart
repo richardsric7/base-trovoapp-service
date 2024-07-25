@@ -924,53 +924,53 @@ class _AssetInformation extends State<AssetInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "currentvalueofasset".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: currentValueOfAsset.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          if (value.toString().isEmpty) {
-                            currentValueOfAsset = 0;
-                            return;
-                          }
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "currentvalueofasset".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         width / 1.12,
+              //         initialValue: currentValueOfAsset.toString(),
+              //         onChanged: (value) {
+              //           setState(() {
+              //             if (value.toString().isEmpty) {
+              //               currentValueOfAsset = 0;
+              //               return;
+              //             }
 
-                          currentValueOfAsset = double.parse(value!.toString());
-                          valueOfTokenizedAsset =
-                              (tokenizedPercentage / 100) * currentValueOfAsset;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        currentValueOfAsset = double.parse(value!.toString());
-                      },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
+              //             currentValueOfAsset = double.parse(value!.toString());
+              //             valueOfTokenizedAsset =
+              //                 (tokenizedPercentage / 100) * currentValueOfAsset;
+              //           });
+              //         },
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           currentValueOfAsset = double.parse(value!.toString());
+              //         },
+              //         keyboardtype: TextInputType.numberWithOptions(
+              //           decimal: true,
+              //           signed: true,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
               Row(
                 children: [
                   Padding(

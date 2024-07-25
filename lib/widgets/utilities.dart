@@ -890,10 +890,6 @@ Widget getDrawer(
           ),
           onTap: () {
             Navigator.pop(context);
-            appState.backupSecrets = [
-              appState.secretKeys[appState.secretKeys.length - 4],
-              appState.secretKeys[appState.secretKeys.length - 3],
-            ];
             appState.currentAction = PageAction(
               state: PageState.addPage,
               page: appState.introducedSharedAccess

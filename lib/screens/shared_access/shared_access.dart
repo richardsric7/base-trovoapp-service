@@ -262,8 +262,8 @@ class _SharedAccessState extends State<SharedAccess>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     shareableWallets = appState.userInfo!.getShareableWallets;
+
     if (shareableWallets!.where((w) => w.publicKey == selectedWallet).isEmpty) {
-      print('isempty');
       selectedWallet = shareableWallets!.first.publicKey!;
     }
 
@@ -2645,27 +2645,31 @@ class _SharedAccessState extends State<SharedAccess>
                       : notifier.getaddsubwalletgrey,
                 ),
                 value: selectedWallet,
-                icon: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: notifier.getbluewhitecolor,
-                ),
+                icon: appState.backupSecrets.length > 1
+                    ? null
+                    : Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: notifier.getbluewhitecolor,
+                      ),
                 elevation: 0,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontSize: 15.sp,
                     fontFamily: fontsemibold,
                     fontWeight: FontWeight.w500),
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedWallet = newValue!;
-                    activeWallet = shareableWallets!
-                        .firstWhere((wallet) => wallet.publicKey == newValue);
-                    addApprovers = false;
-                    initiators = [];
-                    approvers = [];
-                    viewers = [];
-                  });
-                },
+                onChanged: appState.backupSecrets.length > 1
+                    ? null
+                    : (newValue) {
+                        setState(() {
+                          selectedWallet = newValue?.toString() ?? '';
+                          activeWallet = shareableWallets!.firstWhere(
+                              (wallet) => wallet.publicKey == newValue);
+                          addApprovers = false;
+                          initiators = [];
+                          approvers = [];
+                          viewers = [];
+                        });
+                      },
                 items: walletDropdownItems,
               ),
             ),

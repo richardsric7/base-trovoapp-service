@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -60,8 +59,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-    print(appState.viewData);
-    if (data != null) {
+    if (data != null && data.isNotEmpty) {
       selectedAssetSectorId = data!["assetSector"];
       selectedAssetSubSectorId = data!["assetSubSector"];
       selectedAssetTypeId = data!["assetType"];
@@ -1039,24 +1037,21 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
-        if (appState.viewData != null) {
-          var newData = {...appState.viewData!};
-          newData["assetSector"] = selectedAssetSectorId;
-          newData["assetSubSector"] = selectedAssetSubSectorId;
-          newData["assetType"] = selectedAssetTypeId;
-          newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
-          newData["approvedAssetCustodianId"] =
-              selectedAssetCustodian.length > 0
-                  ? int.parse(selectedAssetCustodian)
-                  : 1;
-          newData["marketMakingWallet"] = marketMakingWallet;
-          newData["secApproval"] = hasSecApproval ? 1 : 0;
-          newData["secApprovalIdNumber"] = secApprovalId;
-          newData["assetCountryLocation"] = selectedCountry;
-          appState.viewData = newData;
-        } else {
-          appState.viewData = responseData['data'];
-        }
+        appState.viewData = responseData['data'];
+
+        appState.viewData!["assetSector"] = selectedAssetSectorId;
+        appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
+        appState.viewData!["assetType"] = selectedAssetTypeId;
+        appState.viewData!["offeringType"] =
+            offeringType == 1 ? 'private' : 'public';
+        appState.viewData!["approvedAssetCustodianId"] =
+            selectedAssetCustodian.length > 0
+                ? int.parse(selectedAssetCustodian)
+                : 1;
+        appState.viewData!["marketMakingWallet"] = marketMakingWallet;
+        appState.viewData!["secApproval"] = hasSecApproval ? 1 : 0;
+        appState.viewData!["secApprovalIdNumber"] = secApprovalId;
+        appState.viewData!["assetCountryLocation"] = selectedCountry;
 
         appState.currentAction = PageAction(
             state: PageState.addPage, page: TokenizeAssetViewPageConfig);

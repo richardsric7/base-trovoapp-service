@@ -4848,7 +4848,6 @@ Future sendFullDataToServer(
       responseBody['transaction'],
       responseBody['networkPassPhrase'],
     );
-    print('secret key here... ${subWallet.secretKey}');
 
     // get secondary signature
     var subWalletSignature = TrovoWalletSDK().signBase64Txn(
@@ -5059,6 +5058,8 @@ addSubWalletPopup(context) async {
     }
 
     if (password == appState.password!) {
+      appState.backupSecrets.clear();
+      print('fklasd ${appState.backupSecrets}');
       await sendDataToServer(context, newSubWalletKeyPair,
           newDistributionWalletKeyPair, primaryWalletKeyPair);
     } else {
@@ -5070,6 +5071,8 @@ addSubWalletPopup(context) async {
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
+        appState.backupSecrets.clear();
+        print('fklasd ${appState.backupSecrets}');
         await sendDataToServer(
           context,
           newSubWalletKeyPair,

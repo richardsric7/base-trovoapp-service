@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -673,7 +674,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         publicKey: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
-        print('success');
+        inspect(responseData['data']);
         appState.tokenizationData = responseData['data'];
       }
     } catch (e) {
