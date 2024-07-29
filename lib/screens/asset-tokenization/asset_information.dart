@@ -39,11 +39,11 @@ class _AssetInformation extends State<AssetInformation>
   late double latitude;
   late double longitude;
   late String nameOfOwner;
+  late String assetName;
   late String addressOfOwner;
   late String assetManager;
   late String assetManagerAddress;
   late double currentValueOfAsset;
-  late double tokenizedPercentage;
   late double valueOfTokenizedAsset;
   late List<String> assetProtectionInPlace;
   late String insuranceCompanyName;
@@ -95,6 +95,7 @@ class _AssetInformation extends State<AssetInformation>
         data['ownershipType'].isNotEmpty ? data['ownershipType'] : 'DIRECT';
     thirdPartyOwnerType =
         data['ownershipKind'].isNotEmpty ? data['ownershipKind'] : 'INDIVIDUAL';
+    assetName = data['assetName'];
     assetDescription = data['assetDescription'];
     assetPhysicalAddress = data['assetPhysicalAddress'];
     latitude = double.tryParse(data['assetLatitude']) ?? 0;
@@ -104,8 +105,6 @@ class _AssetInformation extends State<AssetInformation>
     assetManager = data['assetManagerName'];
     assetManagerAddress = data['assetManagerAddress'];
     currentValueOfAsset = double.parse(data['assetCurrentValue'].toString());
-    tokenizedPercentage =
-        double.parse(data['assetPercentageForTokenization'].toString());
     valueOfTokenizedAsset =
         double.parse(data['valueOfTokenizedAsset'].toString());
     assetProtectionInPlace = data['protectionMethods'].toString().isEmpty
@@ -222,6 +221,60 @@ class _AssetInformation extends State<AssetInformation>
                     ],
                   ),
                 ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "assetname".tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "assetname".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      width / 1.12,
+                      initialValue: assetPhysicalAddress,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
               ),
               Row(
                 children: [
@@ -924,77 +977,12 @@ class _AssetInformation extends State<AssetInformation>
               SizedBox(
                 height: height / 50,
               ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "currentvalueofasset".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         width / 1.12,
-              //         initialValue: currentValueOfAsset.toString(),
-              //         onChanged: (value) {
-              //           setState(() {
-              //             if (value.toString().isEmpty) {
-              //               currentValueOfAsset = 0;
-              //               return;
-              //             }
-
-              //             currentValueOfAsset = double.parse(value!.toString());
-              //             valueOfTokenizedAsset =
-              //                 (tokenizedPercentage / 100) * currentValueOfAsset;
-              //           });
-              //         },
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           currentValueOfAsset = double.parse(value!.toString());
-              //         },
-              //         keyboardtype: TextInputType.numberWithOptions(
-              //           decimal: true,
-              //           signed: true,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "tokenizedpercentage".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "percentagetobetokenized".tr(),
+                      "currentvalueofasset".tr(),
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -1003,17 +991,16 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: tokenizedPercentage.toString(),
+                      initialValue: currentValueOfAsset.toString(),
                       onChanged: (value) {
                         setState(() {
                           if (value.toString().isEmpty) {
-                            tokenizedPercentage = 0;
+                            currentValueOfAsset = 0;
                             return;
                           }
 
-                          tokenizedPercentage = double.parse(value!.toString());
-                          valueOfTokenizedAsset =
-                              (tokenizedPercentage / 100) * currentValueOfAsset;
+                          currentValueOfAsset = double.parse(value!.toString());
+                          valueOfTokenizedAsset = currentValueOfAsset;
                         });
                       },
                       validator: (value) {
@@ -1023,11 +1010,7 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        setState(() {
-                          tokenizedPercentage = double.parse(value!.toString());
-                          valueOfTokenizedAsset =
-                              (tokenizedPercentage / 100) * currentValueOfAsset;
-                        });
+                        currentValueOfAsset = double.parse(value!.toString());
                       },
                       keyboardtype: TextInputType.numberWithOptions(
                         decimal: true,
@@ -1086,51 +1069,6 @@ class _AssetInformation extends State<AssetInformation>
                       ),
                     ),
                   )
-                ],
-              ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20),
-              //       child: Container(
-              //         width: 300.sp,
-              //         height: 55.sp,
-              //         decoration: BoxDecoration(
-              //           borderRadius:
-              //               const BorderRadius.all(Radius.circular(15.0)),
-              //           color: notifier.getaddsubwalletgrey,
-              //         ),
-              //         child: Column(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Padding(
-              //               padding: const EdgeInsets.symmetric(horizontal: 10),
-              //               child: Text(
-              //                 valueOfTokenizedAsset.toString(),
-              //                 style: TextStyle(fontSize: 15),
-              //               ),
-              //             ),
-              //             const SizedBox(height: 2),
-              //           ],
-              //         ),
-              //       ),
-              //     )
-              //   ],
-              // ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "valuexpercentage".tr(),
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
                 ],
               ),
               SizedBox(
@@ -1466,6 +1404,7 @@ class _AssetInformation extends State<AssetInformation>
       newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
       newData['ownershipType'] = assetOwnership;
       newData['ownershipKind'] = thirdPartyOwnerType;
+      newData['assetName'] = assetName;
       newData['assetDescription'] = assetDescription;
       newData['assetPhysicalAddress'] = assetPhysicalAddress;
       newData['assetLatitude'] = latitude.toString();
@@ -1475,7 +1414,6 @@ class _AssetInformation extends State<AssetInformation>
       newData['assetManagerName'] = assetManager;
       newData['assetManagerAddress'] = assetManagerAddress;
       newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetPercentageForTokenization'] = tokenizedPercentage;
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;

@@ -889,6 +889,7 @@ Widget getDrawer(
             ),
           ),
           onTap: () {
+            appState.backupSecrets.clear();
             Navigator.pop(context);
             appState.currentAction = PageAction(
               state: PageState.addPage,

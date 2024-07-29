@@ -66,6 +66,7 @@ class _SharedAccessState extends State<SharedAccess>
   var sharedAccessWalletsRecord = [];
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
+  bool isNewTokenizationAndDistributionWallet = false;
   ApprovalsListFilterType filterType =
       ApprovalsListFilterType.TransactionStatus;
   var filterTypesMap = {
@@ -224,6 +225,7 @@ class _SharedAccessState extends State<SharedAccess>
     appState = Provider.of<DataProvider>(context, listen: false);
     shareableWallets = appState.userInfo!.getShareableWallets;
     activeWallet = appState.activeWallet;
+    isNewTokenizationAndDistributionWallet = appState.backupSecrets.length > 1;
     appState.totalRecords = 0;
     appState.filterTransactionStatus = 'Pending';
     appState.filterQuery = "&transactionStatus=PENDING";
@@ -237,7 +239,7 @@ class _SharedAccessState extends State<SharedAccess>
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
             appState.returnView!.pages!
                 .contains(WalletPreparationViewPageConfig) ||
-        appState.backupSecrets.length > 1) {
+        isNewTokenizationAndDistributionWallet) {
       appState.clearAccessList = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         appState.sharedAccesstabController.animateTo(2,
@@ -1467,6 +1469,11 @@ class _SharedAccessState extends State<SharedAccess>
       noOfApprovers = 3;
       addApprovers = false;
       appState.clearAccessList = false;
+      var user = appState.userInfo!;
+      userFullnames[user.username] = '${user.firstName} ${user.lastName}';
+      viewers.add(user.username!);
+      approvers.add(user.username!);
+      initiators.add(user.username!);
     }
     return Column(
       children: [
@@ -1498,7 +1505,7 @@ class _SharedAccessState extends State<SharedAccess>
                   fontFamily: fontsemibold,
                   fontSize: 17.sp)),
           SizedBox(
-            height: height / 30,
+            height: height / 50,
           ),
           Container(
               // height: height / 1.219,
@@ -1522,7 +1529,7 @@ class _SharedAccessState extends State<SharedAccess>
       'wallet': activeWallet,
     });
 
-    if (appState.backupSecrets.length > 1 &&
+    if (isNewTokenizationAndDistributionWallet &&
         sharedAccessWalletsRecord.length == 1) {
       setState(() {
         viewers.clear();
@@ -1552,6 +1559,52 @@ class _SharedAccessState extends State<SharedAccess>
     appState.currentAction = PageAction(
       state: PageState.addPage,
       page: AddSharedAccessDetailsViewPageConfig,
+    );
+  }
+
+  Widget showIfNewTokenizationAndDistWallet() {
+    return Column(
+      children: [
+        if (isNewTokenizationAndDistributionWallet) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 15.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: width / 1.8,
+                          child: Text(
+                            "addsharedaccesstonewtokenizationanddistributionwallet"
+                                .tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                                fontSize: 15.sp),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ]
+      ],
     );
   }
 
@@ -1598,9 +1651,51 @@ class _SharedAccessState extends State<SharedAccess>
 
     return Column(
       children: [
+        showIfNewTokenizationAndDistWallet(),
+        SizedBox(
+          height: height / 30,
+        ),
         chooseWallet(),
         SizedBox(
           height: height / 50,
+        ),
+        Container(
+          width: width / 1.1,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            child: Text(
+              "describevieweraccesspersonal".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 12.sp),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Container(
+          width: width / 1.1,
+          child: Text(
+            "enteraccountsusernameviewers".tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 15.sp),
+          ),
+        ),
+        SizedBox(
+          height: height / 90,
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -1653,44 +1748,6 @@ class _SharedAccessState extends State<SharedAccess>
                 ),
               ],
             ),
-          ),
-        ),
-        SizedBox(
-          height: height / 90,
-        ),
-        Container(
-          width: width / 1.1,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
-          ),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-            child: Text(
-              "describevieweraccesspersonal".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 12.sp),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Container(
-          width: width / 1.1,
-          child: Text(
-            "enteraccountsusernameviewers".tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
           ),
         ),
         SizedBox(
@@ -1910,6 +1967,7 @@ class _SharedAccessState extends State<SharedAccess>
       key: approversFormKey,
       child: Column(
         children: [
+          // showIfNewTokenizationAndDistWallet(),
           SizedBox(
             height: height / 70,
           ),
@@ -2093,6 +2151,40 @@ class _SharedAccessState extends State<SharedAccess>
           SizedBox(
             height: height / 30,
           ),
+          Container(
+            width: width / 1.1,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              child: Text(
+                "describeapproveraccesspersonal".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                    fontSize: 12.sp),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          Container(
+            child: Text(
+              "enteraccountsusernameapprovers".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
             child: Container(
@@ -2146,43 +2238,6 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-            ),
-          ),
-          SizedBox(
-            height: height / 90,
-          ),
-          Container(
-            width: width / 1.1,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-              child: Text(
-                "describeapproveraccesspersonal".tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 12.sp),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
-          Container(
-            child: Text(
-              "enteraccountsusernameapprovers".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
             ),
           ),
           SizedBox(
@@ -2269,6 +2324,7 @@ class _SharedAccessState extends State<SharedAccess>
               userFullnames[username] =
                   '${userInfo['firstName']} ${userInfo['lastName']}';
               approvers.add(username);
+              initiators.add(username);
               approversController.text = '';
               setState(() {});
             },
@@ -2352,6 +2408,43 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Container(
+          width: width / 1.1,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            child: Text(
+              "describeinitiatoraccesspersonal".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 12.sp),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Container(
+          child: Text(
+            "enteraccountsusernameinitiators".tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 15.sp),
+          ),
+        ),
+        SizedBox(
+          height: height / 90,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -2403,43 +2496,6 @@ class _SharedAccessState extends State<SharedAccess>
                 ),
               ],
             ),
-          ),
-        ),
-        SizedBox(
-          height: height / 90,
-        ),
-        Container(
-          width: width / 1.1,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
-          ),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-            child: Text(
-              "describeinitiatoraccesspersonal".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 12.sp),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Container(
-          child: Text(
-            "enteraccountsusernameinitiators".tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
           ),
         ),
         SizedBox(
@@ -2645,7 +2701,7 @@ class _SharedAccessState extends State<SharedAccess>
                       : notifier.getaddsubwalletgrey,
                 ),
                 value: selectedWallet,
-                icon: appState.backupSecrets.length > 1
+                icon: isNewTokenizationAndDistributionWallet
                     ? null
                     : Icon(
                         Icons.keyboard_arrow_down_rounded,
@@ -2657,7 +2713,7 @@ class _SharedAccessState extends State<SharedAccess>
                     fontSize: 15.sp,
                     fontFamily: fontsemibold,
                     fontWeight: FontWeight.w500),
-                onChanged: appState.backupSecrets.length > 1
+                onChanged: isNewTokenizationAndDistributionWallet
                     ? null
                     : (newValue) {
                         setState(() {
@@ -2665,8 +2721,11 @@ class _SharedAccessState extends State<SharedAccess>
                           activeWallet = shareableWallets!.firstWhere(
                               (wallet) => wallet.publicKey == newValue);
                           addApprovers = false;
-                          initiators = [];
-                          approvers = [];
+                          var user = appState.userInfo!;
+                          userFullnames[user.username] =
+                              '${user.firstName} ${user.lastName}';
+                          initiators = [user.username!];
+                          approvers = [user.username!];
                           viewers = [];
                         });
                       },
