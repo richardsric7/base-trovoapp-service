@@ -255,16 +255,16 @@ class UserInfo {
     return mintingWallets;
   }
 
-  List<Wallet> get getMarketMakingWallets {
-    List<Wallet> wallets = [];
-    for (var wallet in this.allWallets) {
-      if (wallet.walletType == 2) {
-        wallets.add(wallet);
-      }
-    }
+  // List<Wallet> get getMarketMakingWallets {
+  //   List<Wallet> wallets = [];
+  //   for (var wallet in this.allWallets) {
+  //     if (wallet.walletType == 2) {
+  //       wallets.add(wallet);
+  //     }
+  //   }
 
-    return wallets;
-  }
+  //   return wallets;
+  // }
 
   List<Wallet> get getStandardWallets {
     List<Wallet> wallets = [];
