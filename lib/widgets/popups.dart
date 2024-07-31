@@ -5011,17 +5011,15 @@ addSubWalletPopup(context) async {
   var appState = Provider.of<DataProvider>(context, listen: false);
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
+  bool isFromTokenizationView =
+      (appState.returnView != null && appState.returnView!.pages != null) &&
+          appState.returnView!.pages!.contains(WalletPreparationViewPageConfig);
   late SubwalletInfo newSubWalletKeyPair = SubwalletInfo(
     publicKey: '',
     secretKey: '',
     tag: '',
     description: '',
-    walletType:
-        ((appState.returnView != null && appState.returnView!.pages != null) &&
-                appState.returnView!.pages!
-                    .contains(WalletPreparationViewPageConfig))
-            ? 1
-            : 0,
+    walletType: isFromTokenizationView ? 1 : 0,
   );
   SubwalletInfo? newDistributionWalletKeyPair = null;
   String password = '';
@@ -5269,7 +5267,7 @@ addSubWalletPopup(context) async {
                 ),
               ),
               Text(
-                "${userInfo.username!}_${newDistributionWalletKeyPair!.tag}",
+                "${userInfo.username!}_${newDistributionWalletKeyPair?.tag}",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -5290,7 +5288,7 @@ addSubWalletPopup(context) async {
                 ),
               ),
               Text(
-                newDistributionWalletKeyPair!.description,
+                newDistributionWalletKeyPair?.description ?? "",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -5357,7 +5355,7 @@ addSubWalletPopup(context) async {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Text(
-                  newDistributionWalletKeyPair!.publicKey,
+                  newDistributionWalletKeyPair?.publicKey ?? "",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -5543,29 +5541,32 @@ addSubWalletPopup(context) async {
                                         Radius.circular(15.0)),
                                   ),
                                   child: dropdown(
-                                    (newValue) async {
-                                      var intValue =
-                                          int.parse(newValue.toString());
-                                      setStateForDialog(() {
-                                        newSubWalletKeyPair.walletType =
-                                            intValue;
+                                    isFromTokenizationView
+                                        ? null
+                                        : (newValue) async {
+                                            var intValue =
+                                                int.parse(newValue.toString());
+                                            setStateForDialog(() {
+                                              newSubWalletKeyPair.walletType =
+                                                  intValue;
 
-                                        if (intValue == 0) {
-                                          newDistributionWalletKeyPair = null;
-                                        }
+                                              if (intValue == 0) {
+                                                newDistributionWalletKeyPair =
+                                                    null;
+                                              }
 
-                                        if (intValue == 1) {
-                                          newDistributionWalletKeyPair =
-                                              SubwalletInfo(
-                                            publicKey: '',
-                                            secretKey: '',
-                                            tag: '',
-                                            description: '',
-                                            walletType: 0,
-                                          );
-                                        }
-                                      });
-                                    },
+                                              if (intValue == 1) {
+                                                newDistributionWalletKeyPair =
+                                                    SubwalletInfo(
+                                                  publicKey: '',
+                                                  secretKey: '',
+                                                  tag: '',
+                                                  description: '',
+                                                  walletType: 0,
+                                                );
+                                              }
+                                            });
+                                          },
                                     walletTypeDropdownItems,
                                     newSubWalletKeyPair.walletType.toString(),
                                     walletTypes[newSubWalletKeyPair.walletType],
@@ -5838,21 +5839,21 @@ addSubWalletPopup(context) async {
                   300,
                   onChanged: (value) {
                     setStateForDialog(() {
-                      newDistributionWalletKeyPair!.tag =
+                      newDistributionWalletKeyPair?.tag =
                           value.trim().replaceAll(' ', '');
                     });
                   },
                   onSaved: (value) {
                     print('tag: $value');
-                    newDistributionWalletKeyPair!.tag =
+                    newDistributionWalletKeyPair?.tag =
                         value.trim().replaceAll(' ', '');
                   },
                   keyboardtype: TextInputType.text,
                   maxLength: 12,
-                  initialValue: newDistributionWalletKeyPair!.tag,
+                  initialValue: newDistributionWalletKeyPair?.tag,
                   validator: validateTag,
                   helperText:
-                      "${appState.userInfo!.username}_${newDistributionWalletKeyPair!.tag}",
+                      "${appState.userInfo!.username}_${newDistributionWalletKeyPair?.tag ?? ""}",
                 ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(
@@ -5865,10 +5866,10 @@ addSubWalletPopup(context) async {
                   notifier.getgrey,
                   70,
                   300,
-                  initialValue: newDistributionWalletKeyPair!.description,
+                  initialValue: newDistributionWalletKeyPair?.description,
                   onSaved: (value) {
                     print('description: $value');
-                    newDistributionWalletKeyPair!.description = value;
+                    newDistributionWalletKeyPair?.description = value;
                   },
                   keyboardtype: TextInputType.text,
                   maxLength: 100,

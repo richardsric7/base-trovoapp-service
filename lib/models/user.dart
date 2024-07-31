@@ -247,7 +247,7 @@ class UserInfo {
   List<Wallet> get getMintingWallets {
     List<Wallet> mintingWallets = [];
     for (var wallet in this.allWallets) {
-      if (wallet.walletType == 1) {
+      if (wallet.walletType == 51) {
         mintingWallets.add(wallet);
       }
     }

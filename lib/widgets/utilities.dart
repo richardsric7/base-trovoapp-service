@@ -470,7 +470,7 @@ Widget iconDropdown(
 }
 
 Widget dropdown(
-    void Function(Object?) onChanged,
+    void Function(Object?)? onChanged,
     List<DropdownMenuItem<Object>> items,
     Object? value,
     String? hint,
@@ -527,10 +527,12 @@ Widget dropdown(
                 : notifier.getaddsubwalletgrey,
           ),
           value: value,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: notifier.getbluewhitecolor,
-          ),
+          icon: onChanged == null
+              ? null
+              : Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: notifier.getbluewhitecolor,
+                ),
           elevation: 0,
           style: TextStyle(
             color: notifier.getbluewhitecolor,
