@@ -5021,15 +5021,20 @@ addSubWalletPopup(context) async {
     description: '',
     walletType: isFromTokenizationView ? 1 : 0,
   );
-  SubwalletInfo? newDistributionWalletKeyPair = null;
+  SubwalletInfo? newDistributionWalletKeyPair = isFromTokenizationView
+      ? SubwalletInfo(
+          publicKey: '',
+          secretKey: '',
+          tag: '',
+          description: '',
+          walletType: 0,
+        )
+      : null;
   String password = '';
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
-  // final descriptionController = TextEditingController();
-  // final tagController = TextEditingController();
-  // FocusNode tagFocusNode = FocusNode();
 
   WalletAction? action = WalletAction.createNew;
   WalletAction? distributionWalletAction = WalletAction.createNew;
@@ -5853,7 +5858,7 @@ addSubWalletPopup(context) async {
                   initialValue: newDistributionWalletKeyPair?.tag,
                   validator: validateTag,
                   helperText:
-                      "${appState.userInfo!.username}_${newDistributionWalletKeyPair?.tag ?? ""}",
+                      "${appState.userInfo!.username}_${newDistributionWalletKeyPair!.tag}",
                 ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(
