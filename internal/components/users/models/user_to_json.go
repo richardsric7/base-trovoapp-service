@@ -141,6 +141,9 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 		if uw.Description != nil {
 			jsonObj.Description = *uw.Description
 		}
+		if uw.LinkedWalletPublicKey != nil {
+			jsonObj.LinkedWalletPublicKey = *uw.LinkedWalletPublicKey
+		}
 
 	}
 	jsonObj.PrimaryWallet = uw.PrimaryWallet

@@ -70,6 +70,7 @@ type UserWallet struct {
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
+	LinkedWalletPublicKey   *string            `json:"linkedWalletPublicKey"`
 }
 
 type WalletPermission struct {
@@ -193,6 +194,8 @@ type Username string
 
 type WalletAlias string
 
+type LinkedWalletPublicKey string
+
 // UserSigner is type for signer Public Key
 type UserSigner string
 
@@ -230,25 +233,6 @@ type TrackedPublicKey struct {
 	PublicKey string `gorm:"primaryKey"`
 }
 
-type SubWalletInfo struct {
-	PublicKey               string   `json:"publicKey"`
-	WalletTag               string   `json:"walletTag"`
-	WalletDescription       string   `json:"walletDescription"`
-	Alias                   string   `json:"alias"`
-	Transaction             string   `json:"transaction"`
-	PrimarySignature        string   `json:"primarySignature"`
-	SubWalletSignature      string   `json:"subWalletSignature"`
-	TransactionID           string   `json:"transactionId"`
-	NetworkPassPhrase       string   `json:"networkPassPhrase"`
-	ChannelAccount          string   `json:"channelAccount"`
-	ChannelAccountSignature string   `json:"channelAccountSignature"`
-	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
-	Messages                []string `json:"messages"`
-	SHash                   string   `json:"sHash"`
-	FeeAmount               string   `json:"feeAmount"`
-	FeeCode                 string   `json:"feeCode"`
-}
 
 type SecurityQuestion struct {
 	ID       uint64

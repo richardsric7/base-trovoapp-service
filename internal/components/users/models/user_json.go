@@ -62,6 +62,7 @@ type UserWalletJSON struct {
 	Permissions             []WalletPermissionJSON `json:"permissions"`
 	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time              `json:"sharedAccessUpdatedAt"`
+	LinkedWalletPublicKey   string                 `json:"linkedWalletPublicKey"`
 }
 
 type WalletPermissionJSON struct {
@@ -99,4 +100,25 @@ type PaginatedAuths struct {
 	TotalRecords int        `json:"totalRecords"`
 	Limit        int        `json:"limit"`
 	Records      []AuthJSON `json:"records"`
+}
+
+type SubWalletInfo struct {
+	PublicKey               string   `json:"publicKey"`
+	WalletTag               string   `json:"walletTag"`
+	WalletDescription       string   `json:"walletDescription"`
+	Alias                   string   `json:"alias"`
+	Transaction             string   `json:"transaction"`
+	PrimarySignature        string   `json:"primarySignature"`
+	SubWalletSignature      string   `json:"subWalletSignature"`
+	TransactionID           string   `json:"transactionId"`
+	NetworkPassPhrase       string   `json:"networkPassPhrase"`
+	ChannelAccount          string   `json:"channelAccount"`
+	ChannelAccountSignature string   `json:"channelAccountSignature"`
+	SubWalletMustSign       int      `json:"subWalletMustSign"`
+	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
+	Messages                []string `json:"messages"`
+	SHash                   string   `json:"sHash"`
+	FeeAmount               string   `json:"feeAmount"`
+	FeeCode                 string   `json:"feeCode"`
+	LinkedWalletPublicKey   string   `json:"linkedWalletPublicKey"`
 }

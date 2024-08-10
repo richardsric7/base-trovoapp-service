@@ -878,10 +878,6 @@ func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.Glo
 
 func (u *UserWallet) GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
 
-	if err != nil {
-		return
-	}
-
 	return clientAccount.Data, nil
 }
 
@@ -904,12 +900,21 @@ func (u *User) BuildPrimaryWallet() {
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, linkedWalletPublicKey string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 	hasMMSubwallet := false
 	hasBPSubWallet := false
 
+	if len(linkedWalletPublicKey) > 0 && len(linkedWalletPublicKey) != 56 {
+		log.Println("[BuildNewSubWallet] invalid parameters")
+		return userWallet, &tErrors.CustomError{
+			Param:      "linkedWalletPublicKey",
+			Err:        "error-sub-wallet-parameters-invalid",
+			ErrMessage: "Sub-wallet parameters are invalid. Ensure linkedWallet public key is 56 characters long.",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
@@ -967,6 +972,15 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 						Code:       http.StatusConflict,
 					}
 				}
+				if strings.EqualFold(*wallet.Tag, "distribution") {
+					log.Printf("[BuildNewSubWallet] wallet tag [%v] is an internal reserved tag. Not allowed.\n", walletTag)
+					return userWallet, &tErrors.CustomError{
+						Param:      "tag",
+						Err:        "error-wallet-tag-not-allowed",
+						ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] is a reserved tag for internal use and not allowed to be used as a tag in sub wallet creation.", walletTag),
+						Code:       http.StatusConflict,
+					}
+				}
 			}
 
 		}
@@ -1018,8 +1032,134 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		UserID:        u.ID,
 		WalletType:    walletType,
 	}
-	// u.UserWallets = append(u.UserWallets, userSubWallet)
+	if len(linkedWalletPublicKey) > 0 {
+		userSubWallet.LinkedWalletPublicKey = &linkedWalletPublicKey
+	}
+
 	return userSubWallet, nil
+}
+
+func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+	if uw.LinkedWalletPublicKey == nil {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-linked-wallet-public-key-invalid",
+			ErrMessage: "Linked-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+	if *uw.LinkedWalletPublicKey == "" {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-linked-wallet-public-key-invalid",
+			ErrMessage: "Linked-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+
+	var walletTag, walletDescription string
+
+	if uw.WalletType == 1 {
+		walletTag = *uw.Tag + "_distribution"
+		walletDescription = "distribution wallet for " + uw.Alias
+
+	}
+
+	if len(walletDescription) == 0 {
+		walletDescription = walletTag
+	}
+	userWallets := owner.GetAllWallets(gc)
+	{
+		//check to ensure sub-wallet does not already exist
+		for _, wallet := range userWallets {
+			if wallet.ID == *uw.LinkedWalletPublicKey {
+				log.Printf("[BuildNewLinkedSubWallet] wallet [%v] already exists in your account\n", *uw.LinkedWalletPublicKey)
+				return userWallet, &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-sub-wallet-already-exists-in-your-account",
+					ErrMessage: "Sub-wallet already exists in your account",
+					Code:       http.StatusConflict,
+				}
+			}
+			// if wallet.WalletType == 2 {
+			// 	hasMMSubwallet = true
+			// }
+			// if wallet.WalletType == 3 {
+			// 	hasBPSubWallet = true
+			// }
+
+			if wallet.Tag != nil {
+				if strings.EqualFold(*wallet.Tag, walletTag) {
+					log.Printf("[BuildNewLinkedSubWallet] wallet tag [%v] already exists in your account\n", walletTag)
+					return userWallet, &tErrors.CustomError{
+						Param:      "id",
+						Err:        "error-wallet-tag-already-exists-in-your-account",
+						ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] already exists in your account", walletTag),
+						Code:       http.StatusConflict,
+					}
+				}
+			}
+
+		}
+	}
+	{
+		//check if wallet already exists in wallets
+		_, errWallet := owner.GetWalletByPublicKey(*uw.LinkedWalletPublicKey, gc.DB)
+		if errWallet != nil {
+			if errWallet.Error() != "error-wallet-not-found" {
+				log.Println("[BuildNewLinkedSubWallet] other service error ...", errWallet)
+
+				return userWallet, errWallet
+			}
+
+		} else {
+			//wallet already exists.
+			log.Printf("[BuildNewLinkedSubWallet] wallet [%v] found in another account\n", uw.LinkedWalletPublicKey)
+
+			return userWallet, &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-sub-wallet-already-exists-with-another-account",
+				ErrMessage: "Sub-wallet already exists with another account",
+				Code:       http.StatusConflict,
+			}
+		}
+	}
+	tempKP, pErr := network.TempAccountKeypair(*uw.LinkedWalletPublicKey)
+	var tempPK string
+	if pErr != nil {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-sub-wallet-public-key-invalid",
+			ErrMessage: "Sub-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+	if tempKP != nil {
+		tempPK = tempKP.Address()
+	}
+
+	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
+	userSubWallet := UserWallet{
+		ID:            *uw.LinkedWalletPublicKey,
+		TempPublicKey: &tempPK,
+		Tag:           &walletTag,
+		Description:   &walletDescription,
+		Alias:         alias,
+		Signer:        owner.PrimarySigner,
+		UserID:        owner.ID,
+		WalletType:    0,
+	}
+	return userSubWallet, nil
+}
+
+func (lw LinkedWalletPublicKey) String() string {
+	return string(lw)
+}
+
+func (lw *LinkedWalletPublicKey) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+
+	return uw.BuildNewLinkedSubWallet(owner, gc)
+
 }
 
 func (id UserWalletID) String() string {
