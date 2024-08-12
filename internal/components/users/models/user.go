@@ -56,9 +56,9 @@ type UserWallet struct {
 	UpdatedAt               time.Time          `json:"updatedAt"`
 	ID                      string             `gorm:"size:56" json:"publicKey"`
 	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     *string            `gorm:"null;size:12" json:"tag"`
+	Tag                     *string            `gorm:"null;size:50" json:"tag"`
 	Description             *string            `gorm:"null;size:100" json:"description"`
-	Alias                   string             `gorm:"size:30; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Alias                   string             `gorm:"size:70; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
 	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
@@ -232,7 +232,6 @@ type TrackedWallet struct {
 type TrackedPublicKey struct {
 	PublicKey string `gorm:"primaryKey"`
 }
-
 
 type SecurityQuestion struct {
 	ID       uint64
