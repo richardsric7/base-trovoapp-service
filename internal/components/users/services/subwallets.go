@@ -668,7 +668,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 	}
 	if subWalletInfo.WalletType == 1 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a token minting wallet, %v %v will be deducted from your primary wallet and be used to activate it alongside teh distriution wallet. Please note that token minting wallets cannot be used to send payments.", (activationAmount.Mul(decimal.NewFromInt(2))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a token minting wallet, %v %v will be deducted from your primary wallet and be used to activate it alongside the distriution wallet. Please note that token minting wallets cannot be used to send payments.", (activationAmount.Mul(decimal.NewFromInt(2))).String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 2 {

@@ -1060,8 +1060,8 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 	var walletTag, walletDescription string
 
 	if uw.WalletType == 1 {
-		walletTag = *uw.Tag + "_distribution"
-		walletDescription = "distribution wallet for " + uw.Alias
+		walletTag = "distribution"
+		walletDescription = "distribution wallet for issuer wallet" + uw.Alias
 
 	}
 
@@ -1138,7 +1138,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 		tempPK = tempKP.Address()
 	}
 
-	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
+	alias := fmt.Sprintf("%s-%s", uw.Alias, walletTag)
 	userSubWallet := UserWallet{
 		ID:            *uw.LinkedWalletPublicKey,
 		TempPublicKey: &tempPK,
