@@ -120,5 +120,7 @@ type SubWalletInfo struct {
 	SHash                   string   `json:"sHash"`
 	FeeAmount               string   `json:"feeAmount"`
 	FeeCode                 string   `json:"feeCode"`
+	LinkedWalletMustSign    int      `json:"linkedWalletMustSign"`
 	LinkedWalletPublicKey   string   `json:"linkedWalletPublicKey"`
+	LinkedWalletSignature   string   `json:"linkedWalletSignature"`
 }

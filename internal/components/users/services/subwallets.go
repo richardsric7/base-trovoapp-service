@@ -29,6 +29,9 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 
 	subWalletInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 	subWalletInfo.SubWalletMustSign = 1
+	if len(subWalletInfo.LinkedWalletPublicKey) == 56 {
+		subWalletInfo.LinkedWalletMustSign = 1
+	}
 	if len(subWalletInfo.ChannelAccount) == 56 {
 		//generate xdr for channel account
 		xdrBase64, subWalletObj, linkedWallet, err = generateSubWalletXdrWithChannelAccount(accountOwner, subWalletInfo, gc, client)
@@ -126,7 +129,8 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 
 			}
 
-			if len(linkedWallet.ID) > 0 && len(subWalletInfo.LinkedWalletPublicKey) > 0 {
+			if subWalletInfo.LinkedWalletMustSign == 1 {
+
 				{
 					//send to monitoring service
 					trackPublicKey := userModels.TrackedPublicKey{
@@ -142,9 +146,22 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 			}
 		}
 	} else {
-		txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, accountOwner.PrimarySigner, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
+		signatures := make(map[string]string, 0)
+		signatures[accountOwner.PrimarySigner] = subWalletInfo.PrimarySignature
+
+		if subWalletInfo.SubWalletMustSign == 1 {
+			signatures[subWalletInfo.PublicKey] = subWalletInfo.SubWalletSignature
+		}
+
+		if subWalletInfo.LinkedWalletMustSign == 1 {
+			//it is a linked wallet operation. build a map of signers
+			signatures[subWalletInfo.LinkedWalletPublicKey] = subWalletInfo.LinkedWalletSignature
+		}
+
+		// txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, accountOwner.PrimarySigner, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
+		txnHash, err := SubmitSubWalletXdrWithSignatures(client, signatures, xdrBase64)
 		if err != nil {
-			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
+			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubWalletXdrWithSignatures error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
 		}
 		subWalletInfo.TransactionID = txnHash
@@ -173,6 +190,40 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 				}
 			}
 		}
+
+		// else{
+		// 	txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, accountOwner.PrimarySigner, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
+		// 	if err != nil {
+		// 		log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
+		// 		return subWalletInfo, err
+		// 	}
+		// 	subWalletInfo.TransactionID = txnHash
+		// 	dbTX.Commit()
+		// 	{
+		// 		//send to monitoring service
+		// 		trackPublicKey := userModels.TrackedPublicKey{
+		// 			PublicKey: subWalletInfo.PublicKey,
+		// 		}
+		// 		errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+		// 		if errTrack != nil {
+		// 			//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+		// 			discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
+
+		// 		}
+		// 		if len(linkedWallet.ID) > 0 && len(subWalletInfo.LinkedWalletPublicKey) > 0 {
+		// 			//send to monitoring service
+		// 			trackPublicKey := userModels.TrackedPublicKey{
+		// 				PublicKey: linkedWallet.ID,
+		// 			}
+		// 			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+		// 			if errTrack != nil {
+		// 				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+		// 				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking linked public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
+
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 	}
 	accountOwner.InvalidateUserCache(gc)
@@ -1197,6 +1248,87 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 }
 
+func SubmitSubWalletXdrWithSignatures(client *horizonclient.Client, signatures map[string]string, xdrBase64 string) (string, error) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	gTxn, err := txnbuild.TransactionFromXDR(xdrBase64)
+
+	if err != nil {
+		return "", err
+	}
+
+	txn, ok := gTxn.Transaction()
+
+	if !ok {
+		return "", &tErrors.ErrorInvalidTransaction{}
+	}
+
+	{
+
+		for signer, signature := range signatures {
+
+			txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), signer, signature)
+
+			if err != nil {
+				log.Printf("[SubmitSubWalletXdrWithSignatures] Failed to verify signature on [%v] for [%v] on signerPublicKey [%v], error: [%v]\n", network.GetBlockchainNetworkPassPhrase(), signature, signer, err)
+				return "", err
+			}
+		}
+
+	}
+
+	xdrBase64, err = txn.Base64()
+
+	if err != nil {
+		log.Printf("[SubmitSubWalletXdrWithSignatures] error converting transaction to base64: %v\n", err)
+		return "", err
+	}
+
+	// log.Println("signed xdr is " + xdrBase64)
+
+	txnResult, err := client.SubmitTransactionXDR(xdrBase64)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+			discord.Say(fmt.Sprintf("[SubmitSubWalletXdrWithSignatures] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
+		}
+
+		horizonException, ok := err.(*horizonclient.Error)
+
+		if ok {
+
+			extraErrors := horizonException.Problem.Extras
+
+			for key, val := range extraErrors {
+				log.Printf("[SubmitSubWalletXdrWithSignatures] Extras: %v is %v\n", key, val)
+
+			}
+
+			resultCodes, errRes := horizonException.ResultCodes()
+			if errRes == nil {
+				for key, val := range resultCodes.OperationCodes {
+					log.Printf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\n", key, val)
+
+				}
+			} else {
+				log.Printf("[SubmitSubwalletXdrWithSignature] Error getting result codes: %v\n", errRes)
+			}
+
+		} else {
+			log.Printf("[SubmitSubwalletXdrWithSignature] not horizon error: %v\n", err)
+
+		}
+
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error subwallet activation failed", ErrMessage: "SubWallet Failed", Code: 500}
+
+	}
+
+	return txnResult.Hash, nil
+
+}
+
 func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, accountPublicKey, signerPublicKey, subWalletPublicKey string, xdrBase64 string, primarySignature, subWalletSignature string, subWalletMustSign int) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
@@ -1232,6 +1364,7 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, accountPublic
 				return "", err
 			}
 		}
+
 	}
 
 	xdrBase64, err = txn.Base64()
