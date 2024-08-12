@@ -563,6 +563,7 @@
     "viewwallet": "View wallet",
     "viewinhistory": "View in History",
     "pendingassets": "Pending Asset ",
+    "assetcode":"Asset Code",
     "pendingassetwarning": "[assetCode] is not yet part of your approved assets to be received on wallet [walletAlias]. Do you wish to start receiving this asset?",
     "pendingassetwarning2": "Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.",
     "optininfo": "Do you wish to add this asset [assetCode] on your wallet [walletAlias]?",

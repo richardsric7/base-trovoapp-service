@@ -683,45 +683,55 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   Future<Map> fetchTokenizationList() async {
-    await fetchTokenizationData();
-    savedAssets = await StoreData().storeGetData('tokenizedAsset');
-    List<TokenizedAsset> tokenizedAssets = [];
-    if (savedAssets != null) {
-      for (int i = 0; i < savedAssets.length; i++) {
-        print(savedAssets[i]);
-        var a = TokenizedAsset().deserializeJson(savedAssets[i]);
-        a.usdPrice = 1.47;
-        a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-        a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-            a.numberOfTokenToBeIssued!);
-        tokenizedAssets.add(a);
-      }
-    }
-    return {"records": tokenizedAssets};
-    // try {
-    //   var uri = '/v1/tokenization/list';
-    //   print('fetching .... .... $uri');
-
-    //   Map responseData = await makeGetRequest(
-    //     uri: Uri.encodeFull(uri),
-    //     signer: appState.primaryWallet.signer!,
-    //     secretKey: appState.secretKeys[0], // the primary wallet secret key
-    //     publicKey: appState.primaryWallet.signer!,
-    //   );
-    //   print('===============> response ${responseData}');
-    //   if (responseData['statusCode'] == 200) {
-    //     print('success');
-    //     await fetchTokenizationData();
-    //     await inspect(responseData['data']);
-    //     return responseData['data'];
-    //   } else {
-    //     return Future.error('Error! Something went wrong.');
+    // await fetchTokenizationData();
+    // savedAssets = await StoreData().storeGetData('tokenizedAsset');
+    // List<TokenizedAsset> tokenizedAssets = [];
+    // if (savedAssets != null) {
+    //   for (int i = 0; i < savedAssets.length; i++) {
+    //     print(savedAssets[i]);
+    //     var a = TokenizedAsset().deserializeJson(savedAssets[i]);
+    //     a.usdPrice = 1.47;
+    //     a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+    //     a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+    //         a.numberOfTokenToBeIssued!);
+    //     tokenizedAssets.add(a);
     //   }
-    // } catch (e) {
-    //   print('error');
-    //   print(e);
-    //   return Future.error('Error! ${e}');
     // }
+    // return {"records": tokenizedAssets};
+    try {
+      var uri = '/v1/tokenization/list';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        await fetchTokenizationData();
+        List<TokenizedAsset> tokenizedAssets = [];
+        savedAssets = responseData['data']['records'];
+        await inspect(savedAssets);
+        if (savedAssets != null) {
+          for (int i = 0; i < savedAssets.length; i++) {
+            print(savedAssets[i]);
+            var a = TokenizedAsset().deserializeJson(savedAssets[i]);
+            a.usdPrice = 1.47;
+            a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+            a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+                a.numberOfTokenToBeIssued!);
+            tokenizedAssets.add(a);
+          }
+        }
+        return {"records": tokenizedAssets};
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
   }
 
   Color getStatusColor(String status) {
