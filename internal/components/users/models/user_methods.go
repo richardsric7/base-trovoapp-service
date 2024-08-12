@@ -928,6 +928,15 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		walletDescription = walletTag
 	}
 	userWallets := u.GetAllWallets(gc)
+	if strings.EqualFold(walletTag, "distribution") {
+		log.Printf("[BuildNewSubWallet] wallet tag [%v] is an internal reserved tag. Not allowed.\n", walletTag)
+		return userWallet, &tErrors.CustomError{
+			Param:      "tag",
+			Err:        "error-wallet-tag-not-allowed",
+			ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] is a reserved tag for internal use and not allowed to be used as a tag in sub wallet creation.", walletTag),
+			Code:       http.StatusConflict,
+		}
+	}
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range userWallets {
@@ -972,15 +981,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 						Code:       http.StatusConflict,
 					}
 				}
-				if strings.EqualFold(*wallet.Tag, "distribution") {
-					log.Printf("[BuildNewSubWallet] wallet tag [%v] is an internal reserved tag. Not allowed.\n", walletTag)
-					return userWallet, &tErrors.CustomError{
-						Param:      "tag",
-						Err:        "error-wallet-tag-not-allowed",
-						ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] is a reserved tag for internal use and not allowed to be used as a tag in sub wallet creation.", walletTag),
-						Code:       http.StatusConflict,
-					}
-				}
+
 			}
 
 		}
@@ -1060,7 +1061,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 	var walletTag, walletDescription string
 
 	if uw.WalletType == 1 {
-		walletTag = "distribution"
+		walletTag = *uw.Tag+"-distribution"
 		walletDescription = "distribution wallet for issuer wallet" + uw.Alias
 
 	}
