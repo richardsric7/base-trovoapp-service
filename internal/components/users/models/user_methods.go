@@ -1139,7 +1139,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 		tempPK = tempKP.Address()
 	}
 
-	alias := fmt.Sprintf("%s-%s", uw.Alias, walletTag)
+	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
 	userSubWallet := UserWallet{
 		ID:            *uw.LinkedWalletPublicKey,
 		TempPublicKey: &tempPK,
