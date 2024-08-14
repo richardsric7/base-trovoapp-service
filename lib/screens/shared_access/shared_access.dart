@@ -1545,7 +1545,7 @@ class _SharedAccessState extends State<SharedAccess>
           .where((wallet) => wallet.publicKey == account.publicKey)
           .first;
       selectedWallet = account.publicKey;
-      popup(context, title: 'Important', message: "addsharedtodistwallet");
+      popup(context, title: 'Important', message: "addsharedtodistwallet".tr());
       return;
     }
 

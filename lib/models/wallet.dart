@@ -6,6 +6,7 @@ import 'permission.dart';
 class Wallet {
   DateTime? createdAt;
   String? publicKey;
+  String? linkedWalletPublicKey;
   String? secretKey;
   String? tag;
   String? description;
@@ -33,6 +34,7 @@ class Wallet {
   Wallet({
     this.createdAt,
     this.publicKey,
+    this.linkedWalletPublicKey,
     this.secretKey,
     this.tag,
     this.description,
@@ -59,6 +61,7 @@ class Wallet {
     return <String, dynamic>{
       "createdAt": createdAt!.toIso8601String(),
       "publicKey": publicKey,
+      "linkedWalletPublicKey": linkedWalletPublicKey,
       "secretKey": secretKey,
       "tag": tag,
       "description": description,
@@ -86,6 +89,7 @@ class Wallet {
     return Wallet(
       createdAt: DateTime.parse(m["createdAt"]),
       publicKey: m["publicKey"],
+      linkedWalletPublicKey: m["linkedWalletPublicKey"],
       secretKey: m["secretKey"],
       tag: m["tag"],
       description: m["description"],
