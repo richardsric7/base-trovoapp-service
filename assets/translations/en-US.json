@@ -843,6 +843,8 @@
     "grantaccess": "Add",
     "choosewallet": "Choose Wallet",
     "accesstype": "Access Type",
+    "formincomplete":"Form Incomplete!",
+    "pleasefillouttokenizationform":"Please fill out all required fields on the tokenization forms.",
     "filterby": "Filter by",
     "costofcreatingwallet":"You will be charged a flat fee of {} to create this wallet and {} XBN will be deducted from your main wallet to fund the new wallet.",
     "assetname":"Asset Name",

@@ -138,8 +138,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                         0 ||
                     appState.viewData!['assetDescription'].length == 0) {
                   popup(context,
-                      title: "notrovtoken".tr(),
-                      message: "gettrovtoken".tr(args: ['3']));
+                      title: "formincomplete".tr(),
+                      message: "pleasefillouttokenizationform".tr(args: ['3']));
                   return;
                 }
                 appState.currentAction = PageAction(

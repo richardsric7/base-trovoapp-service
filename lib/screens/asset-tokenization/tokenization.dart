@@ -162,6 +162,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         children: [
                           ElevatedButton(
                             onPressed: () async {
+                              if (appState.tokenizationData.isEmpty) {
+                                popup(context,
+                                    title: "error".tr(),
+                                    message:
+                                        "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
+                                return;
+                              }
+
                               hasInitiatorAccess
                                   ? appState.currentAction = PageAction(
                                       state: PageState.addPage,
@@ -685,21 +693,17 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   Future<void> fetchTokenizationData() async {
-    try {
-      var uri = '/v1/tokenization';
+    var uri = '/v1/tokenization';
 
-      Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
-      );
-      if (responseData['statusCode'] == 200) {
-        inspect(responseData['data']);
-        appState.tokenizationData = responseData['data'];
-      }
-    } catch (e) {
-      return Future.error('Error! ${e}');
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      inspect(responseData['data']);
+      appState.tokenizationData = responseData['data'];
     }
   }
 
