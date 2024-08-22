@@ -4940,31 +4940,7 @@ Future sendDataToServer(
 ) async {
   print('sending... ${subWallet.tag} ${subWallet.walletType}');
   var state = Provider.of<DataProvider>(context, listen: false);
-  var primaryWallet =
-      state.userInfo!.allWallets.firstWhere((wallet) => wallet.isPrimaryWallet);
-  late Asset trov;
-  late Asset xbn;
-  primaryWallet.claimedAssets!.forEach((asset) {
-    print('asset ${asset.assetCode} balance ${asset.amount!}');
-    if (asset.assetCode!.toLowerCase() == 'trov') {
-      trov = asset;
-    }
 
-    if (asset.assetCode!.toLowerCase() == '') {
-      xbn = asset;
-    }
-  });
-
-  if ((subWallet.walletType == 1 && (trov.amount! < 3 || xbn.amount! < 1060)) ||
-      (trov.amount! < 2 || xbn.amount! < 60)) {
-    popup(context,
-        title: "insufficientbalance".tr(),
-        message: "insufficienttrovbalanceforsubwallet".tr(args: [
-          subWallet.walletType == 1 ? '2.2 TROV' : '1.1 TROV',
-          subWallet.walletType == 1 ? '1000' : '50'
-        ]));
-    return;
-  }
   try {
     showLoader(context);
     // make initial request to the server using the
@@ -5015,6 +4991,36 @@ Future sendDataToServer(
 addSubWalletPopup(context) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
+
+  var primaryWallet = appState.userInfo!.allWallets
+      .firstWhere((wallet) => wallet.isPrimaryWallet);
+  Asset? trov;
+  Asset? xbn;
+  primaryWallet.claimedAssets!.forEach((asset) {
+    print('asset ${asset.assetCode} balance ${asset.amount!}');
+    if (asset.assetCode!.toLowerCase() == 'trov') {
+      trov = asset;
+    }
+
+    if (asset.assetCode!.toLowerCase() == '') {
+      xbn = asset;
+    }
+  });
+
+  if (trov == null) {
+    popup(context,
+        title: "notrovtoken".tr(), message: "gettrovtoken".tr(args: ['3']));
+    return;
+  }
+
+  if (trov!.amount! < 3 || xbn!.amount! < 2000) {
+    popup(context,
+        title: "insufficientbalance".tr(),
+        message:
+            "insufficienttrovbalanceforsubwallet".tr(args: ['3 TROV', '2000']));
+    return;
+  }
+
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
   bool isFromTokenizationView =

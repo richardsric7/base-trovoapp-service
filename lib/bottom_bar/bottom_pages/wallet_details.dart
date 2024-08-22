@@ -42,30 +42,30 @@ class _WalletDetailsState extends State<WalletDetails>
   String rel = '';
 
   var listOfAssets = <Map<String, String>>[
-    {
-      "imageUrl": "",
-      "assetName": "Animal Farm",
-      "assetClass": "Agriculture",
-      "balance": "2049"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "Beacon Homes",
-      "assetClass": "Property",
-      "balance": "3250"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "C-Vitals",
-      "assetClass": "Health",
-      "balance": "100"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "Drinkfly",
-      "assetClass": "Beverage",
-      "balance": "4000"
-    }
+    // {
+    //   "imageUrl": "",
+    //   "assetName": "Animal Farm",
+    //   "assetClass": "Agriculture",
+    //   "balance": "2049"
+    // },
+    // {
+    //   "imageUrl": "",
+    //   "assetName": "Beacon Homes",
+    //   "assetClass": "Property",
+    //   "balance": "3250"
+    // },
+    // {
+    //   "imageUrl": "",
+    //   "assetName": "C-Vitals",
+    //   "assetClass": "Health",
+    //   "balance": "100"
+    // },
+    // {
+    //   "imageUrl": "",
+    //   "assetName": "Drinkfly",
+    //   "assetClass": "Beverage",
+    //   "balance": "4000"
+    // }
   ];
 
   Map<String, DashboardAssetListMode> listModes = {
@@ -178,6 +178,8 @@ class _WalletDetailsState extends State<WalletDetails>
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
                 alias: wallet.alias!.capitalizeFirst!,
+                isSharedWallet: wallet.isSharedWallet,
+                walletType: wallet.walletType!,
                 totalBalance:
                     '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                 fiatBalance: appState.defaultCurrency == 'USD'
@@ -381,20 +383,42 @@ class _WalletDetailsState extends State<WalletDetails>
           SingleChildScrollView(
             child: Column(
               children: [
-                for (var i = 0; i < listOfAssets.length; i++) ...[
-                  GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
-                      );
-                    },
-                    child: tokenizedAssetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
-                  ),
+                if (listOfAssets.isNotEmpty) ...[
+                  for (var i = 0; i < listOfAssets.length; i++) ...[
+                    GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: TokenizedAssetDetailViewPageConfig,
+                        );
+                      },
+                      child: tokenizedAssetTile(
+                          listOfAssets[i]['imageUrl'] ?? '',
+                          listOfAssets[i]['assetName'] ?? '',
+                          'Property',
+                          i % 2 == 0),
+                    ),
+                  ],
+                ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height / 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "nothingtoshowhere2".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 ],
                 SizedBox(height: height / 20),
               ],
@@ -403,20 +427,42 @@ class _WalletDetailsState extends State<WalletDetails>
           SingleChildScrollView(
             child: Column(
               children: [
-                for (var i = 0; i < listOfAssets.length; i++) ...[
-                  GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
-                      );
-                    },
-                    child: tokenizedAssetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
-                  ),
+                if (listOfAssets.isNotEmpty) ...[
+                  for (var i = 0; i < listOfAssets.length; i++) ...[
+                    GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: TokenizedAssetDetailViewPageConfig,
+                        );
+                      },
+                      child: tokenizedAssetTile(
+                          listOfAssets[i]['imageUrl'] ?? '',
+                          listOfAssets[i]['assetName'] ?? '',
+                          'Property',
+                          i % 2 == 0),
+                    ),
+                  ],
+                ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height / 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "nothingtoshowhere2".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 ],
                 SizedBox(height: height / 20),
               ],

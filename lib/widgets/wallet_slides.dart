@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -19,6 +20,8 @@ class WalletSlide extends StatefulWidget {
   final String? assetCount;
   final Color backColor;
   final Color foreColor;
+  final bool isSharedWallet;
+  final int walletType;
   final bool initialHiddenState;
   final void Function(bool)? onHiddenStateChanged;
 
@@ -28,6 +31,8 @@ class WalletSlide extends StatefulWidget {
     required this.totalBalance,
     this.fiatBalance,
     this.assetCount,
+    required this.isSharedWallet,
+    required this.walletType,
     required this.backColor,
     required this.foreColor,
     required this.initialHiddenState,
@@ -43,6 +48,11 @@ class _WalletSlideState extends State<WalletSlide> {
   late DataProvider appState;
   late bool localHideBalance;
   final Authenticator _authenticator = Authenticator();
+  final List<IconData> icons = [
+    Icons.token_outlined,
+    Icons.fire_truck_outlined,
+    Icons.account_tree_outlined,
+  ];
 
   @override
   void initState() {
@@ -70,18 +80,49 @@ class _WalletSlideState extends State<WalletSlide> {
         child: Stack(
           alignment: AlignmentDirectional.centerEnd,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 35.0, horizontal: 20),
-                  child: Image.asset(
+            Container(
+              width: width / 5,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Image.asset(
                     'assets/images/trovo_white.png',
                     width: 40,
                   ),
-                ),
-              ],
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.isSharedWallet) ...[
+                        Icon(
+                          Icons.people_outline,
+                          size: 17,
+                          color: widget.foreColor,
+                        )
+                      ],
+                      if (widget.walletType != 0) ...[
+                        Icon(
+                          icons[widget.walletType - 1],
+                          size: 17,
+                          color: widget.foreColor,
+                        )
+                      ],
+                      if (widget.alias.contains('-distribution')) ...[
+                        Icon(
+                          icons[2],
+                          size: 17,
+                          color: widget.foreColor,
+                        )
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding:
@@ -150,33 +191,41 @@ class _WalletSlideState extends State<WalletSlide> {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: height / 98.0,
-                  ),
-                  Container(
-                    width: width / 1.8,
-                    child: Text(
-                      getBalance(widget.totalBalance),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: widget.foreColor,
-                        fontFamily: fontsemibold,
-                      ),
-                    ),
-                  ),
                   SizedBox(height: 2),
-                  if (widget.fiatBalance != null) ...[
-                    Text(
-                      getBalance(widget.fiatBalance!),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w300,
-                        fontSize: 13,
-                        color: widget.foreColor,
-                        fontFamily: fontbody,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: width / 1.8,
+                            child: Text(
+                              getBalance(widget.totalBalance),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: widget.foreColor,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ),
+                          if (widget.fiatBalance != null) ...[
+                            Text(
+                              getBalance(widget.fiatBalance!),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w300,
+                                fontSize: 13,
+                                color: widget.foreColor,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ]
+                    ],
+                  ),
                 ],
               ),
             ),

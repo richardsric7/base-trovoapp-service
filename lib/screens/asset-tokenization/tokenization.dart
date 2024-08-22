@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -284,6 +283,9 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     if (records.length > 0) {
                       return Column(
                         children: [
+                          SizedBox(
+                            height: height / 50,
+                          ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Row(
@@ -292,18 +294,18 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 Text(
                                   'Tokenized Assets',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 17,
                                     fontFamily: fontsemibold,
                                     color: notifier.getbluecolor,
                                   ),
                                 ),
                                 Container(
-                                  width: width / 7,
-                                  child: iconDropdown(
+                                  width: width / 2.5,
+                                  child: dropdown(
                                     (value) {},
                                     getItems,
                                     null,
-                                    'Insurance',
+                                    getItems.first.value,
                                     context,
                                     null,
                                   ),
@@ -339,13 +341,32 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             height: height / 50,
                           ),
                           Container(
-                            height: height / 1.78,
+                            height: height / 2.1,
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
                                   for (var i = 0; i < records.length; i++) ...[
                                     GestureDetector(
                                       onTap: () async {
+                                        appState.viewData = savedAssets[i];
+                                        appState.setActiveTokenizationWalletPublicKey =
+                                            appState.viewData![
+                                                'issuingWalletPublicKey'];
+                                        appState.setActiveDistributionWalletPublicKey =
+                                            appState.viewData![
+                                                'marketMakingWallet'];
+
+                                        if (records[i].tokenizationStatus ==
+                                            null) {
+                                          appState.currentAction = PageAction(
+                                            state: PageState.addPage,
+                                            page:
+                                                SetupAndComplianceViewPageConfig,
+                                          );
+
+                                          return;
+                                        }
+
                                         if (records[i].tokenizationStatus ==
                                             1) {
                                           appState.tokenizedAsset = records[i];
@@ -362,11 +383,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                             j < savedAssets.length;
                                             j++) {
                                           var data = Map.from(savedAssets[j]);
-                                          data['tokenizationStatus'] = 0;
-                                          if (data['id'] == records[i].id) {
-                                            data['tokenizationStatus'] = 1;
+                                          if (data['tokenizationStatus'] !=
+                                              null) {
+                                            if (data['id'] == records[i].id) {
+                                              data['tokenizationStatus'] = 1;
+                                            }
+                                            list.add(data);
                                           }
-                                          list.add(data);
                                         }
 
                                         await StoreData()
@@ -374,34 +397,24 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         await StoreData().storeInsertData(
                                             'tokenizedAsset', list);
 
-                                        appState.viewData = savedAssets[i];
-                                        appState.activeTokenizationWalletPublicKey =
-                                            appState.viewData![
-                                                'issuingWalletPublicKey'];
                                         appState.currentAction = PageAction(
                                           state: PageState.addPage,
                                           page:
                                               ConfirmTokenizationDetailsViewPageConfig,
                                         );
-                                        // appState.viewData = records[i];
-                                        // appState.activeTokenizationWalletPublicKey =
-                                        //     appState.viewData![
-                                        //         'issuingWalletPublicKey'];
-                                        // appState.currentAction = PageAction(
-                                        //   state: PageState.addPage,
-                                        //   page:
-                                        //       SetupAndComplianceViewPageConfig,
-                                        // );
                                       },
                                       child: assetTile(
                                         records[i].assetLogo ?? '',
-                                        '${records[i].assetName} (${records[i].assetCode})',
+                                        '${records[i].assetName.length == 0 ? 'No name' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
                                         '${records[i].assetSubSector}',
-                                        records[i].tokenizationStatus == 0
-                                            ? 'Pending'
-                                            : records[i].tokenizationStatus == 1
-                                                ? 'Approved'
-                                                : 'Rejected',
+                                        records[i].tokenizationStatus == null
+                                            ? 'Continue'
+                                            : records[i].tokenizationStatus == 0
+                                                ? 'Pending'
+                                                : records[i].tokenizationStatus ==
+                                                        1
+                                                    ? 'Approved'
+                                                    : 'Rejected',
                                       ),
                                     ),
                                   ],
@@ -591,18 +604,26 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         child: ListTile(
           title: Row(
             children: [
-              Image.memory(
-                base64Decode(imageUrl),
-                height: 35,
-                width: 35,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/trovo.png',
-                    height: 35,
-                    width: 35,
-                  );
-                },
-              ),
+              if (imageUrl.length == 0) ...[
+                Image.asset(
+                  'assets/images/trovo.png',
+                  height: 35,
+                  width: 35,
+                ),
+              ] else ...[
+                Image.memory(
+                  base64Decode(imageUrl),
+                  height: 35,
+                  width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
+                ),
+              ],
               SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

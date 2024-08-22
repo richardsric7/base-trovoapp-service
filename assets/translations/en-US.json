@@ -846,6 +846,8 @@
     "filterby": "Filter by",
     "costofcreatingwallet":"You will be charged a flat fee of {} to create this wallet and {} XBN will be deducted from your main wallet to fund the new wallet.",
     "assetname":"Asset Name",
+    "notrovtoken":"No TROV!",
+    "gettrovtoken":"You need to have a balance of at least {} TROV tokens on your primary wallet in order to proceed with this action.\n\nYou can get TROV tokens by swapping any of your assets or from the exchanges.",
     "insufficientbalance":"Insufficient Balance",
     "insufficienttrovbalanceforsubwallet":"Insufficient fund on your main wallet. You need to have at least {} and {} XBN on your main wallet to complete this transaction.",
     "addsharedaccesstonewtokenizationanddistributionwallet":"Add shared access to your newly created Issuing/Asset Tokenization and Distribution Wallets",

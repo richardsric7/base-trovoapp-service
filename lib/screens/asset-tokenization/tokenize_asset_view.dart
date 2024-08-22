@@ -9,6 +9,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -132,6 +133,15 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () async {
+                if (appState.viewData!['assetCode'].length == 0 ||
+                    appState.viewData!['AssetTokenizationDocuments'].length ==
+                        0 ||
+                    appState.viewData!['assetDescription'].length == 0) {
+                  popup(context,
+                      title: "notrovtoken".tr(),
+                      message: "gettrovtoken".tr(args: ['3']));
+                  return;
+                }
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
                   page: ConfirmTokenizationDetailsViewPageConfig,
