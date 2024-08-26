@@ -5,6 +5,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
@@ -36,8 +37,8 @@ class _WalletPreparationState extends State<WalletPreparation>
     }
   }
 
-  List<DropdownMenuItem<String>> get getMintingWallets {
-    List<DropdownMenuItem<String>> wallets = [];
+  List<DropdownMenuItem<Wallet>> get getMintingWallets {
+    List<DropdownMenuItem<Wallet>> wallets = [];
     appState.userInfo!.getMintingWallets.forEach((wallet) {
       if (wallet.isSharedWalletAndCanInitiate) {
         wallets.add(DropdownMenuItem(
@@ -45,7 +46,7 @@ class _WalletPreparationState extends State<WalletPreparation>
               wallet.alias!,
               overflow: TextOverflow.ellipsis,
             ),
-            value: wallet.publicKey));
+            value: wallet));
       }
     });
     return wallets;
@@ -186,7 +187,11 @@ class _WalletPreparationState extends State<WalletPreparation>
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: dropdown(
             (value) {
-              appState.setActiveTokenizationWalletPublicKey = value;
+              var wallet = value as Wallet;
+              print('linkedWallet... ${wallet.linkedWalletPublicKey}');
+              appState.setActiveTokenizationWalletPublicKey = wallet.publicKey;
+              appState.setActiveDistributionWalletPublicKey =
+                  wallet.linkedWalletPublicKey;
             },
             getMintingWallets,
             null,
@@ -196,23 +201,36 @@ class _WalletPreparationState extends State<WalletPreparation>
           ),
         ),
         SizedBox(
-          height: height / 30,
+          height: height / 70,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+        Text(
+          "oR".tr(),
+          style: TextStyle(
+            decoration: TextDecoration.underline,
+            fontSize: 12,
+            fontFamily: fontsemibold,
+            color: notifier.getbluewhitecolor,
+          ),
+        ),
+        SizedBox(
+          height: height / 70,
+        ),
+        TextButton(
+          onPressed: () {
+            appState.returnView = PageAction(
+                state: PageState.addAll,
+                pages: [BottomHomePageConfig, WalletPreparationViewPageConfig]);
+            addSubWalletPopup(context);
+          },
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "selectdistributionwallet".tr(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
+              Icon(
+                Icons.add_circle_outline_outlined,
+                color: notifier.getbluewhitecolor,
               ),
               Text(
-                "whatdoesthismean".tr(),
+                "Create New Tokenization Wallet".tr(),
                 style: TextStyle(
                   decoration: TextDecoration.underline,
                   fontSize: 12,
@@ -224,20 +242,7 @@ class _WalletPreparationState extends State<WalletPreparation>
           ),
         ),
         SizedBox(
-          height: height / 70,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: dropdown(
-            (value) {
-              appState.setActiveDistributionWalletPublicKey = value;
-            },
-            getStandardWalletsWithInitiatorAccess,
-            null,
-            getHintTextForDistribution(),
-            context,
-            null,
-          ),
+          height: height / 50,
         ),
       ],
     );

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -122,8 +121,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
-
-    inspect(appState.tempTokenizedAssetList);
   }
 
   void tabListener() {
@@ -749,6 +746,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   backColor: colors[wallets.indexOf(wallet)],
                   foreColor: getColor(context, indexOfWallet),
                   alias: wallet.alias!.capitalizeFirst!,
+                  isSharedWallet: wallet.isSharedWallet,
+                  walletType: wallet.walletType!,
                   assetCount: wallet.claimedAssets?.length.toString(),
                   totalBalance:
                       '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',

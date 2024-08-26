@@ -202,6 +202,8 @@ class _AssetDetailsState extends State<AssetDetails>
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
                 alias: wallet.alias.toString().capitalizeFirst!,
+                isSharedWallet: wallet.isSharedWallet,
+                walletType: wallet.walletType!,
                 totalBalance:
                     '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
                 fiatBalance:

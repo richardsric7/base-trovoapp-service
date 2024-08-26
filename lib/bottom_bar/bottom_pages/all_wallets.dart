@@ -74,6 +74,11 @@ class _AllWalletsView extends State<AllWalletsView>
     'Market Making/Trade',
     'Bulk Payment'
   ];
+  final List<IconData> icons = [
+    Icons.token_outlined,
+    Icons.fire_truck_outlined,
+    Icons.account_tree_outlined,
+  ];
   int selectedWalletType = 0;
 
   List<DropdownMenuItem<String>> get walletTypeDropdownItems {
@@ -341,6 +346,7 @@ class _AllWalletsView extends State<AllWalletsView>
 
   Widget walletListItem(
     walletName,
+    int walletType,
     balanceUsd,
     preferredFiatBal,
     WalletTileColor color, {
@@ -356,24 +362,61 @@ class _AllWalletsView extends State<AllWalletsView>
       child: Stack(
         alignment: AlignmentDirectional.centerEnd,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Image.asset(
-                    'assets/images/trovo_white.png',
-                    height: 80,
-                    width: 80,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  width: width / 5,
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'assets/images/trovo_white.png',
+                        height: 60,
+                        width: 60,
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (isShared) ...[
+                            SizedBox(
+                              width: 2,
+                            ),
+                            Icon(
+                              Icons.people_outline,
+                              size: 17,
+                              color: color.foreColor,
+                            ),
+                          ],
+                          if (walletType != 0) ...[
+                            SizedBox(
+                              width: 2,
+                            ),
+                            Icon(
+                              icons[walletType - 1],
+                              size: 17,
+                              color: color.foreColor,
+                            )
+                          ],
+                          if (walletName.contains('-distribution')) ...[
+                            Icon(
+                              icons[2],
+                              size: 17,
+                              color: color.foreColor,
+                            )
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    width: width / 20,
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
           Padding(
             padding:
@@ -394,14 +437,6 @@ class _AllWalletsView extends State<AllWalletsView>
                           fontFamily: fontsemibold,
                         ),
                       ),
-                      if (isShared) ...[
-                        SizedBox(width: width / 90),
-                        Icon(
-                          Icons.people_alt_outlined,
-                          color: color.foreColor,
-                          size: 20,
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -970,9 +1005,11 @@ class _AllWalletsView extends State<AllWalletsView>
                   : Column(children: [
                       walletListItem(
                         filteredWallets[i].alias!.capitalizeFirst!,
+                        filteredWallets[i].walletType ?? 0,
                         '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
                         '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
                         colors[((i + 1) % colors.length)],
+                        isShared: filteredWallets[i].isSharedWallet,
                       ),
                       SizedBox(
                         height: height / 50,

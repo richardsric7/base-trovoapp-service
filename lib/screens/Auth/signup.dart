@@ -336,11 +336,18 @@ class _SignUpState extends State<SignUp> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      state.currentAction = PageAction(
-                          state: PageState.replaceAll, page: LoginPageConfig);
+                      state.currentAction = state.userInfo == null
+                          ? PageAction(
+                              state: PageState.addPage,
+                              page: ImportWalletPageConfig,
+                            )
+                          : PageAction(
+                              state: PageState.replaceAll,
+                              page: LoginPageConfig,
+                            );
                     },
                     child: Text(
-                      ' ' + "signin".tr(),
+                      ' ${state.userInfo == null ? "importwallet".tr() : "signin".tr()}',
                       style: TextStyle(
                           color: notifier.isDark
                               ? notifier.getbluecolor50

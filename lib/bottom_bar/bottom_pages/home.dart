@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -403,13 +404,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
   }
-
-  var listOfAssets = <Map<String, String>>[
-    {"imageUrl": "", "assetName": "ATLANTIS 1", "assetClass": "Property"},
-    {"imageUrl": "", "assetName": "Orchard Estate", "assetClass": "Property"},
-    {"imageUrl": "", "assetName": "Beacon Homes", "assetClass": "Property"},
-    {"imageUrl": "", "assetName": "Animal Farm", "assetClass": "Property"},
-  ];
 
   Widget listingTabs() {
     return Container(
@@ -1176,6 +1170,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       }
     }
     appState.tempTokenizedAssetList = tokenizedAssets;
+    inspect(tokenizedAssets);
     return tokenizedAssets;
   }
 }

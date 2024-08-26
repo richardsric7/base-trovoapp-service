@@ -704,6 +704,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               appState.viewData = {};
               appState.backupSecrets.clear();
               appState.returnView = null;
+              print('here 1');
             } else if (appState.backupSecrets.length > 1) {
               appState.currentAction =
                   PageAction(state: PageState.addAll, pages: [
@@ -711,6 +712,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               ]);
               appState.clearAccessList = true;
               appState.backupSecrets.clear();
+              print('here 2');
             } else {
               appState.currentAction =
                   PageAction(state: PageState.addAll, pages: [

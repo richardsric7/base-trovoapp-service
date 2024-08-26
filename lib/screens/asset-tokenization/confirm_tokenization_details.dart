@@ -61,6 +61,14 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               SizedBox(
                 height: height / 40,
               ),
+              item("assetname".tr(), '${tokenizedAsset.assetName}'),
+              SizedBox(
+                height: height / 40,
+              ),
+              item("assetCode".tr(), '${tokenizedAsset.assetCode}'),
+              SizedBox(
+                height: height / 40,
+              ),
               item("totaltokenstobeissued".tr(),
                   '${tokenizedAsset.numberOfTokenToBeIssued} ${tokenizedAsset.assetCode}'),
               SizedBox(

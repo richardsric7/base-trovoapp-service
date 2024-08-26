@@ -1471,7 +1471,7 @@ class _SharedAccessState extends State<SharedAccess>
       appState.clearAccessList = false;
       var user = appState.userInfo!;
       userFullnames[user.username] = '${user.firstName} ${user.lastName}';
-      viewers.add(user.username!);
+      // viewers.add(user.username!);
       approvers.add(user.username!);
       initiators.add(user.username!);
     }
@@ -1532,11 +1532,11 @@ class _SharedAccessState extends State<SharedAccess>
     if (isNewTokenizationAndDistributionWallet &&
         sharedAccessWalletsRecord.length == 1) {
       setState(() {
-        viewers.clear();
+        // viewers.clear();
         addApprovers = false;
-        approvers.clear();
-        initiators.clear();
-        userFullnames.clear();
+        // approvers.clear();
+        // initiators.clear();
+        // userFullnames.clear();
         currentStep = 0;
       });
       Account account =
@@ -1545,10 +1545,7 @@ class _SharedAccessState extends State<SharedAccess>
           .where((wallet) => wallet.publicKey == account.publicKey)
           .first;
       selectedWallet = account.publicKey;
-      popup(context,
-          title: 'Important',
-          message:
-              'Continue to add shared access to your new distribution wallet.');
+      popup(context, title: 'Important', message: "addsharedtodistwallet".tr());
       return;
     }
 
