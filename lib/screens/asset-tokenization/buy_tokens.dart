@@ -159,10 +159,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                       notifier.getgrey,
                       70.sp,
                       300.sp,
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -232,10 +231,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                           }
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();

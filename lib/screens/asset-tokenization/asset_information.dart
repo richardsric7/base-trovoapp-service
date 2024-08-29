@@ -56,6 +56,8 @@ class _AssetInformation extends State<AssetInformation>
   bool freeOfDisputes = false;
   bool formHasError = false;
   late dynamic data = {};
+  final valueOfAssetController = TextEditingController();
+  final percentValueOfInsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -116,6 +118,10 @@ class _AssetInformation extends State<AssetInformation>
     percentageValueOfInsurance =
         double.parse(data['percentageValueOfInsurance'].toString());
     freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
+
+    valueOfAssetController.text = currentValueOfAsset.toString();
+    percentValueOfInsuranceController.text =
+        percentageValueOfInsurance.toString();
 
     super.initState();
     getdarkmodepreviousstate();
@@ -422,10 +428,8 @@ class _AssetInformation extends State<AssetInformation>
                         latitude = double.parse(value!.toString());
                       });
                     },
-                    keyboardtype: TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
+                    keyboardtype:
+                        TextInputType.numberWithOptions(decimal: true),
                   ),
                   CustomTextFormField.textField(
                     "longitude".tr(),
@@ -449,10 +453,8 @@ class _AssetInformation extends State<AssetInformation>
                         longitude = double.parse(value!.toString());
                       });
                     },
-                    keyboardtype: TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
+                    keyboardtype:
+                        TextInputType.numberWithOptions(decimal: true),
                   ),
                 ],
               ),
@@ -991,7 +993,6 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: currentValueOfAsset.toString(),
                       onChanged: (value) {
                         setState(() {
                           if (value.toString().isEmpty) {
@@ -999,7 +1000,8 @@ class _AssetInformation extends State<AssetInformation>
                             return;
                           }
 
-                          currentValueOfAsset = double.parse(value!.toString());
+                          currentValueOfAsset = double.parse(
+                              value!.toString().replaceAll(',', ''));
                           valueOfTokenizedAsset = currentValueOfAsset;
                         });
                       },
@@ -1012,10 +1014,10 @@ class _AssetInformation extends State<AssetInformation>
                       onSaved: (value) {
                         currentValueOfAsset = double.parse(value!.toString());
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      controller: valueOfAssetController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -1345,7 +1347,6 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: percentageValueOfInsurance.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "enterassetdescription".tr();
@@ -1357,10 +1358,10 @@ class _AssetInformation extends State<AssetInformation>
                           percentageValueOfInsurance = double.parse(value);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      controller: percentValueOfInsuranceController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],

@@ -226,9 +226,12 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         // ],
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
+                        autoFormatNumber: true,
                         validator: validateAmount,
-                        onSaved: (value) =>
-                            amount = value.trim().replaceAll(' ', ''),
+                        onSaved: (value) => amount = value
+                            .trim()
+                            .replaceAll(' ', '')
+                            .replaceAll(',', ''),
                       ),
                       if (sourceAsset != null && !appState.hideBalances) ...[
                         availableBalance(),

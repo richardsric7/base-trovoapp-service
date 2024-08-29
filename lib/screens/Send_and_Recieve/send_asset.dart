@@ -269,6 +269,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       controller: amountController,
                       readOnly: deeplinkInfo != null &&
                           deeplinkInfo['amount'].toString().isNotEmpty,
+                      autoFormatNumber: true,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,

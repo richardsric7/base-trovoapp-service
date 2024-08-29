@@ -227,15 +227,24 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetSubSectorId = value.toString();
+                    selectedAssetTypeId = '';
                     assetSectors = getAssetTypes(
                         tokenizationData, selectedAssetSubSectorId);
                   });
                 },
                 assetSubsectors,
                 null,
-                assetSubsectors.length > 0 ? assetSubsectors.first.value : '',
+                assetSubsectors.length > 0
+                    ? assetSubsectors.first.value
+                    : "selectassetsubsector".tr(),
                 context,
                 null,
+                validator: (value) {
+                  if (selectedAssetSubSectorId.isEmpty) {
+                    return "pleaseselectassetsubsector".tr();
+                  }
+                  return null;
+                },
               ),
             ),
             SizedBox(
@@ -694,7 +703,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     selectedAssetCustodian.isNotEmpty
                         ? getSelectedAssetCustodianLabel(
                             selectedAssetCustodian, tokenizationData)
-                        : selectedAssetCustodian,
+                        : "selectassetcustodian".tr(),
                     context,
                     null,
                     validator: (value) {
@@ -968,6 +977,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
   submit() async {
     var message = "";
+    final form = _formKey.currentState;
+    if (!form!.validate()) return;
+
     if (!hasAllRequiredDocuments) {
       message +=
           "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
@@ -982,9 +994,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       popup(context, title: "info".tr(), message: message);
       return;
     }
-
-    final form = _formKey.currentState;
-    if (!form!.validate()) return;
 
     try {
       showLoader(context);
@@ -1121,7 +1130,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   }
 
   String getSelectedAssetCustodianLabel(id, data) {
-    var label = "";
+    var label = "Select asset custodian";
     for (var i = 0; i < data!['assetCustodians'].length; i++) {
       if (data!['assetCustodians'][i]['id'] == id) {
         label =

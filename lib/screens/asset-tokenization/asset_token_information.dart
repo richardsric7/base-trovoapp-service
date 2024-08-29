@@ -435,10 +435,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           numberOfTokenToBeIssued = int.parse(value!);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -500,10 +499,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           numberOfTokenToBeSold = int.parse(value!);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -1109,10 +1107,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             capQuantity = int.parse(value!);
                           });
                         },
-                        keyboardtype: TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
+                        autoFormatNumber: true,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                   ],
@@ -1164,10 +1161,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             capDurationInDays = int.parse(value!);
                           });
                         },
-                        keyboardtype: TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
+                        autoFormatNumber: true,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                   ],

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 
 class Customtextfild {
   static Widget textField(labletext, focuscolor, preicon, lablecolor, iconcolor,
@@ -55,6 +58,7 @@ class CustomTextFormField {
     onSaved,
     keyboardtype,
     helperText,
+    autoFormatNumber = false,
     inputFormatters,
     focusNode,
     controller,
@@ -63,6 +67,13 @@ class CustomTextFormField {
     onTap,
     key,
   }) {
+    Timer? textEditingTimer = null;
+
+    // if (autoFormatNumber && controller == null) {
+    //   throw Exception(
+    //       "Please supply controller in order to enable number auto formatting!");
+    // }
+
     return Container(
       color: Colors.transparent,
       height: double.parse(h.toString()),
@@ -74,7 +85,36 @@ class CustomTextFormField {
         style: TextStyle(color: textcolor, fontFamily: fontbody),
         initialValue: initialValue,
         cursorColor: lablecolor,
-        onChanged: onChanged,
+        onChanged: (newVal) {
+          if (textEditingTimer != null) {
+            textEditingTimer!.cancel();
+          }
+
+          textEditingTimer = Timer(Duration(milliseconds: 600), () {
+            print('timer fired');
+            var splitText = newVal.split('.');
+            if (splitText.length > 2) {
+              newVal = '${splitText[0]}.${splitText[1]}';
+            }
+
+            textEditingTimer = null;
+            if (autoFormatNumber && newVal.isNotEmpty) {
+              print('timer fired $keyboardtype');
+              controller!.text = formatNumberForInput(double.parse(
+                  newVal.toString().replaceAll(',', '').replaceAll('-', '')));
+
+              if (!newVal.endsWith('.')) {
+                controller.selection =
+                    TextSelection.collapsed(offset: controller.selection.end);
+              }
+              newVal = newVal.replaceAll(',', '');
+            }
+
+            if (onChanged != null) {
+              onChanged(newVal);
+            }
+          });
+        },
         decoration: InputDecoration(
           counterStyle: TextStyle(
             fontFamily: fontbody,
@@ -108,9 +148,23 @@ class CustomTextFormField {
         ),
         inputFormatters: inputFormatters,
         keyboardType: keyboardtype,
-        validator: validator,
+        validator: (value) {
+          var newVal = value;
+          if (autoFormatNumber) {
+            newVal = value.toString().replaceAll(',', '');
+          }
+
+          return validator(newVal);
+        },
         controller: controller,
-        onSaved: onSaved,
+        onSaved: (value) {
+          var newVal = value;
+          if (autoFormatNumber) {
+            newVal = value.toString().replaceAll(',', '');
+          }
+
+          onSaved(newVal);
+        },
         onTap: onTap,
         focusNode: focusNode,
         buildCounter: buildCounter,

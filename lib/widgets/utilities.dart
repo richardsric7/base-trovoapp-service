@@ -118,6 +118,11 @@ formatNumber(double number) =>
 formatNumberShort(double number) =>
     NumberFormat("#,##0.00", "en_US").format(number);
 
+formatNumberForInput(double number) {
+  var splitNumber = number.toString().split('.');
+  return '${NumberFormat("#,##0", "en_US").format(double.parse(splitNumber[0]))}${splitNumber[1] != '0' ? '.' + splitNumber[1] : ''}';
+}
+
 formatHistoryNumber(double number, double trimNum, {bool isShort = false}) {
   // if number is greater than 1million return 1m or 1.2m
   if (number >= trimNum) {
@@ -162,7 +167,8 @@ class doubleTypeFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     return TextEditingValue(
-        text: formatNumber(double.parse(newValue.text.replaceAll(',', ''))),
+        text:
+            formatNumberShort(double.parse(newValue.text.replaceAll(',', ''))),
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
   }
 }
