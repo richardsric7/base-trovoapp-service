@@ -160,54 +160,57 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   Widget detailItem(
       String title, String description, String number, String status,
       {required void Function() onTap}) {
-    return Stack(
-      alignment: AlignmentDirectional.centerStart,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: notifier.getbluewhitecolor, width: 1.5),
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(25.0, 15.0, 5.0, 15.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: width / 1.27,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size(50, 30),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          alignment: Alignment.centerLeft),
+      child: Stack(
+        alignment: AlignmentDirectional.centerStart,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+            child: Container(
+              decoration: BoxDecoration(
+                border:
+                    Border.all(color: notifier.getbluewhitecolor, width: 1.5),
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(25.0, 15.0, 5.0, 15.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: width / 1.27,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: width / 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                width: width / 1.87,
+                                child: Text(
+                                  title,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                  ),
+                                ),
                               ),
-                            ),
-                            TextButton(
-                              onPressed: onTap,
-                              style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size(50, 30),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  alignment: Alignment.centerLeft),
-                              child: Text(
-                                status,
+                              Text(
+                                '${status} >>>',
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   fontSize: 12,
@@ -216,58 +219,59 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                   fontFamily: fontsemibold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Text(
-                          description,
-                          overflow: TextOverflow.visible,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody,
+                            ],
                           ),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                      ],
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text(
+                            description,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: notifier.getbluewhitecolor, width: 1.5),
-              shape: BoxShape.circle,
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                number,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold,
+                  ],
                 ),
               ),
             ),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+            child: Container(
+              decoration: BoxDecoration(
+                border:
+                    Border.all(color: notifier.getbluewhitecolor, width: 1.5),
+                shape: BoxShape.circle,
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  number,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

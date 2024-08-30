@@ -119,9 +119,11 @@ class _AssetInformation extends State<AssetInformation>
         double.parse(data['percentageValueOfInsurance'].toString());
     freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
 
-    valueOfAssetController.text = currentValueOfAsset.toString();
-    percentValueOfInsuranceController.text =
-        percentageValueOfInsurance.toString();
+    valueOfAssetController.text =
+        currentValueOfAsset == 0 ? '' : currentValueOfAsset.toString();
+    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
+        ? ''
+        : percentageValueOfInsurance.toString();
 
     super.initState();
     getdarkmodepreviousstate();
@@ -305,7 +307,7 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: multilineInput(
-                      '',
+                      'Asset Description',
                       notifier.getbluecolor,
                       notifier.getgrey,
                       notifier.getblck,
@@ -416,7 +418,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getgrey,
                     50.sp,
                     width / 2.7,
-                    initialValue: latitude.toString(),
+                    initialValue: latitude == 0 ? '' : latitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -441,7 +443,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getgrey,
                     50.sp,
                     width / 2.5,
-                    initialValue: longitude.toString(),
+                    initialValue: longitude == 0 ? '' : longitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -997,6 +999,7 @@ class _AssetInformation extends State<AssetInformation>
                         setState(() {
                           if (value.toString().isEmpty) {
                             currentValueOfAsset = 0;
+                            valueOfTokenizedAsset = 0;
                             return;
                           }
 
@@ -1062,7 +1065,7 @@ class _AssetInformation extends State<AssetInformation>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              valueOfTokenizedAsset.toString(),
+                              formatNumberForInput(valueOfTokenizedAsset),
                               style: TextStyle(fontSize: 15),
                             ),
                           ),

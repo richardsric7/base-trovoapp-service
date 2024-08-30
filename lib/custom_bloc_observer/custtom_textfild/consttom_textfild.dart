@@ -69,10 +69,10 @@ class CustomTextFormField {
   }) {
     Timer? textEditingTimer = null;
 
-    // if (autoFormatNumber && controller == null) {
-    //   throw Exception(
-    //       "Please supply controller in order to enable number auto formatting!");
-    // }
+    if (autoFormatNumber && controller == null) {
+      throw Exception(
+          "Please supply controller in order to enable number auto formatting!");
+    }
 
     return Container(
       color: Colors.transparent,
@@ -91,15 +91,20 @@ class CustomTextFormField {
           }
 
           textEditingTimer = Timer(Duration(milliseconds: 600), () {
-            print('timer fired');
+            // check if there are multiple dots on the text
             var splitText = newVal.split('.');
             if (splitText.length > 2) {
+              // remove all dots except the first one.
               newVal = '${splitText[0]}.${splitText[1]}';
+            }
+
+            if (newVal == '.') {
+              newVal = '';
+              controller.text = newVal;
             }
 
             textEditingTimer = null;
             if (autoFormatNumber && newVal.isNotEmpty) {
-              print('timer fired $keyboardtype');
               controller!.text = formatNumberForInput(double.parse(
                   newVal.toString().replaceAll(',', '').replaceAll('-', '')));
 
@@ -149,12 +154,15 @@ class CustomTextFormField {
         inputFormatters: inputFormatters,
         keyboardType: keyboardtype,
         validator: (value) {
-          var newVal = value;
-          if (autoFormatNumber) {
-            newVal = value.toString().replaceAll(',', '');
-          }
+          if (validator != null) {
+            var newVal = value;
+            if (autoFormatNumber) {
+              newVal = value.toString().replaceAll(',', '');
+            }
 
-          return validator(newVal);
+            return validator(newVal);
+          }
+          return null;
         },
         controller: controller,
         onSaved: (value) {
