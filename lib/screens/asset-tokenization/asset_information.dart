@@ -119,8 +119,9 @@ class _AssetInformation extends State<AssetInformation>
         double.parse(data['percentageValueOfInsurance'].toString());
     freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
 
-    valueOfAssetController.text =
-        currentValueOfAsset == 0 ? '' : currentValueOfAsset.toString();
+    valueOfAssetController.text = currentValueOfAsset == 0
+        ? ''
+        : formatNumberForInput(currentValueOfAsset);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();

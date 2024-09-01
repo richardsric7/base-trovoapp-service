@@ -5,6 +5,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -440,15 +441,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onChanged: (value) {
                         setState(() {
-                          numberOfTokenToBeIssued = value.toString().isNotEmpty
-                              ? int.parse(value)
-                              : 0;
+                          var val = value.toString().replaceAll('.', '');
+                          numberOfTokenToBeIssued =
+                              val.isNotEmpty ? int.parse(val) : 0;
                           totalTokenHeldByManager =
                               numberOfTokenToBeIssued - numberOfTokenToBeSold;
 
                           pricePerToken = (double.parse(
                                   data['assetCurrentValue'].toString()) /
                               numberOfTokenToBeIssued);
+                          numberOfTokenToBeIssuedController.text =
+                              val.isNotEmpty
+                                  ? formatNumberForInput(double.parse(val))
+                                  : val;
                         });
                       },
                       onSaved: (value) {
@@ -457,6 +462,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         });
                       },
                       autoFormatNumber: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
@@ -508,11 +516,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       onChanged: (value) {
                         print('this is value $value');
                         setState(() {
-                          numberOfTokenToBeSold = value.toString().isNotEmpty
-                              ? int.parse(value)
-                              : 0;
+                          var val = value.toString().replaceAll('.', '');
+                          numberOfTokenToBeSold =
+                              val.isNotEmpty ? int.parse(val) : 0;
                           totalTokenHeldByManager =
                               numberOfTokenToBeIssued - numberOfTokenToBeSold;
+                          numberOfTokenToBeSoldController.text = val.isNotEmpty
+                              ? formatNumberForInput(double.parse(val))
+                              : val;
                         });
                       },
                       onSaved: (value) {
@@ -521,6 +532,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         });
                       },
                       autoFormatNumber: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -221,9 +222,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         },
                         key: key3,
                         controller: textController,
-                        // inputFormatters: [
-                        //   doubleTypeFormatter(),
-                        // ],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                        ],
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
                         autoFormatNumber: true,

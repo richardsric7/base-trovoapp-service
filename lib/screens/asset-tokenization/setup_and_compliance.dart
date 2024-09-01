@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -823,23 +824,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var marketMakingWallet = appState.activeDistributionWalletPublicKey!;
-      // var newData = {...data as Map};
+      var newData = {...data as Map};
 
-      // newData["assetSector"] = selectedAssetSectorId;
-      // newData["assetSubSector"] = selectedAssetSubSectorId;
-      // newData["assetType"] = selectedAssetTypeId;
-      // newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
-      // newData["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
-      //     ? int.parse(selectedAssetCustodian)
-      //     : 1;
-      // newData["marketMakingWallet"] = marketMakingWallet.publicKey;
-      // newData["secApprovalIdNumber"] = secApprovalId;
-      // newData["secApproval"] = hasSecApproval;
-      // newData["assetCountryLocation"] = selectedCountry;
-
-      // print('map here $newData');
-      // String requestBody = jsonEncode(newData);
-      print('selected asset custodian $selectedAssetCustodian');
       Map map = {
         "assetSector": selectedAssetSectorId,
         "assetSubSector": selectedAssetSubSectorId,
@@ -852,9 +838,52 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
         "assetCountryLocation": selectedCountry,
+        "numberOfTokenToBeSold": newData['numberOfTokenToBeSold'],
+        "numberOfTokenToBeIssued": newData['numberOfTokenToBeIssued'],
+        "totalTokenHeldByManager": newData['totalTokenHeldByManager'],
+        "pricePerToken": newData['pricePerToken'],
+        "assetCode": newData['assetCode'],
+        "assetName": newData['assetName'],
+        "salesStart": newData['salesStart'],
+        "salesEnd": newData['salesEnd'],
+        "capOnPurchase": newData['capOnPurchase'],
+        "capQuantity": newData['capQuantity'],
+        "capDurationInDays": newData['capDurationInDays'],
+        "proceedCycle": newData['proceedCycle'],
+        "walletToHoldAssetsNotForSale": newData['walletToHoldAssetsNotForSale'],
+        "assetLogo": newData['assetLogo'],
+        "exemptedCountries": newData['exemptedCountries'],
+        "hasAdditionalKYCRequirements": newData['hasAdditionalKYCRequirements'],
+        "assetQuoteCurrency": newData['assetQuoteCurrency'],
+        "proceedPayoutCurrency": newData['proceedPayoutCurrency'],
+        "additionalKYCRequirements": newData['additionalKYCRequirements'],
+        "investorAccreditationRequired":
+            newData['investorAccreditationRequired'],
+        "tokenizationFeeId": newData['tokenizationFeeId'],
+        "assetAlreadyExists": newData['assetAlreadyExists'],
+        "ownershipType": newData['ownershipType'],
+        "ownershipKind": newData['ownershipKind'],
+        "assetDescription": newData['assetDescription'],
+        "assetPhysicalAddress": newData['assetPhysicalAddress'],
+        "assetLatitude": newData['assetLatitude'],
+        "assetLongitude": newData['assetLongitude'],
+        "assetOwnerName": newData['assetOwnerName'],
+        "assetOwnerAddress": newData['assetOwnerAddress'],
+        "assetManagerName": newData['assetManagerName'],
+        "assetManagerAddress": newData['assetManagerAddress'],
+        "assetCurrentValue": newData['assetCurrentValue'],
+        "valueOfTokenizedAsset": newData['valueOfTokenizedAsset'],
+        "protectionMethods": newData['protectionMethods'],
+        "insuranceCompanyName": newData['insuranceCompanyName'],
+        "insurance_policy_number": newData['insurance_policy_number'],
+        "insurancePolicyHolder": newData['insurancePolicyHolder'],
+        "percentageValueOfInsurance": newData['percentageValueOfInsurance'],
+        "IsFreeFromLiensAndEncumbrances":
+            newData['IsFreeFromLiensAndEncumbrances'],
       };
-      print('map here $map');
       String requestBody = jsonEncode(map);
+      inspect(map);
+
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
