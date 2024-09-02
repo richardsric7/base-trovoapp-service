@@ -110,6 +110,8 @@ class _Congratulations extends State<Congratulations> {
         appState.backupSecrets.length > 1) {
       appState.currentAction = PageAction(
           state: PageState.addPage, page: SharedAccessViewPageConfig);
+    } else if (appState.returnView != null) {
+      appState.currentAction = appState.returnView!;
     } else {
       appState.currentAction =
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);

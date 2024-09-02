@@ -120,7 +120,6 @@ class _BackupAllState extends State<BackupAll> {
 
   List<Wallet> getUserWallets() {
     var wallets = <Wallet>[];
-    print('secret.. $secrets');
     secrets.forEach((secret) {
       Account account = TrovoWalletSDK().parseSecretKey(secret);
       var wlt = user.wallets!

@@ -129,7 +129,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             height: height / 50,
                           ),
                           Text(
-                            '${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}',
+                            '${formatNumber(double.parse(transactionData['amount']))} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

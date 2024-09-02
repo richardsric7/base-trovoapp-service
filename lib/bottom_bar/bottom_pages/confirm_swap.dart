@@ -41,8 +41,8 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   final Authenticator _authenticator = Authenticator();
   Map transactionData = {};
   Map viewData = {};
-  var sourceAmount;
-  var swappedEstimate;
+  late String sourceAmount;
+  late String swappedEstimate;
 
   @override
   void initState() {
@@ -61,10 +61,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
     transactionData = appState.viewData!['transactionData'];
     viewData = appState.viewData!;
-    sourceAmount =
-        double.parse(transactionData['sourceAmount']).toStringAsFixed(4);
+    sourceAmount = formatNumber(double.parse(transactionData['sourceAmount']));
     swappedEstimate =
-        double.parse(transactionData['swappedEstimate']).toStringAsFixed(4);
+        formatNumber(double.parse(transactionData['swappedEstimate']));
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -140,7 +139,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                           Container(
                             width: width / 1.3,
                             child: Text(
-                              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                              '- ${calculateFiatValue(sourceAmount.replaceAll(',', ''), viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
@@ -384,7 +383,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     ),
                     if (viewData["destinationUsdPrice"] != null) ...[
                       Text(
-                        '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        '+ ${calculateFiatValue(swappedEstimate.replaceAll(',', ''), viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: 12,

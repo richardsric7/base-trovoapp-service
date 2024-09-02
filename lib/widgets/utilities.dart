@@ -112,8 +112,15 @@ getAssetIssuer(assetIssuer) {
       : assetIssuer.toString();
 }
 
-formatNumber(double number) =>
-    NumberFormat("#,##0.0000000", "en_US").format(number);
+formatNumber(double number) {
+  var formattedString = NumberFormat("#,##0.0000000", "en_US").format(number);
+  var splitFormattedString = formattedString.split('.');
+  if (int.parse(splitFormattedString[1]) == 0) {
+    return splitFormattedString[0];
+  }
+
+  return formattedString;
+}
 
 formatNumberShort(double number) =>
     NumberFormat("#,##0.00", "en_US").format(number);

@@ -15,6 +15,8 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_text
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -640,23 +642,40 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "orcreateanewwallet".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: TextButton(
+                  onPressed: () {
+                    appState.returnView =
+                        PageAction(state: PageState.addAll, pages: [
+                      BottomHomePageConfig,
+                      SetupAndComplianceViewPageConfig,
+                      TokenizeAssetViewPageConfig,
+                      AssetTokenInformationViewPageConfig
+                    ]);
+                    addSubWalletPopup(context);
+                  },
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline_outlined,
                         color: notifier.getbluewhitecolor,
+                        size: 18,
                       ),
-                    ),
+                      SizedBox(width: 3),
+                      Text(
+                        "orcreateanewwallet".tr(),
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
               SizedBox(
                 height: height / 50,
@@ -690,47 +709,72 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             const BorderRadius.all(Radius.circular(15.0)),
                         color: notifier.getaddsubwalletgrey,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          checkBoxItem(
-                            text: "N1,000,000.00 + 1,500,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 1,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 1;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N10,000,000.00 + 1,000,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 2,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 2;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N20,000,000.00 + 600,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 3,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 3;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N50,000,000.00 + 400,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 4,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 4;
-                              });
-                            },
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            checkBoxItem(
+                              text: getFeeInfo(0),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [0]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [0]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(1),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [1]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [1]['id'];
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(2),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [2]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [2]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(3),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [3]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [3]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -1701,6 +1745,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         onSaved: onSaved,
       ),
     );
+  }
+
+  String getFeeInfo(int index) {
+    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeFiatPercentage'];
+    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeAssetPercentage'];
+    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+            [index]['feeFiatCap']
+        .toString());
+    var tokenFee = numberOfTokenToBeIssued * assetPercentage;
+    var fiatFee = data['assetCurrentValue'] * fiatPercentage;
+    return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumberShort(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumberShort(double.parse(tokenFee.toString()))} ${assetCode}).";
   }
 
   Future<void> getImage() async {
