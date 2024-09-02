@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:typed_data';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -64,7 +63,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   final numberOfTokenToBeSoldController = TextEditingController();
   final capQuantityController = TextEditingController();
   final capDurationInDaysController = TextEditingController();
-  bool formHasError = false;
+  bool formIsValid = true;
 
   List<String> assetQuoteCurrencies = [];
   List<String> payoutCycleOptions = [];
@@ -384,6 +383,24 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
+              if (!formIsValid &&
+                  (assetLogo == null || assetLogo!.isEmpty)) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "pleaseuploadassetlogo".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               if (assetLogo != null && assetLogo!.isNotEmpty) ...[
                 GestureDetector(
                   onTap: () {
@@ -635,7 +652,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   context,
                   null,
                   validator: (value) {
-                    if (value.toString().isEmpty) {
+                    if (value == null || value.toString().isEmpty) {
                       return "fieldcannotbeempty".tr();
                     }
                     return null;
@@ -900,6 +917,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   'Select currency',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -947,6 +970,18 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                               }));
                         },
                       ),
+                      if (!formIsValid &&
+                          (salesStart == null ||
+                              salesStart == DateTime(0))) ...[
+                        Text(
+                          "pleaseuploadassetlogo".tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   Column(
@@ -990,6 +1025,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                               });
                         },
                       ),
+                      if (!formIsValid &&
+                          (salesEnd == null || salesEnd == DateTime(0))) ...[
+                        Text(
+                          "pleaseuploadassetlogo".tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],
@@ -1205,6 +1251,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   'Select payout cycle',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -1241,6 +1293,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   'Select payout currency',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -1537,11 +1595,26 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  var form = _formKey.currentState;
-                  if (form!.validate()) {
-                    form.save();
-                    submitForm();
-                  }
+                  setState(() {
+                    formIsValid = true;
+                    if (salesStart == null) {
+                      formIsValid = false;
+                    }
+
+                    if (salesEnd == null) {
+                      formIsValid = false;
+                    }
+
+                    if (assetLogo == null) {
+                      formIsValid = false;
+                    }
+                    var form = _formKey.currentState;
+                    print('form is valid $formIsValid assetLogo: $assetLogo');
+                    if (form!.validate() && formIsValid) {
+                      form.save();
+                      submitForm();
+                    }
+                  });
                 },
               ),
               SizedBox(
@@ -1565,7 +1638,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var newData = {...data as Map};
-      print('newData ========> ');
 
       newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
       newData['numberOfTokenToBeIssued'] = numberOfTokenToBeIssued;
@@ -1757,7 +1829,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         .toString());
     var tokenFee = numberOfTokenToBeIssued * assetPercentage;
     var fiatFee = data['assetCurrentValue'] * fiatPercentage;
-    return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumberShort(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumberShort(double.parse(tokenFee.toString()))} ${assetCode}).";
+    return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).";
   }
 
   Future<void> getImage() async {

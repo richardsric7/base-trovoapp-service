@@ -179,7 +179,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 foreColor: wihitecolor,
                 alias: wallet.alias!.capitalizeFirst!,
                 isSharedWallet: wallet.isSharedWallet,
-                walletType: wallet.walletType!,
+                walletType: wallet.walletType ?? 0,
                 totalBalance:
                     '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                 fiatBalance: appState.defaultCurrency == 'USD'

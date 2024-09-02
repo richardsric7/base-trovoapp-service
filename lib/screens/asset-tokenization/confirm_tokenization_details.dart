@@ -11,6 +11,7 @@ import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ConfirmTokenizationDetails extends StatefulWidget {
@@ -70,27 +71,27 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 height: height / 40,
               ),
               item("totaltokenstobeissued".tr(),
-                  '${tokenizedAsset.numberOfTokenToBeIssued} ${tokenizedAsset.assetCode}'),
+                  '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
               SizedBox(
                 height: height / 50,
               ),
               item("totaltokenstobesold".tr(),
-                  '${tokenizedAsset.numberOfTokenToBeSold} ${tokenizedAsset.assetCode}'),
+                  '${formatNumber(tokenizedAsset.numberOfTokenToBeSold!)} ${tokenizedAsset.assetCode}'),
               SizedBox(
                 height: height / 50,
               ),
               item("pricepertoken".tr(),
-                  '${(double.parse(tokenizedAsset.assetCurrentValue.toString()) / tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                  '${(formatNumber(tokenizedAsset.pricePerToken!))} ${tokenizedAsset.assetQuoteCurrency}'),
               SizedBox(
                 height: height / 50,
               ),
               item("totalamounttoberaised".tr(),
-                  '${tokenizedAsset.numberOfTokenToBeIssued} ${tokenizedAsset.assetQuoteCurrency}'),
+                  '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetQuoteCurrency}'),
               SizedBox(
                 height: height / 50,
               ),
               item("tokenizationfee".tr(),
-                  "N1,000,000.00 + 1,500,000.00 ${tokenizedAsset.assetCode}"),
+                  getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
               SizedBox(
                 height: height / 50,
               ),
@@ -150,6 +151,19 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         ),
       ),
     );
+  }
+
+  String getFeeInfo(int index) {
+    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeFiatPercentage'];
+    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeAssetPercentage'];
+    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+            [index]['feeFiatCap']
+        .toString());
+    var tokenFee = tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage;
+    var fiatFee = tokenizedAsset.assetCurrentValue! * fiatPercentage;
+    return "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}.";
   }
 
   Widget item(String key, String value) {

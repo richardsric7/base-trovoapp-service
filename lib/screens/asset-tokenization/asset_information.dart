@@ -110,7 +110,7 @@ class _AssetInformation extends State<AssetInformation>
     valueOfTokenizedAsset =
         double.parse(data['valueOfTokenizedAsset'].toString());
     assetProtectionInPlace = data['protectionMethods'].toString().isEmpty
-        ? ['Insurance']
+        ? []
         : data['protectionMethods'].toString().split(',');
     insuranceCompanyName = data['insuranceCompanyName'];
     insurancePolicyNumber = data['insurance_policy_number'];
@@ -228,57 +228,6 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "assetname".tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "assetname".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: assetName,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                    ),
                   ),
                 ],
               ),
@@ -418,7 +367,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     50.sp,
-                    width / 2.7,
+                    width / 2.5,
                     initialValue: latitude == 0 ? '' : latitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
@@ -1131,9 +1080,15 @@ class _AssetInformation extends State<AssetInformation>
                   },
                   getAssetProtectionOptions,
                   null,
-                  assetProtectionInPlace.last,
+                  'Select asset protection',
                   context,
                   null,
+                  validator: (value) {
+                    if (assetProtectionInPlace.isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(

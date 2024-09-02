@@ -165,6 +165,7 @@
     "assetsalesandpricing":"Asset Sales & and Pricing",
     "browsefiles":"Browse file to select image.\nMax image size: 10MB",
     "uploadassetlogo":"Upload Asset Logo",
+    "pleaseuploadassetlogo":"Please upload asset logo",
     "assettokenization": "Asset Tokenization",
     "assetdetails": "Asset Details",
     "assetinformation": "Asset Information",

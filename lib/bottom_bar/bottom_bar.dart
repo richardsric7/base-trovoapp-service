@@ -153,21 +153,8 @@ class _BottomHomeState extends State<BottomHome> {
               label: "tokenize".tr(),
             ),
           ],
-          // onTap: (index) {
-          //   changeTabMethod(index);
-          //   isTapped = true;
-          // },
           onTap: _onItemTapped,
         ),
-        // body: Stack(
-        //   children: [
-        //     _buildOffstageNavigator(0),
-        //     _buildOffstageNavigator(1),
-        //     _buildOffstageNavigator(2),
-        //     _buildOffstageNavigator(3),
-        //     _buildOffstageNavigator(4),
-        //   ],
-        // ),
         body: PageView(
           controller: _controller,
           onPageChanged: (index) {
@@ -211,32 +198,4 @@ class _BottomHomeState extends State<BottomHome> {
     SwapAssets(),
     TokenizationWelcome(),
   ];
-
-  // Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
-  //   return {
-  //     '/': (context) {
-  //       return [
-  //         Home(onButtonPressed: changeTabMethod),
-  //         Wallets(),
-  //         PaymentHistory(),
-  //         SwapAssets(),
-  //         Settings(),
-  //       ].elementAt(index);
-  //     },
-  //   };
-  // }
-  // Widget _buildOffstageNavigator(int index) {
-  //   var routeBuilders = _routeBuilders(context, index);
-
-  //   return Offstage(
-  //     offstage: _selectedIndex != index,
-  //     child: Navigator(
-  //       onGenerateRoute: (routeSettings) {
-  //         return MaterialPageRoute(
-  //           builder: (context) => routeBuilders[routeSettings.name]!(context),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
 }
