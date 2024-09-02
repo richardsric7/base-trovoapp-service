@@ -130,6 +130,8 @@ class _BackupState extends State<Backup> {
         state.backupSecrets.length > 1) {
       state.currentAction = PageAction(
           state: PageState.addPage, page: SharedAccessViewPageConfig);
+    } else if (state.returnView != null) {
+      state.currentAction = state.returnView!;
     } else if (state.isFirstTime) {
       state.currentAction =
           PageAction(state: PageState.addPage, page: FingerprintPageConfig);

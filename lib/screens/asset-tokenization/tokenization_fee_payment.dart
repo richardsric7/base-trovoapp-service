@@ -32,12 +32,24 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   late DataProvider appState;
   final formKey = GlobalKey<FormState>();
   late TokenizedAsset tokenizedAsset;
+  late double fiatFeeCap;
+  late double tokenFee;
+  late double fiatFee;
 
   @override
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
+    var fiatPercentage = appState.tokenizationData["tokenizationFees"]
+        [tokenizedAsset.tokenizationFeeId]['feeFiatPercentage'];
+    var assetPercentage = appState.tokenizationData["tokenizationFees"]
+        [tokenizedAsset.tokenizationFeeId]['feeAssetPercentage'];
+    fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+            [tokenizedAsset.tokenizationFeeId]['feeFiatCap']
+        .toString());
+    tokenFee = tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage;
+    fiatFee = tokenizedAsset.assetCurrentValue! * fiatPercentage;
   }
 
   @override
@@ -80,7 +92,9 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  "payto".tr(args: ["N1,000,000.00"]),
+                  "payto".tr(args: [
+                    "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)}"
+                  ]),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
@@ -312,7 +326,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                           height: height / 90,
                         ),
                         Text(
-                          "N1,000,000.00 + 1,500,000.00 ${tokenizedAsset.assetCode}",
+                          "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(tokenFee)} ${tokenizedAsset.assetCode}",
                           style: TextStyle(
                               fontSize: 15,
                               color: notifier.getbluewhitecolor,

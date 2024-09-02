@@ -56,6 +56,8 @@ class _AssetInformation extends State<AssetInformation>
   bool freeOfDisputes = false;
   bool formHasError = false;
   late dynamic data = {};
+  final valueOfAssetController = TextEditingController();
+  final percentValueOfInsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,7 +110,7 @@ class _AssetInformation extends State<AssetInformation>
     valueOfTokenizedAsset =
         double.parse(data['valueOfTokenizedAsset'].toString());
     assetProtectionInPlace = data['protectionMethods'].toString().isEmpty
-        ? ['Insurance']
+        ? []
         : data['protectionMethods'].toString().split(',');
     insuranceCompanyName = data['insuranceCompanyName'];
     insurancePolicyNumber = data['insurance_policy_number'];
@@ -116,6 +118,13 @@ class _AssetInformation extends State<AssetInformation>
     percentageValueOfInsurance =
         double.parse(data['percentageValueOfInsurance'].toString());
     freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
+
+    valueOfAssetController.text = currentValueOfAsset == 0
+        ? ''
+        : formatNumberForInput(currentValueOfAsset);
+    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
+        ? ''
+        : percentageValueOfInsurance.toString();
 
     super.initState();
     getdarkmodepreviousstate();
@@ -230,57 +239,6 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "assetname".tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "assetname".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: assetName,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
                       "assetdescription".tr(),
                       style: TextStyle(
                         fontSize: 15,
@@ -299,7 +257,7 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: multilineInput(
-                      '',
+                      'Asset Description',
                       notifier.getbluecolor,
                       notifier.getgrey,
                       notifier.getblck,
@@ -409,8 +367,8 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     50.sp,
-                    width / 2.7,
-                    initialValue: latitude.toString(),
+                    width / 2.5,
+                    initialValue: latitude == 0 ? '' : latitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -422,10 +380,8 @@ class _AssetInformation extends State<AssetInformation>
                         latitude = double.parse(value!.toString());
                       });
                     },
-                    keyboardtype: TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
+                    keyboardtype:
+                        TextInputType.numberWithOptions(decimal: true),
                   ),
                   CustomTextFormField.textField(
                     "longitude".tr(),
@@ -437,7 +393,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getgrey,
                     50.sp,
                     width / 2.5,
-                    initialValue: longitude.toString(),
+                    initialValue: longitude == 0 ? '' : longitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -449,10 +405,8 @@ class _AssetInformation extends State<AssetInformation>
                         longitude = double.parse(value!.toString());
                       });
                     },
-                    keyboardtype: TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
+                    keyboardtype:
+                        TextInputType.numberWithOptions(decimal: true),
                   ),
                 ],
               ),
@@ -991,15 +945,16 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: currentValueOfAsset.toString(),
                       onChanged: (value) {
                         setState(() {
                           if (value.toString().isEmpty) {
                             currentValueOfAsset = 0;
+                            valueOfTokenizedAsset = 0;
                             return;
                           }
 
-                          currentValueOfAsset = double.parse(value!.toString());
+                          currentValueOfAsset = double.parse(
+                              value!.toString().replaceAll(',', ''));
                           valueOfTokenizedAsset = currentValueOfAsset;
                         });
                       },
@@ -1012,10 +967,10 @@ class _AssetInformation extends State<AssetInformation>
                       onSaved: (value) {
                         currentValueOfAsset = double.parse(value!.toString());
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      controller: valueOfAssetController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -1060,7 +1015,7 @@ class _AssetInformation extends State<AssetInformation>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              valueOfTokenizedAsset.toString(),
+                              formatNumberForInput(valueOfTokenizedAsset),
                               style: TextStyle(fontSize: 15),
                             ),
                           ),
@@ -1125,9 +1080,15 @@ class _AssetInformation extends State<AssetInformation>
                   },
                   getAssetProtectionOptions,
                   null,
-                  assetProtectionInPlace.last,
+                  'Select asset protection',
                   context,
                   null,
+                  validator: (value) {
+                    if (assetProtectionInPlace.isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -1345,7 +1306,6 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: percentageValueOfInsurance.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "enterassetdescription".tr();
@@ -1357,10 +1317,10 @@ class _AssetInformation extends State<AssetInformation>
                           percentageValueOfInsurance = double.parse(value);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      controller: percentValueOfInsuranceController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],

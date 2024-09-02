@@ -422,6 +422,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                         });
                       },
                       controller: amountController,
+                      autoFormatNumber: true,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,

@@ -175,6 +175,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                     });
                   },
                   controller: amountController,
+                  autoFormatNumber: true,
                   keyboardtype: TextInputType.numberWithOptions(decimal: true),
                   validator: validateAmount,
                   onSaved: (value) => amount = value.trim().replaceAll(' ', ''),

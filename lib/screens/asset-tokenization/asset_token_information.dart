@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:typed_data';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -14,6 +14,8 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_text
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +39,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   final _formKey = GlobalKey<FormState>();
   String? assetLogo;
   bool hasAdditionalKYCRequirements = false;
-  String proceedPayoutCurrency = 'NGN';
+  late String proceedPayoutCurrency;
   late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
   late int totalTokenHeldByManager;
@@ -47,7 +49,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late DateTime? salesStart;
   late DateTime? salesEnd;
   late int capQuantity;
-  late String assetQuoteCurrency = 'NGN';
+  late String assetQuoteCurrency;
   late int capDurationInDays;
   late String proceedCycle;
   late List<String> exemptedCountries;
@@ -57,6 +59,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late String walletToHoldAssetsNotForSale;
   late int tokenizationFeeId;
   late dynamic data = {};
+  final numberOfTokenToBeIssuedController = TextEditingController();
+  final numberOfTokenToBeSoldController = TextEditingController();
+  final capQuantityController = TextEditingController();
+  final capDurationInDaysController = TextEditingController();
+  bool formIsValid = true;
 
   List<String> assetQuoteCurrencies = [];
   List<String> payoutCycleOptions = [];
@@ -137,26 +144,42 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     numberOfTokenToBeIssued = data['numberOfTokenToBeIssued'];
     walletToHoldAssetsNotForSale =
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
-            ? getStandardWallets.last.value!
+            ? ''
             : data['walletToHoldAssetsNotForSale'].toString();
     totalTokenHeldByManager = data['totalTokenHeldByManager'];
     pricePerToken = double.parse(data['pricePerToken'].toString());
     assetCode = data['assetCode'];
     assetName = data['assetName'];
-    salesStart = DateTime.parse(data['salesStart'].toString());
-    salesEnd = DateTime.parse(data['salesEnd'].toString());
+    var parsedSalesStart = DateTime.parse(data['salesStart']);
+    salesStart =
+        parsedSalesStart.year == DateTime(0001).year ? null : parsedSalesStart;
+    var parsedSalesEnd = DateTime.parse(data['salesEnd']);
+    salesEnd =
+        parsedSalesEnd.year == DateTime(0001).year ? null : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
     capQuantity = data['capQuantity'];
     capDurationInDays = data['capDurationInDays'];
     proceedCycle = data['proceedCycle'];
     assetLogo = data['assetLogo'];
     exemptedCountries = data['exemptedCountries'].toString().isEmpty
-        ? ['Pakistan']
+        ? []
         : data['exemptedCountries'].toString().split(',');
     hasAdditionalKYCRequirements = data['hasAdditionalKYCRequirements'] == 1;
     proceedPayoutCurrency = data['proceedPayoutCurrency'];
+    assetQuoteCurrency = data['assetQuoteCurrency'];
     additionalKYCRequirements = data['additionalKYCRequirements'];
     investorAccreditationRequired = data['investorAccreditationRequired'] == 1;
+
+    numberOfTokenToBeIssuedController.text = numberOfTokenToBeIssued == 0
+        ? ''
+        : formatNumberForInput(
+            double.parse(numberOfTokenToBeIssued.toString()));
+    numberOfTokenToBeSoldController.text = numberOfTokenToBeSold == 0
+        ? ''
+        : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
+    capQuantityController.text = capQuantity == 0 ? '' : capQuantity.toString();
+    capDurationInDaysController.text =
+        capDurationInDays == 0 ? '' : capDurationInDays.toString();
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -360,6 +383,24 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
+              if (!formIsValid &&
+                  (assetLogo == null || assetLogo!.isEmpty)) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "pleaseuploadassetlogo".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               if (assetLogo != null && assetLogo!.isNotEmpty) ...[
                 GestureDetector(
                   onTap: () {
@@ -410,7 +451,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       70.sp,
                       300.sp,
-                      initialValue: numberOfTokenToBeIssued.toString(),
+                      controller: numberOfTokenToBeIssuedController,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -419,15 +460,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onChanged: (value) {
                         setState(() {
-                          numberOfTokenToBeIssued = value.toString().isNotEmpty
-                              ? int.parse(value)
-                              : 0;
+                          var val = value.toString().replaceAll('.', '');
+                          numberOfTokenToBeIssued =
+                              val.isNotEmpty ? int.parse(val) : 0;
                           totalTokenHeldByManager =
                               numberOfTokenToBeIssued - numberOfTokenToBeSold;
 
                           pricePerToken = (double.parse(
                                   data['assetCurrentValue'].toString()) /
                               numberOfTokenToBeIssued);
+                          numberOfTokenToBeIssuedController.text =
+                              val.isNotEmpty
+                                  ? formatNumberForInput(double.parse(val))
+                                  : val;
                         });
                       },
                       onSaved: (value) {
@@ -435,10 +480,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           numberOfTokenToBeIssued = int.parse(value!);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -478,7 +525,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       70.sp,
                       300.sp,
-                      initialValue: numberOfTokenToBeSold.toString(),
+                      controller: numberOfTokenToBeSoldController,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -488,11 +535,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       onChanged: (value) {
                         print('this is value $value');
                         setState(() {
-                          numberOfTokenToBeSold = value.toString().isNotEmpty
-                              ? int.parse(value)
-                              : 0;
+                          var val = value.toString().replaceAll('.', '');
+                          numberOfTokenToBeSold =
+                              val.isNotEmpty ? int.parse(val) : 0;
                           totalTokenHeldByManager =
                               numberOfTokenToBeIssued - numberOfTokenToBeSold;
+                          numberOfTokenToBeSoldController.text = val.isNotEmpty
+                              ? formatNumberForInput(double.parse(val))
+                              : val;
                         });
                       },
                       onSaved: (value) {
@@ -500,10 +550,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           numberOfTokenToBeSold = int.parse(value!);
                         });
                       },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
+                      autoFormatNumber: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -548,7 +600,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              totalTokenHeldByManager.toString(),
+                              formatNumberForInput(double.parse(
+                                  totalTokenHeldByManager.toString())),
                               style: TextStyle(fontSize: 15),
                             ),
                           ),
@@ -595,30 +648,51 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           .isEmpty
                       ? null
                       : walletToHoldAssetsNotForSale,
-                  appState.userInfo!.getStandardWallets.length > 0
-                      ? appState.userInfo!.getStandardWallets.first.alias
-                      : '',
+                  'selectwallet'.tr(),
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "orcreateanewwallet".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: TextButton(
+                  onPressed: () {
+                    appState.returnView =
+                        PageAction(state: PageState.addAll, pages: [
+                      BottomHomePageConfig,
+                      SetupAndComplianceViewPageConfig,
+                      TokenizeAssetViewPageConfig,
+                      AssetTokenInformationViewPageConfig
+                    ]);
+                    addSubWalletPopup(context);
+                  },
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline_outlined,
                         color: notifier.getbluewhitecolor,
+                        size: 18,
                       ),
-                    ),
+                      SizedBox(width: 3),
+                      Text(
+                        "orcreateanewwallet".tr(),
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
               SizedBox(
                 height: height / 50,
@@ -652,47 +726,72 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             const BorderRadius.all(Radius.circular(15.0)),
                         color: notifier.getaddsubwalletgrey,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          checkBoxItem(
-                            text: "N1,000,000.00 + 1,500,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 1,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 1;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N10,000,000.00 + 1,000,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 2,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 2;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N20,000,000.00 + 600,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 3,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 3;
-                              });
-                            },
-                          ),
-                          checkBoxItem(
-                            text: "N50,000,000.00 + 400,000.00 ${assetCode}",
-                            value: tokenizationFeeId == 4,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                tokenizationFeeId = 4;
-                              });
-                            },
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            checkBoxItem(
+                              text: getFeeInfo(0),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [0]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [0]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(1),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [1]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [1]['id'];
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(2),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [2]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [2]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                            SizedBox(height: height / 90),
+                            checkBoxItem(
+                              text: getFeeInfo(3),
+                              value: tokenizationFeeId ==
+                                  appState.tokenizationData["tokenizationFees"]
+                                      [3]['id'],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  tokenizationFeeId = appState
+                                          .tokenizationData["tokenizationFees"]
+                                      [3]['id'];
+                                  ;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -756,7 +855,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              pricePerToken.toString(),
+                              (pricePerToken == 0 || pricePerToken.isNaN)
+                                  ? ''
+                                  : formatNumberForInput(pricePerToken),
                               style: TextStyle(fontSize: 15),
                             ),
                           ),
@@ -812,10 +913,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getAssetQuoteCurrencies,
-                  null,
-                  assetQuoteCurrency,
+                  assetQuoteCurrency.isEmpty ? null : assetQuoteCurrency,
+                  'Select currency',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -843,7 +950,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         height: height / 50,
                       ),
                       ButtonOutlined(
-                        salesStart != null
+                        salesStart != null && salesStart != DateTime(0)
                             ? DateFormat('MMMM dd, yyyy').format(salesStart!)
                             : "starts".tr(),
                         notifier.getwihitecolor,
@@ -863,6 +970,18 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                               }));
                         },
                       ),
+                      if (!formIsValid &&
+                          (salesStart == null ||
+                              salesStart == DateTime(0))) ...[
+                        Text(
+                          "pleaseuploadassetlogo".tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   Column(
@@ -906,6 +1025,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                               });
                         },
                       ),
+                      if (!formIsValid &&
+                          (salesEnd == null || salesEnd == DateTime(0))) ...[
+                        Text(
+                          "pleaseuploadassetlogo".tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],
@@ -913,108 +1043,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         'Asset Wallets',
-              //         style: TextStyle(
-              //           fontSize: 15,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         'Minting Wallet',
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         'Minting wallet',
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         300.sp,
-              //         // controller: referrerController,
-              //         // validator: validateReferrer,
-              //         onSaved: (value) {},
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         'Market Making Wallet',
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         'Market Making Wallet',
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         300.sp,
-              //         // controller: referrerController,
-              //         // validator: validateReferrer,
-              //         onSaved: (value) {},
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
               Row(
                 children: [
                   Padding(
@@ -1097,7 +1125,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         notifier.getgrey,
                         70.sp,
                         300.sp,
-                        initialValue: capQuantity.toString(),
+                        controller: capQuantityController,
                         validator: (value) {
                           if (value.isEmpty) {
                             return "fieldcannotbeempty".tr();
@@ -1109,10 +1137,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             capQuantity = int.parse(value!);
                           });
                         },
-                        keyboardtype: TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
+                        autoFormatNumber: true,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                   ],
@@ -1152,7 +1179,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         notifier.getgrey,
                         70.sp,
                         300.sp,
-                        initialValue: capDurationInDays.toString(),
+                        controller: capDurationInDaysController,
                         validator: (value) {
                           if (value.isEmpty) {
                             return "fieldcannotbeempty".tr();
@@ -1164,10 +1191,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             capDurationInDays = int.parse(value!);
                           });
                         },
-                        keyboardtype: TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
+                        autoFormatNumber: true,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                   ],
@@ -1221,10 +1247,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getPayoutCycles,
-                  null,
-                  'Monthly',
+                  proceedCycle.isEmpty ? null : proceedCycle,
+                  'Select payout cycle',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -1257,10 +1289,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getAssetQuoteCurrencies,
-                  null,
-                  proceedPayoutCurrency,
+                  proceedPayoutCurrency.isEmpty ? null : proceedPayoutCurrency,
+                  'Select payout currency',
                   context,
                   null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
                 ),
               ),
               SizedBox(
@@ -1335,7 +1373,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           Text(
                             exemptedCountries.length > 0
                                 ? exemptedCountries.last
-                                : '',
+                                : 'Select countries',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
@@ -1557,11 +1595,26 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  var form = _formKey.currentState;
-                  if (form!.validate()) {
-                    form.save();
-                    submitForm();
-                  }
+                  setState(() {
+                    formIsValid = true;
+                    if (salesStart == null) {
+                      formIsValid = false;
+                    }
+
+                    if (salesEnd == null) {
+                      formIsValid = false;
+                    }
+
+                    if (assetLogo == null) {
+                      formIsValid = false;
+                    }
+                    var form = _formKey.currentState;
+                    print('form is valid $formIsValid assetLogo: $assetLogo');
+                    if (form!.validate() && formIsValid) {
+                      form.save();
+                      submitForm();
+                    }
+                  });
                 },
               ),
               SizedBox(
@@ -1585,7 +1638,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var newData = {...data as Map};
-      print('newData ========> ');
 
       newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
       newData['numberOfTokenToBeIssued'] = numberOfTokenToBeIssued;
@@ -1615,7 +1667,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['tokenizationFeeId'] = tokenizationFeeId;
 
       String requestBody = jsonEncode(newData);
-      print('requestBody =======> $requestBody');
+      print('requestBody  =======> $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1627,7 +1679,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
       hideLoader(context);
 
-      print('responseData ${responseData['data']}');
+      print('responseData token information  ${responseData['data']}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
@@ -1653,7 +1705,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
+      print('===============> token informationresponse ${responseData}');
       if (responseData['statusCode'] == 200) {
         print('success');
         appState.viewData = responseData['data'];
@@ -1765,6 +1817,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         onSaved: onSaved,
       ),
     );
+  }
+
+  String getFeeInfo(int index) {
+    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeFiatPercentage'];
+    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeAssetPercentage'];
+    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+            [index]['feeFiatCap']
+        .toString());
+    var tokenFee = numberOfTokenToBeIssued * assetPercentage;
+    var fiatFee = data['assetCurrentValue'] * fiatPercentage;
+    return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).";
   }
 
   Future<void> getImage() async {

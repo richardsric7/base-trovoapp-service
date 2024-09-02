@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -227,15 +228,24 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetSubSectorId = value.toString();
+                    selectedAssetTypeId = '';
                     assetSectors = getAssetTypes(
                         tokenizationData, selectedAssetSubSectorId);
                   });
                 },
                 assetSubsectors,
                 null,
-                assetSubsectors.length > 0 ? assetSubsectors.first.value : '',
+                assetSubsectors.length > 0
+                    ? assetSubsectors.first.value
+                    : "selectassetsubsector".tr(),
                 context,
                 null,
+                validator: (value) {
+                  if (selectedAssetSubSectorId.isEmpty) {
+                    return "pleaseselectassetsubsector".tr();
+                  }
+                  return null;
+                },
               ),
             ),
             SizedBox(
@@ -694,7 +704,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     selectedAssetCustodian.isNotEmpty
                         ? getSelectedAssetCustodianLabel(
                             selectedAssetCustodian, tokenizationData)
-                        : selectedAssetCustodian,
+                        : "selectassetcustodian".tr(),
                     context,
                     null,
                     validator: (value) {
@@ -765,184 +775,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   ],
                 ),
               ],
-              // if (offeringType == 0 && hasCustodianAgreement) ...[
-              //   SizedBox(
-              //     height: height / 15,
-              //   ),
-              //   Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              //     child: Row(
-              //       children: [
-              //         Container(
-              //           child: Text(
-              //             "secapproval".tr(),
-              //             style: TextStyle(
-              //               fontSize: 18,
-              //               fontFamily: fontsemibold,
-              //               color: notifier.getbluewhitecolor,
-              //             ),
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              //   Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              //     child: Container(
-              //       width: width,
-              //       child: Text(
-              //         "pleasefillapprovalinfo".tr(),
-              //         textAlign: TextAlign.left,
-              //         style: TextStyle(
-              //           fontSize: 15,
-              //           fontFamily: fontbody,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              //   SizedBox(
-              //     height: height / 50,
-              //   ),
-              //   Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 15),
-              //     child: Container(
-              //       width: width,
-              //       child: Text(
-              //         "isyourassetapproved".tr(),
-              //         style: TextStyle(
-              //           fontSize: 13,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              //   Row(
-              //     children: [
-              //       Row(
-              //         children: [
-              //           Transform.scale(
-              //             scale: 1,
-              //             child: Radio<bool>(
-              //               value: true,
-              //               groupValue: hasSecApproval,
-              //               activeColor: notifier.getbluewhitecolor,
-              //               fillColor: MaterialStateColor.resolveWith(
-              //                   (states) => notifier.getbluewhitecolor),
-              //               onChanged: (value) => {
-              //                 setState(
-              //                   () {
-              //                     hasSecApproval = value!;
-              //                   },
-              //                 )
-              //               },
-              //             ),
-              //           ),
-              //           Text(
-              //             "yes".tr(),
-              //             style: TextStyle(
-              //               fontSize: 14,
-              //               fontFamily: fontsemibold,
-              //               color: notifier.getbluewhitecolor,
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //       Row(
-              //         children: [
-              //           Transform.scale(
-              //             scale: 1,
-              //             child: Radio<bool>(
-              //               value: false,
-              //               activeColor: notifier.getbluewhitecolor,
-              //               fillColor: MaterialStateColor.resolveWith(
-              //                   (states) => notifier.getbluewhitecolor),
-              //               groupValue: hasSecApproval,
-              //               onChanged: (value) => {
-              //                 setState(
-              //                   () {
-              //                     hasSecApproval = value!;
-              //                   },
-              //                 )
-              //               },
-              //             ),
-              //           ),
-              //           Text(
-              //             "no".tr(),
-              //             style: TextStyle(
-              //               fontSize: 14,
-              //               fontFamily: fontsemibold,
-              //               color: notifier.getbluewhitecolor,
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ],
-              //   ),
-              //   SizedBox(
-              //     height: height / 50,
-              //   ),
-              //   if (hasSecApproval) ...[
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 15),
-              //       child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //         children: [
-              //           Text(
-              //             "secapprovalid".tr(),
-              //             style: TextStyle(
-              //               fontSize: 13,
-              //               fontFamily: fontsemibold,
-              //               color: notifier.getbluewhitecolor,
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //     SizedBox(
-              //       height: height / 70,
-              //     ),
-              //     CustomTextFormField.textField(
-              //       'enterapprovalidnumber'.tr(),
-              //       notifier.getbluecolor,
-              //       null,
-              //       notifier.getgrey,
-              //       notifier.getprefixicon,
-              //       notifier.getblck,
-              //       notifier.getgrey,
-              //       70,
-              //       350,
-              //       initialValue: secApprovalId,
-              //       validator: (value) {
-              //         if (hasSecApproval && value.isEmpty) {
-              //           return "pleaseentersecapprovalid".tr();
-              //         }
-              //         return null;
-              //       },
-              //       onSaved: (value) {
-              //         secApprovalId = value.trim().replaceAll(' ', '');
-              //       },
-              //     ),
-              //   ] else ...[
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              //       child: TextButton(
-              //         onPressed: () async {},
-              //         child: Text(
-              //           "pleaseapplytosec".tr(),
-              //           textAlign: TextAlign.left,
-              //           style: TextStyle(
-              //             decoration: TextDecoration.underline,
-              //             fontSize: 13,
-              //             fontFamily: fontsemibold,
-              //             color: notifier.getbluewhitecolor,
-              //           ),
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ],
             ],
             SizedBox(
               height: height / 20,
@@ -968,6 +800,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
   submit() async {
     var message = "";
+    final form = _formKey.currentState;
+    if (!form!.validate()) return;
+
     if (!hasAllRequiredDocuments) {
       message +=
           "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
@@ -983,32 +818,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       return;
     }
 
-    final form = _formKey.currentState;
-    if (!form!.validate()) return;
-
     try {
       showLoader(context);
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var marketMakingWallet = appState.activeDistributionWalletPublicKey!;
-      // var newData = {...data as Map};
+      var newData = {...data as Map};
 
-      // newData["assetSector"] = selectedAssetSectorId;
-      // newData["assetSubSector"] = selectedAssetSubSectorId;
-      // newData["assetType"] = selectedAssetTypeId;
-      // newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
-      // newData["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
-      //     ? int.parse(selectedAssetCustodian)
-      //     : 1;
-      // newData["marketMakingWallet"] = marketMakingWallet.publicKey;
-      // newData["secApprovalIdNumber"] = secApprovalId;
-      // newData["secApproval"] = hasSecApproval;
-      // newData["assetCountryLocation"] = selectedCountry;
-
-      // print('map here $newData');
-      // String requestBody = jsonEncode(newData);
-      print('selected asset custodian $selectedAssetCustodian');
       Map map = {
         "assetSector": selectedAssetSectorId,
         "assetSubSector": selectedAssetSubSectorId,
@@ -1021,9 +838,52 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
         "assetCountryLocation": selectedCountry,
+        "numberOfTokenToBeSold": newData['numberOfTokenToBeSold'],
+        "numberOfTokenToBeIssued": newData['numberOfTokenToBeIssued'],
+        "totalTokenHeldByManager": newData['totalTokenHeldByManager'],
+        "pricePerToken": newData['pricePerToken'],
+        "assetCode": newData['assetCode'],
+        "assetName": newData['assetName'],
+        "salesStart": newData['salesStart'],
+        "salesEnd": newData['salesEnd'],
+        "capOnPurchase": newData['capOnPurchase'],
+        "capQuantity": newData['capQuantity'],
+        "capDurationInDays": newData['capDurationInDays'],
+        "proceedCycle": newData['proceedCycle'],
+        "walletToHoldAssetsNotForSale": newData['walletToHoldAssetsNotForSale'],
+        "assetLogo": newData['assetLogo'],
+        "exemptedCountries": newData['exemptedCountries'],
+        "hasAdditionalKYCRequirements": newData['hasAdditionalKYCRequirements'],
+        "assetQuoteCurrency": newData['assetQuoteCurrency'],
+        "proceedPayoutCurrency": newData['proceedPayoutCurrency'],
+        "additionalKYCRequirements": newData['additionalKYCRequirements'],
+        "investorAccreditationRequired":
+            newData['investorAccreditationRequired'],
+        "tokenizationFeeId": newData['tokenizationFeeId'],
+        "assetAlreadyExists": newData['assetAlreadyExists'],
+        "ownershipType": newData['ownershipType'],
+        "ownershipKind": newData['ownershipKind'],
+        "assetDescription": newData['assetDescription'],
+        "assetPhysicalAddress": newData['assetPhysicalAddress'],
+        "assetLatitude": newData['assetLatitude'],
+        "assetLongitude": newData['assetLongitude'],
+        "assetOwnerName": newData['assetOwnerName'],
+        "assetOwnerAddress": newData['assetOwnerAddress'],
+        "assetManagerName": newData['assetManagerName'],
+        "assetManagerAddress": newData['assetManagerAddress'],
+        "assetCurrentValue": newData['assetCurrentValue'],
+        "valueOfTokenizedAsset": newData['valueOfTokenizedAsset'],
+        "protectionMethods": newData['protectionMethods'],
+        "insuranceCompanyName": newData['insuranceCompanyName'],
+        "insurance_policy_number": newData['insurance_policy_number'],
+        "insurancePolicyHolder": newData['insurancePolicyHolder'],
+        "percentageValueOfInsurance": newData['percentageValueOfInsurance'],
+        "IsFreeFromLiensAndEncumbrances":
+            newData['IsFreeFromLiensAndEncumbrances'],
       };
-      print('map here $map');
       String requestBody = jsonEncode(map);
+      inspect(map);
+
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1037,8 +897,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
-        appState.viewData = responseData['data'];
-
         appState.viewData!["assetSector"] = selectedAssetSectorId;
         appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
         appState.viewData!["assetType"] = selectedAssetTypeId;
@@ -1121,7 +979,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   }
 
   String getSelectedAssetCustodianLabel(id, data) {
-    var label = "";
+    var label = "Select asset custodian";
     for (var i = 0; i < data!['assetCustodians'].length; i++) {
       if (data!['assetCustodians'][i]['id'] == id) {
         label =

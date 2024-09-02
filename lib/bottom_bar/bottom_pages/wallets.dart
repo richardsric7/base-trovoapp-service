@@ -747,7 +747,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   foreColor: getColor(context, indexOfWallet),
                   alias: wallet.alias!.capitalizeFirst!,
                   isSharedWallet: wallet.isSharedWallet,
-                  walletType: wallet.walletType!,
+                  walletType: wallet.walletType ?? 0,
                   assetCount: wallet.claimedAssets?.length.toString(),
                   totalBalance:
                       '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',

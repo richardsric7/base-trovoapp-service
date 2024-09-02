@@ -68,7 +68,7 @@ class RequestSpecificPaymentDetailsState
                     width: 20,
                   ),
                   Text(
-                    "${"receive".tr()} ${viewData['amount']} ${getAssetCode(viewData['assetCode'])}",
+                    "${"receive".tr()} ${formatNumber(double.parse(viewData['amount']))} ${getAssetCode(viewData['assetCode'])}",
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

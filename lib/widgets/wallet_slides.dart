@@ -85,41 +85,9 @@ class _WalletSlideState extends State<WalletSlide> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
                   Image.asset(
                     'assets/images/trovo_white.png',
                     width: 40,
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (widget.isSharedWallet) ...[
-                        Icon(
-                          Icons.people_outline,
-                          size: 17,
-                          color: widget.foreColor,
-                        )
-                      ],
-                      if (widget.walletType != 0) ...[
-                        Icon(
-                          icons[widget.walletType - 1],
-                          size: 17,
-                          color: widget.foreColor,
-                        )
-                      ],
-                      if (widget.alias.contains('-distribution')) ...[
-                        Icon(
-                          icons[2],
-                          size: 17,
-                          color: widget.foreColor,
-                        )
-                      ],
-                    ],
                   ),
                 ],
               ),
@@ -191,7 +159,9 @@ class _WalletSlideState extends State<WalletSlide> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 2),
+                  SizedBox(
+                    height: height / 50,
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -223,6 +193,38 @@ class _WalletSlideState extends State<WalletSlide> {
                             ),
                           ],
                         ],
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      Container(
+                        width: 40,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (widget.isSharedWallet) ...[
+                              Icon(
+                                Icons.people_outline,
+                                size: 17,
+                                color: widget.foreColor,
+                              )
+                            ],
+                            if (widget.walletType != 0) ...[
+                              Icon(
+                                icons[widget.walletType - 1],
+                                size: 17,
+                                color: widget.foreColor,
+                              )
+                            ],
+                            if (widget.alias.contains('-distribution')) ...[
+                              Icon(
+                                icons[2],
+                                size: 17,
+                                color: widget.foreColor,
+                              )
+                            ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
