@@ -19,7 +19,7 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';

@@ -7,7 +7,7 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
-import '../Backup/congratulation.dart';
+import '../backup/congratulation.dart';
 
 class Complateerification extends StatefulWidget {
   const Complateerification({Key? key}) : super(key: key);
