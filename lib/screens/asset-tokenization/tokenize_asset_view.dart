@@ -81,7 +81,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetinformation".tr(),
               "providebasicinfo".tr(),
               "1",
-              appState.viewData!['assetDescription'].length > 0
+              appState.viewData!['assetDescription'] != null &&
+                      appState.viewData!['assetDescription'].length > 0
                   ? "continuee".tr()
                   : "start".tr(),
               onTap: () {
@@ -98,7 +99,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetverificationdocs".tr(),
               "provideverificationdocs".tr(),
               "2",
-              appState.viewData!['AssetTokenizationDocuments'].length > 0
+              appState.viewData!['AssetTokenizationDocuments'] != null &&
+                      appState.viewData!['AssetTokenizationDocuments'].length >
+                          0
                   ? "continuee".tr()
                   : "start".tr(),
               onTap: () {
@@ -115,7 +118,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assettokeninfo".tr(),
               "providetokeninfo".tr(),
               "3",
-              appState.viewData!['assetCode'].length > 0
+              appState.viewData!['assetCode'] != null &&
+                      appState.viewData!['assetCode'].length > 0
                   ? "continuee".tr()
                   : "start".tr(),
               onTap: () {

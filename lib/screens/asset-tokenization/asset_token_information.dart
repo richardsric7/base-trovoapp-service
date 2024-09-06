@@ -1609,7 +1609,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       formIsValid = false;
                     }
                     var form = _formKey.currentState;
-                    print('form is valid $formIsValid assetLogo: $assetLogo');
                     if (form!.validate() && formIsValid) {
                       form.save();
                       submitForm();

@@ -2296,6 +2296,7 @@ class _SharedAccessState extends State<SharedAccess>
                 showResponseMessage(context, "userwillberemoved".tr(), () {
                   viewers.removeWhere((userItem) => userItem == username);
                   approvers.add(username);
+                  initiators.add(username);
                   approversController.text = '';
                 });
                 setState(() {});
