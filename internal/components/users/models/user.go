@@ -70,7 +70,7 @@ type UserWallet struct {
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
-	LinkedWalletPublicKey   *string            `json:"linkedWalletPublicKey"`
+	LinkedWalletPublicKey   *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletPublicKey"`
 }
 
 type WalletPermission struct {

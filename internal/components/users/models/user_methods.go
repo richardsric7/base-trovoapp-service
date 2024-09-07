@@ -1061,7 +1061,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 	var walletTag, walletDescription string
 
 	if uw.WalletType == 1 {
-		walletTag = *uw.Tag+"-distribution"
+		walletTag = *uw.Tag + "-distribution"
 		walletDescription = "distribution wallet for issuer wallet" + uw.Alias
 
 	}
@@ -1155,6 +1155,20 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 
 func (lw LinkedWalletPublicKey) String() string {
 	return string(lw)
+}
+func (lw LinkedWalletPublicKey) IsValid(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
+	e := gc.DB.Where("linked_wallet_public_key = ?", string(lw)).First(&w).Error
+	if e == nil {
+		return w, true
+	}
+	return w, false
+}
+func (u UserWallet) IsValidLinkedWallet(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
+	e := gc.DB.Where("linked_wallet_public_key = ?", u.ID).First(&w).Error
+	if e == nil {
+		return w, true
+	}
+	return w, false
 }
 
 func (lw *LinkedWalletPublicKey) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {

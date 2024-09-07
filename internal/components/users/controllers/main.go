@@ -4008,6 +4008,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
 			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
 			fees := userServices.GetTokenizationFees(gc.DB)
+			log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
 			currencies := userServices.GetTokenizationCurrencies(gc.DB)
 			apo := userServices.GetAssetProtectionOptions(gc.DB)
 			apc := userServices.GetAssetProceedCycle(gc.DB)
@@ -4486,7 +4487,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Wallet Public Key "+issuingWallet.ID+ " does not have a valid tokenized asset."})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Wallet Public Key " + issuingWallet.ID + " does not have a valid tokenized asset."})
 				return
 			}
 			if t.AssetTokenizationStatus > 0 {

@@ -201,6 +201,16 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Code:       http.StatusBadRequest,
 		}
 	}
+
+	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-linked-wallets-not-allowed",
+			ErrMessage: fmt.Sprintf("Linked Wallets are not allowed to be shared directly. Plase share the access on %v and it will mirror to this wallet.", w.Alias),
+			Code:       http.StatusBadRequest,
+		}
+	}
+
 	if len(accessInfo.Permissions) == 1 && accessInfo.Permissions[0].TargetUsername == walletOwner.Username {
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "permissions",
@@ -464,6 +474,17 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 		return
 	}
+
+	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-linked-wallets-not-allowed",
+			ErrMessage: fmt.Sprintf("Linked Wallets are not allowed to be shared directly. Plase share the access on %v and it will mirror to this wallet.", w.Alias),
+			Code:       http.StatusBadRequest,
+		}
+		return
+	}
+
 	if len(accessInfo.ModifiedPermissions) == 0 && len(accessInfo.AddedPermissions) == 0 && len(accessInfo.RevokedPermissions) == 0 {
 		log.Printf("[ModifySharedWalletAccess] error no operations for %+v\n", accessInfo)
 		err = &tErrors.CustomError{
@@ -1110,6 +1131,17 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			Code:       http.StatusForbidden,
 		}
 	}
+
+	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+		return &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-linked-wallets-not-allowed",
+			ErrMessage: fmt.Sprintf("Linked Wallets are not allowed to be shared directly. Plase share the access on %v and it will mirror to this wallet.", w.Alias),
+			Code:       http.StatusBadRequest,
+		}
+
+	}
+
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
 	var userPermissions string
 	walletOwner, e := wallet.GetWalletOwner(gc.DB, gc)

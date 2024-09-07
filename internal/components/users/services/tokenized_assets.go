@@ -62,12 +62,13 @@ func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAs
 
 func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	fees = make([]userModels.TokenizationFee, 0)
-	db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
+	// db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
+	db.Where("inactive != ?", 1).Find(&fees)
 
 	return
 }
 
-func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee []userModels.TokenizationFee) {
+func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee userModels.TokenizationFee) {
 	db.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
 
 	return
