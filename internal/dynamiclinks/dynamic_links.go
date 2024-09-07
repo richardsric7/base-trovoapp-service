@@ -136,7 +136,10 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		return
 	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
+	log.Println("[GenerateDynamicLinkWithStaticService]>>>>>>>>>Reading Dynamics Links response Body string", string(body))
+
 	if err != nil {
 		log.Println("[GenerateDynamicLinkWithStaticService]Reading Dynamics Links response Body failed with", err)
 		return
