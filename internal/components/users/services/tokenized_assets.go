@@ -562,6 +562,7 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 
 	t.AssetCurrentValue = ti.AssetCurrentValue
 	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
+	t.AssetPercentageForTokenization = 100
 	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
 
 	if len(ti.ProtectionMethods) > 0 {
@@ -606,7 +607,7 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 	if ti.TokenizationFeeID > 0 {
 		// fee has been selected
 		t.TokenizationFeeID = &ti.TokenizationFeeID
-		t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
+		feeCompo = t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
 
 		{
 			// Calculate Fees
