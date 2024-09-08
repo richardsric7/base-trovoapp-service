@@ -206,6 +206,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	approvalInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	var pts userModels.PendingTransactionSignature
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
+	var linkedRevokedList, linkedModifiedList, linkedAddedList []userModels.WalletPermission
+	var hasLinkedWallet bool
 	var paymentInfo paymentModels.PaymentInfo
 	var marketOffer userModels.MarketOffer
 	var wdlInput userModels.WithdrawalRequestInput
@@ -240,7 +242,9 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		hasLinkedWallet = true
+	}
 	{
 		//check if the signer has valid signature right to the wallet.
 		if !wallet.SignerIsValid(signerUser.PrimarySigner, false, gc) {
@@ -268,7 +272,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 
 		ts.Commit = 0
-		revokedList, modifiedList, addedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
+
+		revokedList, modifiedList, addedList, linkedRevokedList, linkedModifiedList, linkedAddedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
 		if e != nil {
 			log.Println("[ApproveTransaction] error dry running for modify shared access")
 			return e
@@ -435,12 +440,27 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				if e != nil {
 					log.Println("[ApproveTransaction] error deleting revoked list:", e.Error())
 				}
+
+				if hasLinkedWallet {
+					//delete revoked access
+					e = dbTX.Delete(&linkedRevokedList).Error
+					if e != nil {
+						log.Println("[ApproveTransaction] error deleting linked revoked list:", e.Error())
+					}
+				}
 			}
 			if len(modifiedList) > 0 {
 				//save modified access
 				e = dbTX.Save(&modifiedList).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error saving modified list:", e.Error())
+				}
+				if hasLinkedWallet {
+					//save modified access
+					e = dbTX.Save(&linkedModifiedList).Error
+					if e != nil {
+						log.Println("[ApproveTransaction] error saving linked modified list:", e.Error())
+					}
 				}
 			}
 
@@ -449,6 +469,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				e = dbTX.Create(&addedList).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error creating added list:", e.Error())
+				}
+				if hasLinkedWallet {
+					//create added access
+					e = dbTX.Create(&linkedAddedList).Error
+					if e != nil {
+						log.Println("[ApproveTransaction] error creating linked added list:", e.Error())
+					}
 				}
 			}
 

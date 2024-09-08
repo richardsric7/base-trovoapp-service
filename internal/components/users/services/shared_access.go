@@ -191,8 +191,6 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 }
 
 func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (returnedWallet userModels.UserWallet, err error) {
-	var linkedWallet userModels.UserWallet
-	var hasLinkedWallet bool
 
 	// var  userModels.UserWalletSharedAccess
 	accessInfo.Messages = make([]string, 0)
@@ -205,7 +203,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 	}
 
-	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+	if w, v := wallet.IsValidLinkedWallet(gc); v {
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-linked-wallets-not-allowed",
@@ -213,6 +211,8 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Code:       http.StatusBadRequest,
 		}
 	}
+	var linkedWallet userModels.UserWallet
+	var hasLinkedWallet bool
 	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
@@ -311,14 +311,14 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 		}
 		if u.Username != v.TargetUsername {
-			if e != nil {
-				return returnedWallet, &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.TargetUsername),
-					Code:       http.StatusForbidden,
-				}
+
+			return returnedWallet, &tErrors.CustomError{
+				Param:      "username",
+				Err:        "error-trovo-wallet-account-invalid",
+				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.TargetUsername),
+				Code:       http.StatusForbidden,
 			}
+
 		}
 		name := fmt.Sprintf("%v", u.FirstName)
 		if u.LastName != nil {
@@ -513,8 +513,8 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	return returnedWallet, nil
 }
 
-func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.ModifySharedAccessInfo, gc *sharedconfig.GlobalConfig) (revokedList, modifiedList, addedList []userModels.WalletPermission, err error) {
-	// var  userModels.UserWalletSharedAccess
+func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.ModifySharedAccessInfo, gc *sharedconfig.GlobalConfig) (revokedList, modifiedList, addedList []userModels.WalletPermission, linkedRevokedList, linkedModifiedList, linkedAddedList []userModels.WalletPermission, err error) {
+
 	//prepare database execution
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
@@ -529,7 +529,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 
-	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+	if w, v := wallet.IsValidLinkedWallet(gc); v {
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-linked-wallets-not-allowed",
@@ -539,6 +539,24 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 
+	var linkedWallet userModels.UserWallet
+	var hasLinkedWallet bool
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		// set the linked wallet if it is a tokenization wallet
+		hasLinkedWallet = true
+
+		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		if err != nil {
+			err = &tErrors.CustomError{
+				Param:      "linkedWalletPublicKey",
+				Err:        "error-getting-linked-wallet",
+				ErrMessage: "Linked Wallet could not be validated.",
+				Code:       http.StatusBadRequest,
+			}
+			return
+		}
+
+	}
 	if len(accessInfo.ModifiedPermissions) == 0 && len(accessInfo.AddedPermissions) == 0 && len(accessInfo.RevokedPermissions) == 0 {
 		log.Printf("[ModifySharedWalletAccess] error no operations for %+v\n", accessInfo)
 		err = &tErrors.CustomError{
@@ -552,6 +570,10 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	viewOnly := make(map[string]string, 0)
 	// oldApproverPermissionMap := make(map[string]userModels.WalletPermission, 0)
 	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
+	var linkedWalletID userModels.UserWalletID
+	if hasLinkedWallet {
+		linkedWalletID = userModels.UserWalletID(linkedWallet.ID)
+	}
 
 	fw, err := walletID.GetWallet(gc.DB, gc)
 	if err != nil {
@@ -624,6 +646,8 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
+		var linkedUserPermission userModels.WalletPermission
+		var eLinked error
 
 		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
@@ -654,6 +678,27 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Permission:      v.Permission,
 			WalletPublicKey: wallet.ID,
 		})
+		if hasLinkedWallet {
+			linkedUserPermission, eLinked = linkedWalletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
+			if eLinked != nil {
+				log.Printf("[ModifySharedWalletAccess] error unable to locate existing permission on linked wallet for %+v\n %+v\n", accessInfo, v)
+				err = &tErrors.CustomError{
+					Param:      "username",
+					Err:        "error-trovo-wallet-account-invalid",
+					ErrMessage: fmt.Sprintf("Permission for account [%v] could not be located on the linked wallet at this time.", v.TargetUsername),
+					Code:       http.StatusForbidden,
+				}
+				return
+			}
+
+			linkedRevokedList = append(linkedRevokedList, userModels.WalletPermission{
+				ID:              linkedUserPermission.ID,
+				TargetUsername:  v.TargetUsername,
+				Permission:      v.Permission,
+				WalletPublicKey: linkedWallet.ID,
+			})
+		}
+
 		if v.Permission == "APPROVER" {
 			//get ops to add.
 			op, e := generateRemoveSharedAccessOps(wallet, walletOwner, &u, gc)
@@ -671,6 +716,19 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 			} else {
 				ops = append(ops, op)
+			}
+
+			if hasLinkedWallet {
+				//get ops to add.
+				op, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				if e != nil {
+					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation for %+v ON linked wallet: error: %v\n", v, e)
+					return
+
+				} else {
+					ops = append(ops, op)
+				}
+
 			}
 
 		}
@@ -693,6 +751,9 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
+
+		var linkedEPermission userModels.WalletPermission
+		var eLinked error
 		ePermission, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
 		if e != nil {
 			log.Printf("[ModifySharedWalletAccess] error unable to locate existing permission for %+v\n %+v\nerror:%v\n", accessInfo, v, e)
@@ -754,6 +815,29 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:  ePermission.TargetUsername,
 			Permission:      v.Permission, //modify the permission
 		})
+		if hasLinkedWallet {
+			linkedEPermission, eLinked = linkedWalletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
+			if eLinked != nil {
+				log.Printf("[ModifySharedWalletAccess] error unable to locate existing permission on linked wallet for %+v\n %+v\nerror:%v\n", accessInfo, v, eLinked)
+				err = &tErrors.CustomError{
+					Param:      "username",
+					Err:        "error-trovo-wallet-account-invalid",
+					ErrMessage: fmt.Sprintf("Permission for account [%v] could not be located on the linked wallet at this time.", v.TargetUsername),
+					Code:       http.StatusBadRequest,
+				}
+				return
+			}
+
+			linkedModifiedList = append(linkedModifiedList, userModels.WalletPermission{
+				CreatedAt:       linkedEPermission.CreatedAt,
+				UpdatedAt:       linkedEPermission.UpdatedAt,
+				ID:              linkedEPermission.ID,
+				WalletPublicKey: linkedWallet.ID,
+				TargetUsername:  linkedEPermission.TargetUsername,
+				Permission:      v.Permission, //modify the permission
+			})
+
+		}
 
 		// v.permission is the new peremission
 		if v.Permission == "APPROVER" {
@@ -774,7 +858,25 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 			ops = append(ops, o...)
 			accessInfo.Messages = append(accessInfo.Messages, m...)
+			if hasLinkedWallet {
+				// attempt to add the public key as signer
+				o, m, e := generateAddSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				if e != nil {
+					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation to add access on linked wallet for %+v: error: %v\n", v, e)
 
+					err = &tErrors.CustomError{
+						Param:      "username",
+						Err:        "error-trovo-wallet-account-invalid",
+						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet for this user.", v.TargetUsername),
+						Code:       http.StatusBadRequest,
+					}
+
+					return
+				}
+
+				ops = append(ops, o...)
+				accessInfo.Messages = append(accessInfo.Messages, m...)
+			}
 		}
 		// if is a downgrade of access from approver
 		if ePermission.Permission == "APPROVER" {
@@ -795,6 +897,27 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 
 			ops = append(ops, op)
+
+			if hasLinkedWallet {
+				// attempt to remove the public key as signer
+				op, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				if e != nil {
+					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation on linked wallet for %+v: error: %v\n", v, e)
+
+					err = &tErrors.CustomError{
+						Param:      "username",
+						Err:        "error-trovo-wallet-account-invalid",
+						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access on linked wallet from blockchain at this time.", v.TargetUsername),
+						Code:       http.StatusBadRequest,
+					}
+
+					return
+
+				}
+
+				ops = append(ops, op)
+
+			}
 
 		}
 		checkAccess[v.TargetUsername+v.Permission] = userModels.WalletPermissionInfo{
@@ -865,12 +988,23 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		})
+
 		addedList = append(addedList, userModels.WalletPermission{
 			ID:              permissionID,
 			TargetUsername:  v.TargetUsername,
 			Permission:      v.Permission,
 			WalletPublicKey: wallet.ID,
 		})
+
+		if hasLinkedWallet {
+			addedList = append(addedList, userModels.WalletPermission{
+				ID:              uuid.NewString(),
+				TargetUsername:  v.TargetUsername,
+				Permission:      v.Permission,
+				WalletPublicKey: linkedWallet.ID,
+			})
+		}
+
 		if v.Permission == "APPROVER" {
 			// attempt to add the public key as signer
 			o, m, e := generateAddSharedAccessOps(wallet, walletOwner, &u, gc)
@@ -897,6 +1031,33 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				}
 			}
 
+			if hasLinkedWallet {
+				// attempt to add the public key as signer
+				o, m, e := generateAddSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				if e != nil {
+					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation to add access on linked wallet for %+v: error: %v\n", v, e)
+
+					err = &tErrors.CustomError{
+						Param:      "username",
+						Err:        "error-trovo-wallet-account-not-validated",
+						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet at this time.", v.TargetUsername),
+						Code:       http.StatusBadRequest,
+					}
+
+					return
+				}
+
+				ops = append(ops, o...)
+				accessInfo.Messages = append(accessInfo.Messages, m...)
+
+				{
+					oRecoveredAccount := generateRemoveRecoveredAccountAccessOps(&linkedWallet, u.Username, gc)
+					if len(oRecoveredAccount) > 0 {
+						ops = append(ops, oRecoveredAccount...)
+					}
+				}
+			}
+
 		}
 		checkAccess[v.TargetUsername+v.Permission] = userModels.WalletPermissionInfo{
 			TargetUsername:        v.TargetUsername,
@@ -917,6 +1078,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
 			}
+			if hasLinkedWallet {
+				e := dbTX.Delete(&linkedRevokedList).Error
+				if e != nil {
+					log.Println("[ModifySharedWalletAccess] error deleting linked revoked list: ", e)
+					err = &tErrors.ErrorTemporaryServerError{}
+					return
+				}
+			}
 		}
 		if len(modifiedList) > 0 {
 			e := dbTX.Save(&modifiedList).Error
@@ -924,6 +1093,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				log.Println("[ModifySharedWalletAccess] error saving modified list: ", e)
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
+			}
+			if hasLinkedWallet {
+				e := dbTX.Save(&linkedModifiedList).Error
+				if e != nil {
+					log.Println("[ModifySharedWalletAccess] error saving linked modified list: ", e)
+					err = &tErrors.ErrorTemporaryServerError{}
+					return
+				}
 			}
 		}
 		if len(addedList) > 0 {
@@ -933,11 +1110,23 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
 			}
+
+			if hasLinkedWallet {
+				e := dbTX.Create(&linkedAddedList).Error
+				if e != nil {
+					log.Println("[ModifySharedWalletAccess] error creating linked added permissions: ", e)
+					err = &tErrors.ErrorTemporaryServerError{}
+					return
+				}
+			}
 		}
 
 	}
 	//invalidate all existing cache relating to this wallet
+	var updatedLinkedWallet userModels.UserWallet
+	var eLinked error
 	wallet.InvalidateUserCache(gc)
+
 	//it was successfully saved. now refresh the list to know the standing.
 	updatedWallet, e := walletID.GetWallet(dbTX, gc)
 	if e != nil {
@@ -953,6 +1142,16 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Code:       http.StatusForbidden,
 		}
 		return
+	}
+	if hasLinkedWallet {
+		linkedWallet.InvalidateUserCache(gc)
+		//it was successfully saved. now refresh the list to know the standing.
+		updatedLinkedWallet, eLinked = walletID.GetWallet(dbTX, gc)
+		if eLinked != nil {
+			log.Println("[ModifySharedWalletAccess] error fetching updated wallet: ", eLinked)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
 	}
 
 	{
@@ -1033,11 +1232,21 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 	errDB := dbTX.Save(&updatedWallet).Error
 	if errDB != nil {
-		log.Printf("[ModifySharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, wallet)
+		log.Printf("[ModifySharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, updatedWallet)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
+	if hasLinkedWallet {
+		updatedLinkedWallet.SharedAccessEnabled = updatedWallet.SharedAccessEnabled
+		updatedLinkedWallet.NumberOfApprovalsNeeded = updatedWallet.NumberOfApprovalsNeeded
 
+		errDB := dbTX.Save(&updatedLinkedWallet).Error
+		if errDB != nil {
+			log.Printf("[ModifySharedWalletAccess] error saving shared access status of the linked wallet:%v\n sharedAccess:%+v\n", errDB, updatedLinkedWallet)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
+	}
 	xdrBase64, transactionSource, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, oldNumberOfApprovers, ops, gc)
 	if errGenXdr != nil {
 		err = errGenXdr
@@ -1186,7 +1395,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	if w, v := wallet.IsValidLinkedWallet(gc); v == true {
+	if w, v := wallet.IsValidLinkedWallet(gc); v {
 		return &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-linked-wallets-not-allowed",
@@ -1599,6 +1808,11 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 }
 
 func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded, oldNumberOfApprovers int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, err error) {
+	var hasLinkedWallet bool
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		hasLinkedWallet = true
+	}
+
 	client := gc.BantuExpansionClient
 	messages = make([]string, 0)
 	// totalNativeBalanceNeeded := decimal.Zero
@@ -1664,6 +1878,20 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 				//add message about disabling recovery on that wallet
 				messages = append(messages, "Account Recovery on this wallet has to be disabled so as to enable shared access.")
+				if hasLinkedWallet {
+					//recovery a signer to the wallet. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  0,
+						},
+						SourceAccount: *wallet.LinkedWalletPublicKey,
+					})
+
+					//add message about disabling recovery on that wallet
+					messages = append(messages, "Account Recovery on the linked wallet has to be disabled so as to enable shared access.")
+
+				}
 			}
 		}
 	}
@@ -1678,6 +1906,15 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
 				SourceAccount:   wallet.ID,
 			})
+
+			if hasLinkedWallet {
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					SourceAccount:   *wallet.LinkedWalletPublicKey,
+				})
+			}
 		}
 	}
 
