@@ -217,7 +217,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
 		// accessInfo.LinkedWalletSignatureRequired = 1
-		accessInfo.LinkedWalletPublicKey = *wallet.LinkedWalletPublicKey
+		// accessInfo.LinkedWalletPublicKey = *wallet.LinkedWalletPublicKey
 		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
 		if err != nil {
 			return returnedWallet, &tErrors.CustomError{
