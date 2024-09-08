@@ -1277,7 +1277,10 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		// extract signature and submit transaction
 		//submit to blockchain
 		var txnHash string
-		txnHash, err = network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
+		signatures := make(map[string]string, 0)
+		signatures[wallet.Signer] = accessInfo.TransactionSignature
+
+		txnHash, err = network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
 		if err != nil {
 			log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
 			// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
@@ -1371,8 +1374,36 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
 	// var managedAccess userModels.UserWalletSharedAccess
+	var hasLinkedWallet bool
+	var linkedWallet userModels.UserWallet
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		hasLinkedWallet = true
+	}
 
+	if w, v := wallet.IsValidLinkedWallet(gc); v {
+		return &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-linked-wallets-not-allowed",
+			ErrMessage: fmt.Sprintf("Linked Wallets are not allowed to be shared directly. Plase share the access on %v and it will mirror to this wallet.", w.Alias),
+			Code:       http.StatusBadRequest,
+		}
+
+	}
+	var linkedAccessList []userModels.WalletPermission
+	var errLinked error
 	accessList := wallet.Permissions
+	if hasLinkedWallet {
+		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		if errLinked != nil {
+			return &tErrors.CustomError{
+				Param:      "username",
+				Err:        "error-confirming-linked-wallet",
+				ErrMessage: "Unable to confirm linked wallet at this time. Please try again after some minutes.",
+				Code:       http.StatusForbidden,
+			}
+		}
+		linkedAccessList = linkedWallet.Permissions
+	}
 	var numberOfApprovers int
 	// var numberOfSubmittedInitiators int
 	// var selfApprover int
@@ -1393,16 +1424,6 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			ErrMessage: "Market Making & Bulk Payment wallets are not allowed for this operation.",
 			Code:       http.StatusForbidden,
 		}
-	}
-
-	if w, v := wallet.IsValidLinkedWallet(gc); v {
-		return &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-linked-wallets-not-allowed",
-			ErrMessage: fmt.Sprintf("Linked Wallets are not allowed to be shared directly. Plase share the access on %v and it will mirror to this wallet.", w.Alias),
-			Code:       http.StatusBadRequest,
-		}
-
 	}
 
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
@@ -1518,6 +1539,10 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 0
 	wallet.NumberOfApprovalsNeeded = 0
+	if hasLinkedWallet {
+		linkedWallet.SharedAccessEnabled = 0
+		linkedWallet.NumberOfApprovalsNeeded = 0
+	}
 	e = dbTX.Save(wallet).Error
 	if e != nil {
 		log.Println("[RemoveSharedWalletAccess] error saving wallet", e)
@@ -1528,11 +1553,25 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
+	if hasLinkedWallet {
+		e = dbTX.Save(&linkedWallet).Error
+		if e != nil {
+			log.Println("[RemoveSharedWalletAccess] error saving linked wallet", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		e = dbTX.Delete(&linkedAccessList).Error
+		if e != nil {
+			log.Println("[RemoveSharedWalletAccess] error deleting linked access list", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
 	// extract signature and submit transaction
 	//getting here means it does not contain approvers
 	//submit to blockchain
-
-	txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
+	signatures := make(map[string]string, 0)
+	signatures[wallet.Signer] = accessInfo.TransactionSignature
+	txnHash, err := network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
 	if err != nil {
 		log.Printf("[RemoveSharedWalletAccess] Error submitting disable shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
 		// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
@@ -2052,6 +2091,16 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 }
 
 func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, numberOfApprovers int, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, walletMustSign, multipartySign bool, err error) {
+
+	var hasLinkedWallet bool
+	// var linkedWallet userModels.UserWallet
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		hasLinkedWallet = true
+	}
+	// if hasLinkedWallet {
+	// 	linkedWallet, _ = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+
+	// }
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -2113,6 +2162,20 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				//add message about disabling recovery on that wallet
 				messages = append(messages, "Account Recovery on this wallet will be enabled.")
 				walletMustSign = true
+
+				if hasLinkedWallet {
+					//recovery a signer to the wallet. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  1,
+						},
+						SourceAccount: *wallet.LinkedWalletPublicKey,
+					})
+
+					//add message about disabling recovery on that wallet
+					messages = append(messages, "Account Recovery on the linked wallet will be enabled.")
+				}
 			}
 		}
 
@@ -2139,6 +2202,16 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				})
 
 				walletMustSign = true
+
+				if hasLinkedWallet {
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: user3p.PrimarySigner,
+							Weight:  0,
+						},
+						SourceAccount: *wallet.LinkedWalletPublicKey,
+					})
+				}
 			}
 
 		}
@@ -2170,7 +2243,14 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			SourceAccount:   wallet.ID,
 		})
 		walletMustSign = true
-
+		if hasLinkedWallet {
+			ops = append(ops, &txnbuild.SetOptions{
+				LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
+				MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
+				HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+				SourceAccount:   wallet.ID,
+			})
+		}
 	}
 
 	if len(ops) == 0 {

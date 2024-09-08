@@ -208,6 +208,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
 	var linkedRevokedList, linkedModifiedList, linkedAddedList []userModels.WalletPermission
 	var hasLinkedWallet bool
+	var linkedWallet userModels.UserWallet
 	var paymentInfo paymentModels.PaymentInfo
 	var marketOffer userModels.MarketOffer
 	var wdlInput userModels.WithdrawalRequestInput
@@ -242,8 +243,14 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
+	var errLinked error
 	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
 		hasLinkedWallet = true
+		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		if errLinked != nil {
+			log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 	{
 		//check if the signer has valid signature right to the wallet.
@@ -392,6 +399,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		if p.TransactionType == "DISABLE SHARED ACCESS" {
 
 			accessList := wallet.Permissions
+
 			// set shared access enabled to 0
 			// delete access list
 			// wallet.SharedAccessEnabled = 0
@@ -407,6 +415,21 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			e = dbTX.Delete(&accessList).Error
 			if e != nil {
 				log.Println("[ApproveTransaction] error deleting access list:", e.Error())
+			}
+
+			if hasLinkedWallet{
+				linkedAccessList:=linkedWallet.Permissions
+				linkedWallet.SharedAccessEnabled=0
+				linkedWallet.NumberOfApprovalsNeeded=0
+				linkedWallet.Permissions=nil
+				e = dbTX.Save(&linkedWallet).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error saving linked wallet state:", e.Error())
+				}
+				e = dbTX.Delete(&linkedAccessList).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error deleting linked access list:", e.Error())
+				}
 			}
 
 			dbTX.Commit()
