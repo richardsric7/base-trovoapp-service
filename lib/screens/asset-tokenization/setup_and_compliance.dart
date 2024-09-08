@@ -245,9 +245,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 selectedAssetSubSectorId.isEmpty
                     ? null
                     : selectedAssetSubSectorId,
-                assetSubsectors.length > 0
-                    ? assetSubsectors.first.value
-                    : "selectassetsubsector".tr(),
+                "selectassetsubsector".tr(),
                 context,
                 null,
                 validator: (value) {

@@ -5807,9 +5807,7 @@ addSubWalletPopup(context) async {
           ],
         ),
       ),
-
       SizedBox(height: height / 50),
-      // Secret Key
       CustomPasswordFormField(
         "password".tr(),
         notifier.getbluecolor,
@@ -5826,10 +5824,6 @@ addSubWalletPopup(context) async {
             password = value!.trim().replaceAll(' ', '');
           });
         },
-        // onSubmitted: (value) {
-        //   print('email: $value');
-        //   secretKey = value!.trim().replaceAll(' ', '');
-        // },
         onSaved: (value) {
           print('email: $value');
           newSubWalletKeyPair.secretKey = value!.trim().replaceAll(' ', '');
@@ -6059,6 +6053,159 @@ showCreateTokenizationWalletPopup(context) async {
                                     rootNavigator: true,
                                   ).pop(false);
                                 }),
+                          ],
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
+                  ),
+                ),
+              ));
+        });
+      });
+}
+
+confirmAccountDeletionPopup(
+  context, {
+  required void Function() onConfirmationSuccess,
+}) async {
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String password = '';
+  final Authenticator _authenticator = Authenticator();
+
+  void authFingerprint(context) async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        print('authentication success');
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(20),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: height / 50),
+                        Text(
+                          "confirmaccountdeletion".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: height / 50),
+                        Text(
+                          "authorizeaccountdeletion".tr(),
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        CustomPasswordFormField(
+                          "password".tr(),
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getbluewhitecolor,
+                          notifier.getblck,
+                          70,
+                          300,
+                          validator: (String? value) {
+                            if (value!.isEmpty)
+                              return "pleaseenteryourpassword".tr();
+
+                            if (value.length < 6)
+                              return "use6charsormoreforpassword".tr();
+
+                            return null;
+                          },
+                          textInputAction: TextInputAction.done,
+                          onChanged: (value) {
+                            setStateForDialog(() {
+                              password = value!.trim().replaceAll(' ', '');
+                            });
+                          },
+                          onSaved: (value) {},
+                        ),
+                        SizedBox(height: height / 50),
+                        if (appState.biometricEnabled && password.isEmpty) ...[
+                          Button(
+                            "authorizewithbiometrics".tr(),
+                            notifier.getbluecolor,
+                            wihitecolor,
+                            onTap: () {
+                              authFingerprint(context);
+                            },
+                            width: width / 1.5,
+                          ),
+                        ] else ...[
+                          Button(
+                            "authorize".tr(),
+                            notifier.getbluecolor,
+                            wihitecolor,
+                            onTap: () {
+                              if (password == appState.password!) {
+                                print('authentication success');
+                              } else {
+                                popup(context,
+                                    title: "oops".tr(),
+                                    message: "invalidpassword".tr());
+                              }
+                            },
+                            width: width / 1.5,
+                          ),
+                        ],
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ButtonOutlined(
+                              "close".tr(),
+                              notifier.getwihitecolor,
+                              notifier.getbluewhitecolor,
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                              width: width / 1.5,
+                            ),
                           ],
                         ),
                         SizedBox(height: height / 50),

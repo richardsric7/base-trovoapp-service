@@ -9,6 +9,8 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
@@ -139,16 +141,28 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               Text(
                 '@${appState.userInfo!.username}',
                 style: TextStyle(
-                    color: notifier.getgrey,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 13),
               ),
-              Text(
-                '${"referralid".tr()}: ${appState.userInfo!.username}',
-                style: TextStyle(
-                    color: notifier.getgrey,
-                    fontFamily: fontsemibold,
-                    fontSize: 13),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${"referralid".tr()}: ',
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                        fontSize: 13),
+                  ),
+                  Text(
+                    appState.userInfo!.username!,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                        fontSize: 13),
+                  ),
+                ],
               ),
               // SizedBox(height: height / 20),
               // Padding(
@@ -201,7 +215,25 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                       borderRadius: BorderRadius.circular(15)),
                   children: getTableRows(),
                 ),
-              )
+              ),
+              SizedBox(height: height / 50),
+              TextButton(
+                onPressed: () {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: DeleteAccountViewPageConfig,
+                  );
+                },
+                child: Text(
+                  "deleteaccount".tr(),
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontFamily: fontsemibold,
+                    fontSize: 17,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

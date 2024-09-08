@@ -16,6 +16,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
+import 'package:trovo_wallet/screens/delete_account/delete_account.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/asset_token_details.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/deposit_withdraw_details.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/opt_in_asset.dart';
@@ -474,6 +475,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.TokenizationFeePaymentView:
           _addPageData(
               TokenizationFeePayment(), TokenizationFeePaymentViewPageConfig);
+          break;
+        case Pages.DeleteAccountView:
+          _addPageData(DeleteAccount(), DeleteAccountViewPageConfig);
           break;
         default:
           break;
