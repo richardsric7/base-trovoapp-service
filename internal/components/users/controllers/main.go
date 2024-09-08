@@ -2349,7 +2349,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] modify %+v\n", sharedAccessInfo)
-		_, _, _, err = userServices.ModifySharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
+		_, _, _, _, _, _, err = userServices.ModifySharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
