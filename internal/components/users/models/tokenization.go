@@ -46,7 +46,7 @@ type TokenizedAsset struct {
 	ValueOfTokenizedAsset          float64                     `gorm:"default:0" json:"valueOfTokenizedAsset"`
 	ProtectionMethods              *string                     `json:"protectionMethods"` //csv format
 	InsuranceCompanyName           *string                     `json:"insuranceCompanyName"`
-	InsurancePolicyNumber          *string                     `json:"insurance_policy_number"`
+	InsurancePolicyNumber          *string                     `json:"insurancePolicyNumber"`
 	InsurancePolicyHolder          *string                     `json:"insurancePolicyHolder"`
 	PercentageValueOfInsurance     float64                     `gorm:"default:0" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances int                         `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`

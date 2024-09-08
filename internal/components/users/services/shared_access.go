@@ -191,6 +191,9 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 }
 
 func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (returnedWallet userModels.UserWallet, err error) {
+	var linkedWallet userModels.UserWallet
+	var hasLinkedWallet bool
+
 	// var  userModels.UserWalletSharedAccess
 	accessInfo.Messages = make([]string, 0)
 	if len(accessInfo.Permissions) == 0 {
@@ -210,7 +213,20 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Code:       http.StatusBadRequest,
 		}
 	}
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		// set the linked wallet if it is a tokenization wallet
+		hasLinkedWallet = true
 
+		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		if err != nil {
+			return returnedWallet, &tErrors.CustomError{
+				Param:      "linkedWalletPublicKey",
+				Err:        "error-getting-linked-wallet",
+				ErrMessage: "Linked Wallet could not be validated.",
+				Code:       http.StatusBadRequest,
+			}
+		}
+	}
 	if len(accessInfo.Permissions) == 1 && accessInfo.Permissions[0].TargetUsername == walletOwner.Username {
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "permissions",
@@ -230,7 +246,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 
 	var accessListInfo, viewOnly []userModels.WalletPermissionInfo
-	var accessList []userModels.WalletPermission
+	var accessList, linkedWalletAccessList []userModels.WalletPermission
 	var numberOfSubmittedApprovers int
 	var numberOfSubmittedInitiators int
 	var selfApprover int
@@ -334,6 +350,18 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		}
 		checkAccess[v.TargetUsername+v.Permission] = pi
+
+		{
+			//if it is a tokenized wallet, then build linkedwallet access list
+			if hasLinkedWallet {
+				linkedWalletAccessList = append(linkedWalletAccessList, userModels.WalletPermission{
+					ID:              uuid.NewString(),
+					TargetUsername:  v.TargetUsername,
+					Permission:      v.Permission,
+					WalletPublicKey: linkedWallet.ID,
+				})
+			}
+		}
 	}
 	displayMessage := false
 	if len(viewOnly) > 0 {
@@ -405,6 +433,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 1
 	wallet.NumberOfApprovalsNeeded = accessInfo.NumberOfApprovalsNeeded
+
 	errDB := dbTX.Create(&accessList).Error
 	if err != nil {
 		log.Printf("[CreateSharedWalletAccess] error saving access list:%v\n AccessList:%+v\n", errDB, accessList)
@@ -415,6 +444,23 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if err != nil {
 		log.Printf("[CreateSharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, wallet)
 		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	//if has linked wallet, clone the wallet property
+	if hasLinkedWallet {
+		linkedWallet.SharedAccessEnabled = wallet.SharedAccessEnabled
+		linkedWallet.NumberOfApprovalsNeeded = wallet.NumberOfApprovalsNeeded
+		errDB := dbTX.Create(&linkedWalletAccessList).Error
+		if err != nil {
+			log.Printf("[CreateSharedWalletAccess] error saving linked wallet access list:%v\n Linked wallet AccessList:%+v\n", errDB, linkedWalletAccessList)
+			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+		}
+
+		errDB = dbTX.Save(linkedWallet).Error
+		if err != nil {
+			log.Printf("[CreateSharedWalletAccess] error saving shared access status of the linked wallet:%v\n linkedsharedAccess:%+v\n", errDB, linkedWallet)
+			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(wallet, walletOwner, approverUsers, accessInfo.Permissions, accessInfo.NumberOfApprovalsNeeded, gc)
@@ -435,8 +481,14 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	// extract signature and submit transaction
 	//submit to blockchain
+	signatures := make(map[string]string, 0)
+	signatures[wallet.Signer] = accessInfo.TransactionSignature
+	if len(accessInfo.LinkedWalletTransactionSignature) > 10 {
+		signatures[linkedWallet.Signer] = accessInfo.LinkedWalletTransactionSignature
 
-	txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
+	}
+	// txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
+	txnHash, err := network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
 	if err != nil {
 		log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
 		// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
@@ -1287,6 +1339,24 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
+	var hasLinkedWallet bool
+	var errLinkedWallet error
+	var linkedWallet userModels.UserWallet
+	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+		// set the linked wallet if it is a tokenization wallet
+		hasLinkedWallet = true
+
+		linkedWallet, errLinkedWallet = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		if errLinkedWallet != nil {
+			err = &tErrors.CustomError{
+				Param:      "linkedWalletPublicKey",
+				Err:        "error-getting-linked-wallet",
+				ErrMessage: "Linked Wallet could not be validated.",
+				Code:       http.StatusBadRequest,
+			}
+			return "", messages, walletMustSign, err
+		}
+	}
 	// totalNativeBalanceNeeded := decimal.Zero
 	var activationAmount = decimal.NewFromFloat(6)
 	var minBalance = decimal.NewFromFloat(3.0)
@@ -1341,6 +1411,17 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 					},
 					SourceAccount: wallet.ID,
 				})
+				{
+					if hasLinkedWallet {
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: recoveryAddress,
+								Weight:  0,
+							},
+							SourceAccount: linkedWallet.ID,
+						})
+					}
+				}
 
 				//add message about disabling recovery on that wallet
 				messages = append(messages, fmt.Sprintf("Account Recovery on this wallet %v has to be disabled so as to enable shared access.", wallet.Alias))
@@ -1372,6 +1453,18 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				},
 				SourceAccount: wallet.ID,
 			})
+			{
+				if hasLinkedWallet {
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: user3p.PrimarySigner,
+							Weight:  1,
+						},
+						SourceAccount: linkedWallet.ID,
+					})
+				}
+			}
+
 			totalUsersToFund++
 
 			//since an operation now exists, wallet must sign
@@ -1393,6 +1486,17 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 					},
 					SourceAccount: wallet.ID,
 				})
+				{
+					if hasLinkedWallet {
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: user3p.PrimarySigner,
+								Weight:  1,
+							},
+							SourceAccount: linkedWallet.ID,
+						})
+					}
+				}
 
 				walletMustSign = true
 			}
@@ -1428,6 +1532,16 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				SourceAccount:   wallet.ID,
 			})
 			walletMustSign = true
+			{
+				if hasLinkedWallet {
+					ops = append(ops, &txnbuild.SetOptions{
+						LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+						MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+						HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+						SourceAccount:   linkedWallet.ID,
+					})
+				}
+			}
 		}
 	}
 
@@ -1440,7 +1554,17 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			SourceAccount:   wallet.ID,
 		})
 		walletMustSign = true
-		// return "no-ops", messages, walletMustSign, nil
+		{
+			if hasLinkedWallet {
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+					SourceAccount:   linkedWallet.ID,
+				})
+			}
+		}
+
 	}
 
 	tx, err := txnbuild.NewTransaction(
