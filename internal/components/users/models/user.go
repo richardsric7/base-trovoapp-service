@@ -87,13 +87,13 @@ type UserWalletSharedAccessInfo struct {
 	Permissions                      []WalletPermissionInfo `json:"permissions"`
 	Transaction                      string                 `json:"transaction"`
 	TransactionSignature             string                 `json:"transactionSignature"`
-	LinkedWalletTransactionSignature string                 `json:"linkedWalletTransactionSignature"`
+	// LinkedWalletTransactionSignature string                 `json:"linkedWalletTransactionSignature"`
 	TransactionID                    string                 `json:"transactionId"`
 	NetworkPassPhrase                string                 `json:"networkPassPhrase"`
 	Messages                         []string               `json:"messages"`
 	SignatureRequired                int                    `json:"signatureRequired"`
-	LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
-	LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
+	// LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
+	// LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
 	SHash                            string                 `json:"sHash"`
 	Approvers                        []User                 `json:"-"`
 	Initiators                       []User                 `json:"-"`

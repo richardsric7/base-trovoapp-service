@@ -216,7 +216,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
-		accessInfo.LinkedWalletSignatureRequired = 1
+		// accessInfo.LinkedWalletSignatureRequired = 1
 		accessInfo.LinkedWalletPublicKey = *wallet.LinkedWalletPublicKey
 		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
 		if err != nil {
@@ -485,10 +485,10 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	//submit to blockchain
 	signatures := make(map[string]string, 0)
 	signatures[wallet.Signer] = accessInfo.TransactionSignature
-	if len(accessInfo.LinkedWalletTransactionSignature) > 10 {
-		signatures[linkedWallet.Signer] = accessInfo.LinkedWalletTransactionSignature
+	// if len(accessInfo.LinkedWalletTransactionSignature) > 10 {
+	// 	signatures[linkedWallet.Signer] = accessInfo.LinkedWalletTransactionSignature
 
-	}
+	// }
 	// txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
 	txnHash, err := network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
 	if err != nil {
