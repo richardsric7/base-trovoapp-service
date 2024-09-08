@@ -92,6 +92,8 @@ type UserWalletSharedAccessInfo struct {
 	NetworkPassPhrase                string                 `json:"networkPassPhrase"`
 	Messages                         []string               `json:"messages"`
 	SignatureRequired                int                    `json:"signatureRequired"`
+	LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
+	LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
 	SHash                            string                 `json:"sHash"`
 	Approvers                        []User                 `json:"-"`
 	Initiators                       []User                 `json:"-"`

@@ -216,7 +216,8 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
-
+		accessInfo.LinkedWalletSignatureRequired = 1
+		accessInfo.LinkedWalletPublicKey = *wallet.LinkedWalletPublicKey
 		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
 		if err != nil {
 			return returnedWallet, &tErrors.CustomError{
@@ -226,6 +227,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				Code:       http.StatusBadRequest,
 			}
 		}
+
 	}
 	if len(accessInfo.Permissions) == 1 && accessInfo.Permissions[0].TargetUsername == walletOwner.Username {
 		return returnedWallet, &tErrors.CustomError{
