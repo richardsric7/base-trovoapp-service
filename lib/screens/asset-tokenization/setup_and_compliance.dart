@@ -107,6 +107,22 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     );
   }
 
+  showCountryListPopup() {
+    appState.dialogOpen = true;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      showCountryPicker(
+        context: context,
+        useSafeArea: true,
+        onSelect: (Country country) {
+          setState(() {
+            selectedCountry = country.name;
+          });
+        },
+      );
+    });
+    return SizedBox();
+  }
+
   Widget setupAndCompliance(dynamic tokenizationData) {
     List<DropdownMenuItem<String>> assetSectors = [];
     for (var i = 0; i < tokenizationData!['assetSectors'].length; i++) {
@@ -443,18 +459,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ? notifier.getbluecolor90
                       : notifier.getaddsubwalletgrey,
                   child: TextButton(
-                    onPressed: () {
-                      isCountryPickerOpen = true;
-                      showCountryPicker(
-                        context: context,
-                        useSafeArea: true,
-                        onSelect: (Country country) {
-                          setState(() {
-                            selectedCountry = country.name;
-                          });
-                        },
-                      );
-                    },
+                    onPressed: showCountryListPopup,
                     style: ButtonStyle(
                         elevation: MaterialStateProperty.all<double>(0)),
                     child: Row(

@@ -483,13 +483,16 @@ Widget iconDropdown(
 }
 
 Widget dropdown(
-    void Function(Object?)? onChanged,
-    List<DropdownMenuItem<Object>> items,
-    Object? value,
-    String? hint,
-    BuildContext context,
-    List<Widget> Function(BuildContext)? selectedItemBuilder,
-    {String? Function(Object?)? validator}) {
+  void Function(Object?)? onChanged,
+  List<DropdownMenuItem<Object>> items,
+  Object? value,
+  String? hint,
+  BuildContext context,
+  List<Widget> Function(BuildContext)? selectedItemBuilder, {
+  String? Function(Object?)? validator,
+  void Function()? onTap,
+  double? itemHeight,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: true);
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -499,7 +502,9 @@ Widget dropdown(
           selectedItemBuilder: selectedItemBuilder,
           isDense: true,
           isExpanded: true,
+          itemHeight: itemHeight,
           validator: validator,
+          onTap: onTap,
           hint: Container(
             // width: 150, //and here
             child: hint != null

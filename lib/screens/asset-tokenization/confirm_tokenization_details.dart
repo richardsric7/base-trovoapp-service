@@ -161,8 +161,9 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
             [index]['feeFiatCap']
         .toString());
-    var tokenFee = tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage;
-    var fiatFee = tokenizedAsset.assetCurrentValue! * fiatPercentage;
+    var tokenFee =
+        (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
+    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
     return "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}.";
   }
 
