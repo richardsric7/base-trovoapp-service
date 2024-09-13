@@ -70,6 +70,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               SizedBox(
                 height: height / 40,
               ),
+              item("currentvalueofasset".tr(),
+                  '\$${formatNumber(tokenizedAsset.assetCurrentValue!)}'),
               item("totaltokenstobeissued".tr(),
                   '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
               SizedBox(
@@ -86,7 +88,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 height: height / 50,
               ),
               item("totalamounttoberaised".tr(),
-                  '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                  '${formatNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}'),
               SizedBox(
                 height: height / 50,
               ),

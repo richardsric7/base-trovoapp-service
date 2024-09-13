@@ -118,7 +118,7 @@ class _AssetInformation extends State<AssetInformation>
         ? []
         : data['protectionMethods'].toString().split(',');
     insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurance_policy_number'] ?? "";
+    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
     insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
     percentageValueOfInsurance =
         double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
@@ -1382,7 +1382,7 @@ class _AssetInformation extends State<AssetInformation>
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurance_policy_number'] = insurancePolicyNumber;
+      newData['insurancePolicyNumber'] = insurancePolicyNumber;
       newData['insurancePolicyHolder'] = insurancePolicyHolder;
       newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
       newData['IsFreeFromLiensAndEncumbrances'] =
