@@ -45,6 +45,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
+  final FocusNode focusNode = FocusNode();
 
   @override
   void initState() {
@@ -232,23 +233,12 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     SizedBox(
                       height: height / 50,
                     ),
-                    GestureDetector(
-                      child: CustomTextFormField.textField(
-                        "to".tr(),
-                        notifier.getbluecolor,
-                        Icons.send,
-                        notifier.getgrey,
-                        notifier.getprefixicon,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        75.sp,
-                        300.sp,
-                        controller: toController,
-                        readOnly: deeplinkInfo != null,
-                        validator: validateTo,
-                        onSaved: (value) =>
-                            to = value.trim().replaceAll(' ', ''),
-                      ),
+                    DestinationTextInput(
+                      controller: toController,
+                      focusNode: focusNode,
+                      isReadOnly: deeplinkInfo != null,
+                      validator: validateTo,
+                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
@@ -521,5 +511,139 @@ class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
 
   static int bytesLength(String value) {
     return utf8.encode(value).length;
+  }
+}
+
+class DestinationTextInput extends StatefulWidget {
+  final TextEditingController controller;
+  final bool isReadOnly;
+  final String? Function(String? value) validator;
+  final FocusNode focusNode;
+  final void Function(String value) onSaved;
+  const DestinationTextInput({
+    super.key,
+    required this.controller,
+    required this.focusNode,
+    required this.isReadOnly,
+    required this.validator,
+    required this.onSaved,
+  });
+
+  @override
+  State<DestinationTextInput> createState() => _DestinationTextInputState();
+}
+
+class _DestinationTextInputState extends State<DestinationTextInput> {
+  late ColorNotifier notifier;
+  late DataProvider appState;
+  OverlayEntry? _overlayEntry = null;
+  final LayerLink _layerLink = LayerLink();
+  bool showAutocomplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(() {
+      if (!widget.focusNode.hasFocus && _overlayEntry != null) {
+        _overlayEntry!.remove();
+        _overlayEntry = null;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    appState = Provider.of<DataProvider>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    return CompositedTransformTarget(
+      link: this._layerLink,
+      child: GestureDetector(
+        child: CustomTextFormField.textField(
+          "to".tr(),
+          notifier.getbluecolor,
+          Icons.send,
+          notifier.getgrey,
+          notifier.getprefixicon,
+          notifier.getblck,
+          notifier.getgrey,
+          75.sp,
+          300.sp,
+          onChanged: (value) {
+            print('value $value');
+            if (value
+                .toString()
+                .startsWith('${appState.primaryWallet.alias}_')) {
+              if (_overlayEntry != null) {
+                _overlayEntry!.remove();
+              }
+              _overlayEntry = null;
+              _overlayEntry = _createOverlayEntry();
+              Overlay.of(context).insert(_overlayEntry!);
+            } else {
+              if (_overlayEntry != null) {
+                _overlayEntry!.remove();
+                _overlayEntry = null;
+              }
+            }
+          },
+          controller: widget.controller,
+          readOnly: widget.isReadOnly,
+          validator: widget.validator,
+          onSaved: widget.onSaved,
+          focusNode: widget.focusNode,
+        ),
+      ),
+    );
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+    var wallets = appState.userInfo!.allWallets
+        .where((wallet) => wallet.alias!.startsWith(widget.controller.text))
+        .toList();
+    return OverlayEntry(
+        builder: (context) => Positioned(
+              width: size.width,
+              child: CompositedTransformFollower(
+                link: this._layerLink,
+                showWhenUnlinked: false,
+                offset: Offset(0.0, size.height + 5.0),
+                child: Material(
+                  elevation: 4.0,
+                  color: notifier.getaddsubwalletgrey,
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 4,
+                    ),
+                    child: ListView.separated(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: wallets.length,
+                        itemBuilder: (context, index) {
+                          return TextButton(
+                            onPressed: () {
+                              print('pressed o');
+                              widget.controller.text = wallets[index].alias!;
+                              _overlayEntry!.remove();
+                              _overlayEntry = null;
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                  wallets[index].alias!,
+                                  textAlign: TextAlign.start,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return Divider();
+                        }),
+                  ),
+                ),
+              ),
+            ));
   }
 }

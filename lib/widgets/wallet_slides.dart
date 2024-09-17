@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
@@ -104,13 +105,36 @@ class _WalletSlideState extends State<WalletSlide> {
                     children: [
                       Container(
                         width: width / 2.5,
-                        child: Text(
-                          widget.alias,
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                        child: Row(
+                          children: [
+                            Text(
+                              widget.alias,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.foreColor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(width: 10),
+                            IconButton(
+                              padding: EdgeInsets.zero,
                               color: widget.foreColor,
-                              fontFamily: fontsemibold),
+                              constraints: BoxConstraints(),
+                              onPressed: () => {
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: widget.alias,
+                                  ),
+                                ),
+                                showSnackBar("walletalias".tr(), context),
+                              },
+                              icon: Icon(
+                                Icons.copy,
+                                fill: 1.0,
+                                size: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       if (widget.assetCount != null) ...[
