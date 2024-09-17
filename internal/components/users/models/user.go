@@ -82,22 +82,22 @@ type WalletPermission struct {
 	Permission      string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 }
 type UserWalletSharedAccessInfo struct {
-	WalletPublicKey                  string                 `json:"walletPublicKey"`
-	NumberOfApprovalsNeeded          int                    `json:"numberOfApprovalsNeeded"`
-	Permissions                      []WalletPermissionInfo `json:"permissions"`
-	Transaction                      string                 `json:"transaction"`
-	TransactionSignature             string                 `json:"transactionSignature"`
+	WalletPublicKey         string                 `json:"walletPublicKey"`
+	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
+	Permissions             []WalletPermissionInfo `json:"permissions"`
+	Transaction             string                 `json:"transaction"`
+	TransactionSignature    string                 `json:"transactionSignature"`
 	// LinkedWalletTransactionSignature string                 `json:"linkedWalletTransactionSignature"`
-	TransactionID                    string                 `json:"transactionId"`
-	NetworkPassPhrase                string                 `json:"networkPassPhrase"`
-	Messages                         []string               `json:"messages"`
-	SignatureRequired                int                    `json:"signatureRequired"`
+	TransactionID     string   `json:"transactionId"`
+	NetworkPassPhrase string   `json:"networkPassPhrase"`
+	Messages          []string `json:"messages"`
+	SignatureRequired int      `json:"signatureRequired"`
 	// LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
 	// LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
-	SHash                            string                 `json:"sHash"`
-	Approvers                        []User                 `json:"-"`
-	Initiators                       []User                 `json:"-"`
-	Viewers                          []User                 `json:"-"`
+	SHash      string `json:"sHash"`
+	Approvers  []User `json:"-"`
+	Initiators []User `json:"-"`
+	Viewers    []User `json:"-"`
 }
 type DisableSharedAccessInfo struct {
 	WalletPublicKey      string                 `json:"walletPublicKey"`
@@ -261,6 +261,13 @@ type UserAccountRecoveryPayload struct {
 	NetworkPassPhrase    string             `json:"networkPassPhrase"`
 	Messages             []string           `json:"messages"`
 	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
+}
+type UserAccountDeletionPayload struct {
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
 }
 
 type UserAccountRecoveryLog struct {

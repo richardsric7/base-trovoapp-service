@@ -347,6 +347,20 @@ func (u *User) GetUserNFTs(gc *sharedconfig.GlobalConfig) (userNFTs map[string][
 	return
 }
 
+func (u *User) HasSharedAccessInAnyWallet(gc *sharedconfig.GlobalConfig) (enabled bool) {
+
+	for _, wallet := range u.UserWallets {
+
+		if wallet.SharedAccessEnabled == 1 {
+			enabled = true
+			break
+		}
+
+	}
+
+	return
+}
+
 // GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
 	nfts = make([]NFT, 0)
