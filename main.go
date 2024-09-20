@@ -170,6 +170,9 @@ func main() {
 		if os.Getenv("ACCOUNT_DELETION_EMAIL_SUBJECT") == "" {
 			log.Println("ENV variable ACCOUNT_DELETION_EMAIL_SUBJECT is not set. defaulting to 'TrovoApp Account Deletion Request'")
 		}
+		if os.Getenv("ACCOUNT_DELETION_DAYS") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_DAYS is not set. defaulting to '30' days")
+		}
 		if os.Getenv("SUPPORT_EMAIL") == "" {
 			log.Println("ENV variable SUPPORT_EMAIL is not set.")
 		}

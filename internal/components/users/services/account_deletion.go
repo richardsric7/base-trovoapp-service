@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -39,8 +40,12 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	user.Suspended = 1
 	suspensionReason := "Account Deletion has been requested."
 	user.SuspensionReason = &suspensionReason
-
-	actionDate := time.Now().AddDate(0, 0, 30)
+	processingDays := os.Getenv("ACCOUNT_DELETION_DAYS")
+	if processingDays == "" {
+		processingDays = "30"
+	}
+	pdays, _ := strconv.Atoi(processingDays)
+	actionDate := time.Now().AddDate(0, 0, pdays)
 	accountToDelete := userModels.DeletedUserAccount{
 		ID:            uuid.NewString(),
 		DeletedUserID: user.ID,
@@ -186,9 +191,14 @@ func SendEmailAccountDeletionRequested(user *userModels.User) {
 	if mailTemplate == "" {
 		mailTemplate = "account-deletion-request-template"
 	}
+	processingDays := os.Getenv("ACCOUNT_DELETION_DAYS")
+	if processingDays == "" {
+		processingDays = "30"
+	}
 	message.SetTemplate(mailTemplate)
 	message.AddTemplateVariable("fullName", fullName)
 	message.AddTemplateVariable("supportEmail", supporEmail)
+	message.AddTemplateVariable("processingDays", supporEmail)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
