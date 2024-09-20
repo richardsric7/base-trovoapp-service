@@ -23,9 +23,6 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 
-	if user.HasSecurityQuestions == 0 {
-		return &tErrors.CustomError{Param: "username", Err: "error security answers not set", ErrMessage: "security answers has not been set for this account."}
-	}
 	if user.HasSharedAccessInAnyWallet(gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error shared access enabled in wallet", ErrMessage: "Account cannot be deleted while shared access is still active on any wallet. Please ensure all shared access is removed from this account before proceeding."}
 	}
