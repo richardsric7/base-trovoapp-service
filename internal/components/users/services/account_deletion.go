@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/google/uuid"
+	"github.com/mailgun/mailgun-go/v4"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 )
@@ -135,6 +137,8 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	payload.TransactionID = txnHash
 	dbtx.Commit()
 
+	SendEmailAccountDeletionRequested(user)
+
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
 	if len(owner.ID) > 0 {
@@ -142,5 +146,54 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	}
 
 	return nil
+
+}
+
+func SendEmailAccountDeletionRequested(user *userModels.User) {
+	if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") != "1" || len(os.Getenv("MAILGUN_PRIVATE_API_KEY")) == 0 {
+		return
+	}
+
+	var fullName string
+	fullName = user.FirstName
+	if user.LastName != nil {
+		fullName = fullName + " " + *user.LastName
+	}
+	supporEmail := os.Getenv("SUPPORT_EMAIL")
+
+	var mailgunDomain string = os.Getenv("MAILGUN_DOMAIN") // e.g. mg.yourcompany.com
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(mailgunDomain, os.Getenv("MAILGUN_PRIVATE_API_KEY"))
+	sender := os.Getenv("DEFAULT_MAIL_SENDER")
+	if sender == "" {
+		sender = supporEmail
+	}
+	if sender == "" {
+		sender = "support@trovotech.io"
+	}
+	subject := os.Getenv("ACCOUNT_DELETION_EMAIL_SUBJECT")
+	if subject == "" {
+		subject = "TrovoApp Account Deletion Request"
+	}
+
+	body := ""
+	recipient := user.Email
+
+	// The message object allows you to add attachments and Bcc recipients
+	message := mg.NewMessage(sender, subject, body, recipient)
+	mailTemplate := os.Getenv("ACCOUNT_DELETION_REQUEST_TEMPLATE")
+	if mailTemplate == "" {
+		mailTemplate = "account-deletion-request-template"
+	}
+	message.SetTemplate(mailTemplate)
+	message.AddTemplateVariable("fullName", fullName)
+	message.AddTemplateVariable("supportEmail", supporEmail)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// Send the message with a 10 second timeout
+	mg.Send(ctx, message)
 
 }

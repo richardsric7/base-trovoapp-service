@@ -159,6 +159,21 @@ func main() {
 			return
 		}
 
+		if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") == "" {
+			log.Println("ENV variable ENABLE_EMAIL_NOTIFICATIONS is not set.")
+		}
+
+		if os.Getenv("ACCOUNT_DELETION_REQUEST_TEMPLATE") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_REQUEST_TEMPLATE is not set. defaulting to account-deletion-request-template")
+		}
+
+		if os.Getenv("ACCOUNT_DELETION_EMAIL_SUBJECT") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_EMAIL_SUBJECT is not set. defaulting to 'TrovoApp Account Deletion Request'")
+		}
+		if os.Getenv("SUPPORT_EMAIL") == "" {
+			log.Println("ENV variable SUPPORT_EMAIL is not set.")
+		}
+
 	}
 	log.Println("starting migration")
 	//migrate DB models if any
@@ -592,7 +607,6 @@ func main() {
 			}
 			//clear the user cache
 			time.Sleep(40 * time.Second)
-	
 
 		}()
 	}
