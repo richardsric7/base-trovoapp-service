@@ -28,6 +28,9 @@ func UploadProfilePicture(user *userModels.User, file multipart.File, fileNameWi
 	}
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	// user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 	return url, nil
 }

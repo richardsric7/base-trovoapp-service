@@ -136,6 +136,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.DeletedUserAccount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DeletedUserAccount: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserWallet{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)

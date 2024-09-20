@@ -45,7 +45,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	errValidation := ValidateUserRegistrationInfo(userInfo)
 
 	if errValidation != nil {
-		log.Printf("[RegisterUser]  Validation failed for user:%v, Error:%v[%v]", userInfo.Username, errValidation,errValidation.Error())
+		log.Printf("[RegisterUser]  Validation failed for user:%v, Error:%v[%v]", userInfo.Username, errValidation, errValidation.Error())
 		discord.Say(fmt.Sprintf("[RegisterUser]  Validation failed for user:%v, Error:%v[%v]", userInfo.Username, errValidation, errValidation.Error()))
 		return userInfo, false, errValidation
 	}
@@ -74,7 +74,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 			return userInfo, emailSent, checkAndSendErr
 		}
 
-		if checkAndSendErr == nil && emailSent {
+		if emailSent {
 			//no error, but email still sent
 			return userInfo, emailSent, checkAndSendErr
 		}

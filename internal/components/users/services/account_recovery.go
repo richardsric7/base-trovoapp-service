@@ -337,7 +337,9 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 
 	return nil
 
@@ -567,7 +569,10 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	}
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	// user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 	return nil
 
 }
@@ -865,7 +870,10 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		payload.TransactionID = resp.Hash
 		user.InvalidateUserCache(gc)
 		owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-		user = &owner
+		// user = &owner
+		if len(owner.ID) > 0 {
+			user = &owner
+		}
 		return multiAccessWallets, sharedApproverWallets, nil
 	}
 	return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}

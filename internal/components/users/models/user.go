@@ -73,6 +73,14 @@ type UserWallet struct {
 	LinkedWalletPublicKey   *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletPublicKey"`
 }
 
+type DeletedUserAccount struct {
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	ID            string    `json:"id"`
+	DeletedUserID string    `gorm:"size:120;not null;" json:"deletedUserID"`
+	ActionDate    time.Time `gorm:"null" json:"ActionDate"`
+	Status        int       `gorm:"type:integer;not null;default:0" json:"status"`
+}
 type WalletPermission struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`

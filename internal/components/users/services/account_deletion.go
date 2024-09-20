@@ -11,6 +11,7 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/google/uuid"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 )
@@ -18,10 +19,10 @@ import (
 func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDeletionPayload, gc *sharedconfig.GlobalConfig) (err error) {
 	var e error
 	client := gc.BantuExpansionClient
-	multiAccessWallets := make([]userModels.UserWallet, 0)
 	ops := make([]txnbuild.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
+
 	if user.HasSecurityQuestions == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error security answers not set", ErrMessage: "security answers has not been set for this account."}
 	}
@@ -33,31 +34,54 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	}
 
 	wallet, _ := userModels.UserWalletID(user.PublicKey).GetWallet(gc.DB, gc)
-	homeDomain := "trovotech.io"
-	ops = append(ops, &txnbuild.SetOptions{
-		HomeDomain:    &homeDomain,
-		SourceAccount: wallet.ID,
-	})
 
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
-	user.AccountRecoveryEnabled = 0
-	exp := time.Now().AddDate(1, 0, 0)
-	user.AccountRecoveryExpiresOn = &exp
+	user.Suspended = 1
+	suspensionReason := "Account Deletion has been requested."
+	user.SuspensionReason = &suspensionReason
+
+	actionDate := time.Now().AddDate(0, 0, 30)
+	accountToDelete := userModels.DeletedUserAccount{
+		ID:            uuid.NewString(),
+		DeletedUserID: user.ID,
+		ActionDate:    actionDate,
+		Status:        0,
+	}
 	dbErr := dbtx.Save(user).Error
 	if dbErr != nil {
-		log.Printf("[AccountDeletion] Error saving account recovery state: %v\n", dbErr)
-		return &tErrors.ErrorTemporaryServerError{}
+		log.Printf("[AccountDeletion] Error saving account deleted state: %v\n", dbErr)
+		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}
+
+	}
+	dbErr = dbtx.Create(&accountToDelete).Error
+	if dbErr != nil {
+		log.Printf("[AccountDeletion] Error saving job of account to be deleted: %v\n", dbErr)
+		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}
 	}
 
 	var userAccount horizon.Account
-	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+	var accountNotActiveOnBlockchain bool
+	userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey)
+	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
-			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
-		}
-		log.Printf("[AccountDeletion] Error on blockchain validating primary account %v\n", e)
-		return &tErrors.ErrorTemporaryServerError{}
 
+			//account not activated
+
+			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
+		} else {
+			log.Printf("[AccountDeletion] Error on blockchain validating primary account %v\n", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+	}
+	accountNotActiveOnBlockchain = true
+	if accountNotActiveOnBlockchain {
+		homeDomain := "trovotech.io"
+		ops = append(ops, &txnbuild.SetOptions{
+			HomeDomain:    &homeDomain,
+			SourceAccount: wallet.ID,
+		})
 	}
 
 	var xdrBase64 string
@@ -108,17 +132,17 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 
 	txnHash, err := network.SubmitXdrWithSignature(client, user.PrimarySigner, payload.Transaction, payload.TransactionSignature)
 	if err != nil {
-		logDiscordFailedRecovery(fmt.Sprintf("Error submitting account recovery enable [%+v] transaction: %s", payload, err.Error()))
+		logDiscordFailedRecovery(fmt.Sprintf("[AccountDeletion] Error submitting account deletion request [%+v] transaction: %s", payload, err.Error()))
 		return
 	}
 	payload.TransactionID = txnHash
 	dbtx.Commit()
-	if err == nil && len(multiAccessWallets) > 0 {
-		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
-	}
+
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 
 	return nil
 

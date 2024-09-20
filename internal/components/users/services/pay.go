@@ -106,7 +106,10 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	if !publicKeyPayment && len(paymentInfo.Transaction) > 0 && len(paymentInfo.SHash) > 1 {
 		dUser, e := usersDB.GetUser(paymentInfo.Destination, db, gc)
 		if e == nil {
-			destinationUser = &dUser
+			if len(dUser.ID) > 0 {
+				destinationUser = &dUser
+			}
+
 		}
 	}
 	// if len(paymentInfo.SHash) == 0 {
@@ -361,7 +364,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
-	log.Printf("[generatePaymentXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
+	log.Printf("[generatePaymentXdr]obtained source account balance of owner %v:\n%v balance is %v\n%v balance is %v\n", owner.Username, nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
 
 	amountToSendDec := decimal.NewFromFloat(amountToSend)
 	//prevent minting of new tokens from this routine
@@ -459,7 +462,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 				if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
 
-					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, destinationBlockchainAccount, asset, newAmountToSend)
+					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
 
 					if err != nil {
 						return "", nil, err
@@ -754,7 +757,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 		if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
 
-			ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, destinationBlockchainAccount, asset, newAmountToSend)
+			ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
 
 			if err != nil {
 				return "", nil, err
@@ -1092,7 +1095,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 
 				if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
 
-					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, destinationBlockchainAccount, asset, newAmountToSend)
+					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
 
 					if err != nil {
 						return "", nil, err
@@ -1353,7 +1356,8 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 }
 
-func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *horizon.Account, asset txnbuild.Asset, amountToSend string) (ops []txnbuild.Operation, signerKeyPairToReturn *keypair.Full, err error) {
+// func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *horizon.Account, asset txnbuild.Asset, amountToSend string) (ops []txnbuild.Operation, signerKeyPairToReturn *keypair.Full, err error) {
+func processCustodialDestinationWalletDoesNotTrustAsset(destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string) (ops []txnbuild.Operation, signerKeyPairToReturn *keypair.Full, err error) {
 
 	ops = make([]txnbuild.Operation, 0)
 
@@ -1435,7 +1439,10 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	if len(mintingInfo.Transaction) > 0 {
 		dUser, e := usersDB.GetUser(mintingInfo.Destination, db, gc)
 		if e == nil {
-			destinationUser = &dUser
+			if len(dUser.ID) > 0 {
+				destinationUser = &dUser
+
+			}
 		}
 	}
 
