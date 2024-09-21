@@ -2359,7 +2359,7 @@ class _SharedAccessState extends State<SharedAccess>
               if (approvers.length < noOfApprovers) {
                 popup(context,
                     title: "error".tr(),
-                    message: "usernamecannotbemorethannoapprovers".tr());
+                    message: "approverscannotbelessnoofapprover".tr());
                 return;
               }
 

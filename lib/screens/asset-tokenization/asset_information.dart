@@ -114,7 +114,8 @@ class _AssetInformation extends State<AssetInformation>
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
     valueOfTokenizedAsset =
         double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace = data['protectionMethods'].toString().isEmpty
+    assetProtectionInPlace = data['protectionMethods'] == null ||
+            data['protectionMethods'].toString().isEmpty
         ? []
         : data['protectionMethods'].toString().split(',');
     insuranceCompanyName = data['insuranceCompanyName'] ?? "";

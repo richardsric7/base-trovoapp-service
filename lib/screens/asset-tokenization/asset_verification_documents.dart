@@ -721,7 +721,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     proofofLegalDisputesOnAssetFiles = {};
 
     inspect(appState.viewData);
-    documents = appState.viewData!['AssetTokenizationDocuments'];
+    documents = appState.viewData!['AssetTokenizationDocuments'] ?? [];
     for (var item in documents) {
       switch (item['documentType']) {
         case 1:

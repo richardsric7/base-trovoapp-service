@@ -6080,7 +6080,7 @@ confirmAccountDeletionPopup(
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
-        print('authentication success');
+        onConfirmationSuccess();
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -6181,7 +6181,7 @@ confirmAccountDeletionPopup(
                             wihitecolor,
                             onTap: () {
                               if (password == appState.password!) {
-                                print('authentication success');
+                                onConfirmationSuccess();
                               } else {
                                 popup(context,
                                     title: "oops".tr(),

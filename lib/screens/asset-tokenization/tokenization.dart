@@ -169,7 +169,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
                                 return;
                               }
-
+                              List<String> excludedWallets = [];
+                              for (var asset in savedAssets) {
+                                excludedWallets
+                                    .add(asset['issuingWalletPublicKey']);
+                              }
+                              appState.viewData = {
+                                'excludedWallets': excludedWallets,
+                              };
                               hasInitiatorAccess
                                   ? appState.currentAction = PageAction(
                                       state: PageState.addPage,
@@ -526,6 +533,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      List<String> excludedWallets = [];
+                      for (var asset in savedAssets) {
+                        excludedWallets.add(asset['issuingWalletPublicKey']);
+                      }
+                      appState.viewData = {
+                        'excludedWallets': excludedWallets,
+                      };
                       hasInitiatorAccess
                           ? appState.currentAction = PageAction(
                               state: PageState.addPage,
