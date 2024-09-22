@@ -60,9 +60,6 @@ class _WalletPreparationState extends State<WalletPreparation>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     excludedWallets = appState.viewData!['excludedWallets'];
-    issuingWallets = appState.userInfo!.getMintingWallets
-        .where((wallet) => !excludedWallets.contains(wallet.publicKey))
-        .toList();
   }
 
   @override
@@ -76,6 +73,10 @@ class _WalletPreparationState extends State<WalletPreparation>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    issuingWallets = appState.userInfo!.getMintingWallets
+        .where((wallet) => !excludedWallets.contains(wallet.publicKey))
+        .toList();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -183,7 +184,6 @@ class _WalletPreparationState extends State<WalletPreparation>
             child: dropdown(
               (value) {
                 var wallet = value as Wallet;
-                print('linkedWallet... ${wallet.linkedWalletPublicKey}');
                 appState.setActiveTokenizationWalletPublicKey =
                     wallet.publicKey;
                 appState.setActiveDistributionWalletPublicKey =
