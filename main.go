@@ -38,6 +38,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func main() {
@@ -325,7 +326,7 @@ func main() {
 						usersWithNoRefLinks[i].ReferralQrCode = &rld.QRCode
 					}
 
-					e := database.Save(&usersWithNoRefLinks).Error
+					e := database.Omit(clause.Associations).Save(&usersWithNoRefLinks).Error
 					if e != nil {
 						//saving model failed
 						log.Printf("[REFLINKROUTINE]()()()@@@()()()()FAILED TO UPDATE USER LIST with referral links due to: %v\n", e)
@@ -845,7 +846,7 @@ func UpdateUserPatronMemberships(db *gorm.DB) error {
 
 	// Save the updated memberships back to the database
 	for _, membership := range memberships {
-		err := db.Save(&membership).Error
+		err := db.Omit(clause.Associations).Save(&membership).Error
 		if err != nil {
 			log.Printf("[UpdateUserPatronMemberships] error updating membership: %v\n", err)
 			err = &tErrors.ErrorTemporaryServerError{}

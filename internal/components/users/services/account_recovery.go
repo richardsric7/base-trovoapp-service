@@ -20,6 +20,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccountRecoveryPayload, gc *sharedconfig.GlobalConfig) (err error) {
@@ -45,7 +46,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	user.AccountRecoveryEnabled = 1
 	exp := time.Now().AddDate(1, 0, 0)
 	user.AccountRecoveryExpiresOn = &exp
-	dbErr := dbtx.Save(user).Error
+	dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 	if dbErr != nil {
 		log.Printf("[EnableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -793,7 +794,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		// generate new transaction
 		user.LastRecoveredAccountOn = time.Now().UTC()
 		user.PrimarySigner = payload.NewSignerPublicKey
-		dbErr := dbtx.Save(user).Error
+		dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving user database status ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -802,7 +803,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			v.Signer = payload.NewSignerPublicKey
 			wallets[i] = v
 		}
-		dbErr = dbtx.Save(&wallets).Error
+		dbErr = dbtx.Omit(clause.Associations).Save(&wallets).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving wallet signers database status ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -978,7 +979,7 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		}
 	}
 
-	e = dbtx.Save(subjectUser).Error
+	e = dbtx.Omit(clause.Associations).Save(subjectUser).Error
 	if e != nil {
 		// error saving security questions
 		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)

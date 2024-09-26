@@ -19,6 +19,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func WalletCountViewOnlyAccess(wallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (accessCount uint) {
@@ -442,7 +443,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	errDB = dbTX.Save(wallet).Error
+	errDB = dbTX.Omit(clause.Associations).Save(wallet).Error
 	if err != nil {
 		log.Printf("[CreateSharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, wallet)
 		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
@@ -458,7 +459,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
 		}
 
-		errDB = dbTX.Save(linkedWallet).Error
+		errDB = dbTX.Omit(clause.Associations).Save(linkedWallet).Error
 		if err != nil {
 			log.Printf("[CreateSharedWalletAccess] error saving shared access status of the linked wallet:%v\n linkedsharedAccess:%+v\n", errDB, linkedWallet)
 			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
@@ -1230,7 +1231,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	updatedWallet.SharedAccessEnabled = 1
 	updatedWallet.NumberOfApprovalsNeeded = accessInfo.NumberOfApprovalsNeeded
 
-	errDB := dbTX.Save(&updatedWallet).Error
+	errDB := dbTX.Omit(clause.Associations).Save(&updatedWallet).Error
 	if errDB != nil {
 		log.Printf("[ModifySharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, updatedWallet)
 		err = &tErrors.ErrorTemporaryServerError{}
@@ -1240,7 +1241,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		updatedLinkedWallet.SharedAccessEnabled = updatedWallet.SharedAccessEnabled
 		updatedLinkedWallet.NumberOfApprovalsNeeded = updatedWallet.NumberOfApprovalsNeeded
 
-		errDB := dbTX.Save(&updatedLinkedWallet).Error
+		errDB := dbTX.Omit(clause.Associations).Save(&updatedLinkedWallet).Error
 		if errDB != nil {
 			log.Printf("[ModifySharedWalletAccess] error saving shared access status of the linked wallet:%v\n sharedAccess:%+v\n", errDB, updatedLinkedWallet)
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -1543,7 +1544,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		linkedWallet.SharedAccessEnabled = 0
 		linkedWallet.NumberOfApprovalsNeeded = 0
 	}
-	e = dbTX.Save(wallet).Error
+	e = dbTX.Omit(clause.Associations).Save(wallet).Error
 	if e != nil {
 		log.Println("[RemoveSharedWalletAccess] error saving wallet", e)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -1554,7 +1555,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	if hasLinkedWallet {
-		e = dbTX.Save(&linkedWallet).Error
+		e = dbTX.Omit(clause.Associations).Save(&linkedWallet).Error
 		if e != nil {
 			log.Println("[RemoveSharedWalletAccess] error saving linked wallet", e)
 			return &tErrors.ErrorTemporaryServerError{}

@@ -19,6 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nyaruka/phonenumbers"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const saltInCode = "7HrtrGCRUPp8j5Gze"
@@ -200,7 +201,7 @@ func UpdatePhoneNumber(userInfo *users.User, mobileCountryCode, mobile string, d
 		userInfo.RegionName = &geoData.RegionName
 	}
 
-	saveError := db.Save(userInfo).Error
+	saveError := db.Omit(clause.Associations).Save(userInfo).Error
 	if saveError != nil {
 		log.Printf("unable to save new mobile number for user %v due to: %v\n", userInfo.Username, saveError)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -270,7 +271,7 @@ func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, d
 	}
 
 	userInfo.MobileVerified = 1
-	errSaveUser := db.Save(userInfo).Error
+	errSaveUser := db.Omit(clause.Associations).Save(userInfo).Error
 	if errSaveUser != nil {
 		log.Printf("[CheckPhoneVerificationCode]Unable to save mobile verification for user %v at this time due to Error: %s\n", userInfo.Username, errSaveUser.Error())
 

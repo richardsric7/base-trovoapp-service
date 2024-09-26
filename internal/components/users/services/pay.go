@@ -22,6 +22,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -1253,7 +1254,7 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 		}
 
 		if update {
-			dbSaveError := gc.DB.Save(&_wallet).Error
+			dbSaveError := gc.DB.Omit(clause.Associations).Save(&_wallet).Error
 
 			if dbSaveError != nil {
 				log.Printf("[processDestinationAssetDoesNotTrustAsset]db temp save error %v\n", dbSaveError)

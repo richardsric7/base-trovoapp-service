@@ -9,6 +9,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecurityAnswer, db *gorm.DB) error {
@@ -38,7 +39,7 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 		}
 		if user.HasSecurityQuestions == 0 {
 			user.HasSecurityQuestions = 1
-			db.Save(user)
+			db.Omit(clause.Associations).Save(user)
 		}
 
 		return nil
@@ -64,9 +65,9 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 	}
 	if user.HasSecurityQuestions == 0 {
 		user.HasSecurityQuestions = 1
-		db.Save(user)
+		db.Omit(clause.Associations).Save(user)
 	}
-	
+
 	return nil
 
 }

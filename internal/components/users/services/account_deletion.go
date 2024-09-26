@@ -17,6 +17,7 @@ import (
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDeletionPayload, gc *sharedconfig.GlobalConfig) (err error) {
@@ -52,7 +53,7 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 		ActionDate:    actionDate,
 		Status:        0,
 	}
-	dbErr := dbtx.Save(user).Error
+	dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 	if dbErr != nil {
 		log.Printf("[AccountDeletion] Error saving account deleted state: %v\n", dbErr)
 		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}
