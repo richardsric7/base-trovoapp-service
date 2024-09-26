@@ -20,10 +20,10 @@ type TokenizedAsset struct {
 	AssetType                      *string                     `json:"assetType"`
 	AssetName                      *string                     `json:"assetName"`
 	ApprovedAssetCustodianID       uint64                      `gorm:"not null" json:"approvedAssetCustodianId"`
-	ApprovedAssetCustodian         ApprovedAssetCustodian      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
+	ApprovedAssetCustodian         ApprovedAssetCustodian      `json:"approvedAssetCustodianInfo"`
 	OfferingType                   *string                     `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                  *string                     `gorm:"null" json:"closedGroupId"`
-	ClosedGroup                    ClosedGroup                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
+	ClosedGroup                    ClosedGroup                 `json:"closedGroupInfo"`
 	SecApproval                    int                         `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber            *string                     `json:"secApprovalIdNumber"`
 	IssuingWalletPublicKey         string                      `gorm:"size:60" json:"issuingWalletPublicKey"`
@@ -66,7 +66,7 @@ type TokenizedAsset struct {
 	CapDurationInDays              int                         `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                   *string                     `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              *uint64                     `gorm:"default:0" json:"tokenizationFeeId"`
-	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	TokenizationFee                TokenizationFee             `json:"tokenizationFee"`
 	ProceedPayoutCurrency          *string                     `json:"proceedPayoutCurrency"`
 	ExemptedCountries              *string                     `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
@@ -140,10 +140,10 @@ type TokenizedAssetJSON struct {
 	AssetType                      string                      `json:"assetType"`
 	AssetName                      string                      `json:"assetName"`
 	ApprovedAssetCustodianID       uint64                      `gorm:"not null" json:"approvedAssetCustodianId"`
-	ApprovedAssetCustodian         ApprovedAssetCustodian      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
+	ApprovedAssetCustodian         ApprovedAssetCustodian      `json:"approvedAssetCustodianInfo"`
 	OfferingType                   string                      `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                  string                      `gorm:"null" json:"closedGroupId"`
-	ClosedGroup                    ClosedGroup                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
+	ClosedGroup                    ClosedGroup                 `json:"closedGroupInfo"`
 	SecApproval                    int                         `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber            string                      `json:"secApprovalIdNumber"`
 	IssuingWalletPublicKey         string                      `gorm:"size:60" json:"issuingWalletPublicKey"`
@@ -186,7 +186,7 @@ type TokenizedAssetJSON struct {
 	CapDurationInDays              int                         `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                   string                      `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              uint64                      `json:"tokenizationFeeId"`
-	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	TokenizationFee                TokenizationFee             `json:"tokenizationFee"`
 	ProceedPayoutCurrency          string                      `json:"proceedPayoutCurrency"`
 	ExemptedCountries              string                      `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
