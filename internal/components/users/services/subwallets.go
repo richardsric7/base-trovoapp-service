@@ -18,6 +18,7 @@ import (
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig) (*userModels.SubWalletInfo, error) {
@@ -80,7 +81,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	defer dbTX.Rollback()
 
 	//create the data to be sure it goes through
-	errDBTX := dbTX.Create(&subWalletObj).Error
+	errDBTX := dbTX.Omit(clause.Associations).Create(&subWalletObj).Error
 	if errDBTX != nil {
 		//unable to save sub wallet. abort
 		log.Printf("[CreateNewSubWallet] by [%v] for [%v] Error saving subwallet error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, errDBTX)
@@ -94,7 +95,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	}
 	if len(linkedWallet.ID) > 0 && len(subWalletInfo.LinkedWalletPublicKey) > 0 {
 		//create the data  of linked walletto be sure it goes through
-		errDBTX := dbTX.Create(&linkedWallet).Error
+		errDBTX := dbTX.Omit(clause.Associations).Create(&linkedWallet).Error
 		if errDBTX != nil {
 			//unable to save linked wallet. abort
 			log.Printf("[CreateNewSubWallet] by [%v] for [%v] Error saving linked subwallet error:[%v] \n", accountOwner.Username, subWalletInfo.LinkedWalletPublicKey, errDBTX)
