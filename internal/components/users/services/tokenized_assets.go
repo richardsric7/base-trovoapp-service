@@ -263,7 +263,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 
 	}
 
-	e = gc.DB.Save(&ato).Error
+	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
