@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,11 +8,15 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -73,7 +79,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
               Image.asset('assets/images/deleted.png'),
               deletionInfo(),
               SizedBox(
-                height: height / 20,
+                height: height / 50,
               ),
               Button(
                 "yesdeleteaccount".tr(),
@@ -82,20 +88,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
                 onTap: () {
                   confirmAccountDeletionPopup(context,
                       onConfirmationSuccess: () {
-                    appState.viewData![SuccessViewPageConfig.key] = {
-                      'title': 'Request successfull',
-                      'message':
-                          'Your request has been successfully submitted.',
-                      'useOnDone': true,
-                      'onDone': () {
-                        appState.currentAction = PageAction(
-                          state: PageState.replaceAll,
-                          page: GetStartedViewPageConfig,
-                        );
-                      },
-                    };
-                    appState.currentAction = PageAction(
-                        state: PageState.replace, page: SuccessViewPageConfig);
+                    requestAccountDeletion();
                   });
                 },
               ),
@@ -156,26 +149,50 @@ class _DeleteAccountState extends State<DeleteAccount> {
               SizedBox(
                 height: height / 50,
               ),
-              Text(
-                '- ${"deletioninfo1".tr()}',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    "assets/images/jam_alert.png",
+                  ),
+                  Spacer(),
+                  Container(
+                    width: width / 1.4,
+                    child: Text(
+                      "deletioninfo1".tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(
                 height: height / 50,
               ),
-              Text(
-                '- ${"deletioninfo2".tr()}',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    "assets/images/jam_alert.png",
+                  ),
+                  Spacer(),
+                  Container(
+                    width: width / 1.4,
+                    child: Text(
+                      "deletioninfo2".tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(
                 height: height / 50,
@@ -198,5 +215,76 @@ class _DeleteAccountState extends State<DeleteAccount> {
         ),
       ),
     );
+  }
+
+  void requestAccountDeletion() async {
+    print('sending request to delete user account...');
+    try {
+      showLoader(context);
+      // make initial request to the server using empty body
+      Map map = {};
+      String requestBody = jsonEncode(map);
+      print(appState.primaryWallet.signer);
+      print(appState.primaryWallet.publicKey);
+      print(requestBody);
+      Map responseData = await makeDeleteRequest(
+        uri: '/v1/users',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      print('response: $responseData');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        // get primary signature
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0],
+          responseData['data']['transaction'],
+          responseData['data']['networkPassPhrase'],
+        );
+        responseData['transactionSignature'] = signature;
+
+        String req = jsonEncode(responseData);
+
+        Map res = await makeDeleteRequest(
+          uri: '/v1/users',
+          body: req,
+          signer: appState.primaryWallet.signer!,
+          secretKey: appState.secretKeys[0],
+          publicKey: appState.primaryWallet.publicKey!,
+        );
+
+        if (responseData['statusCode'] == 200) {
+          print('res is here ============> $res');
+          StoreData().storeDeleteData();
+          appState.viewData![SuccessViewPageConfig.key] = {
+            'title': 'Request successfull',
+            'message': 'Your request has been successfully submitted.',
+            'useOnDone': true,
+            'onDone': () {
+              appState.currentAction = PageAction(
+                state: PageState.replaceAll,
+                page: GetStartedViewPageConfig,
+              );
+            },
+          };
+          appState.currentAction =
+              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        } else {
+          popup(context,
+              title: "error".tr(), message: responseData['data']['error']);
+        }
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+    hideLoader(context);
   }
 }

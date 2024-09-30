@@ -43,7 +43,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late RefreshController _refreshController;
   late DataProvider appState;
   late UserInfo userInfo;
-  late List<Wallet> carouselWallets;
   late List<Wallet> wallets;
   late List<Wallet> sharedWallets;
   List<Asset>? unclaimedAssets;
@@ -116,8 +115,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     wallets = userInfo.wallets!;
     sharedWallets = userInfo.sharedWallets!;
-    carouselWallets =
-        wallets.length > 6 ? wallets.getRange(0, 6).toList() : wallets;
 
     if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;

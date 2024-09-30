@@ -106,6 +106,8 @@ const String AllWalletsViewPath = '/AllWallets';
 const String AssetTokenDetailsViewPath = '/AssetTokenDetails';
 const String ConfirmTokenizationDetailsViewPath = '/ConfirmTokenizationDetails';
 const String TokenizationFeePaymentViewPath = '/TokenizationFeePayment';
+const String DeleteAccountPrerequisitesViewPath =
+    '/DeleteAccountPrerequisitesView';
 const String DeleteAccountViewPath = '/DeleteAccountView';
 
 enum Pages {
@@ -215,6 +217,7 @@ enum Pages {
   AssetTokenDetailsView,
   ConfirmTokenizationDetailsView,
   TokenizationFeePaymentView,
+  DeleteAccountPrerequisitesView,
   DeleteAccountView
 }
 
@@ -732,6 +735,11 @@ PageConfiguration TokenizationFeePaymentViewPageConfig = PageConfiguration(
     key: 'TokenizationFeePaymentView',
     path: TokenizationFeePaymentViewPath,
     uiPage: Pages.TokenizationFeePaymentView,
+    currentPageAction: null);
+PageConfiguration DeleteAccountPrerequisitesViewPageConfig = PageConfiguration(
+    key: 'DeleteAccountPrerequisitesView',
+    path: DeleteAccountPrerequisitesViewPath,
+    uiPage: Pages.DeleteAccountPrerequisitesView,
     currentPageAction: null);
 PageConfiguration DeleteAccountViewPageConfig = PageConfiguration(
     key: 'DeleteAccountView',

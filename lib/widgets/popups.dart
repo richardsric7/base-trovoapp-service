@@ -6130,12 +6130,46 @@ confirmAccountDeletionPopup(
                           style: TextStyle(
                             fontSize: 13,
                             height: 1.4,
-                            fontFamily: fontsemibold,
+                            fontFamily: fontbody,
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(15.0)),
+                              color: Colors.blue[50],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 15.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    appState.userInfo!.fullName,
+                                    style: TextStyle(
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontsemibold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    appState.userInfo!.email!,
+                                    style: TextStyle(
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                         SizedBox(
-                          height: height / 70,
+                          height: height / 50,
                         ),
                         CustomPasswordFormField(
                           "password".tr(),

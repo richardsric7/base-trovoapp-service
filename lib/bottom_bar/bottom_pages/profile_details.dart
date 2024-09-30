@@ -221,7 +221,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 onPressed: () {
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    page: DeleteAccountViewPageConfig,
+                    page: DeleteAccountPrerequisitesViewPageConfig,
                   );
                 },
                 child: Text(
