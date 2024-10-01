@@ -4075,6 +4075,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 			tid := c.Param("tid")
+			if strings.EqualFold(tid,"null"){
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+			
+			c.JSON(statusCode, response)
+			return	
+			}
+
 			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
 			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 

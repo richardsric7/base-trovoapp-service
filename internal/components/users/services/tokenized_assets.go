@@ -112,6 +112,10 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with id %v from database  [%v]", id, err)
 			return
 
+		} else {
+			//record not found
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("Tokenization ID %v is invalid.", id)}
+			return
 		}
 	}
 
