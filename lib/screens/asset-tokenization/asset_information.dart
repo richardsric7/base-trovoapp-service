@@ -94,29 +94,35 @@ class _AssetInformation extends State<AssetInformation>
 
     assetExisting = data!['assetAlreadyExists'] == 1;
     assetOwnership =
-        data['ownershipType'].isNotEmpty ? data['ownershipType'] : 'DIRECT';
+        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
+            ? data['ownershipType']
+            : 'DIRECT';
     thirdPartyOwnerType =
-        data['ownershipKind'].isNotEmpty ? data['ownershipKind'] : 'INDIVIDUAL';
-    assetName = data['assetName'];
-    assetDescription = data['assetDescription'];
-    assetPhysicalAddress = data['assetPhysicalAddress'];
-    latitude = double.tryParse(data['assetLatitude']) ?? 0;
-    longitude = double.tryParse(data['assetLongitude']) ?? 0;
-    nameOfOwner = data['assetOwnerName'];
-    addressOfOwner = data['assetOwnerAddress'];
-    assetManager = data['assetManagerName'];
-    assetManagerAddress = data['assetManagerAddress'];
-    currentValueOfAsset = double.parse(data['assetCurrentValue'].toString());
+        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
+            ? data['ownershipKind']
+            : 'INDIVIDUAL';
+    assetName = data['assetName'] ?? "";
+    assetDescription = data['assetDescription'] ?? "";
+    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
+    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
+    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
+    nameOfOwner = data['assetOwnerName'] ?? "";
+    addressOfOwner = data['assetOwnerAddress'] ?? "";
+    assetManager = data['assetManagerName'] ?? "";
+    assetManagerAddress = data['assetManagerAddress'] ?? "";
+    currentValueOfAsset =
+        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
     valueOfTokenizedAsset =
-        double.parse(data['valueOfTokenizedAsset'].toString());
-    assetProtectionInPlace = data['protectionMethods'].toString().isEmpty
+        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
+    assetProtectionInPlace = data['protectionMethods'] == null ||
+            data['protectionMethods'].toString().isEmpty
         ? []
         : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'];
-    insurancePolicyNumber = data['insurance_policy_number'];
-    insurancePolicyHolder = data['insurancePolicyHolder'];
+    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
+    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
+    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
     percentageValueOfInsurance =
-        double.parse(data['percentageValueOfInsurance'].toString());
+        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
     freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
 
     valueOfAssetController.text = currentValueOfAsset == 0
@@ -1377,7 +1383,7 @@ class _AssetInformation extends State<AssetInformation>
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurance_policy_number'] = insurancePolicyNumber;
+      newData['insurancePolicyNumber'] = insurancePolicyNumber;
       newData['insurancePolicyHolder'] = insurancePolicyHolder;
       newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
       newData['IsFreeFromLiensAndEncumbrances'] =

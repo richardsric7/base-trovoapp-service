@@ -169,7 +169,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
                                 return;
                               }
-
+                              List<String> excludedWallets = [];
+                              for (var asset in savedAssets) {
+                                excludedWallets
+                                    .add(asset['issuingWalletPublicKey']);
+                              }
+                              appState.viewData = {
+                                'excludedWallets': excludedWallets,
+                              };
                               hasInitiatorAccess
                                   ? appState.currentAction = PageAction(
                                       state: PageState.addPage,
@@ -297,7 +304,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   'Tokenized Assets',
@@ -307,20 +314,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                     color: notifier.getbluecolor,
                                   ),
                                 ),
-                                Container(
-                                  width: width / 2.5,
-                                  child: dropdown(
-                                    (value) {},
-                                    getItems,
-                                    null,
-                                    getItems.first.value,
-                                    context,
-                                    null,
-                                  ),
-                                ),
                               ],
                             ),
                           ),
+                          SizedBox(height: height / 90),
                           Row(
                             children: [
                               Padding(
@@ -349,7 +346,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             height: height / 50,
                           ),
                           Container(
-                            height: height / 2.1,
+                            height: height / 1.96,
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
@@ -413,7 +410,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                       },
                                       child: assetTile(
                                         records[i].assetLogo ?? '',
-                                        '${records[i].assetName.length == 0 ? 'No name' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
+                                        '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
                                         '${records[i].assetSubSector}',
                                         records[i].tokenizationStatus == null
                                             ? 'Continue'
@@ -536,6 +533,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      List<String> excludedWallets = [];
+                      for (var asset in savedAssets) {
+                        excludedWallets.add(asset['issuingWalletPublicKey']);
+                      }
+                      appState.viewData = {
+                        'excludedWallets': excludedWallets,
+                      };
                       hasInitiatorAccess
                           ? appState.currentAction = PageAction(
                               state: PageState.addPage,
@@ -649,12 +653,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      type,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
+                    child: Container(
+                      width: width / 2.7,
+                      child: Text(
+                        type,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getblck,
+                        ),
                       ),
                     ),
                   ),

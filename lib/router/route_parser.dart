@@ -203,6 +203,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return ConfirmTokenizationDetailsViewPageConfig;
       case TokenizationFeePaymentViewPath:
         return TokenizationFeePaymentViewPageConfig;
+      case DeleteAccountViewPath:
+        return DeleteAccountViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -416,6 +418,11 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
             uri: Uri.parse(ConfirmTokenizationDetailsViewPath));
       case Pages.TokenizationFeePaymentView:
         return RouteInformation(uri: Uri.parse(TokenizationFeePaymentViewPath));
+      case Pages.DeleteAccountPrerequisitesView:
+        return RouteInformation(
+            uri: Uri.parse(DeleteAccountPrerequisitesViewPath));
+      case Pages.DeleteAccountView:
+        return RouteInformation(uri: Uri.parse(DeleteAccountViewPath));
       default:
         return RouteInformation(uri: Uri.parse(SplashPath));
     }

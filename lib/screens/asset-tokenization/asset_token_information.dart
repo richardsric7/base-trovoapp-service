@@ -104,6 +104,25 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     return wallets;
   }
 
+  List<DropdownMenuItem<int>> getFeeItems(bool isSelected) {
+    List<DropdownMenuItem<int>> items = [];
+    appState.tokenizationData["tokenizationFees"].forEach((item) {
+      var fiatPercentage = item['feeFiatPercentage'];
+      var assetPercentage = item['feeAssetPercentage'];
+      var fiatFeeCap = double.parse(item['feeFiatCap'].toString());
+      var tokenFee = (numberOfTokenToBeIssued * assetPercentage) / 100;
+      var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
+
+      items.add(DropdownMenuItem(
+          child: Text(
+            "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+            overflow: isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+          ),
+          value: item['id']));
+    });
+    return items;
+  }
+
   List<DropdownMenuItem<String>> get getPayoutCycles {
     List<DropdownMenuItem<String>> cycles = [];
     payoutCycleOptions.forEach((item) {
@@ -715,87 +734,33 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Container(
-                      width: width / 1.07,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            checkBoxItem(
-                              text: getFeeInfo(0),
-                              value: tokenizationFeeId ==
-                                  appState.tokenizationData["tokenizationFees"]
-                                      [0]['id'],
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  tokenizationFeeId = appState
-                                          .tokenizationData["tokenizationFees"]
-                                      [0]['id'];
-                                  ;
-                                });
-                              },
-                            ),
-                            SizedBox(height: height / 90),
-                            checkBoxItem(
-                              text: getFeeInfo(1),
-                              value: tokenizationFeeId ==
-                                  appState.tokenizationData["tokenizationFees"]
-                                      [1]['id'],
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  tokenizationFeeId = appState
-                                          .tokenizationData["tokenizationFees"]
-                                      [1]['id'];
-                                });
-                              },
-                            ),
-                            SizedBox(height: height / 90),
-                            checkBoxItem(
-                              text: getFeeInfo(2),
-                              value: tokenizationFeeId ==
-                                  appState.tokenizationData["tokenizationFees"]
-                                      [2]['id'],
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  tokenizationFeeId = appState
-                                          .tokenizationData["tokenizationFees"]
-                                      [2]['id'];
-                                  ;
-                                });
-                              },
-                            ),
-                            SizedBox(height: height / 90),
-                            checkBoxItem(
-                              text: getFeeInfo(3),
-                              value: tokenizationFeeId ==
-                                  appState.tokenizationData["tokenizationFees"]
-                                      [3]['id'],
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  tokenizationFeeId = appState
-                                          .tokenizationData["tokenizationFees"]
-                                      [3]['id'];
-                                  ;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      tokenizationFeeId = int.parse(value.toString());
+                    });
+                  },
+                  getFeeItems(false),
+                  getFeeItems(false)
+                          .where((item) => item.value == tokenizationFeeId)
+                          .isEmpty
+                      ? null
+                      : tokenizationFeeId,
+                  'selectfee'.tr(),
+                  context,
+                  (context) {
+                    return getFeeItems(true);
+                  },
+                  validator: (value) {
+                    if (value == null || value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
+                  itemHeight: 70,
+                ),
               ),
               SizedBox(
                 height: height / 50,
@@ -1355,16 +1320,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         ? notifier.getbluecolor90
                         : notifier.getaddsubwalletgrey,
                     child: TextButton(
-                      onPressed: () {
-                        showCountryPicker(
-                          context: context,
-                          onSelect: (Country country) {
-                            setState(() {
-                              exemptedCountries.add(country.name);
-                            });
-                          },
-                        );
-                      },
+                      onPressed: showCountryListPopup,
                       style: ButtonStyle(
                           elevation: MaterialStateProperty.all<double>(0)),
                       child: Row(
@@ -1609,7 +1565,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       formIsValid = false;
                     }
                     var form = _formKey.currentState;
-                    print('form is valid $formIsValid assetLogo: $assetLogo');
                     if (form!.validate() && formIsValid) {
                       form.save();
                       submitForm();
@@ -1629,6 +1584,21 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ),
       ),
     );
+  }
+
+  showCountryListPopup() {
+    appState.dialogOpen = true;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      showCountryPicker(
+        context: context,
+        onSelect: (Country country) {
+          setState(() {
+            exemptedCountries.add(country.name);
+          });
+        },
+      );
+    });
+    return SizedBox();
   }
 
   void submitForm() async {
@@ -1827,8 +1797,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
             [index]['feeFiatCap']
         .toString());
-    var tokenFee = numberOfTokenToBeIssued * assetPercentage;
-    var fiatFee = data['assetCurrentValue'] * fiatPercentage;
+    var tokenFee = (numberOfTokenToBeIssued * assetPercentage) / 100;
+    var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
     return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).";
   }
 

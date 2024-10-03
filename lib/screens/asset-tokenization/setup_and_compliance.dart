@@ -30,17 +30,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  String selectedCountry = 'Nigeria';
+  String selectedCountry = '';
   bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
   bool hasAllRequiredDocuments = false;
   int offeringType = 0;
-  String selectedAssetSectorId = 'Real Estate Sector';
-  String selectedAssetSubSectorId = 'Land';
+  String selectedAssetSectorId = '';
+  String selectedAssetSubSectorId = '';
   String selectedAssetTypeId = '';
   String selectedAssetCustodian = '';
   String secApprovalId = '';
+  bool formHasError = false;
+  bool isCountryPickerOpen = false;
   late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
 
@@ -103,6 +105,22 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         ),
       ),
     );
+  }
+
+  showCountryListPopup() {
+    appState.dialogOpen = true;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      showCountryPicker(
+        context: context,
+        useSafeArea: true,
+        onSelect: (Country country) {
+          setState(() {
+            selectedCountry = country.name;
+          });
+        },
+      );
+    });
+    return SizedBox();
   }
 
   Widget setupAndCompliance(dynamic tokenizationData) {
@@ -194,10 +212,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   });
                 },
                 assetSectors,
-                null,
-                assetSectors.length > 0 ? assetSectors.first.value : '',
+                selectedAssetSectorId.isEmpty ? null : selectedAssetSectorId,
+                'Select asset sector',
                 context,
                 null,
+                validator: (value) {
+                  if (selectedAssetSectorId.isEmpty) {
+                    return "pleaseselectassetsector".tr();
+                  }
+                  return null;
+                },
               ),
             ),
             SizedBox(
@@ -234,10 +258,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   });
                 },
                 assetSubsectors,
-                null,
-                assetSubsectors.length > 0
-                    ? assetSubsectors.first.value
-                    : "selectassetsubsector".tr(),
+                selectedAssetSubSectorId.isEmpty
+                    ? null
+                    : selectedAssetSubSectorId,
+                "selectassetsubsector".tr(),
                 context,
                 null,
                 validator: (value) {
@@ -435,23 +459,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ? notifier.getbluecolor90
                       : notifier.getaddsubwalletgrey,
                   child: TextButton(
-                    onPressed: () {
-                      showCountryPicker(
-                        context: context,
-                        onSelect: (Country country) {
-                          setState(() {
-                            selectedCountry = country.name;
-                          });
-                        },
-                      );
-                    },
+                    onPressed: showCountryListPopup,
                     style: ButtonStyle(
                         elevation: MaterialStateProperty.all<double>(0)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          selectedCountry,
+                          selectedCountry.isEmpty
+                              ? "selectcountrylocation".tr()
+                              : selectedCountry,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 15,
@@ -466,6 +483,23 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
+            if (formHasError && selectedCountry.isEmpty) ...[
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "pleaseselectcountrylocation".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             SizedBox(
               height: height / 30,
             ),
@@ -801,7 +835,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   submit() async {
     var message = "";
     final form = _formKey.currentState;
-    if (!form!.validate()) return;
+    formHasError = false;
+
+    if (selectedCountry.isEmpty) {
+      setState(() {
+        formHasError = true;
+      });
+    }
+
+    if (!form!.validate() && !formHasError) return;
 
     if (!hasAllRequiredDocuments) {
       message +=

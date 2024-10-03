@@ -16,11 +16,13 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/asset_token_details.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdraw_details.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/opt_in_asset.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/opt_in_out_asset.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/opt_out_asset.dart';
+import 'package:trovo_wallet/screens/delete_account/delete_account.dart';
+import 'package:trovo_wallet/screens/delete_account/delete_account_prerequisites.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/asset_token_details.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/deposit_withdraw_details.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/opt_in_asset.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/opt_in_out_asset.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/opt_out_asset.dart';
 import 'package:trovo_wallet/screens/account_recovery/account_recovery_success.dart';
 import 'package:trovo_wallet/screens/account_recovery/answer_security_questions.dart';
 import 'package:trovo_wallet/screens/account_recovery/backup_recovery_secret.dart';
@@ -31,32 +33,32 @@ import 'package:trovo_wallet/screens/account_recovery/recover_account.dart';
 import 'package:trovo_wallet/screens/account_recovery/request_backup.dart';
 import 'package:trovo_wallet/screens/account_recovery/security_questions_for_inactive_accounts.dart';
 import 'package:trovo_wallet/screens/account_recovery/setup_account_recovery.dart';
-import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
-import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
-import 'package:trovo_wallet/screens/Auth/create_password.dart';
-import 'package:trovo_wallet/screens/Auth/get_started.dart';
-import 'package:trovo_wallet/screens/Auth/signup.dart';
-import 'package:trovo_wallet/screens/Auth/verification.dart';
-import 'package:trovo_wallet/screens/Backup/backup_all.dart';
-import 'package:trovo_wallet/screens/Backup/congratulation.dart';
-import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_withdraw.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/select_deposit_address.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/generate_deposit_address.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_status.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
+import 'package:trovo_wallet/screens/auth/authorize_action_view.dart';
+import 'package:trovo_wallet/screens/auth/authorize_login_view.dart';
+import 'package:trovo_wallet/screens/auth/create_password.dart';
+import 'package:trovo_wallet/screens/auth/get_started.dart';
+import 'package:trovo_wallet/screens/auth/signup.dart';
+import 'package:trovo_wallet/screens/auth/verification.dart';
+import 'package:trovo_wallet/screens/backup/backup_all.dart';
+import 'package:trovo_wallet/screens/backup/congratulation.dart';
+import 'package:trovo_wallet/screens/backup/ensure_privacy.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/asset_details.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/confirm_transaction.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/confirm_withdraw.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/deposit_withdrawal_history.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/select_deposit_address.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/generate_deposit_address.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/recieve_asset.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/request_specific_payment_details.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/request_specific_payment.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/send_asset.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/transaction_status.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/transaction_success.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/account_recovery/security_questions.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
-import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/withdraw_asset.dart';
+import 'package:trovo_wallet/screens/send_and_recieve/wrapped_asset.dart';
+import 'package:trovo_wallet/screens/announcements/announcements_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_dashboard.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_subscribers.dart';
@@ -95,11 +97,11 @@ import 'package:trovo_wallet/screens/subscriptions/subscription_benefits.dart';
 import 'package:trovo_wallet/screens/subscriptions/subscription_plans.dart';
 import 'package:trovo_wallet/screens/subscriptions/welcome.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import '../screens/Auth/fingerprint.dart';
-import '../screens/Auth/login.dart';
-import '../screens/Backup/backup.dart';
-import '../screens/Splash_Screen/splash_screen.dart';
-import '../screens/announcements/announcementView.dart';
+import '../screens/auth/fingerprint.dart';
+import '../screens/auth/login.dart';
+import '../screens/backup/backup.dart';
+import '../screens/splash_screen/splash_screen.dart';
+import '../screens/announcements/announcement_view.dart';
 import '../screens/qr_scanner_view.dart';
 import 'page_actions.dart';
 import 'back_dispatcher.dart';
@@ -475,6 +477,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               TokenizationFeePayment(), TokenizationFeePaymentViewPageConfig);
           break;
+        case Pages.DeleteAccountPrerequisitesView:
+          _addPageData(DeleteAccountPrerequisites(),
+              DeleteAccountPrerequisitesViewPageConfig);
+          break;
+        case Pages.DeleteAccountView:
+          _addPageData(DeleteAccount(), DeleteAccountViewPageConfig);
+          break;
         default:
           break;
       }
@@ -783,6 +792,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.TokenizationFeePaymentView:
         TokenizationFeePaymentViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DeleteAccountPrerequisitesView:
+        DeleteAccountPrerequisitesViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DeleteAccountView:
+        DeleteAccountViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

@@ -1529,25 +1529,25 @@ class _SharedAccessState extends State<SharedAccess>
       'wallet': activeWallet,
     });
 
-    if (isNewTokenizationAndDistributionWallet &&
-        sharedAccessWalletsRecord.length == 1) {
-      setState(() {
-        // viewers.clear();
-        addApprovers = false;
-        // approvers.clear();
-        // initiators.clear();
-        // userFullnames.clear();
-        currentStep = 0;
-      });
-      Account account =
-          TrovoWalletSDK().parseSecretKey(appState.backupSecrets.last);
-      activeWallet = shareableWallets!
-          .where((wallet) => wallet.publicKey == account.publicKey)
-          .first;
-      selectedWallet = account.publicKey;
-      popup(context, title: 'Important', message: "addsharedtodistwallet".tr());
-      return;
-    }
+    // if (isNewTokenizationAndDistributionWallet &&
+    //     sharedAccessWalletsRecord.length == 1) {
+    //   setState(() {
+    //     // viewers.clear();
+    //     addApprovers = false;
+    //     // approvers.clear();
+    //     // initiators.clear();
+    //     // userFullnames.clear();
+    //     currentStep = 0;
+    //   });
+    //   Account account =
+    //       TrovoWalletSDK().parseSecretKey(appState.backupSecrets.last);
+    //   activeWallet = shareableWallets!
+    //       .where((wallet) => wallet.publicKey == account.publicKey)
+    //       .first;
+    //   selectedWallet = account.publicKey;
+    //   popup(context, title: 'Important', message: "addsharedtodistwallet".tr());
+    //   return;
+    // }
 
     appState.viewData = {
       AddSharedAccessDetailsViewPageConfig.key: sharedAccessWalletsRecord,
@@ -2296,6 +2296,7 @@ class _SharedAccessState extends State<SharedAccess>
                 showResponseMessage(context, "userwillberemoved".tr(), () {
                   viewers.removeWhere((userItem) => userItem == username);
                   approvers.add(username);
+                  initiators.add(username);
                   approversController.text = '';
                 });
                 setState(() {});
@@ -2358,7 +2359,7 @@ class _SharedAccessState extends State<SharedAccess>
               if (approvers.length < noOfApprovers) {
                 popup(context,
                     title: "error".tr(),
-                    message: "usernamecannotbemorethannoapprovers".tr());
+                    message: "approverscannotbelessnoofapprover".tr());
                 return;
               }
 

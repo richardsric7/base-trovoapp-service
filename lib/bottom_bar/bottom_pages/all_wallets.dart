@@ -425,11 +425,13 @@ class _AllWalletsView extends State<AllWalletsView>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: width / 2,
-                  child: Wrap(
-                    children: [
-                      Text(
+                Row(
+                  children: [
+                    Container(
+                      constraints: BoxConstraints(
+                        maxWidth: width / 2.5,
+                      ),
+                      child: Text(
                         walletName,
                         style: TextStyle(
                           fontSize: 16,
@@ -437,8 +439,27 @@ class _AllWalletsView extends State<AllWalletsView>
                           fontFamily: fontsemibold,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 10),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      color: color.foreColor,
+                      constraints: BoxConstraints(),
+                      onPressed: () => {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: walletName,
+                          ),
+                        ),
+                        showSnackBar("walletalias".tr(), context),
+                      },
+                      icon: Icon(
+                        Icons.copy,
+                        fill: 1.0,
+                        size: 15,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: height / 50,

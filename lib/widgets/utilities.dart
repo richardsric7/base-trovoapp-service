@@ -483,13 +483,16 @@ Widget iconDropdown(
 }
 
 Widget dropdown(
-    void Function(Object?)? onChanged,
-    List<DropdownMenuItem<Object>> items,
-    Object? value,
-    String? hint,
-    BuildContext context,
-    List<Widget> Function(BuildContext)? selectedItemBuilder,
-    {String? Function(Object?)? validator}) {
+  void Function(Object?)? onChanged,
+  List<DropdownMenuItem<Object>> items,
+  Object? value,
+  String? hint,
+  BuildContext context,
+  List<Widget> Function(BuildContext)? selectedItemBuilder, {
+  String? Function(Object?)? validator,
+  void Function()? onTap,
+  double? itemHeight,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: true);
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -499,7 +502,9 @@ Widget dropdown(
           selectedItemBuilder: selectedItemBuilder,
           isDense: true,
           isExpanded: true,
+          itemHeight: itemHeight,
           validator: validator,
+          onTap: onTap,
           hint: Container(
             // width: 150, //and here
             child: hint != null
@@ -811,82 +816,88 @@ Widget getDrawer(
       // Important: Remove any padding from the ListView.
       padding: EdgeInsets.zero,
       children: [
-        UserAccountsDrawerHeader(
-          // <-- SEE HERE
-          decoration: BoxDecoration(
-            color: notifier.getwihitecolor,
-          ),
-          margin: const EdgeInsets.only(bottom: 8.0),
-          accountName: Text(
-            appState.userInfo!.fullName,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getbluewhitecolor,
+        GestureDetector(
+          onTap: () {
+            appState.currentAction = PageAction(
+                state: PageState.addPage, page: ProfileDetailsViewPageConfig);
+          },
+          child: UserAccountsDrawerHeader(
+            decoration: BoxDecoration(
+              color: notifier.getwihitecolor,
             ),
-          ),
-          accountEmail: Text(
-            appState.userInfo!.email!,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getbluewhitecolor,
+            margin: const EdgeInsets.only(bottom: 8.0),
+            accountName: Text(
+              appState.userInfo!.fullName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
             ),
-          ),
-          currentAccountPicture: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: notifier.getbluecolor70,
-                      child: GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: ProfileDetailsViewPageConfig);
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100.0),
-                          child: Image.network(
-                            appState.userInfo!.imageThumbnailURL!,
-                            width: width / 6.8,
-                            // height: width / 10,
-                            fit: BoxFit.fill,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/trovo.png',
-                                width: width / 9,
-                              );
-                            },
+            accountEmail: Text(
+              appState.userInfo!.email!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            currentAccountPicture: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: notifier.getbluecolor70,
+                        child: GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: ProfileDetailsViewPageConfig);
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(100.0),
+                            child: Image.network(
+                              appState.userInfo!.imageThumbnailURL!,
+                              width: width / 6.8,
+                              // height: width / 10,
+                              fit: BoxFit.fill,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/trovo.png',
+                                  width: width / 9,
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    if (appState.userInfo != null &&
-                        appState.userInfo!.patronMembership != null) ...[
-                      Container(
-                        width: width / 6.0,
-                        height: height / 12.5,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Image.asset(
-                              appState.userInfo!.patronMembership?.getLogo() ??
-                                  'assets/images/trovo.png',
-                              width: 30,
-                            ),
-                          ],
+                      if (appState.userInfo != null &&
+                          appState.userInfo!.patronMembership != null) ...[
+                        Container(
+                          width: width / 6.0,
+                          height: height / 12.5,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Image.asset(
+                                appState.userInfo!.patronMembership
+                                        ?.getLogo() ??
+                                    'assets/images/trovo.png',
+                                width: 30,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         ListTile(

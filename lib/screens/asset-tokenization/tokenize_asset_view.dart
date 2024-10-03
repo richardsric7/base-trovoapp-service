@@ -81,7 +81,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetinformation".tr(),
               "providebasicinfo".tr(),
               "1",
-              appState.viewData!['assetDescription'].length > 0
+              appState.viewData!['assetDescription'] != null &&
+                      appState.viewData!['assetDescription'].length > 0
                   ? "continuee".tr()
                   : "start".tr(),
               onTap: () {
@@ -98,7 +99,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetverificationdocs".tr(),
               "provideverificationdocs".tr(),
               "2",
-              appState.viewData!['AssetTokenizationDocuments'].length > 0
+              appState.viewData!['AssetTokenizationDocuments'] != null &&
+                      appState.viewData!['AssetTokenizationDocuments'].length >
+                          0
                   ? "continuee".tr()
                   : "start".tr(),
               onTap: () {
@@ -115,14 +118,20 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assettokeninfo".tr(),
               "providetokeninfo".tr(),
               "3",
-              appState.viewData!['assetCode'].length > 0
+              appState.viewData!['assetCode'] != null &&
+                      appState.viewData!['assetCode'].length > 0
                   ? "continuee".tr()
                   : "start".tr(),
+              isDisabled: appState.viewData!['assetDescription'] == null ||
+                  appState.viewData!['assetDescription'].length == 0,
               onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: AssetTokenInformationViewPageConfig,
-                );
+                if (appState.viewData!['assetDescription'] != null &&
+                    appState.viewData!['assetDescription'].length > 0) {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: AssetTokenInformationViewPageConfig,
+                  );
+                }
               },
             ),
             SizedBox(
@@ -133,10 +142,15 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () async {
-                if (appState.viewData!['assetCode'].length == 0 ||
-                    appState.viewData!['AssetTokenizationDocuments'].length ==
-                        0 ||
-                    appState.viewData!['assetDescription'].length == 0) {
+                var assetCode = appState.viewData!['assetCode'] ?? '';
+                var documents =
+                    appState.viewData!['AssetTokenizationDocuments'] ?? [];
+                var assetDescription =
+                    appState.viewData!['assetDescription'] ?? '';
+
+                if (assetCode.length == 0 ||
+                    documents.length == 0 ||
+                    assetDescription.length == 0) {
                   popup(context,
                       title: "formincomplete".tr(),
                       message: "pleasefillouttokenizationform".tr(args: ['3']));
@@ -159,7 +173,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
 
   Widget detailItem(
       String title, String description, String number, String status,
-      {required void Function() onTap}) {
+      {required void Function() onTap, bool isDisabled = false}) {
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
@@ -174,8 +188,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
             child: Container(
               decoration: BoxDecoration(
-                border:
-                    Border.all(color: notifier.getbluewhitecolor, width: 1.5),
+                border: Border.all(
+                    color: isDisabled
+                        ? notifier.getsplashgrey
+                        : notifier.getbluewhitecolor,
+                    width: 1.5),
                 borderRadius: const BorderRadius.all(Radius.circular(15.0)),
                 color: notifier.isDark
                     ? darktilewhitecolor
@@ -204,7 +221,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w400,
-                                    color: notifier.getbluewhitecolor,
+                                    color: isDisabled
+                                        ? notifier.getsplashgrey
+                                        : notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold,
                                   ),
                                 ),
@@ -215,7 +234,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                   fontStyle: FontStyle.italic,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
-                                  color: notifier.getbluewhitecolor,
+                                  color: isDisabled
+                                      ? notifier.getsplashgrey
+                                      : notifier.getbluewhitecolor,
                                   fontFamily: fontsemibold,
                                 ),
                               ),
@@ -230,7 +251,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
-                              color: notifier.getbluewhitecolor,
+                              color: isDisabled
+                                  ? notifier.getsplashgrey
+                                  : notifier.getbluewhitecolor,
                               fontFamily: fontbody,
                             ),
                           ),
@@ -249,8 +272,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             padding: const EdgeInsets.symmetric(horizontal: 5.0),
             child: Container(
               decoration: BoxDecoration(
-                border:
-                    Border.all(color: notifier.getbluewhitecolor, width: 1.5),
+                border: Border.all(
+                    color: isDisabled
+                        ? notifier.getsplashgrey
+                        : notifier.getbluewhitecolor,
+                    width: 1.5),
                 shape: BoxShape.circle,
                 color: notifier.isDark
                     ? darktilewhitecolor
@@ -263,7 +289,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
-                    color: notifier.getbluewhitecolor,
+                    color: isDisabled
+                        ? notifier.getsplashgrey
+                        : notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                   ),
                 ),

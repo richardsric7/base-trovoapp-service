@@ -26,6 +26,8 @@ class _WalletPreparationState extends State<WalletPreparation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  List<String> excludedWallets = [];
+  List<Wallet> issuingWallets = [];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,9 +39,9 @@ class _WalletPreparationState extends State<WalletPreparation>
     }
   }
 
-  List<DropdownMenuItem<Wallet>> get getMintingWallets {
+  List<DropdownMenuItem<Wallet>> get getIssuingWallets {
     List<DropdownMenuItem<Wallet>> wallets = [];
-    appState.userInfo!.getMintingWallets.forEach((wallet) {
+    issuingWallets.forEach((wallet) {
       if (wallet.isSharedWalletAndCanInitiate) {
         wallets.add(DropdownMenuItem(
             child: Text(
@@ -52,23 +54,12 @@ class _WalletPreparationState extends State<WalletPreparation>
     return wallets;
   }
 
-  List<DropdownMenuItem<String>> get getStandardWalletsWithInitiatorAccess {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWalletsWithInitiatorAccess.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
   @override
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    excludedWallets = appState.viewData!['excludedWallets'];
   }
 
   @override
@@ -82,6 +73,10 @@ class _WalletPreparationState extends State<WalletPreparation>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    issuingWallets = appState.userInfo!.getMintingWallets
+        .where((wallet) => !excludedWallets.contains(wallet.publicKey))
+        .toList();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -155,66 +150,68 @@ class _WalletPreparationState extends State<WalletPreparation>
         SizedBox(
           height: height / 30,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "selectissuingwallet".tr(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
+        if (issuingWallets.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "selectissuingwallet".tr(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
                 ),
-              ),
-              Text(
-                "whatdoesthismean".tr(),
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontSize: 12,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
+                Text(
+                  "whatdoesthismean".tr(),
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontSize: 12,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: dropdown(
-            (value) {
-              var wallet = value as Wallet;
-              print('linkedWallet... ${wallet.linkedWalletPublicKey}');
-              appState.setActiveTokenizationWalletPublicKey = wallet.publicKey;
-              appState.setActiveDistributionWalletPublicKey =
-                  wallet.linkedWalletPublicKey;
-            },
-            getMintingWallets,
-            null,
-            getHintTextForMintingWallet(),
-            context,
-            null,
+          SizedBox(
+            height: height / 70,
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        Text(
-          "oR".tr(),
-          style: TextStyle(
-            decoration: TextDecoration.underline,
-            fontSize: 12,
-            fontFamily: fontsemibold,
-            color: notifier.getbluewhitecolor,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: dropdown(
+              (value) {
+                var wallet = value as Wallet;
+                appState.setActiveTokenizationWalletPublicKey =
+                    wallet.publicKey;
+                appState.setActiveDistributionWalletPublicKey =
+                    wallet.linkedWalletPublicKey;
+              },
+              getIssuingWallets,
+              null,
+              getHintTextForMintingWallet(),
+              context,
+              null,
+            ),
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
+          SizedBox(
+            height: height / 70,
+          ),
+          Text(
+            "oR".tr(),
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              fontSize: 12,
+              fontFamily: fontsemibold,
+              color: notifier.getbluewhitecolor,
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+        ],
         TextButton(
           onPressed: () {
             appState.returnView = PageAction(
@@ -255,15 +252,6 @@ class _WalletPreparationState extends State<WalletPreparation>
     return wallet.length > 0
         ? wallet.first.alias!
         : 'Select tokenization wallet';
-  }
-
-  String getHintTextForDistribution() {
-    var wallet = appState.userInfo!.getStandardWalletsWithInitiatorAccess.where(
-        (w) => w.publicKey == appState.activeDistributionWalletPublicKey);
-
-    return wallet.length > 0
-        ? wallet.first.alias!
-        : 'Select distribution wallet';
   }
 
   Widget CheckItem(
