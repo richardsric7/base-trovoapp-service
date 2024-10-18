@@ -138,7 +138,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 30,
             ),
             Button(
-              "proceed".tr(),
+              "completetokenization".tr(),
               notifier.getbluecolor,
               wihitecolor,
               onTap: () async {
