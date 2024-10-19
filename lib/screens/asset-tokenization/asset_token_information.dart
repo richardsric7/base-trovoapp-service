@@ -106,20 +106,37 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
   List<DropdownMenuItem<int>> getFeeItems(bool isSelected) {
     List<DropdownMenuItem<int>> items = [];
-    appState.tokenizationData["tokenizationFees"].forEach((item) {
+    for (var i = 0;
+        i < appState.tokenizationData["tokenizationFees"].length;
+        i++) {
+      var item = appState.tokenizationData["tokenizationFees"][i];
+      print(item['feeDescription']);
       var fiatPercentage = item['feeFiatPercentage'];
       var assetPercentage = item['feeAssetPercentage'];
       var fiatFeeCap = double.parse(item['feeFiatCap'].toString());
       var tokenFee = (numberOfTokenToBeIssued * assetPercentage) / 100;
       var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
 
+      if (i == 4) {
+        items.add(DropdownMenuItem(
+            child: Text(
+              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
+              // "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+              overflow:
+                  isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+            ),
+            value: item['id']));
+        continue;
+      }
+
       items.add(DropdownMenuItem(
           child: Text(
-            "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+            "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
+            // "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
             overflow: isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
           ),
           value: item['id']));
-    });
+    }
     return items;
   }
 
@@ -759,7 +776,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     }
                     return null;
                   },
-                  itemHeight: 70,
+                  // itemHeight: 70,
                 ),
               ),
               SizedBox(
@@ -1818,10 +1835,5 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     List<int> imageBytes = await image.readAsBytes();
     String imageB64 = base64Encode(imageBytes);
     return imageB64;
-  }
-
-  Uint8List getBase64Decode(String image) {
-    Uint8List imageString = base64Decode(image);
-    return imageString;
   }
 }

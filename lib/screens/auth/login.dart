@@ -358,7 +358,7 @@ class _LoginState extends State<Login> {
 
                 // SizedBox(height: height / 90),
                 Row(
-                  children: <Widget>[
+                  children: [
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.only(left: 27.0, right: 27.0),
