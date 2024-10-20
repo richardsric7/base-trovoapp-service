@@ -120,8 +120,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       if (i == 4) {
         items.add(DropdownMenuItem(
             child: Text(
-              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
-              // "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFeeCap)}",
               overflow:
                   isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
             ),

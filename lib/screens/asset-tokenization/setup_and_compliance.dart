@@ -939,6 +939,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
+        appState.viewData!["id"] = responseData['data']['id'];
         appState.viewData!["assetSector"] = selectedAssetSectorId;
         appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
         appState.viewData!["assetType"] = selectedAssetTypeId;
