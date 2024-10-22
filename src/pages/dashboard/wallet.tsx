@@ -13,15 +13,19 @@ export default function Wallet() {
   return (
     <div className="flex text-primary-800 text-sm overflow-x-hidden md:text-md flex-col space-y-5 p-3">
       <Header
-        fullName="Obi Enechi"
-        avatar="/images/avatar.png"
-        email="obienechi@gmail.com"
+        // fullName="Obi Enechi"
+        // avatar="/images/avatar.png"
+        // email="obienechi@gmail.com"
         isHomeView
       />
       <div className="flex md:h-screen w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
           <div className="md:hidden items-center px-5 mb-5 justify-center flex">
-            <WidgetCard />
+            <WidgetCard
+              localCurrencyBalance="string"
+              usdBalance="string"
+              label="string"
+            />
           </div>
           <div className="flex space-y-3 mb-20 md:pt-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
             <div className="w-full flex justify-between px-5">
