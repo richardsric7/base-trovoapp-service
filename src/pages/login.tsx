@@ -4,15 +4,18 @@ import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
 import TrovoBrand from '../components/trovoBrand';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
 import { Encryptor } from '../utils/encryptor';
 import capitalizeFirstLetter from '../utils/capitalizeFirst';
 import { hideLoader } from '../utils/showToaster';
+import { setTempData } from '../store/authSlice';
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const appUser = useSelector((state: RootState) => state.auth.user!);
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
 
@@ -26,11 +29,24 @@ export default function Login() {
   const isValidPassword = async () => {
     try {
       const encryptor = new Encryptor();
-      await encryptor.decryptData(
+      const secretKey = await encryptor.decryptData(
         appUser?.secretKeys[0],
         password,
         appUser?.primarySigner,
       );
+
+      dispatch(
+        setTempData({
+          ...tempData,
+          secretKey,
+        }),
+      );
+
+      const user = {
+        ...appUser,
+        isLoggedIn: true,
+      };
+      await encryptor.encryptUserData(user);
       return true;
     } catch (error: any) {
       return false;
@@ -96,13 +112,6 @@ export default function Login() {
                     setPasswordErr('Password is invalid!');
                     return;
                   }
-
-                  const user = {
-                    ...appUser,
-                    isLoggedIn: true,
-                  };
-                  const encryptor = new Encryptor();
-                  await encryptor.encryptUserData(user);
 
                   navigate('/dashboard');
                 }}

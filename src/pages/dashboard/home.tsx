@@ -14,22 +14,13 @@ import { RootState } from '../../store/reduxStore';
 import capitalizeFirstLetter from '../../utils/capitalizeFirst';
 import {
   totalAccountBalanceInCurrency,
-  shareWallets,
   formatToCurrency,
 } from '../../utils/utilities';
 
 export default function Home() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
-  const announcements = useSelector(
-    (state: RootState) => state.cache.announcements,
-  );
 
-  console.log(
-    'shared',
-    (fiatRates as { NGN: number }).NGN,
-    shareWallets(appUser.userWallets),
-  );
   const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet)!;
   const navigate = useNavigate();
   const [isActivated] = useState(
@@ -361,7 +352,10 @@ export default function Home() {
             text-trovored-primary px-4 py-2 font-semibold"
             >
               <div className="flex space-x-5 items-center">
-                <Link className="flex space-x-5 items-center" to={'/welcome'}>
+                <Link
+                  className="flex space-x-5 items-center"
+                  to={'setup-security-questions'}
+                >
                   <img src="/images/alert.png" alt="" />
                   <p className="text-xs md:text-md">
                     You have not setup security questions yet. Tap to setup
@@ -374,8 +368,20 @@ export default function Home() {
           <div className="md:hidden items-center px-5 mb-5 justify-center flex">
             <WidgetCard
               label="Total Account Balance"
-              localCurrencyBalance="2,082,898 NGN"
-              usdBalance="4,014 USD"
+              localCurrencyBalance={formatToCurrency(
+                totalAccountBalanceInCurrency(
+                  appUser.userWallets,
+                  (fiatRates as { NGN: number }).NGN,
+                ),
+                'NGN',
+              )}
+              usdBalance={formatToCurrency(
+                totalAccountBalanceInCurrency(
+                  appUser.userWallets,
+                  (fiatRates as { USD: number }).USD,
+                ),
+                'USD',
+              )}
             />
           </div>
           <div className="flex space-y-3 mb-20 md:pt-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">

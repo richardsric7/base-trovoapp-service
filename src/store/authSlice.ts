@@ -59,7 +59,13 @@ export const authSlice = createSlice({
       } 
       return state;
     },
+    setTempData: (state, action) => {
+      if (action.payload) {
+        return {...state, tempData: action.payload};
+      } 
+      return state;
+    },
   },
 });
 
-export const { setUser, setTempUser, setFormState } = authSlice.actions;
+export const { setUser, setTempUser, setFormState, setTempData } = authSlice.actions;
