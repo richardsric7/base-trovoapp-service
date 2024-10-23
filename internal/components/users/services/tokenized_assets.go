@@ -550,23 +550,22 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
 
-	if len(ti.AssetManagerName) > 0 {
+	// if ti.AssetManagerID > 0 {
 
-		t.AssetManagerName = &ti.AssetManagerName
-	}
+	t.AssetManagerID = ti.AssetManagerID
+	// }
 
-	if len(ti.AssetManagerAddress) > 0 {
+	// if len(ti.AssetManagerAddress) > 0 {
 
-		t.AssetManagerAddress = &ti.AssetManagerAddress
-	}
+	// 	t.AssetManagerAddress = &ti.AssetManagerAddress
+	// }
 	if len(ti.AssetQuoteCurrency) > 0 {
 
 		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
 	}
 
 	t.AssetCurrentValue = ti.AssetCurrentValue
-	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
-	t.AssetPercentageForTokenization = 100
+	t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
 	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
 
 	if len(ti.ProtectionMethods) > 0 {
@@ -603,7 +602,8 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 		t.AssetLogo = &ti.AssetLogo
 	}
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+		totalValuation:=(ti.ValueOfTokenizedAsset+ti.AssetMscCostOutisdeOfValuation)
+		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 	var feeCompo userModels.TokenizationFee
 	var assetFee float64

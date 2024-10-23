@@ -10,6 +10,33 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type ExistingAssetValidationAssetInformation struct {
+	ID                       uint64 `gorm:"" json:"-" form:"-"`
+	AssetAlreadyExists0      int    `gorm:"default:1" json:"assetAlreadyExists0"`
+	AssetAlreadyExists1      int    `gorm:"default:1" json:"assetAlreadyExists1"`
+	AssetDescription         int    `gorm:"default:1" json:"assetDescription"`
+	AssetPhysicalAddress     int    `gorm:"default:1" json:"assetPhysicalAddress"`
+	AssetCountryLocation     int    `gorm:"default:1" json:"assetCountryLocation"`
+	AssetLongitude           int    `gorm:"default:1" json:"assetLongitude"`
+	AssetLatitude            int    `gorm:"default:1" json:"assetLatitude"`
+	OwnershipTypeDirect      int    `gorm:"default:1" json:"ownershipTypeDirect"`
+	OwnershipType3p          int    `gorm:"default:1" json:"ownershipType3p"` //3rd party
+	OwnershipKindIndividual  int    `gorm:"default:1" json:"ownershipKindIndividual"`
+	OwnershipKindCorporate   int    `gorm:"default:1" json:"ownershipKindCorporate"`
+	AssetOwnerName           int    `gorm:"default:1" json:"assetOwnerName"`
+	AssetOwnerAddress        int    `gorm:"default:1" json:"assetOwnerAddress"`
+	ApprovedAssetCustodianID int    `gorm:"default:1" json:"approvedAssetCustodianId"`
+	AssetManagerID           int    `gorm:"default:1" json:"assetManagerId"`
+	AssetCurrentValue        int    `gorm:"default:1" json:"AssetCurrentValue"`
+	ValueOfTokenizedAsset    int    `gorm:"default:1" json:"valueOfTokenizedAsset"`
+	AssetMscCostOutisdeOfValuation    int    `gorm:"default:1" json:"assetMscCostOutisdeOfValuation"`
+	ProtectionMethods    int    `gorm:"default:1" json:"protectionMethods"`
+	InsuranceCompanyName    int    `gorm:"default:1" json:"insuranceCompanyName"`
+	InsurancePolicyNumber    int    `gorm:"default:1" json:"insurancePolicyNumber"`
+	InsurancePolicyHolder    int    `gorm:"default:1" json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance    int    `gorm:"default:1" json:"percentageValueOfInsurance"`
+	
+}
 type TokenizedAsset struct {
 	ID                             string                      `json:"id"`
 	CreatedAt                      time.Time                   `json:"createdAt"`
@@ -38,11 +65,11 @@ type TokenizedAsset struct {
 	OwnershipKind                  *string                     `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
 	AssetOwnerName                 *string                     `json:"assetOwnerName"`
 	AssetOwnerAddress              *string                     `json:"assetOwnerAddress"`
-	AssetManagerName               *string                     `json:"assetManagerName"`
-	AssetManagerAddress            *string                     `json:"assetManagerAddress"`
+	AssetManagerID                 uint64                      `json:"assetManagerId"`
+	AssetManager                   AssetManager                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetQuoteCurrency             *string                     `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue              float64                     `gorm:"default:0" json:"assetCurrentValue"`
-	AssetPercentageForTokenization float64                     `gorm:"default:0" json:"assetPercentageForTokenization"`
+	AssetMscCostOutisdeOfValuation float64                     `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
 	ValueOfTokenizedAsset          float64                     `gorm:"default:0" json:"valueOfTokenizedAsset"`
 	ProtectionMethods              *string                     `json:"protectionMethods"` //csv format
 	InsuranceCompanyName           *string                     `json:"insuranceCompanyName"`
@@ -77,58 +104,58 @@ type TokenizedAsset struct {
 }
 
 type TokenizedAssetJSONInput struct {
-	AssetSector                    string    `json:"assetSector"`
-	AssetSubSector                 string    `json:"assetSubSector"`
-	AssetType                      string    `json:"assetType"`
-	AssetName                      string    `json:"assetName"`
-	ApprovedAssetCustodianID       uint64    `gorm:"not null" json:"approvedAssetCustodianId"`
-	OfferingType                   string    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                  string    `gorm:"null" json:"closedGroupId"`
-	SecApproval                    int       `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber            string    `json:"secApprovalIdNumber"`
-	MarketMakingWallet             string    `json:"marketMakingWallet"`
-	AssetDescription               string    `json:"assetDescription"`
-	AssetCountryLocation           string    `json:"assetCountryLocation"`
-	AssetPhysicalAddress           string    `json:"assetPhysicalAddress"`
-	AssetLongitude                 string    `json:"assetLongitude"`
-	AssetLatitude                  string    `json:"assetLatitude"`
-	OwnershipType                  string    `json:"ownershipType"` //DIRECT,THIRD-PARTY
-	OwnershipKind                  string    `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
-	AssetOwnerName                 string    `json:"assetOwnerName"`
-	AssetOwnerAddress              string    `json:"assetOwnerAddress"`
-	AssetManagerName               string    `json:"assetManagerName"`
-	AssetManagerAddress            string    `json:"assetManagerAddress"`
-	AssetQuoteCurrency             string    `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
-	AssetCurrentValue              float64   `gorm:"default:0" json:"assetCurrentValue"`
-	AssetPercentageForTokenization float64   `gorm:"default:0" json:"assetPercentageForTokenization"`
-	ValueOfTokenizedAsset          float64   `gorm:"default:0" json:"valueOfTokenizedAsset"`
-	ProtectionMethods              string    `json:"protectionMethods"` //csv format
-	InsuranceCompanyName           string    `json:"insuranceCompanyName"`
-	InsurancePolicyNumber          string    `json:"insurancePolicyNumber"`
-	InsurancePolicyHolder          string    `json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance     float64   `gorm:"default:0" json:"percentageValueOfInsurance"`
-	IsFreeFromLiensAndEncumbrances int       `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
-	AssetAlreadyExists             int       `gorm:"default:1" json:"assetAlreadyExists"`
-	AssetCode                      string    `json:"assetCode"`
-	AssetLogo                      string    `json:"assetLogo"`
-	NumberOfTokenToBeIssued        float64   `json:"numberOfTokenToBeIssued"`
-	NumberOfTokenToBeSold          float64   `json:"numberOfTokenToBeSold"`
-	TotalTokenHeldByManager        float64   `json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale   string    `json:"walletToHoldAssetsNotForSale"`
-	PricePerToken                  float64   `json:"pricePerToken"`
-	SalesStart                     time.Time `json:"salesStart"`
-	SalesEnd                       time.Time `json:"salesEnd"`
-	CapOnPurchase                  float64   `gorm:"default:0" json:"capOnPurchase"`
-	CapQuantity                    float64   `gorm:"default:0" json:"capQuantity"`
-	CapDurationInDays              int       `gorm:"default:0" json:"capDurationInDays"`
-	ProceedCycle                   string    `gorm:"size:50" json:"proceedCycle"`
-	TokenizationFeeID              uint64    `json:"tokenizationFeeId"`
-	ProceedPayoutCurrency          string    `json:"proceedPayoutCurrency"`
-	ExemptedCountries              string    `json:"exemptedCountries"`
-	HasAdditionalKYCRequirements   int       `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
-	AdditionalKYCRequirements      string    `json:"additionalKYCRequirements"`
-	InvestorAccreditationRequired  int       `gorm:"default:0" json:"investorAccreditationRequired"`
-	Messages                       []string  `json:"messages"`
+	AssetSector                    string       `json:"assetSector"`
+	AssetSubSector                 string       `json:"assetSubSector"`
+	AssetType                      string       `json:"assetType"`
+	AssetName                      string       `json:"assetName"`
+	ApprovedAssetCustodianID       uint64       `gorm:"not null" json:"approvedAssetCustodianId"`
+	OfferingType                   string       `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID                  string       `gorm:"null" json:"closedGroupId"`
+	SecApproval                    int          `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber            string       `json:"secApprovalIdNumber"`
+	MarketMakingWallet             string       `json:"marketMakingWallet"`
+	AssetDescription               string       `json:"assetDescription"`
+	AssetCountryLocation           string       `json:"assetCountryLocation"`
+	AssetPhysicalAddress           string       `json:"assetPhysicalAddress"`
+	AssetLongitude                 string       `json:"assetLongitude"`
+	AssetLatitude                  string       `json:"assetLatitude"`
+	OwnershipType                  string       `json:"ownershipType"` //DIRECT,THIRD-PARTY
+	OwnershipKind                  string       `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	AssetOwnerName                 string       `json:"assetOwnerName"`
+	AssetOwnerAddress              string       `json:"assetOwnerAddress"`
+	AssetManagerID                 uint64       `json:"assetManagerId"`
+	AssetManager                   AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
+	AssetQuoteCurrency             string       `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
+	AssetCurrentValue              float64      `gorm:"default:0" json:"assetCurrentValue"`
+	AssetMscCostOutisdeOfValuation float64                     `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
+	ValueOfTokenizedAsset          float64      `gorm:"default:0" json:"valueOfTokenizedAsset"`
+	ProtectionMethods              string       `json:"protectionMethods"` //csv format
+	InsuranceCompanyName           string       `json:"insuranceCompanyName"`
+	InsurancePolicyNumber          string       `json:"insurancePolicyNumber"`
+	InsurancePolicyHolder          string       `json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance     float64      `gorm:"default:0" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances int          `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
+	AssetAlreadyExists             int          `gorm:"default:1" json:"assetAlreadyExists"`
+	AssetCode                      string       `json:"assetCode"`
+	AssetLogo                      string       `json:"assetLogo"`
+	NumberOfTokenToBeIssued        float64      `json:"numberOfTokenToBeIssued"`
+	NumberOfTokenToBeSold          float64      `json:"numberOfTokenToBeSold"`
+	TotalTokenHeldByManager        float64      `json:"totalTokenHeldByManager"`
+	WalletToHoldAssetsNotForSale   string       `json:"walletToHoldAssetsNotForSale"`
+	PricePerToken                  float64      `json:"pricePerToken"`
+	SalesStart                     time.Time    `json:"salesStart"`
+	SalesEnd                       time.Time    `json:"salesEnd"`
+	CapOnPurchase                  float64      `gorm:"default:0" json:"capOnPurchase"`
+	CapQuantity                    float64      `gorm:"default:0" json:"capQuantity"`
+	CapDurationInDays              int          `gorm:"default:0" json:"capDurationInDays"`
+	ProceedCycle                   string       `gorm:"size:50" json:"proceedCycle"`
+	TokenizationFeeID              uint64       `json:"tokenizationFeeId"`
+	ProceedPayoutCurrency          string       `json:"proceedPayoutCurrency"`
+	ExemptedCountries              string       `json:"exemptedCountries"`
+	HasAdditionalKYCRequirements   int          `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
+	AdditionalKYCRequirements      string       `json:"additionalKYCRequirements"`
+	InvestorAccreditationRequired  int          `gorm:"default:0" json:"investorAccreditationRequired"`
+	Messages                       []string     `json:"messages"`
 }
 type TokenizedAssetJSON struct {
 	ID                             string                      `json:"id"`
@@ -158,11 +185,11 @@ type TokenizedAssetJSON struct {
 	OwnershipKind                  string                      `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
 	AssetOwnerName                 string                      `json:"assetOwnerName"`
 	AssetOwnerAddress              string                      `json:"assetOwnerAddress"`
-	AssetManagerName               string                      `json:"assetManagerName"`
-	AssetManagerAddress            string                      `json:"assetManagerAddress"`
+	AssetManagerID                 uint64                      `json:"assetManagerId"`
+	AssetManager                   AssetManager                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetQuoteCurrency             string                      `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue              float64                     `gorm:"default:0" json:"assetCurrentValue"`
-	AssetPercentageForTokenization float64                     `gorm:"default:0" json:"assetPercentageForTokenization"`
+	AssetMscCostOutisdeOfValuation float64                     `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
 	ValueOfTokenizedAsset          float64                     `gorm:"default:0" json:"valueOfTokenizedAsset"`
 	ProtectionMethods              string                      `json:"protectionMethods"` //csv format
 	InsuranceCompanyName           string                      `json:"insuranceCompanyName"`
@@ -236,6 +263,12 @@ type ApprovedAssetCustodian struct {
 	AssetCustodianAddress string `json:"assetCustodianAddress"`
 	AssetCustodianCountry string `gorm:"size:3" json:"assetCustodianCountry"`
 }
+type AssetManager struct {
+	ID                  uint64 `gorm:"" json:"id"`
+	AssetManagerName    string `gorm:"size:100" json:"assetManagerName"`
+	AssetManagerAddress string `json:"assetManagerAddress"`
+	AssetManagerCountry string `gorm:"size:3" json:"assetManagerCountry"`
+}
 
 type AssetProtectionOption struct {
 	ID string `gorm:"size:100;primaryKey" json:"id"`
@@ -264,6 +297,23 @@ type AssetTokenizationInputDocument struct {
 }
 
 type IssuingWalletPublicKey string
+
+type ExistingAssetValidationAssetDocument struct {
+	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+type ExistingAssetValidationAssetTokenInfo struct {
+	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+
+type NonExistingAssetValidationAssetInformation struct {
+	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+type NonExistingAssetValidationAssetDocument struct {
+	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+type NonExistingAssetValidationAssetTokenInfo struct {
+	ID uint64 `gorm:"" json:"-" form:"-"`
+}
 
 func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
 	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
@@ -421,22 +471,22 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
 
-	if len(ti.AssetManagerName) > 0 {
+	// if len(ti.AssetManagerName) > 0 {
 
-		t.AssetManagerName = &ti.AssetManagerName
-	}
+	t.AssetManagerID = ti.AssetManagerID
+	// }
 
-	if len(ti.AssetManagerAddress) > 0 {
+	// if len(ti.AssetManagerAddress) > 0 {
 
-		t.AssetManagerAddress = &ti.AssetManagerAddress
-	}
+	// 	t.AssetManagerAddress = &ti.AssetManagerAddress
+	// }
 	if len(ti.AssetQuoteCurrency) > 0 {
 
 		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
 	}
 
 	t.AssetCurrentValue = ti.AssetCurrentValue
-	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
+	t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
 	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
 
 	if len(ti.ProtectionMethods) > 0 {
@@ -473,7 +523,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetLogo = &ti.AssetLogo
 	}
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+		totalValuation:=(ti.ValueOfTokenizedAsset+ti.AssetMscCostOutisdeOfValuation)
+		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 	var feeCompo TokenizationFee
 	var assetFee float64
@@ -640,18 +691,17 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.AssetOwnerAddress != nil {
 		t.AssetOwnerAddress = *ti.AssetOwnerAddress
 	}
-	if ti.AssetManagerName != nil {
-		t.AssetManagerName = *ti.AssetManagerName
+	if ti.AssetManagerID > 0 {
+		t.AssetManagerID = ti.AssetManagerID
+		t.AssetManager = ti.AssetManager
 	}
-	if ti.AssetManagerAddress != nil {
-		t.AssetManagerAddress = *ti.AssetManagerAddress
-	}
+
 	if ti.AssetQuoteCurrency != nil {
 		t.AssetQuoteCurrency = *ti.AssetQuoteCurrency
 	}
 	t.AssetCurrentValue = ti.AssetCurrentValue
 
-	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
+	t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
 	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
 
 	if ti.ProtectionMethods != nil {

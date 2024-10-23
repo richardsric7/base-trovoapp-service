@@ -320,6 +320,34 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ApprovedAssetCustodian: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.AssetManager{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetManager: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetInformation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetInformation: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetDocument{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetDocument: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetTokenInfo{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetTokenInfo: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetInformation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetInformation: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetDocument{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetDocument: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetTokenInfo{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetTokenInfo: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.TokenizationCurrency{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizationCurrency: ", errMigrate)
