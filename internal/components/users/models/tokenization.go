@@ -10,33 +10,46 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type ExistingAssetValidationAssetInformation struct {
+/*
+*
+*****DocumentType and codes****
+ProofOfAssetExistence = 1
+ProofOfAssetOwnership = 2
+ProofOfAssetStatusVerification = 3
+AssetCustodianAgreement = 4
+ProofOfAssetManager = 5
+AssetProtectionDocument = 6
+AssetValuationCertificate = 7
+AssetOwnerGovernmentID = 8
+ProofOfAssetCondtion = 9
+ThirdPartyTokenizationAgreement = 10
+ThirdPartyAssetOwnerBusinessRegistration = 11
+ThirdPartyAssetOwnerProofOfAddress = 12
+SEC Registration/Tokenization Approval = 13
+Compliance With Local Laws/regulation = 14
+Compliance With Environmental Standard = 15
+Environmental Impact Assessment Report = 16
+Proof Of Legal/Financial Counsel = 17
+Legal/Financial Advisor's Contract = 18
+Proof of existing mortgages or liens n asset = 19
+Proof of outstanding loans on asset = 20
+Proof of legal dispute or encumbrances on asset = 21
+ProofOfAssetAddress = 22
+TitleDeedsOrCertificates = 23
+OwnershipAgreements = 24
+
+*
+*/
+type ExistingAssetValidationAssetDocument struct {
 	ID                       uint64 `gorm:"" json:"-" form:"-"`
-	AssetAlreadyExists0      int    `gorm:"default:1" json:"assetAlreadyExists0"`
-	AssetAlreadyExists1      int    `gorm:"default:1" json:"assetAlreadyExists1"`
-	AssetDescription         int    `gorm:"default:1" json:"assetDescription"`
-	AssetPhysicalAddress     int    `gorm:"default:1" json:"assetPhysicalAddress"`
-	AssetCountryLocation     int    `gorm:"default:1" json:"assetCountryLocation"`
-	AssetLongitude           int    `gorm:"default:1" json:"assetLongitude"`
-	AssetLatitude            int    `gorm:"default:1" json:"assetLatitude"`
-	OwnershipTypeDirect      int    `gorm:"default:1" json:"ownershipTypeDirect"`
-	OwnershipType3p          int    `gorm:"default:1" json:"ownershipType3p"` //3rd party
-	OwnershipKindIndividual  int    `gorm:"default:1" json:"ownershipKindIndividual"`
-	OwnershipKindCorporate   int    `gorm:"default:1" json:"ownershipKindCorporate"`
-	AssetOwnerName           int    `gorm:"default:1" json:"assetOwnerName"`
-	AssetOwnerAddress        int    `gorm:"default:1" json:"assetOwnerAddress"`
-	ApprovedAssetCustodianID int    `gorm:"default:1" json:"approvedAssetCustodianId"`
-	AssetManagerID           int    `gorm:"default:1" json:"assetManagerId"`
-	AssetCurrentValue        int    `gorm:"default:1" json:"AssetCurrentValue"`
-	ValueOfTokenizedAsset    int    `gorm:"default:1" json:"valueOfTokenizedAsset"`
-	AssetMscCostOutisdeOfValuation    int    `gorm:"default:1" json:"assetMscCostOutisdeOfValuation"`
-	ProtectionMethods    int    `gorm:"default:1" json:"protectionMethods"`
-	InsuranceCompanyName    int    `gorm:"default:1" json:"insuranceCompanyName"`
-	InsurancePolicyNumber    int    `gorm:"default:1" json:"insurancePolicyNumber"`
-	InsurancePolicyHolder    int    `gorm:"default:1" json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance    int    `gorm:"default:1" json:"percentageValueOfInsurance"`
-	
+	ProofOfAssetExistence    int    `gorm:"default:1" json:"proofOfAssetExistence"`    //1
+	ProofOfAssetAddress      int    `gorm:"default:1" json:"proofOfAssetAddress"`      //22
+	ProofOfAssetOwnership    int    `gorm:"default:1" json:"proofOfAssetOwnership"`    //2
+	TitleDeedsOrCertificates int    `gorm:"default:1" json:"titleDeedsOrCertificates"` //23
+	OwnershipAgreements      int    `gorm:"default:1" json:"ownershipAgreements"`      //24
+
 }
+
 type TokenizedAsset struct {
 	ID                             string                      `json:"id"`
 	CreatedAt                      time.Time                   `json:"createdAt"`
@@ -127,7 +140,7 @@ type TokenizedAssetJSONInput struct {
 	AssetManager                   AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetQuoteCurrency             string       `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue              float64      `gorm:"default:0" json:"assetCurrentValue"`
-	AssetMscCostOutisdeOfValuation float64                     `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
+	AssetMscCostOutisdeOfValuation float64      `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
 	ValueOfTokenizedAsset          float64      `gorm:"default:0" json:"valueOfTokenizedAsset"`
 	ProtectionMethods              string       `json:"protectionMethods"` //csv format
 	InsuranceCompanyName           string       `json:"insuranceCompanyName"`
@@ -298,15 +311,64 @@ type AssetTokenizationInputDocument struct {
 
 type IssuingWalletPublicKey string
 
-type ExistingAssetValidationAssetDocument struct {
-	ID uint64 `gorm:"" json:"-" form:"-"`
+type ExistingAssetValidationAssetInformation struct {
+	ID                             uint64 `gorm:"" json:"-" form:"-"`
+	AssetAlreadyExists0            int    `gorm:"default:1" json:"assetAlreadyExists0"`
+	AssetAlreadyExists1            int    `gorm:"default:1" json:"assetAlreadyExists1"`
+	AssetDescription               int    `gorm:"default:1" json:"assetDescription"`
+	AssetPhysicalAddress           int    `gorm:"default:1" json:"assetPhysicalAddress"`
+	AssetCountryLocation           int    `gorm:"default:1" json:"assetCountryLocation"`
+	AssetLongitude                 int    `gorm:"default:1" json:"assetLongitude"`
+	AssetLatitude                  int    `gorm:"default:1" json:"assetLatitude"`
+	OwnershipTypeDirect            int    `gorm:"default:1" json:"ownershipTypeDirect"`
+	OwnershipType3p                int    `gorm:"default:1" json:"ownershipType3p"` //3rd party
+	OwnershipKindIndividual        int    `gorm:"default:1" json:"ownershipKindIndividual"`
+	OwnershipKindCorporate         int    `gorm:"default:1" json:"ownershipKindCorporate"`
+	AssetOwnerName                 int    `gorm:"default:1" json:"assetOwnerName"`
+	AssetOwnerAddress              int    `gorm:"default:1" json:"assetOwnerAddress"`
+	ApprovedAssetCustodianID       int    `gorm:"default:1" json:"approvedAssetCustodianId"`
+	AssetManagerID                 int    `gorm:"default:1" json:"assetManagerId"`
+	AssetCurrentValue              int    `gorm:"default:1" json:"AssetCurrentValue"` //current(existing asset)/proposed (non-Existing asset) value
+	ValueOfTokenizedAsset          int    `gorm:"default:1" json:"valueOfTokenizedAsset"`
+	AssetMscCostOutisdeOfValuation int    `gorm:"default:1" json:"assetMscCostOutisdeOfValuation"`
+	ProtectionMethods              int    `gorm:"default:1" json:"protectionMethods"`
+	InsuranceCompanyName           int    `gorm:"default:1" json:"insuranceCompanyName"`
+	InsurancePolicyNumber          int    `gorm:"default:1" json:"insurancePolicyNumber"`
+	InsurancePolicyHolder          int    `gorm:"default:1" json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance     int    `gorm:"default:1" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances int    `gorm:"default:1" json:"isFreeFromLiensAndEncumbrances"`
 }
+
 type ExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
 
 type NonExistingAssetValidationAssetInformation struct {
-	ID uint64 `gorm:"" json:"-" form:"-"`
+	ID                             uint64 `gorm:"" json:"-" form:"-"`
+	AssetAlreadyExists0            int    `gorm:"default:1" json:"assetAlreadyExists0"`
+	AssetAlreadyExists1            int    `gorm:"default:1" json:"assetAlreadyExists1"`
+	AssetDescription               int    `gorm:"default:1" json:"assetDescription"`
+	AssetPhysicalAddress           int    `gorm:"default:1" json:"assetPhysicalAddress"`
+	AssetCountryLocation           int    `gorm:"default:1" json:"assetCountryLocation"`
+	AssetLongitude                 int    `gorm:"default:1" json:"assetLongitude"`
+	AssetLatitude                  int    `gorm:"default:1" json:"assetLatitude"`
+	OwnershipTypeDirect            int    `gorm:"default:1" json:"ownershipTypeDirect"`
+	OwnershipType3p                int    `gorm:"default:1" json:"ownershipType3p"` //3rd party
+	OwnershipKindIndividual        int    `gorm:"default:1" json:"ownershipKindIndividual"`
+	OwnershipKindCorporate         int    `gorm:"default:1" json:"ownershipKindCorporate"`
+	AssetOwnerName                 int    `gorm:"default:1" json:"assetOwnerName"`
+	AssetOwnerAddress              int    `gorm:"default:1" json:"assetOwnerAddress"`
+	ApprovedAssetCustodianID       int    `gorm:"default:1" json:"approvedAssetCustodianId"`
+	AssetManagerID                 int    `gorm:"default:1" json:"assetManagerId"`
+	AssetCurrentValue              int    `gorm:"default:1" json:"AssetCurrentValue"` //current(existing asset)/proposed (non-Existing asset) value
+	ValueOfTokenizedAsset          int    `gorm:"default:1" json:"valueOfTokenizedAsset"`
+	AssetMscCostOutisdeOfValuation int    `gorm:"default:1" json:"assetMscCostOutisdeOfValuation"`
+	ProtectionMethods              int    `gorm:"default:1" json:"protectionMethods"`
+	InsuranceCompanyName           int    `gorm:"default:1" json:"insuranceCompanyName"`
+	InsurancePolicyNumber          int    `gorm:"default:1" json:"insurancePolicyNumber"`
+	InsurancePolicyHolder          int    `gorm:"default:1" json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance     int    `gorm:"default:1" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances int    `gorm:"default:1" json:"isFreeFromLiensAndEncumbrances"`
 }
 type NonExistingAssetValidationAssetDocument struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
@@ -523,7 +585,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetLogo = &ti.AssetLogo
 	}
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		totalValuation:=(ti.ValueOfTokenizedAsset+ti.AssetMscCostOutisdeOfValuation)
+		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
 		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 	var feeCompo TokenizationFee
