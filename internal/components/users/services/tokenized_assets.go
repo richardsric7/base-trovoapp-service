@@ -60,6 +60,13 @@ func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAs
 	return
 }
 
+func GetAssetManagers(db *gorm.DB) (assetManagers []userModels.AssetManager) {
+	assetManagers = make([]userModels.AssetManager, 0)
+	db.Order("asset_manager_country, asset_manager_name").Find(&assetManagers)
+
+	return
+}
+
 func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	fees = make([]userModels.TokenizationFee, 0)
 	// db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
