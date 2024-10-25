@@ -41,12 +41,15 @@ OwnershipAgreements = 24
 *
 */
 type ExistingAssetValidationAssetDocument struct {
-	ID                       uint64 `gorm:"" json:"-" form:"-"`
-	ProofOfAssetExistence    int    `gorm:"default:1" json:"proofOfAssetExistence"`    //1
-	ProofOfAssetAddress      int    `gorm:"default:1" json:"proofOfAssetAddress"`      //22
-	ProofOfAssetOwnership    int    `gorm:"default:1" json:"proofOfAssetOwnership"`    //2
-	TitleDeedsOrCertificates int    `gorm:"default:1" json:"titleDeedsOrCertificates"` //23
-	OwnershipAgreements      int    `gorm:"default:1" json:"ownershipAgreements"`      //24
+	ID                             uint64 `gorm:"" json:"-" form:"-"`
+	ProofOfAssetExistence          int    `gorm:"default:1" json:"proofOfAssetExistence"`          //1
+	ProofOfAssetAddress            int    `gorm:"default:1" json:"proofOfAssetAddress"`            //22
+	ProofOfAssetOwnership          int    `gorm:"default:1" json:"proofOfAssetOwnership"`          //2
+	TitleDeedsOrCertificates       int    `gorm:"default:1" json:"titleDeedsOrCertificates"`       //23
+	OwnershipAgreements            int    `gorm:"default:1" json:"ownershipAgreements"`            //24
+	ProofOfAssetStatusVerification int    `gorm:"default:1" json:"proofOfAssetStatusVerification"` //3
+	ProofOfAssetCondtion           int    `gorm:"default:1" json:"proofOfAssetCondtion"`           //9
+	AssetOwnerGovernmentID         int    `gorm:"default:1" json:"assetOwnerGovernmentId"`         //8
 
 }
 
