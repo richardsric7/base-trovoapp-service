@@ -4075,12 +4075,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 			tid := c.Param("tid")
-			if strings.EqualFold(tid,"null"){
+			if strings.EqualFold(tid, "null") {
 				statusCode := http.StatusBadRequest
 				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-			
-			c.JSON(statusCode, response)
-			return	
+
+				c.JSON(statusCode, response)
+				return
 			}
 
 			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
@@ -4417,7 +4417,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 				return
 			}
-			if tokenizationInput.DocumentType == 0 {
+			if tokenizationInput.DocumentType == "" {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified"})
 				return
 			}

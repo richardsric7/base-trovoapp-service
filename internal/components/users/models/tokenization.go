@@ -298,7 +298,7 @@ type AssetTokenizationDocument struct {
 	ID               uint64 `json:"id"`
 	CreatedAt        time.Time
 	TokenizedAssetID string `json:"tokenizedAssetId"`
-	DocumentType     uint64 `json:"documentType"`
+	DocumentType     string `json:"documentType"`
 	DocumentTitle    string `json:"documentTitle"`
 	DocumentUrl      string `json:"documentUrl"`
 }
@@ -306,10 +306,18 @@ type AssetTokenizationInputDocument struct {
 	ID               uint64    `json:"-" form:"-"`
 	CreatedAt        time.Time `json:"-" form:"-"`
 	TokenizedAssetID string    `json:"tokenizedAssetId" form:"tokenizedAssetId"`
-	DocumentType     uint64    `json:"documentType" form:"documentType"`
+	DocumentType     string    `json:"documentType" form:"documentType"`
 	DocumentTitle    string    `json:"documentTitle" form:"documentTitle"`
 	// DocumentFile     *multipart.File `form:"documentFile"`
 	// DocumentFile     string `json:"-"`// this is not included in struct for input. already extracted by c.FormFile
+}
+
+type AssetTokenizationDocumentType struct {
+	ID                      uint64 `json:"-" form:"-"`
+	DocumentType            string `json:"documentType" form:"documentType"`
+	DocumentTypeDescription string `json:"documentTypeDescription" form:"documentTypeDescription"`
+	DocumentCategory        string `json:"documentCategory" form:"documentCategory"`
+	// ColumnName              string `json:"-" form:"-"`
 }
 
 type IssuingWalletPublicKey string

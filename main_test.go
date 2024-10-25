@@ -547,7 +547,7 @@ func TestCreateAccount(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -594,7 +594,7 @@ func TestCreateAccount(t *testing.T) {
 
 	if err != nil {
 		log.Println("[TestCreateAccount]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -629,7 +629,7 @@ func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -654,7 +654,7 @@ func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestRequestEmailOTP]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -689,7 +689,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -714,7 +714,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestAccountEnableRecovery]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -729,7 +729,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestAccountEnableRecovery] makePayment error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -740,7 +740,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -752,7 +752,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -787,7 +787,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -818,7 +818,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestAccountDisableRecovery]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -838,7 +838,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestAccountDisableRecovery] confirm transaction error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -849,7 +849,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -867,7 +867,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -904,7 +904,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -940,7 +940,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestDoAccountRecovery]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -957,7 +957,7 @@ func TestDoAccountRecovery(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -975,7 +975,7 @@ func TestDoAccountRecovery(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1019,7 +1019,7 @@ func TestAccountSetSecurityAnswer(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1045,7 +1045,7 @@ func TestAccountSetSecurityAnswer(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestAccountSetSecretAnswer]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 	}
 
@@ -1088,7 +1088,7 @@ func TestAccountProfileUpdate(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1111,7 +1111,7 @@ func TestAccountProfileUpdate(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestAccountRegistration]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1140,7 +1140,7 @@ func TestGetSecurityAnswers(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1163,7 +1163,7 @@ func TestGetSecurityAnswers(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestGetSecurityAnswers]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1194,7 +1194,7 @@ func TestGetUserInfo(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1217,7 +1217,7 @@ func TestGetUserInfo(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1255,7 +1255,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1278,7 +1278,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1300,7 +1300,7 @@ func TestSendPushNotificationMessage(t *testing.T) {
 	client, _, err := pns.GetFirebaseMessagingClient(ctx)
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 	}
 	response, _ := pns.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
@@ -1323,7 +1323,7 @@ func TestSendPushNotificationBroadcast(t *testing.T) {
 	client, _, err := pns.GetFirebaseMessagingClient(ctx)
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 	}
 	response, _ := pns.SendFirebaseBroadcast(receipients, title, body, imageURL, nil, client, ctx)
@@ -1354,7 +1354,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1391,7 +1391,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestAcceptAssetMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1406,7 +1406,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestAcceptAssetMultiAccessDisabled] make claim error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -1417,7 +1417,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1430,7 +1430,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Put(fullPath).BodyJSON(p).Receive(claimResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1462,7 +1462,7 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1499,7 +1499,7 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestClaimAssetMultiAccessEnabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1516,7 +1516,7 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1535,7 +1535,7 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1569,7 +1569,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1623,7 +1623,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-		// t.Errorf(err.Error())
+		// t.Error(err.Error())
 
 		return
 	}
@@ -1640,7 +1640,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -1650,7 +1650,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestSendPaymentMultiAccessDisabled] makePayment error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -1661,7 +1661,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1673,7 +1673,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1711,7 +1711,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1740,7 +1740,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1757,7 +1757,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled]request error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -1767,7 +1767,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(signerKP.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled] makePayment error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -1778,7 +1778,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1790,7 +1790,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1832,7 +1832,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1861,7 +1861,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSendPaymentWithSharedAccessEnabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1878,7 +1878,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1890,7 +1890,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1927,7 +1927,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -1957,7 +1957,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSwapFromSubWalletMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -1972,7 +1972,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(signerKP.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestSwapFromSubWalletMultiAccessDisabled] makePayment error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -1983,7 +1983,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -1995,7 +1995,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(swapResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2063,7 +2063,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2087,7 +2087,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	//get payload string
 	if err != nil {
 		log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -2099,7 +2099,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	if len(subWalletResponse.Transaction) == 0 {
 		log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction generated")
-		t.Errorf(err.Error())
+		t.Error("no transaction generated")
 
 		return
 	}
@@ -2119,7 +2119,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -2129,7 +2129,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 		primarySignature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -2141,7 +2141,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2153,13 +2153,13 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(subWalletResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
 		if len(subWalletResponse.TransactionID) == 0 {
 			log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction ID")
-			t.Errorf(err.Error())
+			t.Error("no transaction ID")
 			return
 
 		}
@@ -2200,7 +2200,7 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2227,13 +2227,13 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestTrustAssetMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
 	if len(trustLineResponse.Transaction) == 0 {
 		log.Println("[TestTrustAssetMultiAccessDisabled]no transaction generated")
-		t.Errorf(err.Error())
+		t.Error("no transaction generated")
 
 		return
 	}
@@ -2251,7 +2251,7 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 		primarySignature, err := middleware.SignBase64Txn(primarySecretKey, p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestTrustAssetMultiAccessDisabled] sub transactions error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -2262,7 +2262,7 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2274,13 +2274,13 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(trustLineResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
 		if len(trustLineResponse.TransactionID) == 0 {
 			log.Println("[TestTrustAssetMultiAccessDisabled]no transaction ID")
-			t.Errorf(err.Error())
+			t.Error("no transaction ID")
 			return
 
 		}
@@ -2319,7 +2319,7 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2346,13 +2346,13 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestRemoveTrustAssetMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
 	if len(trustLineResponse.Transaction) == 0 {
 		log.Println("[TestRemoveTrustAssetMultiAccessDisabled]no transaction generated")
-		t.Errorf(err.Error())
+		t.Error("no transaction generated")
 
 		return
 	}
@@ -2370,7 +2370,7 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 		primarySignature, err := middleware.SignBase64Txn(primarySecretKey, p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestRemoveTrustAssetMultiAccessDisabled] sub transactions error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -2381,7 +2381,7 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2393,13 +2393,13 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(trustLineResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
 		if len(trustLineResponse.TransactionID) == 0 {
 			log.Println("[TestRemoveTrustAssetMultiAccessDisabled]no transaction ID")
-			t.Errorf(err.Error())
+			t.Error("no transaction ID")
 			return
 
 		}
@@ -2445,7 +2445,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2492,7 +2492,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestCreateSharedAccess]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -2508,7 +2508,7 @@ func TestCreateSharedAccess(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateSharedAccess] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -2520,7 +2520,7 @@ func TestCreateSharedAccess(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2538,7 +2538,7 @@ func TestCreateSharedAccess(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2581,7 +2581,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2633,7 +2633,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestCreateSharedAccess]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -2649,7 +2649,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateSharedAccess] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -2661,7 +2661,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2679,7 +2679,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2721,7 +2721,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2748,7 +2748,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestRemoveSharedAccessOnReadOnly]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -2764,7 +2764,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestRemoveSharedAccessOnReadOnly] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -2776,7 +2776,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2794,7 +2794,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2838,7 +2838,7 @@ func TestModifySharedAccess(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -2915,7 +2915,7 @@ func TestModifySharedAccess(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestModifySharedAccessWithApprover]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -2932,7 +2932,7 @@ func TestModifySharedAccess(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestModifySharedAccessWithApprover] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -2944,7 +2944,7 @@ func TestModifySharedAccess(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -2962,7 +2962,7 @@ func TestModifySharedAccess(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3004,7 +3004,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3031,7 +3031,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestRemoveSharedAccessWithApprover]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3047,7 +3047,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestRemoveSharedAccessWithApprover] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -3059,7 +3059,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3077,7 +3077,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3128,7 +3128,7 @@ func TestGetApproveTransaction(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3155,7 +3155,7 @@ func TestGetApproveTransaction(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestGetApproveTransaction]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3204,7 +3204,7 @@ func TestApproveTransaction(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3231,7 +3231,7 @@ func TestApproveTransaction(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestApproveTransaction]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3247,7 +3247,7 @@ func TestApproveTransaction(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestApproveTransaction] confirm transaction error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -3258,7 +3258,7 @@ func TestApproveTransaction(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3276,7 +3276,7 @@ func TestApproveTransaction(t *testing.T) {
 
 		}
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3325,7 +3325,7 @@ func TestRejectTransaction(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3354,7 +3354,7 @@ func TestRejectTransaction(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestRejectTransaction]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3391,7 +3391,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3456,7 +3456,7 @@ func TestCreateMarketOffer(t *testing.T) {
 
 	if err != nil {
 		log.Println("[TestCreateMarketOffer]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3472,7 +3472,7 @@ func TestCreateMarketOffer(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateMarketOffer] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -3484,7 +3484,7 @@ func TestCreateMarketOffer(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3544,7 +3544,7 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3600,7 +3600,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3639,7 +3639,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 
 	if err != nil {
 		log.Println("[TestCreateWithdrawalRequest]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3657,7 +3657,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateWithdrawalRequest] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -3669,7 +3669,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3729,7 +3729,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3768,7 +3768,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 
 	if err != nil {
 		log.Println("[TestCreatTestCreateWithdrawalRequestSharedeWithdrawalRequest]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3786,7 +3786,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateWithdrawalRequestShared] confirm transaction error:", err)
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 
 				return
 			}
@@ -3798,7 +3798,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
@@ -3859,7 +3859,7 @@ func TestPatronSubscription(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 		return
 
 	}
@@ -3890,7 +3890,7 @@ func TestPatronSubscription(t *testing.T) {
 
 	if err != nil {
 		log.Println("[TestPatronSubscription]request error:", err)
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 
 		return
 	}
@@ -3906,7 +3906,7 @@ func TestPatronSubscription(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestPatronSubscription] confirm transaction error:", err)
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 
 			return
 		}
@@ -3917,7 +3917,7 @@ func TestPatronSubscription(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 
 		}
