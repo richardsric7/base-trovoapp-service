@@ -55,7 +55,7 @@ func GetAssetProtectionOptions(db *gorm.DB) (apo []userModels.AssetProtectionOpt
 
 func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAssetCustodian) {
 	custodians = make([]userModels.ApprovedAssetCustodian, 0)
-	db.Preload(clause.Associations).Order("asset_custodian_name").Find(&custodians)
+	db.Order("asset_custodian_name").Find(&custodians)
 
 	return
 }
