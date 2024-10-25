@@ -68,6 +68,14 @@ func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	return
 }
 
+func GetAssetTokenizationDocumentTypes(db *gorm.DB) (docTypes []userModels.AssetTokenizationDocumentType) {
+	docTypes = make([]userModels.AssetTokenizationDocumentType, 0)
+	// db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
+	db.Order("document_category,document_type_description").Find(&docTypes)
+
+	return
+}
+
 func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee userModels.TokenizationFee) {
 	db.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
 
@@ -602,7 +610,7 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 		t.AssetLogo = &ti.AssetLogo
 	}
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		totalValuation:=(ti.ValueOfTokenizedAsset+ti.AssetMscCostOutisdeOfValuation)
+		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
 		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 	var feeCompo userModels.TokenizationFee

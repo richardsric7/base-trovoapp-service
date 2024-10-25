@@ -316,6 +316,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetType: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.AssetTokenizationDocumentType{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocumentType: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ApprovedAssetCustodian{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ApprovedAssetCustodian: ", errMigrate)

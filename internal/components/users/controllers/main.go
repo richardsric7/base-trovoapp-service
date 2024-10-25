@@ -4057,16 +4057,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
 			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
 			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+			docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
 			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
 			fees := userServices.GetTokenizationFees(gc.DB)
-			log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
+			// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
 			currencies := userServices.GetTokenizationCurrencies(gc.DB)
 			apo := userServices.GetAssetProtectionOptions(gc.DB)
 			apc := userServices.GetAssetProceedCycle(gc.DB)
 			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
 
 			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians,
-				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac})
+				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes})
 
 		})
 
