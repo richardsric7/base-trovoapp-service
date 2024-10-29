@@ -14,7 +14,7 @@ import { RootState } from '../../store/reduxStore';
 import capitalizeFirstLetter from '../../utils/capitalizeFirst';
 import {
   totalAccountBalanceInCurrency,
-  formatToCurrency,
+  formatToDecimal,
 } from '../../utils/utilities';
 
 export default function Home() {
@@ -367,41 +367,41 @@ export default function Home() {
           )}
           <div className="md:hidden items-center px-5 mb-5 justify-center flex">
             <WidgetCard
-              label="Total Account Balance"
-              localCurrencyBalance={formatToCurrency(
+              localCurrencyBalance={formatToDecimal(
                 totalAccountBalanceInCurrency(
                   appUser.userWallets,
-                  (fiatRates as { NGN: number }).NGN,
+                  (fiatRates as Record<string, number>)[
+                    appUser.currency.toUpperCase()
+                  ] || 0,
                 ),
-                'NGN',
               )}
-              usdBalance={formatToCurrency(
+              usdBalance={formatToDecimal(
                 totalAccountBalanceInCurrency(
                   appUser.userWallets,
                   (fiatRates as { USD: number }).USD,
                 ),
-                'USD',
               )}
+              currency={appUser.currency.toUpperCase()}
             />
           </div>
           <div className="flex space-y-3 mb-20 md:pt-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
             <div className="hidden w-full items-center px-5 justify-center md:flex">
               <WidgetCard
-                label="Total Account Balance"
-                localCurrencyBalance={formatToCurrency(
+                localCurrencyBalance={formatToDecimal(
                   totalAccountBalanceInCurrency(
                     appUser.userWallets,
-                    (fiatRates as { NGN: number }).NGN,
+                    (fiatRates as Record<string, number>)[
+                      appUser.currency.toUpperCase()
+                    ] || 0,
                   ),
-                  'NGN',
                 )}
-                usdBalance={formatToCurrency(
+                usdBalance={formatToDecimal(
                   totalAccountBalanceInCurrency(
                     appUser.userWallets,
                     (fiatRates as { USD: number }).USD,
                   ),
-                  'USD',
                 )}
+                currency={appUser.currency.toUpperCase()}
               />
             </div>
             {isActivated ? <WalletView /> : <ActivateWalletView />}

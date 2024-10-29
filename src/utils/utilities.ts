@@ -8,11 +8,9 @@ const getFiatRate = (usdPrice: number, fiatRate: number): number => {
   return (fiatRate * usdPrice);  
 }
 
-const formatToCurrency = (amount: number, currency: string) => `
+const formatToDecimal = (amount: number) => `
 ${amount.toLocaleString('en-NG', {
-  style: 'currency',
-  currency,
-  currencyDisplay: 'code',
+  style: 'decimal',  
   minimumFractionDigits: 7,
   maximumFractionDigits: 7,
 })}`;
@@ -32,10 +30,20 @@ const totalAccountBalanceInCurrency = (allWallets: Wallet[], fiatRate: number) =
     return balance;
 }
 
+const totalWalletBalanceInCurrency = (wallet: Wallet, fiatRate: number) => {
+    let balance = 0;
+    wallet.claimedAssets.map((a) => {
+        balance += calculateFiatValue(a.amount, fiatRate, a.usdPrice);
+    });
+
+    return balance;
+}
+
 export {
     calculateFiatValue,
     shareWallets,
     totalAccountBalanceInCurrency, 
-    formatToCurrency
+    formatToDecimal,
+    totalWalletBalanceInCurrency,
 }
 

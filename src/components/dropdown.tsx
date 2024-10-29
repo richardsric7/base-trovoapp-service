@@ -41,7 +41,7 @@ export default function Dropdown({ label, options, onSelect }: Props) {
   return (
     <TEDropdown className="flex justify-center w-full">
       <TERipple className="w-full" rippleColor="light">
-        <TEDropdownToggle className="flex items-center whitespace-nowrap rounded bg-primary-100 hover:bg-primary-200 text-primary-800 px-8 justify-between py-3 rounded-xl w-full">
+        <TEDropdownToggle className="flex items-center ring-1 md:ring-2 ring-gray-200 focus-within:ring-primary-600 whitespace-nowrap rounded bg-primary-100 hover:bg-primary-200 text-primary-800 px-5 justify-between py-3 rounded-md h-12 w-full">
           {selectedItem?.text ?? label}
           <span className="ml-2 [&>svg]:w-5 w-2">
             <svg

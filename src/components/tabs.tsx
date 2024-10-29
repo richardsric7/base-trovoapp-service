@@ -32,6 +32,7 @@ export default function Tabs({ tabList, children = [] }: Props) {
   const tabBodies = children?.map((body, index) => (
     <div
       className={openTab === index + 1 ? 'block' : 'hidden'}
+      key={`${new Date().getTime()}${index}`}
       id={`link${index + 1}`}
     >
       {body}

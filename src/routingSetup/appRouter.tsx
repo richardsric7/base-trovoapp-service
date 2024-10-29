@@ -14,12 +14,12 @@ import RecoveryMain from '../pages/accountRecovery/main';
 import Login from '../pages/login';
 import Dashboard from '../pages/dashboard/main';
 import Home from '../pages/dashboard/home';
-import Wallet from '../pages/dashboard/wallet';
 import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
 import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
 import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAccount';
+import WalletView from '../pages/dashboard/walletView';
 
 export default function AppRouter() {
   return (
@@ -56,7 +56,7 @@ export default function AppRouter() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
-            <Route path="wallet" element={<Wallet />} />
+            <Route path="wallet" element={<WalletView />} />
             <Route
               path="setup-security-questions"
               element={<SetupSecurityQuestions />}

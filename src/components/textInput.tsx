@@ -33,7 +33,7 @@ export default function TextInput({
   };
 
   return (
-    <>
+    <div>
       <label className="text-primary-700" htmlFor={label}>
         {label}
       </label>
@@ -44,7 +44,7 @@ export default function TextInput({
         {leadingIcon && <img src={leadingIcon} alt="" />}
         <input
           name={`${label}-input`}
-          className="h-full px-2 focus:outline-none w-full"
+          className="h-full px-2 focus:outline-none w-full bg-inherit"
           placeholder={placeholder}
           type={inputType !== 'password' || showPlainText ? 'text' : 'password'}
           value={value}
@@ -70,6 +70,6 @@ export default function TextInput({
         )}
       </div>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-    </>
+    </div>
   );
 }
