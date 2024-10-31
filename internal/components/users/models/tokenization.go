@@ -245,7 +245,8 @@ type TokenizedAssetJSON struct {
 }
 
 type TokenizedAssetSector struct {
-	ID string `gorm:"primaryKey;size:100" json:"sector"`
+	ID                  string `gorm:"primaryKey;size:100" json:"sector"`
+	RequirementDocument string `gorm:"" json:"requirementDocument"`
 }
 
 type TokenizedAssetSubSector struct {
