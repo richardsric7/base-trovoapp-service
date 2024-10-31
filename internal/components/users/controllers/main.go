@@ -4025,7 +4025,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
 
-		router.GET("/v1/closedGroups", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		router.GET("/v1/closed-groups", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error//true-client-ip
 			// countryCode := c.Param("countryCode")
 			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
