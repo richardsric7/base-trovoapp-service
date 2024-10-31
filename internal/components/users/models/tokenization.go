@@ -168,7 +168,7 @@ type TokenizedAssetJSONInput struct {
 	ProceedCycle                   string       `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              uint64       `json:"tokenizationFeeId"`
 	ProceedPayoutCurrency          string       `json:"proceedPayoutCurrency"`
-	ProceedPayoutType              int          `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
+	ProceedPayoutType              int          `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0. FIAT requires fiat payment method.
 	ExemptedCountries              string       `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int          `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
 	AdditionalKYCRequirements      string       `json:"additionalKYCRequirements"`
