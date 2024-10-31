@@ -60,6 +60,13 @@ func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAs
 	return
 }
 
+func GetBanks(countryCode string, db *gorm.DB) (banks []userModels.Bank) {
+	banks = make([]userModels.Bank, 0)
+	db.Order("country_code,bank_name").Where("country_code = ?", countryCode).Find(&banks)
+
+	return
+}
+
 func GetAssetManagers(db *gorm.DB) (assetManagers []userModels.AssetManager) {
 	assetManagers = make([]userModels.AssetManager, 0)
 	db.Order("asset_manager_country, asset_manager_name").Find(&assetManagers)

@@ -144,6 +144,14 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.Bank{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Bank: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserFiatPaymentMethod{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserFiatPaymentMethod: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ClosedGroup{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ClosedGroup: ", errMigrate)

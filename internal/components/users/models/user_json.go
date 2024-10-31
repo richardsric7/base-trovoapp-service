@@ -32,6 +32,7 @@ type UserJSON struct {
 	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
 	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
 	PatronMembership       *UserPatronMembership     `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
 
 	DownlineStats struct {
 		Level1 uint64 `json:"level1"`

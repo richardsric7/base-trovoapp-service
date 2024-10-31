@@ -257,6 +257,7 @@ type TokenizationPublicAssetAllowedCountryCode struct {
 	ID string `gorm:"size:3" json:"id"`
 }
 
+
 type TokenizationFee struct {
 	ID                 uint64  `gorm:"" json:"id"`
 	FeeFiatPercentage  float64 `json:"feeFiatPercentage"`

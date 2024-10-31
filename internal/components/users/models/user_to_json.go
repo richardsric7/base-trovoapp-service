@@ -87,6 +87,15 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	}
 	//curated swap list
 
+	//user fiat payment methods
+	if u.UserFiatPaymentMethods != nil {
+		jsonObj.UserFiatPaymentMethods = u.UserFiatPaymentMethods
+
+	} else {
+		jsonObj.UserFiatPaymentMethods = make([]UserFiatPaymentMethod, 0)
+	}
+	//user fiat payment methods
+
 	// log.Println("[UserToJSON] ended user wallets json and returning data")
 	return jsonObj
 }
