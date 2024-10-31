@@ -37,19 +37,21 @@ Proof of legal dispute or encumbrances on asset = 21
 ProofOfAssetAddress = 22
 TitleDeedsOrCertificates = 23
 OwnershipAgreements = 24
+EngineeringReportsForConstruction = 25
 
 *
 */
 type ExistingAssetValidationAssetDocument struct {
-	ID                             uint64 `gorm:"" json:"-" form:"-"`
-	ProofOfAssetExistence          int    `gorm:"default:1" json:"proofOfAssetExistence"`          //1
-	ProofOfAssetAddress            int    `gorm:"default:1" json:"proofOfAssetAddress"`            //22
-	ProofOfAssetOwnership          int    `gorm:"default:1" json:"proofOfAssetOwnership"`          //2
-	TitleDeedsOrCertificates       int    `gorm:"default:1" json:"titleDeedsOrCertificates"`       //23
-	OwnershipAgreements            int    `gorm:"default:1" json:"ownershipAgreements"`            //24
-	ProofOfAssetStatusVerification int    `gorm:"default:1" json:"proofOfAssetStatusVerification"` //3
-	ProofOfAssetCondtion           int    `gorm:"default:1" json:"proofOfAssetCondtion"`           //9
-	AssetOwnerGovernmentID         int    `gorm:"default:1" json:"assetOwnerGovernmentId"`         //8
+	ID                                uint64 `gorm:"" json:"-" form:"-"`
+	ProofOfAssetExistence             int    `gorm:"default:1" json:"proofOfAssetExistence"`             //1
+	ProofOfAssetAddress               int    `gorm:"default:1" json:"proofOfAssetAddress"`               //22
+	ProofOfAssetOwnership             int    `gorm:"default:1" json:"proofOfAssetOwnership"`             //2
+	TitleDeedsOrCertificates          int    `gorm:"default:1" json:"titleDeedsOrCertificates"`          //23
+	OwnershipAgreements               int    `gorm:"default:1" json:"ownershipAgreements"`               //24
+	ProofOfAssetStatusVerification    int    `gorm:"default:1" json:"proofOfAssetStatusVerification"`    //3
+	ProofOfAssetCondtion              int    `gorm:"default:1" json:"proofOfAssetCondtion"`              //9
+	AssetOwnerGovernmentID            int    `gorm:"default:1" json:"assetOwnerGovernmentId"`            //8
+	EngineeringReportsForConstruction int    `gorm:"default:1" json:"engineeringReportsForConstruction"` //25
 
 }
 
@@ -281,6 +283,7 @@ type ApprovedAssetCustodian struct {
 	AssetCustodianName    string `gorm:"size:100" json:"assetCustodianName"`
 	AssetCustodianAddress string `json:"assetCustodianAddress"`
 	AssetCustodianCountry string `gorm:"size:3" json:"assetCustodianCountry"`
+	RequirementDocument   string `gorm:"" json:"requirementDocument"`
 }
 type AssetManager struct {
 	ID                  uint64 `gorm:"" json:"id"`
