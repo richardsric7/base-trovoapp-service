@@ -111,6 +111,7 @@ type TokenizedAsset struct {
 	TokenizationFeeID              *uint64                     `gorm:"default:0" json:"tokenizationFeeId"`
 	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	ProceedPayoutCurrency          *string                     `json:"proceedPayoutCurrency"`
+	ProceedPayoutType              int                         `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries              *string                     `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
 	AdditionalKYCRequirements      *string                     `json:"additionalKYCRequirements"`
@@ -167,6 +168,7 @@ type TokenizedAssetJSONInput struct {
 	ProceedCycle                   string       `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              uint64       `json:"tokenizationFeeId"`
 	ProceedPayoutCurrency          string       `json:"proceedPayoutCurrency"`
+	ProceedPayoutType              int          `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries              string       `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int          `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
 	AdditionalKYCRequirements      string       `json:"additionalKYCRequirements"`
@@ -231,6 +233,7 @@ type TokenizedAssetJSON struct {
 	TokenizationFeeID              uint64                      `json:"tokenizationFeeId"`
 	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	ProceedPayoutCurrency          string                      `json:"proceedPayoutCurrency"`
+	ProceedPayoutType              int                         `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries              string                      `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
 	AdditionalKYCRequirements      string                      `json:"additionalKYCRequirements"`
@@ -256,7 +259,6 @@ type TokenizationCurrency struct {
 type TokenizationPublicAssetAllowedCountryCode struct {
 	ID string `gorm:"size:3" json:"id"`
 }
-
 
 type TokenizationFee struct {
 	ID                 uint64  `gorm:"" json:"id"`

@@ -685,6 +685,7 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 
 		t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
 	}
+	t.ProceedPayoutType = ti.ProceedPayoutType
 
 	if len(ti.ExemptedCountries) > 0 {
 
