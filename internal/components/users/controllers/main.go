@@ -4025,6 +4025,41 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
 
+		router.GET("/v1/closedGroups", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+			// countryCode := c.Param("countryCode")
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+			groupOwner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			groupList := userServices.GetClosedGroupByOwner(groupOwner.Username, gc.DB)
+
+			c.JSON(http.StatusOK, gin.H{"closedGroups": groupList})
+
+		})
+
 		router.GET("/v1/banks/:countryCode", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error//true-client-ip
 			countryCode := c.Param("countryCode")
