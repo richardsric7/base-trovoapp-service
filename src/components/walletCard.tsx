@@ -1,4 +1,6 @@
 import { forwardRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/reduxStore';
 
 type Props = {
   localCurrencyBalance: string;
@@ -9,7 +11,8 @@ type Props = {
 
 const WalletCard = forwardRef<HTMLDivElement, Props>(
   ({ localCurrencyBalance, usdBalance, alias, currency }: Props, ref) => {
-    const [hideBalance, setHideBalance] = useState(false);
+    const appState = useSelector((state: RootState) => state.appState!);
+    const [hideBalance, setHideBalance] = useState(appState.hideBalances === 1);
     return (
       <div
         className="min-w-[900px] flex text-white font-matahariRegular

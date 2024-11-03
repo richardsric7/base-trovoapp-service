@@ -44,7 +44,7 @@ export default function TextInput({
         {leadingIcon && <img src={leadingIcon} alt="" />}
         <input
           name={`${label}-input`}
-          className="h-full px-2 focus:outline-none w-full bg-inherit"
+          className="h-full px-2 focus:outline-none w-full bg-inherit text-gray-700"
           placeholder={placeholder}
           type={inputType !== 'password' || showPlainText ? 'text' : 'password'}
           value={value}

@@ -56,7 +56,13 @@ export default function AppRouter() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
-            <Route path="wallet" element={<WalletView />} />
+            <Route path="wallet" element={<WalletView />}>
+              <Route index element={<WalletView />} />
+              <Route
+                path="confirm-send-transaction"
+                element={<CreatePassword />}
+              />
+            </Route>
             <Route
               path="setup-security-questions"
               element={<SetupSecurityQuestions />}

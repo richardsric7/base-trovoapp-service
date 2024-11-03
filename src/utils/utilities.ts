@@ -19,6 +19,15 @@ const shareWallets = (wallets: Wallet[]) => {
     return wallets.filter((w) => w.sharedAccessEnabled);
 }
 
+const getAssetCode = (assetCode: string) => {
+    // assign XBN to the asset which has an
+    // empty assetCode value.
+    // native token of the bantu blockchain
+    // has empty values as assetCode and
+    // assetIssuer
+    return !assetCode ? 'XBN' : assetCode.toString();
+  }
+
 const totalAccountBalanceInCurrency = (allWallets: Wallet[], fiatRate: number) => {
     let balance = 0;
     allWallets.map((w) => {
@@ -39,9 +48,13 @@ const totalWalletBalanceInCurrency = (wallet: Wallet, fiatRate: number) => {
     return balance;
 }
 
+const getBytesLength = (text: string) => new TextEncoder().encode(text).length;
+
 export {
     calculateFiatValue,
+    getBytesLength,
     shareWallets,
+    getAssetCode,
     totalAccountBalanceInCurrency, 
     formatToDecimal,
     totalWalletBalanceInCurrency,

@@ -28,7 +28,7 @@ export type User = {
     verified: boolean,
     suspended: boolean,
     hasSecurityQuestions: boolean,
-    curatedSwapList: CuratedAsset,
+    curatedSwapList: CuratedAsset[],
     patronMembership?: PatronMembership,
     downlines: {
         level1: string,

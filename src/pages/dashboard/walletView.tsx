@@ -1,5 +1,4 @@
 import Button from '../../components/button';
-import TransactionItem from '../../components/transactionItem';
 import Header from '../../components/header';
 import Tabs from '../../components/tabs';
 import { useEffect, useRef, useState } from 'react';
@@ -10,6 +9,8 @@ import React from 'react';
 import {
   calculateFiatValue,
   formatToDecimal,
+  getAssetCode,
+  getBytesLength,
   totalWalletBalanceInCurrency,
 } from '../../utils/utilities';
 import { Wallet } from '../../types/wallet';
@@ -24,6 +25,10 @@ import {
 import AssetListItem from '../../components/assetListItem';
 import Dropdown from '../../components/dropdown';
 import TextInput from '../../components/textInput';
+import { Asset } from '../../types/asset';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
+import { useSendAssetMutation } from '../../store/api/walletApis';
+import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 
 export default function WalletView() {
   // const style = {
@@ -32,9 +37,10 @@ export default function WalletView() {
 
   const ref = useRef<HTMLDivElement>(null);
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  let mutableWalletArrary = [...appUser.userWallets];
-  const [wallets] = useState(
-    mutableWalletArrary.sort((w) => (w.primaryWallet ? 0 : 1)),
+  const appState = useSelector((state: RootState) => state.appState!);
+  let mutableWalletArray = [...appUser.userWallets];
+  const [wallets, setWallets] = useState(
+    mutableWalletArray.sort((w) => (w.primaryWallet ? 0 : 1)),
   );
   const [activeWalletIndex, setActiveWalletIndex] = useState(0);
   const [activeWallet, setActiveWallet] = useState<Wallet>(wallets[0]);
@@ -42,11 +48,231 @@ export default function WalletView() {
   const [walletActionMode, setWalletActionMode] = useState(0);
   const itemRefs = useRef<HTMLDivElement[]>([]);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
+  const [selectedAsset, setSelectedAsset] = useState<Asset>(
+    activeWallet?.claimedAssets.find(
+      (a) => a.assetCode === '' && a.assetIssuer === '',
+    )!,
+  );
+  const [currentTabIndex, setCurrentTabIndex] = useState(1);
   const [gas, setGas] = useState(
     activeWallet?.claimedAssets.find(
       (a) => a.assetCode === '' && a.assetIssuer === '',
     )?.amount!,
   );
+  const [sendAsset] = useSendAssetMutation();
+
+  type WalletFormData = {
+    sendTo?: string;
+    amount?: string;
+    memo?: string;
+    swapFrom?: Asset;
+    swapTo?: Asset;
+  };
+
+  const [formData, setFormData] = useState<WalletFormData>({
+    sendTo: '',
+    amount: '',
+    memo: '',
+    swapFrom: undefined,
+    swapTo: undefined,
+  });
+
+  const [errorObj, setErrorObj] = useState({
+    sendTo: '',
+    amount: '',
+    memo: '',
+    swapFrom: '',
+    swapTo: '',
+  });
+
+  const resetForm = () => {
+    setErrorObj({
+      sendTo: '',
+      amount: '',
+      memo: '',
+      swapFrom: '',
+      swapTo: '',
+    });
+    setFormData({
+      sendTo: '',
+      amount: '',
+      memo: '',
+      swapFrom: undefined,
+      swapTo: undefined,
+    });
+  };
+
+  const validateSendForm = (): boolean => {
+    let isValid = true;
+    let newObj = errorObj;
+    console.log('fjsdlkfs', Number(formData.amount));
+
+    if (!formData.sendTo) {
+      newObj = {
+        ...newObj,
+        sendTo: 'Please enter receiver username or public key',
+      };
+      isValid = false;
+    } else if (formData.sendTo.length < 3) {
+      newObj = {
+        ...newObj,
+        sendTo: 'Invalid username or public key',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        sendTo: '',
+      };
+    }
+
+    if (!formData.amount) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter amount to send',
+      };
+      isValid = false;
+    } else if (isNaN(Number(formData.amount))) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter a valid amount',
+      };
+    } else if (Number(formData.amount) <= 0) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter a valid amount',
+      };
+    } else if (Number(formData.amount) > selectedAsset?.amount!) {
+      newObj = {
+        ...newObj,
+        amount: "You don't have sufficient balance",
+      };
+    } else if (
+      getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
+      Number(formData.amount) > selectedAsset!.amount! - 7
+    ) {
+      newObj = {
+        ...newObj,
+        amount: "You don't have sufficient balance",
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        amount: '',
+      };
+    }
+
+    if (formData.memo && getBytesLength(formData.memo) > 28) {
+      newObj = {
+        ...newObj,
+        memo: 'Memo length cannot be more than 28 bytes',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        memo: '',
+      };
+    }
+
+    setErrorObj({ ...newObj });
+    return isValid;
+  };
+
+  const validateRecieveForm = (): boolean => {
+    let isValid = true;
+    let newObj = errorObj;
+
+    if (!formData.amount) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter amount to send',
+      };
+      isValid = false;
+    } else if (isNaN(Number(formData.amount))) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter a valid amount',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        amount: '',
+      };
+    }
+
+    if (formData.memo && getBytesLength(formData.memo) > 28) {
+      newObj = {
+        ...newObj,
+        memo: 'Memo length cannot be more than 28 bytes',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        memo: '',
+      };
+    }
+
+    setErrorObj({ ...newObj });
+    return isValid;
+  };
+
+  const validateSwapForm = (): boolean => {
+    let isValid = true;
+    let newObj = errorObj;
+
+    if (!formData.amount) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter amount to swap',
+      };
+      isValid = false;
+    } else if (isNaN(Number(formData.amount))) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter a valid amount',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        amount: '',
+      };
+    }
+
+    setErrorObj({ ...newObj });
+    return isValid;
+  };
+
+  useEffect(() => {
+    setWallets(
+      mutableWalletArray
+        .filter((w) => {
+          if (currentTabIndex === 1) {
+            return w;
+          } else if (
+            currentTabIndex === 2 &&
+            (w.owner === appUser.username ||
+              !w.sharedAccessEnabled ||
+              w.walletThreshold === 2)
+          ) {
+            return w;
+          } else if (currentTabIndex === 3 && w.sharedAccessEnabled) {
+            return w;
+          }
+        })
+        .sort((w) => (w.primaryWallet ? 0 : 1)),
+    );
+
+    setActiveWalletIndex(0);
+    const ref = itemRefs.current[0];
+    if (ref) {
+      // Change background color
+      ref.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [currentTabIndex]);
 
   useEffect(() => {
     setGas(
@@ -66,6 +292,57 @@ export default function WalletView() {
           itemRefs.current[i] || React.createRef<HTMLDivElement>().current,
       );
   }
+
+  const handleSend = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!validateSendForm()) {
+      return;
+    }
+
+    const payload = {
+      signer: activeWallet.signer,
+      publicKey: activeWallet.publicKey,
+      secretKey: appUser.secretKeys[0],
+      body: {
+        isSharedWallet: activeWallet.sharedAccessEnabled,
+        destination: formData.sendTo,
+        memo: formData.memo,
+        amount: formData.amount,
+        assetCode: getAssetCode(selectedAsset.assetCode),
+        assetIssuer: selectedAsset.assetIssuer,
+      },
+    };
+
+    toggleLoader();
+    const res = await sendAsset(payload);
+    console.log('response', res);
+
+    if ('data' in res) {
+      console.log('response', res);
+      showNotification(
+        'success',
+        'Your account has successfully been recovered. You can now import your account with the new secret key.',
+        5000, // delay for 5secs
+      );
+    } else if ('error' in res) {
+      const errorResponse = res.error as ErrorResponse;
+      showNotification(
+        'error',
+        errorResponse.data.error ?? 'Something went wrong. Please try again.',
+      );
+    }
+    toggleLoader();
+  };
+
+  const handleRecieve = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    validateRecieveForm();
+  };
+
+  const handleSwap = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    validateSwapForm();
+  };
 
   const userWallets = wallets.map((wallet, index) => (
     // const walletRef = useRef<HTMLDivElement>(null);
@@ -125,8 +402,14 @@ export default function WalletView() {
       <div className="flex md:h-screen w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
           <div className="flex md:pt-5 p-5 rounded-lg flex-col items-center bg-primary-100 max-w-5xl min-h-full">
-            <div className="w-full flex justify-between">
-              <Tabs tabList={['My Wallets', 'Shared Wallets', 'All Wallets']} />
+            <div className="w-full flex justify-between space-x-5">
+              <Tabs
+                tabList={['All Wallets', 'My Wallets', 'Shared Wallets']}
+                onTabChanged={(index) => {
+                  console.log('tab index', index);
+                  setCurrentTabIndex(index);
+                }}
+              />
               <div className="w-1/4">
                 <Button
                   label="Add Subwallet"
@@ -141,7 +424,7 @@ export default function WalletView() {
                 className="flex overflow-x-hidden whitespace-nowrap w-full space-x-4 "
                 ref={ref}
               >
-                {userWallets}
+                {userWallets.length > 0 && userWallets}
               </div>
               {activeWalletIndex > 0 && (
                 <button
@@ -202,7 +485,7 @@ export default function WalletView() {
                   height="30"
                 />
               </div>
-              <p>{gas} XBN</p>
+              <p>{formatToDecimal(gas)} XBN</p>
             </div>
             <div className="w-full p-3 mt-7">
               <div className="flex justify-between w-full">
@@ -254,9 +537,10 @@ export default function WalletView() {
                   )
                 ) : (
                   activeWallet.claimedAssets.map(
-                    (asset) =>
+                    (asset, index) =>
                       asset.assetCode !== '' && (
                         <AssetListItem
+                          key={index}
                           image="/images/avatar.png"
                           assetName="Atlantis 1"
                           assetClass="Real Estate"
@@ -278,14 +562,17 @@ export default function WalletView() {
         </div>
         <div className="hidden md:block w-3/6 flex flex-col space-y-5 h-full py-3 lg:px-3">
           <div className="flex space-y-6 rounded-lg py-5 px-6 flex-col items-center bg-primary-100">
-            <div className="flex justify-between items-center space-x-5">
+            <div className="flex justify-between items-center space-x-5 mt-3">
               <button
                 className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
                   walletActionMode === 0
                     ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
                     : 'ring-gray-400 text-gray-400'
                 }`}
-                onClick={() => setWalletActionMode(0)}
+                onClick={() => {
+                  resetForm();
+                  setWalletActionMode(0);
+                }}
               >
                 Send
               </button>
@@ -295,7 +582,10 @@ export default function WalletView() {
                     ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
                     : 'ring-gray-400 text-gray-400'
                 }`}
-                onClick={() => setWalletActionMode(1)}
+                onClick={() => {
+                  resetForm();
+                  setWalletActionMode(1);
+                }}
               >
                 Receive
               </button>
@@ -305,7 +595,10 @@ export default function WalletView() {
                     ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
                     : 'ring-gray-400 text-gray-400'
                 }`}
-                onClick={() => setWalletActionMode(2)}
+                onClick={() => {
+                  resetForm();
+                  setWalletActionMode(2);
+                }}
               >
                 Swap
               </button>
@@ -313,11 +606,379 @@ export default function WalletView() {
             {(() => {
               switch (walletActionMode) {
                 case 0:
-                  return <SendView />;
+                  return (
+                    <form
+                      id="send-asset-form"
+                      onSubmit={handleSend}
+                      className="w-full space-y-5"
+                    >
+                      <div className="space-y-3 w-full">
+                        <p>Select wallet</p>
+                        <Dropdown
+                          label={activeWallet.alias}
+                          options={[
+                            ...wallets.map((w, index) => ({
+                              text: w.alias,
+                              value: index,
+                            })),
+                          ]}
+                          onSelect={(selectedItem) => {
+                            console.log(selectedItem);
+                            setActiveWallet(wallets[selectedItem.value]);
+                            setActiveWalletIndex(selectedItem.value);
+                            const ref = itemRefs.current[selectedItem.value];
+                            if (ref) {
+                              // Change background color
+                              ref.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest',
+                                inline: 'center',
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-3 w-full">
+                        <TextInput
+                          inputType="text"
+                          label="Send to"
+                          defaultValue={formData.sendTo}
+                          onInputChange={(value) => {
+                            setFormData({ ...formData, sendTo: value });
+                          }}
+                          error={errorObj.sendTo}
+                        />
+                      </div>
+                      <div className="w-full space-y-2">
+                        <div className="flex items-center space-x-3 space-y-3 w-full">
+                          <div className="w-4/6">
+                            <TextInput
+                              inputType="number"
+                              label="Token quantity/Amount"
+                              onInputChange={(value) => {
+                                setFormData({ ...formData, amount: value });
+                              }}
+                            />
+                          </div>
+                          <div className="w-2/6 self-end">
+                            <Dropdown
+                              label={getAssetCode(selectedAsset.assetCode)}
+                              options={[
+                                ...activeWallet.claimedAssets.map((asset) => ({
+                                  text:
+                                    asset.assetCode === ''
+                                      ? 'XBN'
+                                      : asset.assetCode,
+                                  value: asset,
+                                })),
+                              ]}
+                              onSelect={(asset) => {
+                                console.log(asset);
+                                setSelectedAsset(asset.value);
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {errorObj.amount && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errorObj.amount}
+                          </p>
+                        )}
+                        {!appState.hideBalances && (
+                          <div className="w-full flex justify-between items-center">
+                            <span>
+                              {formData.amount &&
+                              !isNaN(Number(formData.amount))
+                                ? formatToDecimal(Number(formData.amount))
+                                : 0}{' '}
+                              {getAssetCode(selectedAsset.assetCode)}
+                            </span>
+                            <span>
+                              {formatToDecimal(selectedAsset.amount)}{' '}
+                              {getAssetCode(selectedAsset.assetCode)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-3 w-full">
+                        <TextInput
+                          inputType="text"
+                          label="Add memo (optional)"
+                          onInputChange={(value) => {
+                            setFormData({ ...formData, memo: value });
+                          }}
+                        />
+                        <div
+                          className={`w-full flex items-center ${
+                            errorObj.memo ? 'justify-between' : 'justify-end'
+                          }`}
+                        >
+                          {errorObj.memo && (
+                            <span className="text-red-500 text-sm mt-1">
+                              {errorObj.memo}
+                            </span>
+                          )}
+                          <span
+                            className={
+                              formData.memo &&
+                              getBytesLength(formData.memo) > 28
+                                ? 'text-red-500'
+                                : ''
+                            }
+                          >
+                            {formData.memo ? getBytesLength(formData.memo) : 0}
+                            /28
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        type="submit"
+                        label="Proceed"
+                        onclick={() => {}}
+                      />
+                    </form>
+                  );
                 case 1:
-                  return <ReceiveView />;
+                  return (
+                    <form
+                      id="recieve-asset-form"
+                      onSubmit={handleRecieve}
+                      className="w-full space-y-5"
+                    >
+                      <div className="w-full space-y-5">
+                        <div className="space-y-3 w-full">
+                          <p>Receiving wallet</p>
+                          <Dropdown
+                            label={activeWallet.alias}
+                            options={[
+                              ...wallets.map((w) => ({
+                                text: w.alias,
+                                value: w.publicKey,
+                              })),
+                            ]}
+                            onSelect={() => {
+                              //
+                            }}
+                          />
+                        </div>
+                        <div className="w-full space-y-2">
+                          <div className="flex items-center space-x-3 space-y-3 w-full">
+                            <div className="w-4/6">
+                              <TextInput
+                                inputType="text"
+                                label="Token quantity/Amount"
+                                onInputChange={(value) => {
+                                  setFormData({ ...formData, sendTo: value });
+                                }}
+                              />
+                            </div>
+                            <div className="w-2/6 self-end">
+                              <Dropdown
+                                label={
+                                  activeWallet.claimedAssets[0].assetCode === ''
+                                    ? 'XBN'
+                                    : activeWallet.claimedAssets[0].assetCode
+                                }
+                                options={[
+                                  ...activeWallet.claimedAssets.map((w) => ({
+                                    text:
+                                      w.assetCode === '' ? 'XBN' : w.assetCode,
+                                    value: w.assetCode,
+                                  })),
+                                ]}
+                                onSelect={() => {
+                                  //
+                                }}
+                              />
+                            </div>
+                          </div>
+                          {errorObj.amount && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errorObj.amount}
+                            </p>
+                          )}
+                          {!appState.hideBalances && (
+                            <div className="w-full flex justify-between items-center">
+                              <span>
+                                {formData.amount &&
+                                !isNaN(Number(formData.amount))
+                                  ? formatToDecimal(Number(formData.amount))
+                                  : 0}{' '}
+                                {getAssetCode(selectedAsset.assetCode)}
+                              </span>
+                              <span>
+                                {formatToDecimal(selectedAsset.amount)}{' '}
+                                {getAssetCode(selectedAsset.assetCode)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-3 w-full">
+                          <TextInput
+                            inputType="text"
+                            label="Add memo (optional)"
+                            onInputChange={(value) => {
+                              setFormData({ ...formData, memo: value });
+                            }}
+                          />
+                          <div
+                            className={`w-full flex items-center ${
+                              errorObj.memo ? 'justify-between' : 'justify-end'
+                            }`}
+                          >
+                            {errorObj.memo && (
+                              <span className="text-red-500 text-sm mt-1">
+                                {errorObj.memo}
+                              </span>
+                            )}
+                            <span
+                              className={
+                                formData.memo &&
+                                getBytesLength(formData.memo) > 28
+                                  ? 'text-red-500'
+                                  : ''
+                              }
+                            >
+                              {formData.memo
+                                ? getBytesLength(formData.memo)
+                                : 0}
+                              /28
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          type="submit"
+                          label="Proceed"
+                          onclick={() => {}}
+                        />
+                      </div>
+                    </form>
+                  );
                 case 2:
-                  return <SwapView />;
+                  return (
+                    <form
+                      id="swap-asset-form"
+                      onSubmit={handleSwap}
+                      className="w-full space-y-5"
+                    >
+                      <div className="w-full space-y-5">
+                        <div className="space-y-3 w-full">
+                          <p>Select wallet</p>
+                          <Dropdown
+                            label={activeWallet.alias}
+                            options={[
+                              ...wallets.map((w) => ({
+                                text: w.alias,
+                                value: w.publicKey,
+                              })),
+                            ]}
+                            onSelect={() => {
+                              //
+                            }}
+                          />
+                        </div>
+                        <div className="w-full space-y-2">
+                          <p>Swap from</p>
+                          <Dropdown
+                            label={
+                              formData.swapFrom
+                                ? getAssetCode(formData.swapFrom.assetCode)
+                                : 'Choose asset'
+                            }
+                            options={[
+                              ...activeWallet.claimedAssets
+                                .filter(
+                                  (a) =>
+                                    a.assetCode !== formData.swapTo?.assetCode,
+                                )
+                                .map((w) => ({
+                                  text: getAssetCode(w.assetCode),
+                                  value: w,
+                                })),
+                            ]}
+                            onSelect={(asset) => {
+                              var data = {
+                                ...formData,
+                                swapFrom: asset.value,
+                              };
+
+                              setFormData(data);
+                              console.log(formData);
+                            }}
+                          />
+                        </div>
+                        <div className="w-full space-y-2">
+                          <p>Swap to</p>
+                          <Dropdown
+                            label={
+                              formData.swapTo
+                                ? getAssetCode(formData.swapTo.assetCode)
+                                : 'Choose asset'
+                            }
+                            options={[
+                              ...appUser.curatedSwapList
+                                .filter(
+                                  (a) =>
+                                    a.assetCode !==
+                                    formData.swapFrom?.assetCode,
+                                )
+                                .map((w) => ({
+                                  text: getAssetCode(w.assetCode),
+                                  value: w,
+                                })),
+                            ]}
+                            onSelect={(asset) => {
+                              var data = {
+                                ...formData,
+                                swapTo: asset.value,
+                              };
+
+                              setFormData(data);
+                              console.log(
+                                formData.swapTo
+                                  ? getAssetCode(formData.swapTo.assetCode)
+                                  : 'Choose asset',
+                              );
+                            }}
+                          />
+                        </div>
+                        <div className="w-full space-y-2">
+                          <div className="flex items-center space-x-3 space-y-3 w-full">
+                            <div className="w-full">
+                              <TextInput
+                                inputType="text"
+                                label="Token quantity/Amount"
+                                onInputChange={(value) => {
+                                  setFormData({ ...formData, amount: value });
+                                }}
+                                error={errorObj.amount}
+                              />
+                            </div>
+                          </div>
+                          {!appState.hideBalances && (
+                            <div className="w-full flex justify-between items-center">
+                              <span>
+                                {formData.amount &&
+                                !isNaN(Number(formData.amount))
+                                  ? formatToDecimal(Number(formData.amount))
+                                  : 0}{' '}
+                                {getAssetCode(selectedAsset.assetCode)}
+                              </span>
+                              <span>
+                                {formatToDecimal(selectedAsset.amount)}{' '}
+                                {getAssetCode(selectedAsset.assetCode)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          type="submit"
+                          label="Proceed"
+                          onclick={() => {}}
+                        />
+                      </div>
+                    </form>
+                  );
               }
             })()}
           </div>
@@ -344,237 +1005,4 @@ export default function WalletView() {
       </div>
     </div>
   );
-
-  function SendView() {
-    return (
-      <div className="w-full space-y-5">
-        <div className="space-y-3 w-full">
-          <p>Select wallet</p>
-          <Dropdown
-            label={activeWallet.alias}
-            options={[
-              ...wallets.map((w) => ({
-                text: w.alias,
-                value: w.publicKey,
-              })),
-            ]}
-            onSelect={() => {
-              //
-            }}
-          />
-        </div>
-        <div className="space-y-3 w-full">
-          <TextInput
-            inputType="text"
-            label="Send to"
-            onInputChange={() => {}}
-          />
-        </div>
-        <div className="w-full space-y-2">
-          <div className="flex items-center space-x-3 space-y-3 w-full">
-            <div className="w-4/6">
-              <TextInput
-                inputType="text"
-                label="Token quantity/Amount"
-                onInputChange={() => {}}
-              />
-            </div>
-            <div className="w-2/6 self-end">
-              <Dropdown
-                label={
-                  activeWallet.claimedAssets[0].assetCode === ''
-                    ? 'XBN'
-                    : activeWallet.claimedAssets[0].assetCode
-                }
-                options={[
-                  ...activeWallet.claimedAssets.map((w) => ({
-                    text: w.assetCode === '' ? 'XBN' : w.assetCode,
-                    value: w.assetCode,
-                  })),
-                ]}
-                onSelect={() => {
-                  //
-                }}
-              />
-            </div>
-          </div>
-          <div className="w-full flex justify-between items-center">
-            <span>0.00000 XBN</span>
-            <span>0.2343567 XBN</span>
-          </div>
-        </div>
-        <div className="space-y-3 w-full">
-          <TextInput
-            inputType="text"
-            label="Add memo (optional)"
-            onInputChange={() => {}}
-          />
-          <div className="w-full flex justify-end items-center">
-            <span>0/28</span>
-          </div>
-        </div>
-        <Button label="Proceed" onclick={() => {}} />
-      </div>
-    );
-  }
-
-  function ReceiveView() {
-    return (
-      <div className="w-full space-y-5">
-        <div className="space-y-3 w-full">
-          <p>Receiving wallet</p>
-          <Dropdown
-            label={activeWallet.alias}
-            options={[
-              ...wallets.map((w) => ({
-                text: w.alias,
-                value: w.publicKey,
-              })),
-            ]}
-            onSelect={() => {
-              //
-            }}
-          />
-        </div>
-        <div className="w-full space-y-2">
-          <div className="flex items-center space-x-3 space-y-3 w-full">
-            <div className="w-4/6">
-              <TextInput
-                inputType="text"
-                label="Token quantity/Amount"
-                onInputChange={() => {}}
-              />
-            </div>
-            <div className="w-2/6 self-end">
-              <Dropdown
-                label={
-                  activeWallet.claimedAssets[0].assetCode === ''
-                    ? 'XBN'
-                    : activeWallet.claimedAssets[0].assetCode
-                }
-                options={[
-                  ...activeWallet.claimedAssets.map((w) => ({
-                    text: w.assetCode === '' ? 'XBN' : w.assetCode,
-                    value: w.assetCode,
-                  })),
-                ]}
-                onSelect={() => {
-                  //
-                }}
-              />
-            </div>
-          </div>
-          <div className="w-full flex justify-between items-center">
-            <span>0.00000 XBN</span>
-            <span>0.2343567 XBN</span>
-          </div>
-        </div>
-        <div className="space-y-3 w-full">
-          <TextInput
-            inputType="text"
-            label="Add memo (optional)"
-            onInputChange={() => {}}
-          />
-          <div className="w-full flex justify-end items-center">
-            <span>0/28</span>
-          </div>
-        </div>
-        <Button label="Proceed" onclick={() => {}} />
-      </div>
-    );
-  }
-
-  function SwapView() {
-    return (
-      <div className="w-full space-y-5">
-        <div className="space-y-3 w-full">
-          <p>Select wallet</p>
-          <Dropdown
-            label={activeWallet.alias}
-            options={[
-              ...wallets.map((w) => ({
-                text: w.alias,
-                value: w.publicKey,
-              })),
-            ]}
-            onSelect={() => {
-              //
-            }}
-          />
-        </div>
-        <div className="w-full space-y-2">
-          <p>Swap from</p>
-          <Dropdown
-            label={
-              activeWallet.claimedAssets[0].assetCode === ''
-                ? 'XBN'
-                : activeWallet.claimedAssets[0].assetCode
-            }
-            options={[
-              ...activeWallet.claimedAssets.map((w) => ({
-                text: w.assetCode === '' ? 'XBN' : w.assetCode,
-                value: w.assetCode,
-              })),
-            ]}
-            onSelect={() => {
-              //
-            }}
-          />
-        </div>
-        <div className="w-full space-y-2">
-          <p>Swap to</p>
-          <Dropdown
-            label={
-              activeWallet.claimedAssets[0].assetCode === ''
-                ? 'XBN'
-                : activeWallet.claimedAssets[0].assetCode
-            }
-            options={[
-              ...activeWallet.claimedAssets.map((w) => ({
-                text: w.assetCode === '' ? 'XBN' : w.assetCode,
-                value: w.assetCode,
-              })),
-            ]}
-            onSelect={() => {
-              //
-            }}
-          />
-        </div>
-        <div className="w-full space-y-2">
-          <div className="flex items-center space-x-3 space-y-3 w-full">
-            <div className="w-4/6">
-              <TextInput
-                inputType="text"
-                label="Token quantity/Amount"
-                onInputChange={() => {}}
-              />
-            </div>
-            <div className="w-2/6 self-end">
-              <Dropdown
-                label={
-                  activeWallet.claimedAssets[0].assetCode === ''
-                    ? 'XBN'
-                    : activeWallet.claimedAssets[0].assetCode
-                }
-                options={[
-                  ...activeWallet.claimedAssets.map((w) => ({
-                    text: w.assetCode === '' ? 'XBN' : w.assetCode,
-                    value: w.assetCode,
-                  })),
-                ]}
-                onSelect={() => {
-                  //
-                }}
-              />
-            </div>
-          </div>
-          <div className="w-full flex justify-between items-center">
-            <span>0.00000 XBN</span>
-            <span>0.2343567 XBN</span>
-          </div>
-        </div>
-        <Button label="Proceed" onclick={() => {}} />
-      </div>
-    );
-  }
 }

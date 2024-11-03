@@ -4,4 +4,5 @@ export const TOKEN = 'TOKEN';
 export const ORDER_DETAILS = 'ORDER_DETAILS'
 export const FIAT_RATES = 'FIAT_RATES';
 export const APP_VERSION = 'APP_VERSION';
+export const HIDEBALANCES = 'HIDE_BALANCES';
 export const ANNOUNCEMENTS = 'ANNOUNCEMENTS';
