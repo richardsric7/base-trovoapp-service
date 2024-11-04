@@ -42,10 +42,19 @@ export default function Login() {
         }),
       );
 
+      const hash = await encryptor.createHash(appUser.username);
+      const encryptedPassword = await encryptor.encryptData(
+        password,
+        hash,
+        appUser.primarySigner,
+      );
+
       const user = {
         ...appUser,
         isLoggedIn: true,
+        password: encryptedPassword,
       };
+      console.log('loggi', encryptedPassword, user);
       await encryptor.encryptUserData(user);
       return true;
     } catch (error: any) {

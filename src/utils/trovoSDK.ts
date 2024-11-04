@@ -41,12 +41,16 @@ const importAccount = (secretKey: string): string => {
 const signBase64Txn = (secretKey: string, transactionXDR: string, networkPassphrase: string): string => {
     try{
         const keypair = StellarSdk.Keypair.fromSecret(secretKey);
+        console.log('dkslfsd', keypair, secretKey);
         const txn = new StellarSdk.Transaction(transactionXDR, networkPassphrase);
+        console.log('txn', txn);
         const bytes = txn.hash();
+        console.log('bytes', bytes);
         
         const signedData = keypair.sign(bytes);
-        const signedBase64Str = btoa(Array.from(signedData).toString());
-
+        console.log('bytes', bytes);
+        const signedBase64Str = Buffer.from(signedData).toString('base64');
+console.log('btoa result', signedBase64Str);
         return signedBase64Str;
     }catch(error: any){
         console.log('error signing request', error);

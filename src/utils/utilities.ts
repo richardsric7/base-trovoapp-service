@@ -1,3 +1,4 @@
+import { BANTUBLOCKCHAINEXPLORERBASEURL, BANTUBLOCKCHAINEXPLORERTESTNETBASEURL } from "../store/constants";
 import { Wallet } from "../types/wallet";
 
 const calculateFiatValue = (assetBalance: number, fiatRate: number, usdPrice: number) =>
@@ -48,6 +49,12 @@ const totalWalletBalanceInCurrency = (wallet: Wallet, fiatRate: number) => {
     return balance;
 }
 
+const getExplorerBaseUrl = (walletMode: string) => {
+    return walletMode == 'Mainnet'
+        ? BANTUBLOCKCHAINEXPLORERBASEURL
+        : BANTUBLOCKCHAINEXPLORERTESTNETBASEURL;
+}
+
 const getBytesLength = (text: string) => new TextEncoder().encode(text).length;
 
 export {
@@ -57,6 +64,7 @@ export {
     getAssetCode,
     totalAccountBalanceInCurrency, 
     formatToDecimal,
+    getExplorerBaseUrl,
     totalWalletBalanceInCurrency,
 }
 

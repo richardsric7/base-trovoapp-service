@@ -251,8 +251,15 @@ export default function ImportWallet() {
           try {
             showNotification('success', 'Wallet successfully imported!');
             const userData = deserializeUserData(data);
-
             const encryptor = new Encryptor();
+
+            const passwordHash = await encryptor.createHash(userData.username);
+            const encryptedPassword = await encryptor.encryptData(
+              tempData.password,
+              passwordHash,
+              account.publicKey,
+            );
+
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
               tempData.password,
@@ -261,6 +268,7 @@ export default function ImportWallet() {
 
             const user = {
               ...userData,
+              password: encryptedPassword,
               isLoggedIn: true,
               currency: 'USD',
               secretKeys: [base64EncryptedSecretKey],
@@ -272,6 +280,7 @@ export default function ImportWallet() {
               hash,
               user.publicKey,
             );
+
             dispatch(
               setUser({
                 key: hash,

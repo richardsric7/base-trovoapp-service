@@ -70,6 +70,16 @@ export class Encryptor {
       return new TextDecoder().decode(decrypted);
     }
 
+    async getSecretKey(appUser: User){
+        const hash = await this.createHash(appUser.username);          
+        const password = await this.decryptData(appUser.password, hash, appUser.primarySigner);    
+        return await this.decryptData(
+          appUser?.secretKeys[0],
+          password,
+          appUser?.primarySigner,
+        );;
+    }
+
     async createHash(plainText: string): Promise<string> {
       const utf8 = new TextEncoder().encode(plainText);
       const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);

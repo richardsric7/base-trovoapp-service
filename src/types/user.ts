@@ -44,6 +44,7 @@ export type User = {
     tokenizedAssets: Asset[],
     secretKeys: string[],
     isLoggedIn: boolean,
+    password: string,
     currency: string,
 }
 

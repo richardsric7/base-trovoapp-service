@@ -11,6 +11,7 @@ import {
   formatToDecimal,
   getAssetCode,
   getBytesLength,
+  getExplorerBaseUrl,
   totalWalletBalanceInCurrency,
 } from '../../utils/utilities';
 import { Wallet } from '../../types/wallet';
@@ -29,12 +30,12 @@ import { Asset } from '../../types/asset';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { useSendAssetMutation } from '../../store/api/walletApis';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import Modal from '../../components/modal';
+import { Encryptor } from '../../utils/encryptor';
+import { signBase64Txn } from '../../utils/trovoSDK';
+import ButtonSecondary from '../../components/buttonSecondary';
 
 export default function WalletView() {
-  // const style = {
-  //   backfaceVisibility: 'hidden',
-  // };
-
   const ref = useRef<HTMLDivElement>(null);
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const appState = useSelector((state: RootState) => state.appState!);
@@ -48,6 +49,11 @@ export default function WalletView() {
   const [walletActionMode, setWalletActionMode] = useState(0);
   const itemRefs = useRef<HTMLDivElement[]>([]);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
+  const [secretKey, setSecretKey] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordErr, setPasswordErr] = useState('');
+  const [showConfirmSendModal, setShowConfirmSendModal] = useState(false);
+  const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset>(
     activeWallet?.claimedAssets.find(
       (a) => a.assetCode === '' && a.assetIssuer === '',
@@ -67,6 +73,7 @@ export default function WalletView() {
     memo?: string;
     swapFrom?: Asset;
     swapTo?: Asset;
+    transactionData?: any;
   };
 
   const [formData, setFormData] = useState<WalletFormData>({
@@ -75,6 +82,7 @@ export default function WalletView() {
     memo: '',
     swapFrom: undefined,
     swapTo: undefined,
+    transactionData: undefined,
   });
 
   const [errorObj, setErrorObj] = useState({
@@ -99,6 +107,7 @@ export default function WalletView() {
       memo: '',
       swapFrom: undefined,
       swapTo: undefined,
+      transactionData: undefined,
     });
   };
 
@@ -243,6 +252,13 @@ export default function WalletView() {
   };
 
   useEffect(() => {
+    (async () => {
+      const encryptor = new Encryptor();
+      setSecretKey(await encryptor.getSecretKey(appUser));
+    })();
+  }, []);
+
+  useEffect(() => {
     setWallets(
       mutableWalletArray
         .filter((w) => {
@@ -299,12 +315,14 @@ export default function WalletView() {
       return;
     }
 
+    console.log('secret key here ', secretKey);
+
     const payload = {
-      signer: activeWallet.signer,
+      signer: activeWallet.publicKey,
       publicKey: activeWallet.publicKey,
-      secretKey: appUser.secretKeys[0],
+      secretKey: secretKey,
       body: {
-        isSharedWallet: activeWallet.sharedAccessEnabled,
+        // isSharedWallet: activeWallet.sharedAccessEnabled,
         destination: formData.sendTo,
         memo: formData.memo,
         amount: formData.amount,
@@ -313,25 +331,42 @@ export default function WalletView() {
       },
     };
 
+    console.log('secret key 2 here ', payload);
     toggleLoader();
     const res = await sendAsset(payload);
     console.log('response', res);
 
     if ('data' in res) {
       console.log('response', res);
-      showNotification(
-        'success',
-        'Your account has successfully been recovered. You can now import your account with the new secret key.',
-        5000, // delay for 5secs
-      );
+      setFormData({
+        ...formData,
+        transactionData: res.data,
+      });
+      setShowConfirmSendModal(true);
     } else if ('error' in res) {
       const errorResponse = res.error as ErrorResponse;
       showNotification(
         'error',
-        errorResponse.data.error ?? 'Something went wrong. Please try again.',
+        errorResponse.data.message ?? 'Something went wrong. Please try again.',
       );
     }
     toggleLoader();
+  };
+
+  const isValidPassword = async () => {
+    try {
+      const encryptor = new Encryptor();
+      const key = await encryptor.decryptData(
+        appUser?.secretKeys[0],
+        password,
+        appUser?.primarySigner,
+      );
+      console.log('sdafsdfsdsfdsf1111', key);
+      setSecretKey(key);
+      return true;
+    } catch (error: any) {
+      return false;
+    }
   };
 
   const handleRecieve = async (e: React.ChangeEvent<HTMLFormElement>) => {
@@ -1003,6 +1038,211 @@ export default function WalletView() {
           <div />
         </div>
       </div>
+      <Modal
+        showModal={showConfirmSendModal}
+        onClose={() => {
+          setShowConfirmSendModal(false);
+        }}
+      >
+        <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+          <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
+            Confirm transaction
+          </p>
+          <p>You are about to send</p>
+          <div className="w-full bg-primary-100 rounded-xl py-5 space-y-2 text-center">
+            <p className="font-montserratSemiBold">
+              {formData.amount} {getAssetCode(selectedAsset.assetCode)}
+            </p>
+            <p>
+              {`${calculateFiatValue(
+                Number(formData.amount || 0),
+                (fiatRates as Record<string, number>)[
+                  appUser.currency.toUpperCase()
+                ] || 0,
+                selectedAsset.usdPrice,
+              )} ${appUser.currency.toUpperCase()}`}
+            </p>
+          </div>
+          <p>To</p>
+          <div className="flex space-x-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+            <img
+              src={formData.transactionData?.destinationThumbnail}
+              className="rounded-full w-16 h-16"
+            />
+            <p>
+              {formData.transactionData?.destinationFirstName}{' '}
+              {formData.transactionData?.destinationLastName}
+            </p>
+          </div>
+          {formData.memo && (
+            <>
+              <p>Description/Memo</p>
+              <div className="flex space-x-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                {formData.memo}
+              </div>
+            </>
+          )}
+          <div className="w-full space-y-1">
+            <TextInput
+              label=""
+              leadingIcon="/images/lock.png"
+              inputType="password"
+              placeholder="Enter answer"
+              onInputChange={(newValue: string) => {
+                setPassword(newValue);
+              }}
+            />
+            {passwordErr && (
+              <p className="text-red-500 text-sm">{passwordErr}</p>
+            )}
+          </div>
+          <div className="w-full space-y-3">
+            <Button
+              label="Authorize with password"
+              additionalClasses="font-montserratSemiBold"
+              onclick={async () => {
+                setPasswordErr('');
+
+                if (!password) {
+                  setPasswordErr('Please enter a password!');
+                  return;
+                }
+
+                if (!(await isValidPassword())) {
+                  setPasswordErr('Password is invalid!');
+                  return;
+                }
+
+                const body = {
+                  // isSharedWallet: activeWallet.sharedAccessEnabled,
+                  ...formData.transactionData,
+                  commit: 1,
+                  transactionSignature: signBase64Txn(
+                    secretKey,
+                    formData.transactionData.transaction,
+                    formData.transactionData.networkPassPhrase,
+                  ),
+                };
+
+                const payload = {
+                  signer: activeWallet.publicKey,
+                  publicKey: activeWallet.publicKey,
+                  secretKey: secretKey,
+                  body,
+                };
+                console.log('body', payload);
+
+                toggleLoader();
+                const res = await sendAsset(payload);
+                console.log('response', res);
+
+                if ('data' in res) {
+                  console.log('response', res);
+                  setFormData({
+                    ...formData,
+                    transactionData: res.data,
+                  });
+                  setShowConfirmSendModal(false);
+                  setShowSendSuccessModal(true);
+                } else if ('error' in res) {
+                  const errorResponse = res.error as ErrorResponse;
+                  showNotification(
+                    'error',
+                    errorResponse.data.message ??
+                      'Something went wrong. Please try again.',
+                  );
+                }
+                toggleLoader();
+              }}
+            />
+          </div>
+          <div />
+        </div>
+      </Modal>
+      <Modal
+        showModal={showSendSuccessModal}
+        onClose={() => {
+          setShowSendSuccessModal(false);
+        }}
+      >
+        <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+          <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
+            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+              Your transaction was successful!
+            </p>
+          </div>
+          <img src="/images/success.png" alt="success" />
+          <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+              Sent to
+            </p>
+            <div className="flex space-x-3 justify-start items-center">
+              <img
+                src={formData.transactionData?.destinationThumbnail}
+                className="rounded-full w-16 h-16"
+              />
+              <p>
+                {formData.transactionData?.destinationFirstName}{' '}
+                {formData.transactionData?.destinationLastName}
+              </p>
+            </div>
+            {formData.memo && (
+              <>
+                <hr className="border-1" />
+                <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                  For
+                </p>
+                <p>{formData.memo}</p>
+              </>
+            )}
+            <hr className="border-1" />
+            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+              Blockchain Proof (Transaction ID)
+            </p>
+            <div className="flex space-x-4">
+              <a
+                className="underline"
+                href={`${getExplorerBaseUrl(appState.walletMode)}${
+                  formData.transactionData?.transactionId
+                }`}
+                target="_blank"
+              >
+                {formData.transactionData?.transactionId}
+              </a>
+              <button
+                type="button"
+                onClick={() =>
+                  navigator.clipboard
+                    .writeText(formData.transactionData?.transactionId)
+                    .then(() => {
+                      showNotification('info', 'Username copied!');
+                    })
+                }
+              >
+                <img src="/images/copy.png" alt="copy" />
+              </button>
+            </div>
+          </div>
+          <div className="w-full space-y-3">
+            <Button
+              label="Generate receipt"
+              additionalClasses="font-montserratSemiBold"
+              onclick={async () => {
+                // setShowConfirmSendModal(false);
+              }}
+            />
+            <ButtonSecondary
+              label="Close"
+              additionalClasses="font-montserratSemiBold"
+              onclick={async () => {
+                resetForm();
+                setShowSendSuccessModal(false);
+              }}
+            />
+          </div>
+          <div />
+        </div>
+      </Modal>
     </div>
   );
 }

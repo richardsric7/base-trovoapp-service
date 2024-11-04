@@ -86,8 +86,17 @@ function AccountVerification() {
             tempData.password,
             appUser.publicKey,
           );
+
+          const passwordHash = await encryptor.createHash(userData.username);
+          const encryptedPassword = await encryptor.encryptData(
+            tempData.password,
+            passwordHash,
+            appUser.publicKey,
+          );
+
           const user = {
             ...userData,
+            password: encryptedPassword,
             isLoggedIn: true,
             currency: 'USD',
             secretKeys: [base64EncryptedSecretKey],
