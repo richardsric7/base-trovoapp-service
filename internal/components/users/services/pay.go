@@ -255,6 +255,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
+	if len(destinationInfo.Username) == 0 && len(paymentInfo.Destination) != 56 {
+		log.Printf("[generatePaymentXdr]Could not get destination user for payment destination: %v\n", paymentInfo.Destination)
+
+		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+	}
+
 	if destinationInfo.Suspended == 1 {
 		return "", nil, &tErrors.ErrorUsernameIsSuspended{}
 	}
@@ -289,8 +295,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		destinationPublicKey = destinationWallet.ID
 	}
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
-	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
-		network.BlockchainAccountProperties(client, destinationPublicKey, asset)
+	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr := network.BlockchainAccountProperties(client, destinationPublicKey, asset)
 	//set base charge to be used in all places it is needed
 	if publicKeyPayment {
 		if !asset.IsNative() && !destinationAccountTrustsAsset {
