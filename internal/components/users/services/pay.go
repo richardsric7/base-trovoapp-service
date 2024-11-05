@@ -250,24 +250,32 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db, gc)
-	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
-
-	// if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
-	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	// }
 	if getDestinationError != nil && !publicKeyPayment {
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
-	// if len(destinationInfo.Username) == 0 && len(paymentInfo.Destination) != 56 {
-	// 	log.Printf("[generatePaymentXdr]Could not get destination user for payment destination: %v\n", paymentInfo.Destination)
-
-	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	// }
 	if len(destinationInfo.Username) == 0 && !publicKeyPayment {
 		log.Printf("[generatePaymentXdr]Could not get destination user for payment destination: %v\n", paymentInfo.Destination)
 
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
+	//replace possible email and the rest
+	if destinationInfo.Username != paymentInfo.Destination {
+		//email or phone or other ID used for payment. replace it.
+		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: [%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationInfo.Username))
+		paymentInfo.Destination = destinationInfo.Username
+	}
+	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
+
+	// if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
+	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+	// }
+
+	// if len(destinationInfo.Username) == 0 && len(paymentInfo.Destination) != 56 {
+	// 	log.Printf("[generatePaymentXdr]Could not get destination user for payment destination: %v\n", paymentInfo.Destination)
+
+	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+	// }
+
 	// if len(destinationWallet.ID) == 0 && len(paymentInfo.Destination) != 56 {
 	// 	log.Printf("[generatePaymentXdr]Could not get destination wallet for payment destination: %v\n", paymentInfo.Destination)
 

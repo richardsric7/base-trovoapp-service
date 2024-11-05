@@ -614,7 +614,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		var destinationUser userModels.User
 		var destinationWallet userModels.UserWallet
-		var getDestinationUserError, getDestinationWalletError error
+		var getDestinationUserError error
+		var getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
 		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
@@ -650,6 +651,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 				return
 			}
+
 
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
