@@ -260,6 +260,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
+	if len(destinationWallet.ID) == 0 && len(paymentInfo.Destination) != 56 {
+		log.Printf("[generatePaymentXdr]Could not get destination wallet for payment destination: %v\n", paymentInfo.Destination)
+
+		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+	}
 
 	if destinationInfo.Suspended == 1 {
 		return "", nil, &tErrors.ErrorUsernameIsSuspended{}
