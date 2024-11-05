@@ -48,7 +48,8 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 	} else {
 
-		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+		// e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ? OR username = ? OR mobile = ? OR email = ?", userInfo, strings.ToLower(userInfo), &userInfo, userInfo).First(&user).Error
 	}
 
 	if e != nil {
