@@ -274,19 +274,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 				return
 			}
-			if checkReservedReceiverError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = checkReservedReceiverError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedReceiverError.Error()})
-				}
-				return
-			}
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
 		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
