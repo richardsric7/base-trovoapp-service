@@ -4,8 +4,8 @@ import { baseApi } from './baseapi';
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({    
     sendAsset: builder.mutation({
-      query: (payload: Payload) => ({
-        url: payload.body.isSharedWallet ? '/v1/users/payment' : '/v1/users/payment',
+      query: (payload: Payload) => ({        
+        url: payload.body.isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
         method: 'POST',        
         data: {
           payload: payload.body,

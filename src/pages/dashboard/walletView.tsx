@@ -146,16 +146,19 @@ export default function WalletView() {
         ...newObj,
         amount: 'Please enter a valid amount',
       };
+      isValid = false;
     } else if (Number(formData.amount) <= 0) {
       newObj = {
         ...newObj,
         amount: 'Please enter a valid amount',
       };
+      isValid = false;
     } else if (Number(formData.amount) > selectedAsset?.amount!) {
       newObj = {
         ...newObj,
         amount: "You don't have sufficient balance",
       };
+      isValid = false;
     } else if (
       getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
       Number(formData.amount) > selectedAsset!.amount! - 7
@@ -164,6 +167,7 @@ export default function WalletView() {
         ...newObj,
         amount: "You don't have sufficient balance",
       };
+      isValid = false;
     } else {
       newObj = {
         ...newObj,
@@ -176,6 +180,7 @@ export default function WalletView() {
         ...newObj,
         memo: 'Memo length cannot be more than 28 bytes',
       };
+      isValid = false;
     } else {
       newObj = {
         ...newObj,
@@ -315,14 +320,16 @@ export default function WalletView() {
       return;
     }
 
-    console.log('secret key here ', secretKey);
+    console.log('secret key here ', activeWallet);
 
     const payload = {
-      signer: activeWallet.publicKey,
+      signer: activeWallet.sharedAccessEnabled
+        ? activeWallet.publicKey
+        : activeWallet.signer,
       publicKey: activeWallet.publicKey,
       secretKey: secretKey,
       body: {
-        // isSharedWallet: activeWallet.sharedAccessEnabled,
+        isSharedWallet: activeWallet.sharedAccessEnabled,
         destination: formData.sendTo,
         memo: formData.memo,
         amount: formData.amount,
@@ -1114,7 +1121,7 @@ export default function WalletView() {
                 }
 
                 const body = {
-                  // isSharedWallet: activeWallet.sharedAccessEnabled,
+                  isSharedWallet: activeWallet.sharedAccessEnabled,
                   ...formData.transactionData,
                   commit: 1,
                   transactionSignature: signBase64Txn(
@@ -1125,7 +1132,9 @@ export default function WalletView() {
                 };
 
                 const payload = {
-                  signer: activeWallet.publicKey,
+                  signer: activeWallet.sharedAccessEnabled
+                    ? activeWallet.publicKey
+                    : activeWallet.signer,
                   publicKey: activeWallet.publicKey,
                   secretKey: secretKey,
                   body,
