@@ -20,6 +20,22 @@ const shareWallets = (wallets: Wallet[]) => {
     return wallets.filter((w) => w.sharedAccessEnabled);
 }
 
+const isSharedWalletAndCanInitiate = (wallet: Wallet) => {
+    if(wallet.sharedAccessEnabled && wallet.walletThreshold == 2 && wallet.permission === 'INITIATOR'){
+        return true;
+    }
+
+    return false;
+}
+
+const canInitiate = (wallet: Wallet) => {
+    if(!wallet.sharedAccessEnabled || (wallet.sharedAccessEnabled && wallet.walletThreshold == 2 && wallet.permission === 'INITIATOR')){
+        return true;
+    }
+
+    return false;
+}
+
 const getAssetCode = (assetCode: string) => {
     // assign XBN to the asset which has an
     // empty assetCode value.
@@ -66,5 +82,7 @@ export {
     formatToDecimal,
     getExplorerBaseUrl,
     totalWalletBalanceInCurrency,
+    isSharedWalletAndCanInitiate,
+    canInitiate,
 }
 

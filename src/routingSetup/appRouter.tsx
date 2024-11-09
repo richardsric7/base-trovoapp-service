@@ -20,6 +20,7 @@ import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQues
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
 import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAccount';
 import WalletView from '../pages/dashboard/walletView';
+import SendAssetReceipt from '../pages/pdfPages/sendAssetReceipt';
 
 export default function AppRouter() {
   return (
@@ -34,6 +35,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/import" element={<ImportWallet />} />
         <Route path="/recovery" element={<RecoveryMain />} />
+        <Route path="/send-asset-receipt" element={<SendAssetReceipt />} />
         <Route
           path="/answer-security-questions"
           element={<AnswerSecurityQuestions />}

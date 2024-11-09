@@ -124,11 +124,11 @@ function App() {
   }, [loadingFiatRates, loadingVersionInfo, loadingAnnouncements]);
 
   return isLoading ? (
-    <div className="App min-h-[900px] h-screen">
+    <div className="App min-h-[900px] w-screen h-screen">
       <Loader showLoader={isLoading} />
     </div>
   ) : (
-    <div className="App min-h-[900px] h-screen">
+    <div className="App min-h-[900px] w-screen h-screen">
       <AppRouter />
       <Toaster
         type={toasterInfo.type}

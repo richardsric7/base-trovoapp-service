@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@react-pdf/renderer": "^3.4.4",
     "@reduxjs/toolkit": "^2.2.3",
     "@stellar/stellar-base": "^11.0.1",
     "@stellar/stellar-sdk": "^11.3.0",

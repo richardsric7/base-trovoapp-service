@@ -26,12 +26,11 @@ export default function Dropdown({
     defaultValue ?? null,
   );
   useEffect(() => {
-    console.log('item changed');
     // Update the component when myProp changes
     setSelectedItem(defaultValue ?? null);
   }, [selectedItem]);
 
-  const dropdownItems = options.map((item: DropdownItem) => (
+  const dropdownItems = options?.map((item: DropdownItem) => (
     <TEDropdownItem
       key={`${new Date().getTime()}${item.text.replace(' ', '')}`}
       id={`${new Date().getTime()}${item.text.replace(' ', '')}`}
@@ -58,7 +57,8 @@ export default function Dropdown({
           type="button"
           className="flex items-center ring-1 md:ring-2 ring-gray-200 focus-within:ring-primary-600 whitespace-nowrap rounded bg-primary-100 hover:bg-primary-200 text-gray-700 px-5 justify-between py-3 rounded-md h-12 w-full"
         >
-          {selectedItem?.text ?? label}
+          {selectedItem?.text ??
+            (dropdownItems.length ? label : 'No items here')}
           <span className="ml-2 [&>svg]:w-5 w-2">
             <svg
               width="10"

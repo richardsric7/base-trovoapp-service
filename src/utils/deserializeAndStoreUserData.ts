@@ -72,6 +72,7 @@ export const deserializeUserData = (data: any): User => {
             permission: d.permission,
             permissions: d.walletSettings ? d.walletSettings?.permissions as Permission[] : [],
             alias: d.walletAlias,
+            signer: userData.primarySigner,
             sharedAccessEnabled: true, 
             description: d.walletDescription,
             publicKey: d.walletPublicKey,

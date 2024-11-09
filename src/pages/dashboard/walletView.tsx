@@ -12,6 +12,7 @@ import {
   getAssetCode,
   getBytesLength,
   getExplorerBaseUrl,
+  canInitiate,
   totalWalletBalanceInCurrency,
 } from '../../utils/utilities';
 import { Wallet } from '../../types/wallet';
@@ -34,6 +35,8 @@ import Modal from '../../components/modal';
 import { Encryptor } from '../../utils/encryptor';
 import { signBase64Txn } from '../../utils/trovoSDK';
 import ButtonSecondary from '../../components/buttonSecondary';
+import { TransactionDirection } from '../../types/transactionInfo';
+import WalletDropdown from '../../components/walletDropdown';
 
 export default function WalletView() {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +49,7 @@ export default function WalletView() {
   const [activeWalletIndex, setActiveWalletIndex] = useState(0);
   const [activeWallet, setActiveWallet] = useState<Wallet>(wallets[0]);
   const [assetFilterMode, setAssetFilterMode] = useState('Asset Tokens');
-  const [walletActionMode, setWalletActionMode] = useState(0);
+  const [walletActionMode, setWalletActionMode] = useState(1);
   const itemRefs = useRef<HTMLDivElement[]>([]);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
   const [secretKey, setSecretKey] = useState('');
@@ -54,6 +57,7 @@ export default function WalletView() {
   const [passwordErr, setPasswordErr] = useState('');
   const [showConfirmSendModal, setShowConfirmSendModal] = useState(false);
   const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
+  const [receiptQuery, setReceiptQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset>(
     activeWallet?.claimedAssets.find(
       (a) => a.assetCode === '' && a.assetIssuer === '',
@@ -114,7 +118,6 @@ export default function WalletView() {
   const validateSendForm = (): boolean => {
     let isValid = true;
     let newObj = errorObj;
-    console.log('fjsdlkfs', Number(formData.amount));
 
     if (!formData.sendTo) {
       newObj = {
@@ -301,7 +304,7 @@ export default function WalletView() {
         (a) => a.assetCode === '' && a.assetIssuer === '',
       )?.amount!,
     );
-  }, [activeWallet]);
+  }, [activeWallet, walletActionMode]);
 
   // Ensure `itemRefs` has refs for each item on each render
   if (itemRefs.current.length !== wallets.length) {
@@ -320,12 +323,8 @@ export default function WalletView() {
       return;
     }
 
-    console.log('secret key here ', activeWallet);
-
     const payload = {
-      signer: activeWallet.sharedAccessEnabled
-        ? activeWallet.publicKey
-        : activeWallet.signer,
+      signer: activeWallet.signer,
       publicKey: activeWallet.publicKey,
       secretKey: secretKey,
       body: {
@@ -338,7 +337,6 @@ export default function WalletView() {
       },
     };
 
-    console.log('secret key 2 here ', payload);
     toggleLoader();
     const res = await sendAsset(payload);
     console.log('response', res);
@@ -405,6 +403,8 @@ export default function WalletView() {
       )}
       currency={appUser.currency.toUpperCase()}
       alias={wallet.alias}
+      isSharedAccess={wallet.sharedAccessEnabled}
+      walletType={wallet.walletType!}
       key={index}
       ref={(el) => (itemRefs.current[index] = el!)}
     />
@@ -448,7 +448,6 @@ export default function WalletView() {
               <Tabs
                 tabList={['All Wallets', 'My Wallets', 'Shared Wallets']}
                 onTabChanged={(index) => {
-                  console.log('tab index', index);
                   setCurrentTabIndex(index);
                 }}
               />
@@ -474,7 +473,13 @@ export default function WalletView() {
                     activeWalletIndex > 0 &&
                       setActiveWalletIndex(activeWalletIndex - 1);
                     setActiveWallet(wallets[activeWalletIndex - 1]);
-
+                    if (!canInitiate(wallets[activeWalletIndex - 1])) {
+                      setWalletActionMode(1);
+                    }
+                    console.log(
+                      'can initiate',
+                      canInitiate(wallets[activeWalletIndex - 1]),
+                    );
                     const ref = itemRefs.current[activeWalletIndex - 1];
                     if (ref) {
                       // Change background color
@@ -497,6 +502,9 @@ export default function WalletView() {
                     activeWalletIndex <= itemRefs.current.length &&
                       setActiveWalletIndex(activeWalletIndex + 1);
                     setActiveWallet(wallets[activeWalletIndex + 1]);
+                    if (!canInitiate(wallets[activeWalletIndex + 1])) {
+                      setWalletActionMode(1);
+                    }
 
                     const ref = itemRefs.current[activeWalletIndex + 1];
                     if (ref) {
@@ -606,7 +614,8 @@ export default function WalletView() {
           <div className="flex space-y-6 rounded-lg py-5 px-6 flex-col items-center bg-primary-100">
             <div className="flex justify-between items-center space-x-5 mt-3">
               <button
-                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
+                disabled={!canInitiate(activeWallet)}
+                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center disabled:bg-gray-200 ${
                   walletActionMode === 0
                     ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
                     : 'ring-gray-400 text-gray-400'
@@ -632,7 +641,8 @@ export default function WalletView() {
                 Receive
               </button>
               <button
-                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
+                disabled={!canInitiate(activeWallet)}
+                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center disabled:bg-gray-200 ${
                   walletActionMode === 2
                     ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
                     : 'ring-gray-400 text-gray-400'
@@ -656,19 +666,27 @@ export default function WalletView() {
                     >
                       <div className="space-y-3 w-full">
                         <p>Select wallet</p>
-                        <Dropdown
+                        <WalletDropdown
                           label={activeWallet.alias}
+                          defaultValue={{
+                            text: activeWallet.alias,
+                            value: activeWallet,
+                            index: activeWalletIndex,
+                          }}
                           options={[
-                            ...wallets.map((w, index) => ({
-                              text: w.alias,
-                              value: index,
-                            })),
+                            ...wallets
+                              .filter((w) => canInitiate(w))
+                              .map((w, index) => ({
+                                text: w.alias,
+                                value: w,
+                                index,
+                              })),
                           ]}
                           onSelect={(selectedItem) => {
                             console.log(selectedItem);
-                            setActiveWallet(wallets[selectedItem.value]);
-                            setActiveWalletIndex(selectedItem.value);
-                            const ref = itemRefs.current[selectedItem.value];
+                            setActiveWallet(selectedItem.value);
+                            setActiveWalletIndex(selectedItem.index);
+                            const ref = itemRefs.current[selectedItem.index];
                             if (ref) {
                               // Change background color
                               ref.scrollIntoView({
@@ -790,16 +808,35 @@ export default function WalletView() {
                       <div className="w-full space-y-5">
                         <div className="space-y-3 w-full">
                           <p>Receiving wallet</p>
-                          <Dropdown
+                          <WalletDropdown
                             label={activeWallet.alias}
+                            defaultValue={{
+                              text: activeWallet.alias,
+                              value: activeWallet,
+                              index: activeWalletIndex,
+                            }}
                             options={[
-                              ...wallets.map((w) => ({
-                                text: w.alias,
-                                value: w.publicKey,
-                              })),
+                              ...wallets
+                                .filter((w) => canInitiate(w))
+                                .map((w, index) => ({
+                                  text: w.alias,
+                                  value: w,
+                                  index,
+                                })),
                             ]}
-                            onSelect={() => {
-                              //
+                            onSelect={(selectedItem) => {
+                              console.log(selectedItem);
+                              setActiveWallet(selectedItem.value);
+                              setActiveWalletIndex(selectedItem.index);
+                              const ref = itemRefs.current[selectedItem.index];
+                              if (ref) {
+                                // Change background color
+                                ref.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'nearest',
+                                  inline: 'center',
+                                });
+                              }
                             }}
                           />
                         </div>
@@ -906,16 +943,35 @@ export default function WalletView() {
                       <div className="w-full space-y-5">
                         <div className="space-y-3 w-full">
                           <p>Select wallet</p>
-                          <Dropdown
+                          <WalletDropdown
                             label={activeWallet.alias}
+                            defaultValue={{
+                              text: activeWallet.alias,
+                              value: activeWallet,
+                              index: activeWalletIndex,
+                            }}
                             options={[
-                              ...wallets.map((w) => ({
-                                text: w.alias,
-                                value: w.publicKey,
-                              })),
+                              ...wallets
+                                .filter((w) => canInitiate(w))
+                                .map((w, index) => ({
+                                  text: w.alias,
+                                  value: w,
+                                  index,
+                                })),
                             ]}
-                            onSelect={() => {
-                              //
+                            onSelect={(selectedItem) => {
+                              console.log(selectedItem);
+                              setActiveWallet(selectedItem.value);
+                              setActiveWalletIndex(selectedItem.index);
+                              const ref = itemRefs.current[selectedItem.index];
+                              if (ref) {
+                                // Change background color
+                                ref.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'nearest',
+                                  inline: 'center',
+                                });
+                              }
                             }}
                           />
                         </div>
@@ -1055,6 +1111,12 @@ export default function WalletView() {
           <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
             Confirm transaction
           </p>
+          {formData.transactionData?.messages.map((message: string) => (
+            <div className="flex flex-col items-center">
+              <span className="font-montserratSemiBold">Note:</span>
+              <p className="text-red-500">{message}</p>
+            </div>
+          ))}
           <p>You are about to send</p>
           <div className="w-full bg-primary-100 rounded-xl py-5 space-y-2 text-center">
             <p className="font-montserratSemiBold">
@@ -1086,6 +1148,26 @@ export default function WalletView() {
               <p>Description/Memo</p>
               <div className="flex space-x-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
                 {formData.memo}
+              </div>
+            </>
+          )}
+          {formData.transactionData?.fee && (
+            <>
+              <p>Service Fee</p>
+              <div className="flex flex-col space-y-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                <p className="space-x-1">
+                  <span className="font-montserratSemiBold">Fee:</span>
+                  <span>{formData.transactionData?.fee}%</span>
+                </p>
+                <p className="space-x-1">
+                  <span className="font-montserratSemiBold">
+                    Amount (Calculated):
+                  </span>
+                  <span>
+                    {formData.transactionData?.feeAmount}{' '}
+                    {getAssetCode(selectedAsset.assetCode)}
+                  </span>
+                </p>
               </div>
             </>
           )}
@@ -1126,15 +1208,13 @@ export default function WalletView() {
                   commit: 1,
                   transactionSignature: signBase64Txn(
                     secretKey,
-                    formData.transactionData.transaction,
-                    formData.transactionData.networkPassPhrase,
+                    formData.transactionData?.transaction,
+                    formData.transactionData?.networkPassPhrase,
                   ),
                 };
 
                 const payload = {
-                  signer: activeWallet.sharedAccessEnabled
-                    ? activeWallet.publicKey
-                    : activeWallet.signer,
+                  signer: activeWallet.signer,
                   publicKey: activeWallet.publicKey,
                   secretKey: secretKey,
                   body,
@@ -1151,6 +1231,24 @@ export default function WalletView() {
                     ...formData,
                     transactionData: res.data,
                   });
+
+                  const queryString = btoa(
+                    JSON.stringify({
+                      to: `${res.data.destinationFirstName} ${res.data.destinationLastName} [${res.data.destination}]`,
+                      from: `${appUser.firstName} ${appUser.lastName} [${appUser.username}]`,
+                      fromPublicKey: activeWallet.publicKey,
+                      toPublicKey: '',
+                      memo: res.data.memo,
+                      amount: res.data.amount,
+                      transactionId: res.data.transactionId,
+                      assetCode: res.data.assetCode,
+                      assetIssuer: res.data.assetIssuer,
+                      transactionDate: new Date(),
+                      transactionDirection: TransactionDirection.Send,
+                    }),
+                  );
+                  setReceiptQuery(queryString);
+
                   setShowConfirmSendModal(false);
                   setShowSendSuccessModal(true);
                 } else if ('error' in res) {
@@ -1177,78 +1275,109 @@ export default function WalletView() {
         <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
           <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
             <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-              Your transaction was successful!
+              {!activeWallet.sharedAccessEnabled
+                ? 'Your transaction was successful!'
+                : 'Your request was successful'}
             </p>
           </div>
           <img src="/images/success.png" alt="success" />
-          <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
-            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-              Sent to
-            </p>
-            <div className="flex space-x-3 justify-start items-center">
-              <img
-                src={formData.transactionData?.destinationThumbnail}
-                className="rounded-full w-16 h-16"
-              />
-              <p>
-                {formData.transactionData?.destinationFirstName}{' '}
-                {formData.transactionData?.destinationLastName}
-              </p>
-            </div>
-            {formData.memo && (
-              <>
+          {!activeWallet.sharedAccessEnabled ? (
+            <>
+              <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                  Sent to
+                </p>
+                <div className="flex space-x-3 justify-start items-center">
+                  <img
+                    src={formData.transactionData?.destinationThumbnail}
+                    className="rounded-full w-16 h-16"
+                  />
+                  <p>
+                    {formData.transactionData?.destinationFirstName}{' '}
+                    {formData.transactionData?.destinationLastName}
+                  </p>
+                </div>
+                {formData.memo && (
+                  <>
+                    <hr className="border-1" />
+                    <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                      For
+                    </p>
+                    <p>{formData.memo}</p>
+                  </>
+                )}
                 <hr className="border-1" />
                 <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-                  For
+                  Blockchain Proof (Transaction ID)
                 </p>
-                <p>{formData.memo}</p>
-              </>
-            )}
-            <hr className="border-1" />
-            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-              Blockchain Proof (Transaction ID)
-            </p>
-            <div className="flex space-x-4">
-              <a
-                className="underline"
-                href={`${getExplorerBaseUrl(appState.walletMode)}${
-                  formData.transactionData?.transactionId
-                }`}
-                target="_blank"
-              >
-                {formData.transactionData?.transactionId}
-              </a>
-              <button
-                type="button"
-                onClick={() =>
-                  navigator.clipboard
-                    .writeText(formData.transactionData?.transactionId)
-                    .then(() => {
-                      showNotification('info', 'Username copied!');
-                    })
-                }
-              >
-                <img src="/images/copy.png" alt="copy" />
-              </button>
-            </div>
-          </div>
-          <div className="w-full space-y-3">
-            <Button
-              label="Generate receipt"
-              additionalClasses="font-montserratSemiBold"
-              onclick={async () => {
-                // setShowConfirmSendModal(false);
-              }}
-            />
-            <ButtonSecondary
-              label="Close"
-              additionalClasses="font-montserratSemiBold"
-              onclick={async () => {
-                resetForm();
-                setShowSendSuccessModal(false);
-              }}
-            />
-          </div>
+                <div className="flex space-x-4">
+                  <a
+                    className="underline"
+                    href={`${getExplorerBaseUrl(appState.walletMode)}${
+                      formData.transactionData?.transactionId
+                    }`}
+                    target="_blank"
+                  >
+                    {formData.transactionData?.transactionId}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigator.clipboard
+                        .writeText(formData.transactionData?.transactionId)
+                        .then(() => {
+                          showNotification('info', 'Username copied!');
+                        })
+                    }
+                  >
+                    <img src="/images/copy.png" alt="copy" />
+                  </button>
+                </div>
+              </div>
+              <div className="w-full space-y-3">
+                <a
+                  href={`/#/send-asset-receipt?q=${receiptQuery}`} // since we use hash router
+                  target="_blank"
+                  className="bg-primary-800 block rounded-lg w-full text-center text-white h-12 py-4 px-5"
+                >
+                  Generate receipt
+                </a>
+                <ButtonSecondary
+                  label="Close"
+                  additionalClasses="font-montserratSemiBold"
+                  onclick={async () => {
+                    resetForm();
+                    setShowSendSuccessModal(false);
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                <p className="text-center font-montserratSemiBold">
+                  Payment request submitted
+                </p>
+                <p className="text-center">
+                  You have successfully requested payment of [{formData.amount}{' '}
+                  {getAssetCode(selectedAsset.assetCode)}] from [
+                  {activeWallet.alias}] to [{formData.sendTo}]. This transaction
+                  will be completed when it gets the required number of
+                  approvals by those who have approver access on this wallet.
+                </p>
+              </div>
+              <div className="w-full space-y-3">
+                <Button
+                  label="Done"
+                  additionalClasses="font-montserratSemiBold"
+                  onclick={async () => {
+                    resetForm();
+                    setShowSendSuccessModal(false);
+                  }}
+                />
+              </div>
+            </>
+          )}
           <div />
         </div>
       </Modal>
