@@ -3,10 +3,10 @@ import { useState } from 'react';
 type Props = {
   localCurrencyBalance: string;
   usdBalance: string;
-  label: string;
+  currency: string;
 };
 
-function WidgetCard({ localCurrencyBalance, usdBalance, label }: Props) {
+function WidgetCard({ localCurrencyBalance, usdBalance, currency }: Props) {
   const [hideBalance, setHideBalance] = useState(false);
   return (
     <div
@@ -15,7 +15,7 @@ function WidgetCard({ localCurrencyBalance, usdBalance, label }: Props) {
     >
       <div className="flex flex-col space-y-2">
         <div className="flex space-x-10 items-center">
-          <p className="md:text-lg">{label}</p>
+          <p className="md:text-lg">Total Account Balance</p>
           <button onClick={() => setHideBalance(!hideBalance)}>
             <img
               width="25"
@@ -26,9 +26,15 @@ function WidgetCard({ localCurrencyBalance, usdBalance, label }: Props) {
           </button>
         </div>
         <p className="text-xl md:text-2xl font-semibold">
-          {hideBalance ? '**********' : localCurrencyBalance}
+          {hideBalance ? '**********' : localCurrencyBalance} {currency}
         </p>
-        <p className="text-sm">{hideBalance ? '**********' : usdBalance}</p>
+        {currency.toLowerCase().includes('usd') ? (
+          ''
+        ) : (
+          <p className="text-sm">
+            {hideBalance ? '**********' : usdBalance} {currency}
+          </p>
+        )}
       </div>
       <img className="w-20" src="/images/trovoWhite.png" alt="trovo logo" />
     </div>

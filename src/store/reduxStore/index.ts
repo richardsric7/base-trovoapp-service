@@ -6,12 +6,14 @@ import { authSlice } from "../authSlice";
 import { sidebarSlice } from '../sidebarSlice';
 import { getPreloadedState } from "./getPreloadedState";
 import { cacheSlice } from "../cacheSlice";
+import { appStateSlice } from "../appStateSlice";
 
 export const store = configureStore({
     reducer:{
         api: baseApi.reducer,
         auth: authSlice.reducer,
         sidebarSlice: sidebarSlice.reducer,
+        appState: appStateSlice.reducer,
         cache: cacheSlice.reducer,
     },
     middleware:(getDefaultMiddleware) => 

@@ -3,9 +3,10 @@ import React from 'react';
 type Props = {
   tabList: string[];
   children: React.ReactNode[];
+  onTabChanged?: (index: number) => void;
 };
 
-export default function Tabs({ tabList, children = [] }: Props) {
+export default function Tabs({ tabList, children = [], onTabChanged }: Props) {
   const [openTab, setOpenTab] = React.useState(1);
   const tabItems = tabList.map((item, index) => (
     <li
@@ -19,6 +20,7 @@ export default function Tabs({ tabList, children = [] }: Props) {
         onClick={(e) => {
           e.preventDefault();
           setOpenTab(index + 1);
+          onTabChanged && onTabChanged(index + 1);
         }}
         data-toggle="tab"
         href={`#link${index + 1}`}
@@ -32,6 +34,7 @@ export default function Tabs({ tabList, children = [] }: Props) {
   const tabBodies = children?.map((body, index) => (
     <div
       className={openTab === index + 1 ? 'block' : 'hidden'}
+      key={`${new Date().getTime()}${index}`}
       id={`link${index + 1}`}
     >
       {body}
@@ -39,7 +42,7 @@ export default function Tabs({ tabList, children = [] }: Props) {
   ));
 
   return (
-    <div className="flex flex-wrap font-matahariRegular">
+    <div className="flex flex-wrap font-matahariRegular w-full">
       <div className="w-full">
         <ul className="flex mb-0 list-none flex-wrap flex-row" role="tablist">
           {tabItems}
