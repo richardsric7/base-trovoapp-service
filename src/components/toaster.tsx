@@ -31,7 +31,7 @@ export default function Toaster({
       case 'success':
         return 'bg-success-100 text-success-700 border-success-200';
       case 'info':
-        return 'bg-primary-100 text-primary-700 border-primary-200';
+        return 'bg-primary-200 text-primary-700 border-primary-300';
       case 'error':
         return 'bg-danger-100 text-danger-700 border-danger-200';
       default:

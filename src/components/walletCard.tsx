@@ -1,6 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
+import { showNotification } from '../utils/showToaster';
 
 type Props = {
   localCurrencyBalance: string;
@@ -34,6 +35,19 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
         <div className="flex flex-col space-y-2">
           <div className="flex space-x-10 items-center">
             <p className="md:text-lg">{alias}</p>
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(alias).then(() => {
+                  showNotification('info', 'Public key copied!');
+                })
+              }
+            >
+              <img src="/images/copy.svg" alt="copy" />
+            </button>
+          </div>
+          <div className="flex space-x-10 items-center">
+            <p>Total Balance</p>
             <button onClick={() => setHideBalance(!hideBalance)}>
               <img
                 width="25"
@@ -43,7 +57,6 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
               />
             </button>
           </div>
-          <div>Total Balance</div>
           <p className="text-xl md:text-2xl font-semibold">
             {hideBalance ? '**********' : `${localCurrencyBalance} ${currency}`}
           </p>

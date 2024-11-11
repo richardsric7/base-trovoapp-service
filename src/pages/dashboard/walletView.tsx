@@ -29,7 +29,11 @@ import Dropdown from '../../components/dropdown';
 import TextInput from '../../components/textInput';
 import { Asset } from '../../types/asset';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
-import { useSendAssetMutation } from '../../store/api/walletApis';
+import {
+  useLazyReceiveAssetQuery,
+  useSendAssetMutation,
+  useSwapAssetMutation,
+} from '../../store/api/walletApis';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 import Modal from '../../components/modal';
 import { Encryptor } from '../../utils/encryptor';
@@ -37,6 +41,7 @@ import { signBase64Txn } from '../../utils/trovoSDK';
 import ButtonSecondary from '../../components/buttonSecondary';
 import { TransactionDirection } from '../../types/transactionInfo';
 import WalletDropdown from '../../components/walletDropdown';
+import AssetDropdown from '../../components/assettDropdown';
 
 export default function WalletView() {
   const ref = useRef<HTMLDivElement>(null);
@@ -57,6 +62,10 @@ export default function WalletView() {
   const [passwordErr, setPasswordErr] = useState('');
   const [showConfirmSendModal, setShowConfirmSendModal] = useState(false);
   const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
+  const [showConfirmSwapModal, setShowConfirmSwapModal] = useState(false);
+  const [showSwapSuccess, setShowSwapSuccess] = useState(false);
+  const [qrCodeLink, setQrCodeLink] = useState('');
+  const [requestSpecificAmount, setRequestSpecificAmount] = useState(false);
   const [receiptQuery, setReceiptQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset>(
     activeWallet?.claimedAssets.find(
@@ -70,6 +79,8 @@ export default function WalletView() {
     )?.amount!,
   );
   const [sendAsset] = useSendAssetMutation();
+  const [swapAsset] = useSwapAssetMutation();
+  const [receiveAsset] = useLazyReceiveAssetQuery();
 
   type WalletFormData = {
     sendTo?: string;
@@ -164,7 +175,7 @@ export default function WalletView() {
       isValid = false;
     } else if (
       getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
-      Number(formData.amount) > selectedAsset!.amount! - 7
+      Number(formData.amount) > selectedAsset!.amount! - 6
     ) {
       newObj = {
         ...newObj,
@@ -202,7 +213,7 @@ export default function WalletView() {
     if (!formData.amount) {
       newObj = {
         ...newObj,
-        amount: 'Please enter amount to send',
+        amount: 'Please enter amount to recieve',
       };
       isValid = false;
     } else if (isNaN(Number(formData.amount))) {
@@ -248,10 +259,49 @@ export default function WalletView() {
         ...newObj,
         amount: 'Please enter a valid amount',
       };
+    } else if (Number(formData.amount) > formData.swapFrom?.amount!) {
+      newObj = {
+        ...newObj,
+        amount: "You don't have sufficient balance",
+      };
+      isValid = false;
+    } else if (
+      getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
+      Number(formData.amount) > selectedAsset!.amount! - 6
+    ) {
+      newObj = {
+        ...newObj,
+        amount: "You don't have sufficient balance",
+      };
+      isValid = false;
     } else {
       newObj = {
         ...newObj,
         amount: '',
+      };
+    }
+
+    if (!formData.swapFrom) {
+      newObj = {
+        ...newObj,
+        swapFrom: 'Please select source asset',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        swapFrom: '',
+      };
+    }
+
+    if (!formData.swapTo) {
+      newObj = {
+        ...newObj,
+        swapTo: 'Please select destination asset',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        swapTo: '',
       };
     }
 
@@ -366,7 +416,6 @@ export default function WalletView() {
         password,
         appUser?.primarySigner,
       );
-      console.log('sdafsdfsdsfdsf1111', key);
       setSecretKey(key);
       return true;
     } catch (error: any) {
@@ -376,12 +425,83 @@ export default function WalletView() {
 
   const handleRecieve = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    validateRecieveForm();
+
+    if (!validateRecieveForm()) {
+      return;
+    }
+
+    const payload = {
+      signer: activeWallet.signer,
+      publicKey: activeWallet.publicKey,
+      secretKey: secretKey,
+      body: {
+        destination: formData.sendTo,
+        memo: formData.memo,
+        amount: formData.amount,
+        publicKey: activeWallet.publicKey,
+        alias: activeWallet.alias,
+        assetCode: selectedAsset.assetCode,
+        assetIssuer: selectedAsset.assetIssuer,
+      },
+    };
+
+    toggleLoader();
+    const res = await receiveAsset(payload);
+    console.log('response', res);
+
+    if ('data' in res) {
+      console.log('response', res);
+      setQrCodeLink(res.data.qrCode);
+      setRequestSpecificAmount(false);
+    } else if ('error' in res) {
+      const errorResponse = res.error as ErrorResponse;
+      showNotification(
+        'error',
+        errorResponse.data.message ?? 'Something went wrong. Please try again.',
+      );
+    }
+    toggleLoader();
   };
 
   const handleSwap = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    validateSwapForm();
+    if (!validateSwapForm()) {
+      return;
+    }
+
+    const payload = {
+      signer: activeWallet.signer,
+      publicKey: activeWallet.publicKey,
+      secretKey: secretKey,
+      body: {
+        isSharedWallet: activeWallet.sharedAccessEnabled,
+        destinationAssetCode: formData.swapTo?.assetCode,
+        destinationAssetIssuer: formData.swapTo?.assetIssuer,
+        sourceAssetCode: formData.swapFrom?.assetCode,
+        sourceAssetIssuer: formData.swapFrom?.assetIssuer,
+        sourceAmount: formData.amount,
+      },
+    };
+
+    toggleLoader();
+    const res = await swapAsset(payload);
+    console.log('response', res);
+
+    if ('data' in res) {
+      console.log('response', res);
+      setFormData({
+        ...formData,
+        transactionData: res.data,
+      });
+      setShowConfirmSwapModal(true);
+    } else if ('error' in res) {
+      const errorResponse = res.error as ErrorResponse;
+      showNotification(
+        'error',
+        errorResponse.data.message ?? 'Something went wrong. Please try again.',
+      );
+    }
+    toggleLoader();
   };
 
   const userWallets = wallets.map((wallet, index) => (
@@ -614,6 +734,19 @@ export default function WalletView() {
           <div className="flex space-y-6 rounded-lg py-5 px-6 flex-col items-center bg-primary-100">
             <div className="flex justify-between items-center space-x-5 mt-3">
               <button
+                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
+                  walletActionMode === 1
+                    ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
+                    : 'ring-gray-400 text-gray-400'
+                }`}
+                onClick={() => {
+                  resetForm();
+                  setWalletActionMode(1);
+                }}
+              >
+                Receive
+              </button>
+              <button
                 disabled={!canInitiate(activeWallet)}
                 className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center disabled:bg-gray-200 ${
                   walletActionMode === 0
@@ -626,19 +759,6 @@ export default function WalletView() {
                 }}
               >
                 Send
-              </button>
-              <button
-                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
-                  walletActionMode === 1
-                    ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
-                    : 'ring-gray-400 text-gray-400'
-                }`}
-                onClick={() => {
-                  resetForm();
-                  setWalletActionMode(1);
-                }}
-              >
-                Receive
               </button>
               <button
                 disabled={!canInitiate(activeWallet)}
@@ -805,131 +925,209 @@ export default function WalletView() {
                       onSubmit={handleRecieve}
                       className="w-full space-y-5"
                     >
-                      <div className="w-full space-y-5">
-                        <div className="space-y-3 w-full">
-                          <p>Receiving wallet</p>
-                          <WalletDropdown
-                            label={activeWallet.alias}
-                            defaultValue={{
-                              text: activeWallet.alias,
-                              value: activeWallet,
-                              index: activeWalletIndex,
-                            }}
-                            options={[
-                              ...wallets
-                                .filter((w) => canInitiate(w))
-                                .map((w, index) => ({
-                                  text: w.alias,
-                                  value: w,
-                                  index,
-                                })),
-                            ]}
-                            onSelect={(selectedItem) => {
-                              console.log(selectedItem);
-                              setActiveWallet(selectedItem.value);
-                              setActiveWalletIndex(selectedItem.index);
-                              const ref = itemRefs.current[selectedItem.index];
-                              if (ref) {
-                                // Change background color
-                                ref.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'nearest',
-                                  inline: 'center',
-                                });
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="w-full space-y-2">
-                          <div className="flex items-center space-x-3 space-y-3 w-full">
-                            <div className="w-4/6">
-                              <TextInput
-                                inputType="text"
-                                label="Token quantity/Amount"
-                                onInputChange={(value) => {
-                                  setFormData({ ...formData, sendTo: value });
+                      <div className="w-full space-y-4">
+                        {!qrCodeLink ? (
+                          <div className="flex justify-between space-y-5 w-full">
+                            <div className="w-4/6 mr-2 space-y-2">
+                              <p>Receiving wallet</p>
+                              <WalletDropdown
+                                label={activeWallet.alias}
+                                defaultValue={{
+                                  text: activeWallet.alias,
+                                  value: activeWallet,
+                                  index: activeWalletIndex,
+                                }}
+                                options={[
+                                  ...wallets
+                                    .filter((w) => canInitiate(w))
+                                    .map((w, index) => ({
+                                      text: w.alias,
+                                      value: w,
+                                      index,
+                                    })),
+                                ]}
+                                onSelect={(selectedItem) => {
+                                  console.log(selectedItem);
+                                  setActiveWallet(selectedItem.value);
+                                  setActiveWalletIndex(selectedItem.index);
+                                  const ref =
+                                    itemRefs.current[selectedItem.index];
+                                  if (ref) {
+                                    // Change background color
+                                    ref.scrollIntoView({
+                                      behavior: 'smooth',
+                                      block: 'nearest',
+                                      inline: 'center',
+                                    });
+                                  }
                                 }}
                               />
                             </div>
                             <div className="w-2/6 self-end">
                               <Dropdown
-                                label={
-                                  activeWallet.claimedAssets[0].assetCode === ''
-                                    ? 'XBN'
-                                    : activeWallet.claimedAssets[0].assetCode
-                                }
+                                label={getAssetCode(selectedAsset.assetCode)}
                                 options={[
                                   ...activeWallet.claimedAssets.map((w) => ({
                                     text:
                                       w.assetCode === '' ? 'XBN' : w.assetCode,
-                                    value: w.assetCode,
+                                    value: w,
                                   })),
                                 ]}
-                                onSelect={() => {
-                                  //
+                                onSelect={(item) => {
+                                  setSelectedAsset(item.value);
                                 }}
                               />
                             </div>
                           </div>
-                          {errorObj.amount && (
-                            <p className="text-red-500 text-sm mt-1">
-                              {errorObj.amount}
+                        ) : (
+                          <>
+                            <p className="text-lg font-montserratSemiBold">
+                              Receive {formData.amount}{' '}
+                              {getAssetCode(selectedAsset.assetCode)}
                             </p>
-                          )}
-                          {!appState.hideBalances && (
-                            <div className="w-full flex justify-between items-center">
-                              <span>
-                                {formData.amount &&
-                                !isNaN(Number(formData.amount))
-                                  ? formatToDecimal(Number(formData.amount))
-                                  : 0}{' '}
-                                {getAssetCode(selectedAsset.assetCode)}
-                              </span>
-                              <span>
-                                {formatToDecimal(selectedAsset.amount)}{' '}
-                                {getAssetCode(selectedAsset.assetCode)}
-                              </span>
+                            <div>
+                              <p className="font-montserratSemiBold">
+                                Receiving wallet
+                              </p>
+                              <div className="flex justify-between break-all">
+                                <p className="max-w-sm">{activeWallet.alias}</p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigator.clipboard
+                                      .writeText(activeWallet.alias)
+                                      .then(() => {
+                                        showNotification(
+                                          'info',
+                                          'Wallet alias copied!',
+                                        );
+                                      })
+                                  }
+                                >
+                                  <img src="/images/copy.png" alt="copy" />
+                                </button>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <div className="space-y-3 w-full">
-                          <TextInput
-                            inputType="text"
-                            label="Add memo (optional)"
-                            onInputChange={(value) => {
-                              setFormData({ ...formData, memo: value });
-                            }}
-                          />
-                          <div
-                            className={`w-full flex items-center ${
-                              errorObj.memo ? 'justify-between' : 'justify-end'
-                            }`}
-                          >
-                            {errorObj.memo && (
-                              <span className="text-red-500 text-sm mt-1">
-                                {errorObj.memo}
-                              </span>
-                            )}
-                            <span
-                              className={
-                                formData.memo &&
-                                getBytesLength(formData.memo) > 28
-                                  ? 'text-red-500'
-                                  : ''
+                            <div>
+                              <p className="font-montserratSemiBold">Memo</p>
+                              <p className="max-w-sm">{formData.memo}</p>
+                            </div>
+                          </>
+                        )}
+                        {requestSpecificAmount ? (
+                          <>
+                            <div className="w-full space-y-2">
+                              <div className="flex items-center space-x-3 space-y-3 w-full">
+                                <div className="w-full">
+                                  <TextInput
+                                    inputType="text"
+                                    label="Token quantity/Amount"
+                                    onInputChange={(value) => {
+                                      setFormData({
+                                        ...formData,
+                                        amount: value,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              {errorObj.amount && (
+                                <p className="text-red-500 text-sm mt-1">
+                                  {errorObj.amount}
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-3 w-full">
+                              <TextInput
+                                inputType="text"
+                                label="Add memo (optional)"
+                                onInputChange={(value) => {
+                                  setFormData({ ...formData, memo: value });
+                                }}
+                              />
+                              <div
+                                className={`w-full flex items-center ${
+                                  errorObj.memo
+                                    ? 'justify-between'
+                                    : 'justify-end'
+                                }`}
+                              >
+                                {errorObj.memo && (
+                                  <span className="text-red-500 text-sm mt-1">
+                                    {errorObj.memo}
+                                  </span>
+                                )}
+                                <span
+                                  className={
+                                    formData.memo &&
+                                    getBytesLength(formData.memo) > 28
+                                      ? 'text-red-500'
+                                      : ''
+                                  }
+                                >
+                                  {formData.memo
+                                    ? getBytesLength(formData.memo)
+                                    : 0}
+                                  /28
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              type="submit"
+                              label="Proceed"
+                              onclick={() => {}}
+                            />
+                            <ButtonSecondary
+                              label="Cancel"
+                              onclick={() => setRequestSpecificAmount(false)}
+                            />
+                          </>
+                        ) : (
+                          <div className="space-y-4">
+                            <div>
+                              <p className="font-montserratSemiBold">
+                                Receive from non Trovo App
+                              </p>
+                              <div className="flex justify-between break-all">
+                                <p className="max-w-sm">
+                                  {activeWallet.publicKey}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigator.clipboard
+                                      .writeText(activeWallet.publicKey)
+                                      .then(() => {
+                                        showNotification(
+                                          'info',
+                                          'Public key copied!',
+                                        );
+                                      })
+                                  }
+                                >
+                                  <img src="/images/copy.png" alt="copy" />
+                                </button>
+                              </div>
+                            </div>
+                            <img
+                              src={
+                                qrCodeLink ? qrCodeLink : selectedAsset.qrCode
                               }
-                            >
-                              {formData.memo
-                                ? getBytesLength(formData.memo)
-                                : 0}
-                              /28
-                            </span>
+                              alt="qrcode"
+                            />
+                            {!qrCodeLink ? (
+                              <Button
+                                label="Request specific amount"
+                                onclick={() => setRequestSpecificAmount(true)}
+                              />
+                            ) : (
+                              <Button
+                                label="Reset"
+                                onclick={() => setQrCodeLink('')}
+                              />
+                            )}
                           </div>
-                        </div>
-                        <Button
-                          type="submit"
-                          label="Proceed"
-                          onclick={() => {}}
-                        />
+                        )}
                       </div>
                     </form>
                   );
@@ -977,7 +1175,7 @@ export default function WalletView() {
                         </div>
                         <div className="w-full space-y-2">
                           <p>Swap from</p>
-                          <Dropdown
+                          <AssetDropdown
                             label={
                               formData.swapFrom
                                 ? getAssetCode(formData.swapFrom.assetCode)
@@ -1004,6 +1202,11 @@ export default function WalletView() {
                               console.log(formData);
                             }}
                           />
+                          {errorObj.amount && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errorObj.swapFrom}
+                            </p>
+                          )}
                         </div>
                         <div className="w-full space-y-2">
                           <p>Swap to</p>
@@ -1039,6 +1242,11 @@ export default function WalletView() {
                               );
                             }}
                           />
+                          {errorObj.amount && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errorObj.swapTo}
+                            </p>
+                          )}
                         </div>
                         <div className="w-full space-y-2">
                           <div className="flex items-center space-x-3 space-y-3 w-full">
@@ -1053,18 +1261,18 @@ export default function WalletView() {
                               />
                             </div>
                           </div>
-                          {!appState.hideBalances && (
+                          {!appState.hideBalances && formData.swapFrom && (
                             <div className="w-full flex justify-between items-center">
                               <span>
                                 {formData.amount &&
                                 !isNaN(Number(formData.amount))
                                   ? formatToDecimal(Number(formData.amount))
                                   : 0}{' '}
-                                {getAssetCode(selectedAsset.assetCode)}
+                                {getAssetCode(formData.swapFrom?.assetCode)}
                               </span>
                               <span>
-                                {formatToDecimal(selectedAsset.amount)}{' '}
-                                {getAssetCode(selectedAsset.assetCode)}
+                                {formatToDecimal(formData.swapFrom?.amount)}{' '}
+                                {getAssetCode(formData.swapFrom?.assetCode)}
                               </span>
                             </div>
                           )}
@@ -1111,12 +1319,15 @@ export default function WalletView() {
           <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
             Confirm transaction
           </p>
-          {formData.transactionData?.messages.map((message: string) => (
+
+          {formData.transactionData?.messages > 0 && (
             <div className="flex flex-col items-center">
               <span className="font-montserratSemiBold">Note:</span>
-              <p className="text-red-500">{message}</p>
+              {formData.transactionData?.messages.map((message: string) => (
+                <p className="text-red-500">{message}</p>
+              ))}
             </div>
-          ))}
+          )}
           <p>You are about to send</p>
           <div className="w-full bg-primary-100 rounded-xl py-5 space-y-2 text-center">
             <p className="font-montserratSemiBold">
@@ -1380,6 +1591,309 @@ export default function WalletView() {
           )}
           <div />
         </div>
+      </Modal>
+      <Modal
+        showModal={showConfirmSwapModal}
+        onClose={() => {
+          setShowConfirmSwapModal(false);
+          setShowSwapSuccess(false);
+        }}
+      >
+        {!showSwapSuccess ? (
+          <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+            <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
+              Confirm swap
+            </p>
+            {formData.transactionData?.messages.length > 0 && (
+              <div className="flex flex-col ">
+                <span className="font-montserratSemiBold">Note:</span>
+                {formData.transactionData?.messages.map((message: string) => (
+                  <p className="text-red-500">
+                    {'=> '}
+                    {message}
+                  </p>
+                ))}
+              </div>
+            )}
+            <p>You are swapping</p>
+            <div className="w-full bg-primary-100 rounded-xl py-5 space-y-2 text-center">
+              <p className="font-montserratSemiBold">
+                {formData.amount} {getAssetCode(selectedAsset.assetCode)}
+              </p>
+              <p>
+                {formData.swapFrom &&
+                  `${calculateFiatValue(
+                    Number(formData.amount || 0),
+                    (fiatRates as Record<string, number>)[
+                      appUser.currency.toUpperCase()
+                    ] || 0,
+                    formData.swapFrom?.usdPrice,
+                  )} ${appUser.currency.toUpperCase()}`}
+              </p>
+            </div>
+            <p>To</p>
+            <div className="flex flex-col space-y-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+              <p className="font-montserratSemiBold">
+                {formData.transactionData?.swappedEstimate}{' '}
+                {getAssetCode(formData.transactionData?.destinationAssetCode)}
+              </p>
+              <p>
+                {formData.swapTo &&
+                  `${formatToDecimal(
+                    calculateFiatValue(
+                      Number(formData.amount || 0),
+                      (fiatRates as Record<string, number>)[
+                        appUser.currency.toUpperCase()
+                      ] || 0,
+                      formData.swapTo?.usdPrice,
+                    ),
+                  )} ${appUser.currency.toUpperCase()}`}
+              </p>
+            </div>
+            {formData.transactionData?.fee && (
+              <>
+                <p>Service Fee</p>
+                <div className="flex flex-col space-y-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                  <p className="space-x-1">
+                    <span className="font-montserratSemiBold">Fee:</span>
+                    <span>{formData.transactionData?.fee}%</span>
+                  </p>
+                  <p className="space-x-1">
+                    <span className="font-montserratSemiBold">
+                      Amount (Calculated):
+                    </span>
+                    <span>
+                      {formData.transactionData?.feeAmount}{' '}
+                      {getAssetCode(selectedAsset.assetCode)}
+                    </span>
+                  </p>
+                </div>
+              </>
+            )}
+            <p>Wallet</p>
+            <div className="flex space-x-3 justify-center items-center px-10 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+              <span className="font-montserratSemiBold">
+                {activeWallet.alias}
+              </span>
+            </div>
+            <div className="w-full space-y-1">
+              <TextInput
+                label=""
+                leadingIcon="/images/lock.png"
+                inputType="password"
+                placeholder="Enter answer"
+                onInputChange={(newValue: string) => {
+                  setPassword(newValue);
+                }}
+              />
+              {passwordErr && (
+                <p className="text-red-500 text-sm">{passwordErr}</p>
+              )}
+            </div>
+            <div className="w-full space-y-3">
+              <Button
+                label="Authorize with password"
+                additionalClasses="font-montserratSemiBold"
+                onclick={async () => {
+                  setPasswordErr('');
+
+                  if (!password) {
+                    setPasswordErr('Please enter a password!');
+                    return;
+                  }
+
+                  if (!(await isValidPassword())) {
+                    setPasswordErr('Password is invalid!');
+                    return;
+                  }
+
+                  const body = {
+                    isSharedWallet: activeWallet.sharedAccessEnabled,
+                    ...formData.transactionData,
+                    commit: activeWallet.sharedAccessEnabled ? 1 : 0,
+                    transactionSignature: signBase64Txn(
+                      secretKey,
+                      formData.transactionData?.transaction,
+                      formData.transactionData?.networkPassPhrase,
+                    ),
+                  };
+
+                  const payload = {
+                    signer: activeWallet.signer,
+                    publicKey: activeWallet.publicKey,
+                    secretKey: secretKey,
+                    body,
+                  };
+                  console.log('body', payload);
+
+                  toggleLoader();
+                  const res = await swapAsset(payload);
+                  console.log('response', res);
+
+                  if ('data' in res) {
+                    console.log('response', res);
+                    setFormData({
+                      ...formData,
+                      transactionData: res.data,
+                    });
+
+                    setShowSwapSuccess(true);
+                  } else if ('error' in res) {
+                    const errorResponse = res.error as ErrorResponse;
+                    showNotification(
+                      'error',
+                      errorResponse.data.message ??
+                        'Something went wrong. Please try again.',
+                    );
+                  }
+                  toggleLoader();
+                }}
+              />
+            </div>
+            <div />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+            <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
+              <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                {!activeWallet.sharedAccessEnabled
+                  ? 'Your transaction was successful!'
+                  : 'Your request was successful'}
+              </p>
+            </div>
+            <img src="/images/success.png" alt="success" />
+            {!activeWallet.sharedAccessEnabled ? (
+              <>
+                <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                  <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                    Swapped
+                  </p>
+                  {formData.swapFrom && formData.amount && (
+                    <div className="flex flex-col">
+                      <p>
+                        {formatToDecimal(Number(formData.amount))}{' '}
+                        {getAssetCode(formData.swapFrom?.assetCode)}
+                      </p>
+                      <p>
+                        -{' '}
+                        {`${calculateFiatValue(
+                          Number(formData.amount || 0),
+                          (fiatRates as Record<string, number>)[
+                            appUser.currency.toUpperCase()
+                          ] || 0,
+                          formData.swapFrom.usdPrice,
+                        )} ${appUser.currency.toUpperCase()}`}
+                      </p>
+                    </div>
+                  )}
+                  {formData.swapTo && (
+                    <>
+                      <hr className="border-1" />
+                      <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                        To
+                      </p>
+                      <p>
+                        {formatToDecimal(Number(formData.amount))}{' '}
+                        {getAssetCode(formData.swapTo?.assetCode)}
+                      </p>
+                      <p>
+                        +{' '}
+                        {`${calculateFiatValue(
+                          Number(formData.amount || 0),
+                          (fiatRates as Record<string, number>)[
+                            appUser.currency.toUpperCase()
+                          ] || 0,
+                          formData.swapTo.usdPrice,
+                        )} ${appUser.currency.toUpperCase()}`}
+                      </p>
+                      <hr className="border-1" />
+                    </>
+                  )}
+                  {formData.transactionData?.fee && (
+                    <>
+                      <hr className="border-1" />
+                      <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                        Fee
+                      </p>
+                      <p>
+                        {formData.transactionData?.feeAmount}{' '}
+                        {getAssetCode(selectedAsset.assetCode)} (
+                        {formData.transactionData?.fee}%)
+                      </p>
+                      <hr className="border-1" />
+                    </>
+                  )}
+                  <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                    Blockchain Proof (Transaction ID)
+                  </p>
+                  <div className="flex space-x-4">
+                    <a
+                      className="underline"
+                      href={`${getExplorerBaseUrl(appState.walletMode)}${
+                        formData.transactionData?.transactionId
+                      }`}
+                      target="_blank"
+                    >
+                      {formData.transactionData?.transactionId}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigator.clipboard
+                          .writeText(formData.transactionData?.transactionId)
+                          .then(() => {
+                            showNotification('info', 'Username copied!');
+                          })
+                      }
+                    >
+                      <img src="/images/copy.png" alt="copy" />
+                    </button>
+                  </div>
+                </div>
+                <div className="w-full space-y-3">
+                  <Button
+                    label="Done"
+                    additionalClasses="font-montserratSemiBold"
+                    onclick={async () => {
+                      resetForm();
+                      setShowConfirmSwapModal(false);
+                      setShowSwapSuccess(false);
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="px-5 w-full bg-primary-100 rounded-xl py-5 space-y-2">
+                  <p className="text-center font-montserratSemiBold">
+                    Swap request submitted
+                  </p>
+                  <p className="text-center">
+                    You have successfully requested swap of [{formData.amount}{' '}
+                    {getAssetCode(selectedAsset.assetCode)}] to [
+                    {formData.transactionData?.swappedEstimate}
+                    {formData.transactionData?.destinationAssetCode}] on wallet
+                    [{activeWallet.alias}]. This transaction will be completed
+                    when it gets the required number of approvals by those who
+                    have approver access on this wallet.
+                  </p>
+                </div>
+                <div className="w-full space-y-3">
+                  <Button
+                    label="Done"
+                    additionalClasses="font-montserratSemiBold"
+                    onclick={async () => {
+                      resetForm();
+                      setShowConfirmSwapModal(false);
+                      setShowSwapSuccess(false);
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            <div />
+          </div>
+        )}
       </Modal>
     </div>
   );
