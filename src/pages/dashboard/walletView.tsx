@@ -734,6 +734,19 @@ export default function WalletView() {
           <div className="flex space-y-6 rounded-lg py-5 px-6 flex-col items-center bg-primary-100">
             <div className="flex justify-between items-center space-x-5 mt-3">
               <button
+                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
+                  walletActionMode === 1
+                    ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
+                    : 'ring-gray-400 text-gray-400'
+                }`}
+                onClick={() => {
+                  resetForm();
+                  setWalletActionMode(1);
+                }}
+              >
+                Receive
+              </button>
+              <button
                 disabled={!canInitiate(activeWallet)}
                 className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center disabled:bg-gray-200 ${
                   walletActionMode === 0
@@ -746,19 +759,6 @@ export default function WalletView() {
                 }}
               >
                 Send
-              </button>
-              <button
-                className={`flex space-y-3 ring-1 rounded-full px-6 py-2 flex-col items-center ${
-                  walletActionMode === 1
-                    ? 'ring-primary bg-primary-200 font-bold font-montserratSemiBold'
-                    : 'ring-gray-400 text-gray-400'
-                }`}
-                onClick={() => {
-                  resetForm();
-                  setWalletActionMode(1);
-                }}
-              >
-                Receive
               </button>
               <button
                 disabled={!canInitiate(activeWallet)}
