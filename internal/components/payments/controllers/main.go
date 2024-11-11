@@ -590,7 +590,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
-
+		// trim the destination
+		paymentInfo.Destination = strings.TrimSpace(paymentInfo.Destination)
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/payment %v", sourceWalletOwnerAlias), gc.DB)
 
 		//initiatlize message holder
@@ -651,7 +652,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 				return
 			}
-
 
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
