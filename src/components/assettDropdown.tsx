@@ -7,7 +7,6 @@ import {
   TERipple,
 } from 'tw-elements-react';
 import { Asset } from '../types/asset';
-import { getAssetCode } from '../utils/utilities';
 
 type AssetDropdownItem = { text: string; value: Asset };
 
