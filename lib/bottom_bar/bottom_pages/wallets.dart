@@ -722,7 +722,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               ),
               reOrderClaimedAssets(activeWallet!),
             }),
-        height: height / 5.9,
+        height: height / 5.6,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,

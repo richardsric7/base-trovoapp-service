@@ -81,17 +81,22 @@ class _WalletSlideState extends State<WalletSlide> {
         child: Stack(
           alignment: AlignmentDirectional.centerEnd,
           children: [
-            Container(
-              width: width / 5,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/trovo_white.png',
-                    width: 40,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: width / 5,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Image.asset(
+                      //   'assets/images/trovo_white.png',
+                      //   width: 40,
+                      // ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             Padding(
               padding:
@@ -104,18 +109,25 @@ class _WalletSlideState extends State<WalletSlide> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        width: width / 2.5,
+                        width: width / 2.3,
                         child: Row(
                           children: [
-                            Text(
-                              widget.alias,
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: widget.foreColor,
-                                  fontFamily: fontsemibold),
+                            ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: width / 3.0),
+                              child: Container(
+                                child: Text(
+                                  widget.alias,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.foreColor,
+                                      fontFamily: fontsemibold),
+                                ),
+                              ),
                             ),
-                            SizedBox(width: 10),
+                            // Spacer(),
                             IconButton(
                               padding: EdgeInsets.zero,
                               color: widget.foreColor,
@@ -177,15 +189,13 @@ class _WalletSlideState extends State<WalletSlide> {
                         },
                         child: Icon(
                           getIcon(),
-                          size: 20,
+                          size: 18,
                           color: widget.foreColor,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: 2),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -206,6 +216,7 @@ class _WalletSlideState extends State<WalletSlide> {
                             ),
                           ),
                           if (widget.fiatBalance != null) ...[
+                            SizedBox(height: 2),
                             Text(
                               getBalance(widget.fiatBalance!),
                               style: TextStyle(
