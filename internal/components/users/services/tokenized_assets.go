@@ -73,6 +73,11 @@ func GetAssetManagers(db *gorm.DB) (assetManagers []userModels.AssetManager) {
 
 	return
 }
+func GetAssetManagerByID(id uint64, db *gorm.DB) (assetManager userModels.AssetManager) {
+	db.Where("id = ?", id).First(&assetManager)
+
+	return
+}
 
 func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	fees = make([]userModels.TokenizationFee, 0)
@@ -252,7 +257,20 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 
 	// initialize message array
 	input.Messages = make([]string, 0)
+	// check asset manager ID
+	if input.AssetManagerID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
+		return
+	}
 
+	// check asset manager ID
+	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
+	if am.ID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
+		return
+	}
 	//check if existing
 	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
 
