@@ -51,7 +51,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late Account newSubWalletKeyPair;
   late DataProvider appState;
   List<Asset>? unclaimedAssets;
-  List<Asset>? claimedAssets;
+  List<Asset> claimedAssets = [];
   late UserInfo userInfo;
   final carouselController = CarouselController();
   int tabLength = 2;
@@ -151,10 +151,14 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
     if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;
-      claimedAssets = wallets[0].claimedAssets;
+      claimedAssets = wallets[0]
+          .claimedAssets!
+          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+          .toList();
       unclaimedAssets = wallets[0].unClaimedAssets;
       listOfAssets = wallets[0].tokenizedAssets ?? [];
-      noXbnBalance = claimedAssets!
+      noXbnBalance = wallets[0]
+              .claimedAssets!
               .firstWhere((asset) =>
                   asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
               .amount ==
@@ -714,13 +718,17 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 () => {
                   activeWalletIndex = index == 5 ? index - 1 : index,
                   activeWallet = wallets[activeWalletIndex].publicKey,
-                  claimedAssets = wallets[activeWalletIndex].claimedAssets,
+                  claimedAssets = wallets[activeWalletIndex]
+                      .claimedAssets!
+                      .where((asset) =>
+                          asset.assetCode != '' && asset.assetIssuer != '')
+                      .toList(),
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
                   listOfAssets =
                       wallets[activeWalletIndex].tokenizedAssets ?? [],
                 },
               ),
-              reOrderClaimedAssets(activeWallet!),
+              // reOrderClaimedAssets(activeWallet!),
             }),
         height: height / 5.6,
         padEnds: false,
@@ -1003,29 +1011,26 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   }
 
   Widget showTokenAssets() {
-    var assets = claimedAssets!
-        .where((e) => e.assetCode != '' && e.assetIssuer != '')
-        .toList();
-
     return SingleChildScrollView(
       child: Column(
         children: [
-          if (assets.length > 0) ...[
+          if (claimedAssets.length > 0) ...[
             Container(
               height: height / 2.2,
               child: ReorderableListView(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
                 onReorder: (oldIndex, newIndex) {
+                  print('reodered $oldIndex $newIndex');
                   if (oldIndex < newIndex) {
                     newIndex -= 1;
                   }
-                  final Asset item = assets.removeAt(oldIndex);
-                  assets.insert(newIndex, item);
+                  final Asset item = claimedAssets.removeAt(oldIndex);
+                  claimedAssets.insert(newIndex, item);
                   setState(() {});
                 },
                 children: [
-                  for (var i = 0; i < assets.length; i++) ...[
-                    if (assets[i].assetCode != '') ...[
+                  for (var i = 0; i < claimedAssets.length; i++) ...[
+                    if (claimedAssets[i].assetCode != '') ...[
                       GestureDetector(
                         key: Key(i.toString()),
                         onTap: () {
@@ -1033,8 +1038,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               (wallet) => wallet.publicKey == activeWallet);
 
                           appState.viewData = {
-                            'assetCode': assets[i].assetCode,
-                            'assetIssuer': assets[i].assetIssuer,
+                            'assetCode': claimedAssets[i].assetCode,
+                            'assetIssuer': claimedAssets[i].assetIssuer,
                             'walletPublicKey': activeWallet,
                           };
                           appState.currentAction = PageAction(
@@ -1042,7 +1047,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                             page: AssetDetailsViewPageConfig,
                           );
                         },
-                        child: tiles(assets[i], i, activeWalletIndex),
+                        child: tiles(claimedAssets[i], i, activeWalletIndex),
                       ),
                     ]
                   ],
@@ -1093,10 +1098,11 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
+    print('reodering assets... ${appState.assetOrderings}');
     if (appState.assetOrderings[publicKey] != null) {
-      claimedAssets!.forEach((asset) => asset.userPreferredIndex =
+      claimedAssets.forEach((asset) => asset.userPreferredIndex =
           appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      claimedAssets!
+      claimedAssets
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
     }
   }
@@ -1108,5 +1114,12 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     } catch (e) {
       _refreshController.refreshFailed();
     }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    StoreData().storeInsertData('assetOrderings', appState.assetOrderings);
+    super.dispose();
   }
 }
