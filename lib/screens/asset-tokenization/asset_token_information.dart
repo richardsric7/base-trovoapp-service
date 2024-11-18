@@ -40,6 +40,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   String? assetLogo;
   bool hasAdditionalKYCRequirements = false;
   late String proceedPayoutCurrency;
+  late int proceedPayoutType;
   late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
   late int totalTokenHeldByManager;
@@ -66,6 +67,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   bool formIsValid = true;
 
   List<String> assetQuoteCurrencies = [];
+  List<Map> assetPayoutTypes = [
+    {'text': 'Crypto', 'value': 0},
+    {'text': 'Fiat', 'value': 1}
+  ];
   List<String> payoutCycleOptions = [];
 
   getdarkmodepreviousstate() async {
@@ -87,6 +92,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
             overflow: TextOverflow.ellipsis,
           ),
           value: item));
+    });
+    return options;
+  }
+
+  List<DropdownMenuItem<int>> get getAssetPayoutType {
+    List<DropdownMenuItem<int>> options = [];
+    assetPayoutTypes.forEach((item) {
+      options.add(DropdownMenuItem(
+          child: Text(
+            item['text'],
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: item['value']));
     });
     return options;
   }
@@ -120,8 +138,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       if (i == 4) {
         items.add(DropdownMenuItem(
             child: Text(
-              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
-              // "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFeeCap)}",
               overflow:
                   isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
             ),
@@ -202,6 +219,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         : data['exemptedCountries'].toString().split(',');
     hasAdditionalKYCRequirements = data['hasAdditionalKYCRequirements'] == 1;
     proceedPayoutCurrency = data['proceedPayoutCurrency'];
+    proceedPayoutType = data['proceedPayoutType'];
     assetQuoteCurrency = data['assetQuoteCurrency'];
     additionalKYCRequirements = data['additionalKYCRequirements'];
     investorAccreditationRequired = data['investorAccreditationRequired'] == 1;
@@ -1284,6 +1302,48 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ),
               ),
               SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "proceedpayouttype".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      proceedPayoutType = int.parse(value.toString());
+                    });
+                  },
+                  getAssetPayoutType,
+                  proceedPayoutType,
+                  'Select payout type',
+                  context,
+                  null,
+                  validator: (value) {
+                    if (value == null || value == value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(
                 height: height / 30,
               ),
               Row(
@@ -1648,10 +1708,13 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
           hasAdditionalKYCRequirements ? 1 : 0;
       newData['assetQuoteCurrency'] = assetQuoteCurrency;
       newData['proceedPayoutCurrency'] = proceedPayoutCurrency;
+      newData['proceedPayoutType'] = proceedPayoutType;
       newData['additionalKYCRequirements'] = additionalKYCRequirements;
       newData['investorAccreditationRequired'] =
           investorAccreditationRequired ? 1 : 0;
       newData['tokenizationFeeId'] = tokenizationFeeId;
+
+      inspect(newData);
 
       String requestBody = jsonEncode(newData);
       print('requestBody  =======> $requestBody');

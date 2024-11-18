@@ -171,8 +171,6 @@ class TokenizedAsset {
       assetManagerAddress: m["assetManagerAddress"],
       assetQuoteCurrency: m["assetQuoteCurrency"],
       assetCurrentValue: double.parse(m["assetCurrentValue"].toString()),
-      assetPercentageForTokenization:
-          double.parse(m["assetPercentageForTokenization"].toString()),
       valueOfTokenizedAsset:
           double.parse(m["valueOfTokenizedAsset"].toString()),
       protectionMethods: m["protectionMethods"],
@@ -234,12 +232,14 @@ class CustodianInfo {
   String? assetCustodianName;
   String? assetCustodianAddress;
   String? assetCustodianCountry;
+  String? requirementDocument;
 
   CustodianInfo({
     this.id,
     this.assetCustodianName,
     this.assetCustodianAddress,
     this.assetCustodianCountry,
+    this.requirementDocument,
   });
 
   CustodianInfo deserializeJson(Map<String, dynamic> m) {
@@ -248,6 +248,7 @@ class CustodianInfo {
       assetCustodianName: m["assetCustodianName"],
       assetCustodianAddress: m["assetCustodianAddress"],
       assetCustodianCountry: m["assetCustodianCountry"],
+      requirementDocument: m["requirementDocument"],
     );
   }
 }
@@ -290,7 +291,7 @@ class ClosedGroupInfo {
 class Document {
   int? id;
   String? tokenizedAssetId;
-  int? documentType;
+  String? documentType;
   String? documentTitle;
   String? documentUrl;
   DateTime? createdAt;
@@ -308,7 +309,7 @@ class Document {
     return Document(
       id: m["id"],
       tokenizedAssetId: m["tokenizedAssetId"],
-      documentType: m["documentType"],
+      documentType: m["documentType"].toString(),
       documentTitle: m["documentTitle"],
       documentUrl: m["documentUrl"],
       createdAt: DateTime.parse(m["CreatedAt"]),

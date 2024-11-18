@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -549,6 +550,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       };
 
       String requestBody = jsonEncode(map);
+      inspect(map);
+      print('requestbody $requestBody');
 
       Map responseData = await makePostRequest(
         uri: getEndpoint(),

@@ -31,15 +31,17 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late ColorNotifier notifier;
   late DataProvider appState;
   String selectedCountry = '';
-  bool hasCustodianAgreement = true;
+  // bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
-  bool hasAllRequiredDocuments = false;
+  bool hasAllRequiredCustodianDocuments = false;
+  bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
   String selectedAssetSectorId = '';
   String selectedAssetSubSectorId = '';
   String selectedAssetTypeId = '';
   String selectedAssetCustodian = '';
+  String selectedAssetManager = '';
   String secApprovalId = '';
   bool formHasError = false;
   bool isCountryPickerOpen = false;
@@ -71,8 +73,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hasSecApproval = data!["secApproval"] == 1;
       selectedCountry = data!["assetCountryLocation"];
       selectedAssetCustodian = data!["approvedAssetCustodianId"].toString();
-      hasAllRequiredDocuments = data!["approvedAssetCustodianId"] != 0;
-      hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
+      selectedAssetManager = data!["assetManagerId"].toString();
+      hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
+      hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
+      // hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
     }
   }
 
@@ -143,10 +147,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     List<DropdownMenuItem<int>> assetCustodians =
         getAssetCustodians(tokenizationData);
 
+    List<DropdownMenuItem<int>> assetManagers =
+        getAssetManagers(tokenizationData);
+
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               height: height / 50,
@@ -504,11 +512,78 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               height: height / 30,
             ),
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "assetcustodian".tr(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "selectapprovedcustodian".tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    selectedAssetCustodian = value.toString();
+                    assetCustodians = getAssetCustodians(tokenizationData);
+                  });
+                },
+                assetCustodians,
+                selectedAssetCustodian.isNotEmpty
+                    ? assetCustodians
+                        .where((element) {
+                          return element.value.toString() ==
+                              selectedAssetCustodian;
+                        })
+                        .first
+                        .value
+                    : null,
+                selectedAssetCustodian.isNotEmpty
+                    ? getSelectedAssetCustodianLabel(
+                        selectedAssetCustodian, tokenizationData)
+                    : "selectassetcustodian".tr(),
+                context,
+                null,
+                validator: (value) {
+                  if (selectedAssetCustodian.isEmpty) {
+                    return "pleaseselectassetcustodian".tr();
+                  }
+                  return null;
+                },
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
                 onPressed: () async {},
                 child: Text(
-                  "doyouhaveallrequireddocs".tr(),
+                  "pleasecheckrequirements".tr(),
                   style: TextStyle(
                     decoration: TextDecoration.underline,
                     fontSize: 13,
@@ -526,14 +601,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       scale: 1,
                       child: Radio<bool>(
                         value: true,
-                        groupValue: hasAllRequiredDocuments,
+                        groupValue: hasAllRequiredCustodianDocuments,
                         activeColor: notifier.getbluewhitecolor,
                         fillColor: MaterialStateColor.resolveWith(
                             (states) => notifier.getbluewhitecolor),
                         onChanged: (value) => {
                           setState(
                             () {
-                              hasAllRequiredDocuments = value!;
+                              hasAllRequiredCustodianDocuments = value!;
                             },
                           )
                         },
@@ -558,11 +633,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                         activeColor: notifier.getbluewhitecolor,
                         fillColor: MaterialStateColor.resolveWith(
                             (states) => notifier.getbluewhitecolor),
-                        groupValue: hasAllRequiredDocuments,
+                        groupValue: hasAllRequiredCustodianDocuments,
                         onChanged: (value) => {
                           setState(
                             () {
-                              hasAllRequiredDocuments = value!;
+                              hasAllRequiredCustodianDocuments = value!;
                             },
                           )
                         },
@@ -580,236 +655,156 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ],
             ),
-            if (hasAllRequiredDocuments) ...[
-              SizedBox(
-                height: height / 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  children: [
-                    Text(
-                      "custodianagreement".tr(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Container(
-                  width: width,
-                  child: Text(
-                    "entercustodianinformation".tr(),
-                    textAlign: TextAlign.left,
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "assetmanager".tr(),
                     style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontbody,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                ),
+                ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
-                  width: width,
-                  child: Text(
-                    "doyouhavecustodianagreement".tr(),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "selectapprovedmanager".tr(),
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                ),
-              ),
-              Row(
-                children: [
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: true,
-                          groupValue: hasCustodianAgreement,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                hasCustodianAgreement = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "yes".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: false,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          groupValue: hasCustodianAgreement,
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                hasCustodianAgreement = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "no".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    selectedAssetManager = value.toString();
+                    assetManagers = getAssetManagers(tokenizationData);
+                  });
+                },
+                assetManagers,
+                selectedAssetManager.isNotEmpty
+                    ? assetManagers
+                        .where((element) {
+                          return element.value.toString() ==
+                              selectedAssetManager;
+                        })
+                        .first
+                        .value
+                    : null,
+                selectedAssetManager.isNotEmpty
+                    ? getSelectedAssetManagerLabel(
+                        selectedAssetManager, tokenizationData)
+                    : "selectapprovedmanager".tr(),
+                context,
+                null,
+                validator: (value) {
+                  if (selectedAssetCustodian.isEmpty) {
+                    return "pleaseselectassetmanager".tr();
+                  }
+                  return null;
+                },
               ),
-              if (hasCustodianAgreement) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "selectapprovedcustodian".tr(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: TextButton(
+                onPressed: () async {},
+                child: Text(
+                  "doyouhaverequiredmanagerdocs".tr(),
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: true,
+                        groupValue: hasAllRequiredManagerDocuments,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              hasAllRequiredManagerDocuments = value!;
+                            },
+                          )
+                        },
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 70,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: dropdown(
-                    (value) {
-                      setState(() {
-                        selectedAssetCustodian = value.toString();
-                        assetCustodians = getAssetCustodians(tokenizationData);
-                      });
-                    },
-                    assetCustodians,
-                    selectedAssetCustodian.isNotEmpty
-                        ? assetCustodians
-                            .where((element) {
-                              return element.value.toString() ==
-                                  selectedAssetCustodian;
-                            })
-                            .first
-                            .value
-                        : null,
-                    selectedAssetCustodian.isNotEmpty
-                        ? getSelectedAssetCustodianLabel(
-                            selectedAssetCustodian, tokenizationData)
-                        : "selectassetcustodian".tr(),
-                    context,
-                    null,
-                    validator: (value) {
-                      if (hasCustodianAgreement &&
-                          selectedAssetCustodian.isEmpty) {
-                        return "pleaseselectassetcustodian".tr();
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ] else ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Container(
-                    width: width,
-                    child: Text(
-                      "reachouttoanapprovedcustodian".tr(),
+                    ),
+                    Text(
+                      "yes".tr(),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(
-                  height: height / 70,
+                  ],
                 ),
                 Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Container(
-                        width: width / 1.07,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
-                          color: notifier.getaddsubwalletgrey,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (var item
-                                  in getAssetCustodians(tokenizationData)) ...[
-                                Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text('- '),
-                                        item.child,
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: false,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        groupValue: hasAllRequiredManagerDocuments,
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              hasAllRequiredManagerDocuments = value!;
+                            },
+                          )
+                        },
                       ),
-                    )
+                    ),
+                    Text(
+                      "no".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
                   ],
                 ),
               ],
-            ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
             SizedBox(
               height: height / 20,
             ),
@@ -845,15 +840,20 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     if (!form!.validate() && !formHasError) return;
 
-    if (!hasAllRequiredDocuments) {
+    if (!hasAllRequiredCustodianDocuments) {
       message +=
-          "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
+          "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
     }
 
-    if (offeringType == 0 && !hasCustodianAgreement) {
+    if (!hasAllRequiredManagerDocuments) {
       message +=
-          "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
+          "You need to acquire all the documents in the asset manager's required documents list before you can proceed.\n\n";
     }
+
+    // if (offeringType == 0 && !hasCustodianAgreement) {
+    //   message +=
+    //       "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
+    // }
 
     if (message.isNotEmpty) {
       popup(context, title: "info".tr(), message: message);
@@ -876,6 +876,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "approvedAssetCustodianId": selectedAssetCustodian.length > 0
             ? int.parse(selectedAssetCustodian)
             : 1,
+        "assetManagerId": selectedAssetManager.length > 0
+            ? int.parse(selectedAssetManager)
+            : 1,
         "marketMakingWallet": marketMakingWallet,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
@@ -884,6 +887,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "numberOfTokenToBeIssued": newData['numberOfTokenToBeIssued'],
         "totalTokenHeldByManager": newData['totalTokenHeldByManager'],
         "pricePerToken": newData['pricePerToken'],
+        "proceedPayoutType": newData['proceedPayoutType'],
         "assetCode": newData['assetCode'],
         "assetName": newData['assetName'],
         "salesStart": newData['salesStart'],
@@ -939,6 +943,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
+        appState.viewData!["id"] = responseData['data']['id'];
         appState.viewData!["assetSector"] = selectedAssetSectorId;
         appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
         appState.viewData!["assetType"] = selectedAssetTypeId;
@@ -1020,12 +1025,40 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     return assetCustodians;
   }
 
+  List<DropdownMenuItem<int>> getAssetManagers(data) {
+    List<DropdownMenuItem<int>> assetManagers = [];
+    for (var i = 0; i < data!['assetManagers'].length; i++) {
+      assetManagers.add(
+        DropdownMenuItem(
+          child: Text(
+            '${data!['assetManagers'][i]['assetManagerName']}, ${data!['assetManagers'][i]['assetManagerAddress']} ${data!['assetManagers'][i]['assetManagerCountry']}',
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: data!['assetManagers'][i]['id'],
+        ),
+      );
+    }
+    return assetManagers;
+  }
+
   String getSelectedAssetCustodianLabel(id, data) {
     var label = "Select asset custodian";
     for (var i = 0; i < data!['assetCustodians'].length; i++) {
       if (data!['assetCustodians'][i]['id'] == id) {
         label =
             '${data!['assetCustodians'][i]['assetCustodianName']}, ${data!['assetCustodians'][i]['assetCustodianAddress']} ${data!['assetCustodians'][i]['assetCustodianCountry']}';
+        break;
+      }
+    }
+    return label;
+  }
+
+  String getSelectedAssetManagerLabel(id, data) {
+    var label = "Select asset manager";
+    for (var i = 0; i < data!['assetManagers'].length; i++) {
+      if (data!['assetManagers'][i]['id'] == id) {
+        label =
+            '${data!['assetManagers'][i]['assetManagerName']}, ${data!['assetManagers'][i]['assetManagerAddress']} ${data!['assetManagers'][i]['assetManagersCountry']}';
         break;
       }
     }

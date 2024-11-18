@@ -37,6 +37,7 @@ class _WalletDetailsState extends State<WalletDetails>
   int tabLength = 1;
   int activeTabIndex = 0;
   late Asset gas;
+  List<Asset> claimedAssets = [];
   late bool localHideBalance;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   String rel = '';
@@ -113,6 +114,7 @@ class _WalletDetailsState extends State<WalletDetails>
     gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
     rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
+    reOrderClaimedAssets(wallet.publicKey!);
   }
 
   void tabListener() {
@@ -154,8 +156,6 @@ class _WalletDetailsState extends State<WalletDetails>
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
     }
-
-    reOrderClaimedAssets(wallet.publicKey!);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -298,9 +298,12 @@ class _WalletDetailsState extends State<WalletDetails>
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      wallet.claimedAssets!.forEach((asset) => asset.userPreferredIndex =
+      claimedAssets = wallet.claimedAssets!
+          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+          .toList();
+      claimedAssets.forEach((asset) => asset.userPreferredIndex =
           appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      wallet.claimedAssets!
+      claimedAssets
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
     }
   }
@@ -590,9 +593,6 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget cryptoAssets() {
-    var assets = wallet.claimedAssets!
-        .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
-        .toList();
     return Container(
       height: height / 1.58,
       child: Column(
@@ -638,7 +638,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
                       child: Column(
                         children: [
-                          if (assets.length > 0) ...[
+                          if (claimedAssets.length > 0) ...[
                             Container(
                               height: height / 1.76,
                               child: ReorderableListView(
@@ -647,14 +647,17 @@ class _WalletDetailsState extends State<WalletDetails>
                                   if (oldIndex < newIndex) {
                                     newIndex -= 1;
                                   }
-                                  final Asset item = assets.removeAt(oldIndex);
-                                  assets.insert(newIndex, item);
+                                  final Asset item =
+                                      claimedAssets.removeAt(oldIndex);
+                                  claimedAssets.insert(newIndex, item);
                                   setState(() {});
                                 },
                                 children: [
-                                  for (var i = 0; i < assets.length; i++) ...[
+                                  for (var i = 0;
+                                      i < claimedAssets.length;
+                                      i++) ...[
                                     GestureDetector(
-                                      key: Key(assets[i].assetIssuer!),
+                                      key: Key(claimedAssets[i].assetIssuer!),
                                       onTap: () {
                                         appState.returnView = PageAction(
                                           state: PageState.addAll,
@@ -676,8 +679,10 @@ class _WalletDetailsState extends State<WalletDetails>
                                         }
 
                                         appState.viewData = {
-                                          'assetCode': assets[i].assetCode,
-                                          'assetIssuer': assets[i].assetIssuer,
+                                          'assetCode':
+                                              claimedAssets[i].assetCode,
+                                          'assetIssuer':
+                                              claimedAssets[i].assetIssuer,
                                           'walletPublicKey': wallet.publicKey,
                                         };
                                         appState.currentAction = PageAction(
@@ -685,7 +690,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                           page: AssetDetailsViewPageConfig,
                                         );
                                       },
-                                      child: tiles(assets[i], i),
+                                      child: tiles(claimedAssets[i], i),
                                     ),
                                   ],
                                 ],

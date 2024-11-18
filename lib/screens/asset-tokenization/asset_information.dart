@@ -91,6 +91,7 @@ class _AssetInformation extends State<AssetInformation>
     appState = Provider.of<DataProvider>(context, listen: false);
     inspect(appState.viewData);
     data = appState.viewData;
+    inspect(data);
 
     assetExisting = data!['assetAlreadyExists'] == 1;
     assetOwnership =
