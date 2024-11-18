@@ -74,28 +74,28 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     ],
   };
 
-  Map<String, int> documentTypeAndCodes = {
-    "proofOfAssetExistence": 1,
-    "proofOfAssetOwnership": 2,
-    "proofOfAssetStatusVerification": 3,
-    "assetCustodianAgreement": 4,
-    "proofOfAssetManager": 5,
-    "assetProtectionDocument": 6,
-    "assetValuationCertificate": 7,
-    "assetOwnerGovernmentID": 8,
-    "proofOfAssetCondition": 9,
-    "thirdPartyTokenizationAgreement": 10,
-    "thirdPartyAssetOwnerBusinessRegistration": 11,
-    "thirdPartyAssetOwnerProofOfAddress": 12,
-    "secApproval": 13,
-    "proofOfCompliance": 14,
-    "proofOfEnvCompliance": 15,
-    "envImpactAssessmentReport": 16,
-    "proofOfLegalCounsel": 17,
-    "legalAdvisorsContract": 18,
-    "proofofMortgagesorLiens": 19,
-    "proofofOutstandingLoans": 20,
-    "proofofLegalDisputesOnAsset": 21,
+  Map<String, String> documentTypeAndCodes = {
+    "proofOfAssetExistence": '1',
+    "proofOfAssetOwnership": '2',
+    "proofOfAssetStatusVerification": '3',
+    "assetCustodianAgreement": '4',
+    "proofOfAssetManager": '5',
+    "assetProtectionDocument": '6',
+    "assetValuationCertificate": '7',
+    "assetOwnerGovernmentID": '8',
+    "proofOfAssetCondition": '9',
+    "thirdPartyTokenizationAgreement": '10',
+    "thirdPartyAssetOwnerBusinessRegistration": '11',
+    "thirdPartyAssetOwnerProofOfAddress": '12',
+    "secApproval": '13',
+    "proofOfCompliance": '14',
+    "proofOfEnvCompliance": '15',
+    "envImpactAssessmentReport": '16',
+    "proofOfLegalCounsel": '17',
+    "legalAdvisorsContract": '18',
+    "proofofMortgagesorLiens": '19',
+    "proofofOutstandingLoans": '20',
+    "proofofLegalDisputesOnAsset": '21',
   };
 
   List<DropdownMenuItem<String>> getDocumentOptions(String rel) {
@@ -724,67 +724,67 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     documents = appState.viewData!['AssetTokenizationDocuments'] ?? [];
     for (var item in documents) {
       switch (item['documentType']) {
-        case 1:
+        case '1':
           proofOfExistenceFiles[item['documentTitle']] = item;
           break;
-        case 2:
+        case '2':
           proofOfOwnershipFiles[item['documentTitle']] = item;
           break;
-        case 3:
+        case '3':
           assetStatusVerificationFiles[item['documentTitle']] = item;
           break;
-        case 4:
+        case '4':
           assetCustodianAgreementFiles[item['documentTitle']] = item;
           break;
-        case 5:
+        case '5':
           proofOfAssetManagerFiles[item['documentTitle']] = item;
           break;
-        case 6:
+        case '6':
           assetProtectionDocumentFiles[item['documentTitle']] = item;
           break;
-        case 7:
+        case '7':
           assetValuationCertificateFiles[item['documentTitle']] = item;
           break;
-        case 8:
+        case '8':
           additionalCostOutsideValuationFiles[item['documentTitle']] = item;
           break;
-        case 9:
+        case '9':
           proofOfAssetConditionFiles[item['documentTitle']] = item;
           break;
-        case 10:
+        case '10':
           thirdPartyTokenizationAgreementFiles[item['documentTitle']] = item;
           break;
-        case 11:
+        case '11':
           thirdPartyAssetOwnerBusinessRegFiles[item['documentTitle']] = item;
           break;
-        case 12:
+        case '12':
           thirdPartyAssetOwnerProofOfAddressFiles[item['documentTitle']] = item;
           break;
-        case 13:
+        case '13':
           secRegFiles[item['documentTitle']] = item;
           break;
-        case 14:
+        case '14':
           proofOfComplianceFiles[item['documentTitle']] = item;
           break;
-        case 15:
+        case '15':
           proofOfEnvComplianceFiles[item['documentTitle']] = item;
           break;
-        case 16:
+        case '16':
           envImpactAssessmentReportFiles[item['documentTitle']] = item;
           break;
-        case 17:
+        case '17':
           proofOfLegalCounselFiles[item['documentTitle']] = item;
           break;
-        case 18:
+        case '18':
           legalAdvisorsContactFiles[item['documentTitle']] = item;
           break;
-        case 19:
+        case '19':
           proofofMortgagesorLiensFiles[item['documentTitle']] = item;
           break;
-        case 20:
+        case '20':
           proofofOutstandingLoansFiles[item['documentTitle']] = item;
           break;
-        case 21:
+        case '21':
           proofofLegalDisputesOnAssetFiles[item['documentTitle']] = item;
           break;
         default:
@@ -819,7 +819,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
 
   Future<void> uploadFile(
     PlatformFile file,
-    int documentType,
+    String documentType,
     String documentTitle,
   ) async {
     try {

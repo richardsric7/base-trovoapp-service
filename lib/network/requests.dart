@@ -436,7 +436,7 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
   required String publicKey,
   required PlatformFile file,
   required String tokenizedAssetId,
-  required int documentType,
+  required String documentType,
   required String documentTitle,
 }) async {
   Map<String, String> headers = await getRequestHeader(
