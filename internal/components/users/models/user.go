@@ -3,8 +3,6 @@ package users
 import (
 	"bytes"
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 type User struct {
@@ -251,10 +249,11 @@ type Upline struct {
 }
 
 type TrackedWallet struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`
-	Alias     string    `gorm:"index:idx_tracked_wallet_alias"`
-	Name      string    `gorm:"index:idx_tracked_wallet_name"`
+	// ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID        string `gorm:""`
+	PublicKey string `gorm:"index:idx_tracked_wallet_public_key,unique"`
+	Alias     string `gorm:"index:idx_tracked_wallet_alias"`
+	Name      string `gorm:"index:idx_tracked_wallet_name"`
 }
 
 type TrackedPublicKey struct {

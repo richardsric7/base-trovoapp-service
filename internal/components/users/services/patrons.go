@@ -253,7 +253,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		}
 
 		// do not create or modify subscription until the effective date.
-		e := tx.Create(&subscriptionLog).Error
+		e := tx.Omit(clause.Associations).Create(&subscriptionLog).Error
 
 		if e != nil {
 			log.Printf("[SubscribeToPatronPackage] error creating subscriptionLog for user [%v], error: %v\n", owner.Username, e)
@@ -272,7 +272,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscription.ValidTill = subscriptionLog.ValidTill
 			subscriptionLog.EffectiveDate = time.Now()
 
-			e := tx.Save(&subscription).Error
+			e := tx.Omit(clause.Associations).Save(&subscription).Error
 
 			if e != nil {
 				log.Printf("[SubscribeToPatronPackage] error saving subscription for user [%v], [%+v], error: %v\n", owner.Username, subscription, e)
@@ -307,7 +307,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscriptionLog.ValidTill = time.Now().AddDate(0, 1, 0) //1 month after
 
 		}
-		e := tx.Create(&subscriptionLog).Error
+		e := tx.Omit(clause.Associations).Create(&subscriptionLog).Error
 
 		if e != nil {
 			log.Printf("[SubscribeToPatronPackage] error creating subscriptionLog for user [%v], [%+v], error: %v\n", owner.Username, subscriptionLog, e)
@@ -325,7 +325,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			PatronTierID:    subscriptionLog.PatronTierID,
 			ValidTill:       subscriptionLog.ValidTill,
 		}
-		e = tx.Create(&subscription).Error
+		e = tx.Omit(clause.Associations).Create(&subscription).Error
 
 		if e != nil {
 			log.Printf("[SubscribeToPatronPackage] error creating subscription for user [%v], [%+v], error: %v\n", owner.Username, subscription, e)
@@ -429,14 +429,14 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	//get the trov quantity/equivalent needed for the USD from the market.
 	pathInput := swapModel.SwapPathInput{
 		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[0],
-		DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
+		DestinationAssetCode:   strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0],
+		DestinationAssetIssuer: strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[1],
 		DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	}
 	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 	// requiredTrovAssetEstimate = requiredUsdEstimate
 
-	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
+	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0])
 	if errGetEstimate != nil && requiredUsdWorth == "" {
 		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdWorth)
 
