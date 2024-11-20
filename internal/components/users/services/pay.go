@@ -259,7 +259,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
 	//replace possible email and the rest
-	if (destinationInfo.Username != paymentInfo.Destination) && !publicKeyPayment {
+	if (!strings.Contains(paymentInfo.Destination, destinationInfo.Username)) && !publicKeyPayment {
 		//email or phone or other ID used for payment. replace it.
 		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: [%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationInfo.Username))
 		paymentInfo.Destination = destinationInfo.Username
