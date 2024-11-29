@@ -166,12 +166,14 @@ class CustomTextFormField {
         },
         controller: controller,
         onSaved: (value) {
-          var newVal = value;
-          if (autoFormatNumber) {
-            newVal = value.toString().replaceAll(',', '');
-          }
+          if (onSaved != null) {
+            var newVal = value;
+            if (autoFormatNumber) {
+              newVal = value.toString().replaceAll(',', '');
+            }
 
-          onSaved(newVal);
+            onSaved(newVal);
+          }
         },
         onTap: onTap,
         focusNode: focusNode,

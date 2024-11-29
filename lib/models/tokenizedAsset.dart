@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 class TokenizedAsset {
   String? id;
   String? shadowId;
@@ -26,8 +28,7 @@ class TokenizedAsset {
   String? assetLongitude;
   String? assetOwnerName;
   String? assetOwnerAddress;
-  String? assetManagerName;
-  String? assetManagerAddress;
+  ManagerInfo? assetManagerInfo;
   double? assetCurrentValue;
   double? assetPercentageForTokenization;
   double? valueOfTokenizedAsset;
@@ -46,7 +47,7 @@ class TokenizedAsset {
   DateTime? salesStart;
   DateTime? salesEnd;
   int? capOnPurchase;
-  int? capQuantity;
+  double? capQuantity;
   int? capDurationInDays;
   String? proceedCycle;
   String? assetLogo;
@@ -96,8 +97,7 @@ class TokenizedAsset {
     this.assetLongitude,
     this.assetOwnerName,
     this.assetOwnerAddress,
-    this.assetManagerName,
-    this.assetManagerAddress,
+    this.assetManagerInfo,
     this.assetCurrentValue,
     this.assetPercentageForTokenization,
     this.valueOfTokenizedAsset,
@@ -139,6 +139,8 @@ class TokenizedAsset {
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
+    print('deserializing json $m');
+    inspect(m);
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],
@@ -167,8 +169,7 @@ class TokenizedAsset {
       assetLongitude: m["assetLongitude"],
       assetOwnerName: m["assetOwnerName"],
       assetOwnerAddress: m["assetOwnerAddress"],
-      assetManagerName: m["assetManagerName"],
-      assetManagerAddress: m["assetManagerAddress"],
+      assetManagerInfo: ManagerInfo().deserializeJson(m),
       assetQuoteCurrency: m["assetQuoteCurrency"],
       assetCurrentValue: double.parse(m["assetCurrentValue"].toString()),
       valueOfTokenizedAsset:
@@ -192,7 +193,7 @@ class TokenizedAsset {
       salesStart: DateTime.parse(m["salesStart"]),
       salesEnd: DateTime.parse(m["salesEnd"]),
       capOnPurchase: m["capOnPurchase"],
-      capQuantity: m["capQuantity"],
+      capQuantity: double.parse(m["capQuantity"].toString()),
       capDurationInDays: m["capDurationInDays"],
       proceedCycle: m["proceedCycle"],
       assetLogo: m["assetLogo"],
@@ -249,6 +250,31 @@ class CustodianInfo {
       assetCustodianAddress: m["assetCustodianAddress"],
       assetCustodianCountry: m["assetCustodianCountry"],
       requirementDocument: m["requirementDocument"],
+    );
+  }
+}
+
+class ManagerInfo {
+  int? id;
+  String? assetManagerName;
+  String? assetManagerAddress;
+  String? assetManagerCountry;
+  String? requirementDocument;
+
+  ManagerInfo({
+    this.id,
+    this.assetManagerName,
+    this.assetManagerAddress,
+    this.assetManagerCountry,
+  });
+
+  ManagerInfo deserializeJson(Map<String, dynamic> m) {
+    var info = m["assetManagerInfo"] != null ? m["assetManagerInfo"] : m;
+    return ManagerInfo(
+      id: m["assetManagerInfo"] != null ? info["id"] : null,
+      assetManagerName: info["assetManagerName"],
+      assetManagerAddress: info["assetManagerAddress"],
+      assetManagerCountry: info["assetManagerCountry"],
     );
   }
 }

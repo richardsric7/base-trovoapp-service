@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -43,6 +45,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     var isAlreadySubmitted = tokenizedAsset.tokenizationStatus != null;
+    inspect(appState.viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -94,7 +97,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       item("assetcode".tr(), '${tokenizedAsset.assetCode}'),
                       SizedBox(height: height / 90),
                       item("currentvalueofasset".tr(),
-                          '\$${formatNumber(tokenizedAsset.assetCurrentValue!)}'),
+                          '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                      SizedBox(height: height / 90),
+                      item("assetmanager".tr(),
+                          '${tokenizedAsset.assetManagerInfo?.assetManagerName}'),
+                      SizedBox(height: height / 90),
+                      item("assetcustodian".tr(),
+                          '${tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName}'),
                       SizedBox(height: height / 90),
                     ],
                   ),
@@ -266,7 +275,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                     //       .storeInsertData('tokenizedAsset', savedAssets);
                     // }
                     showLoader(context);
-                    await Future.delayed(Duration(seconds: 5));
+                    await Future.delayed(Duration(seconds: 1));
                     hideLoader(context);
                     appState.viewData![SuccessViewPageConfig.key] = {
                       'title': '',
@@ -274,7 +283,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       'useOnDone': true,
                       'onDone': () {
                         appState.currentAction = PageAction(
-                          state: PageState.addPage,
+                          state: PageState.replace,
                           page: TokenizationFeePaymentViewPageConfig,
                         );
                       },
@@ -282,7 +291,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           'Your asset tokenization request has been submitted successfully. Please complete the payment to proceed. We will begin processing your application once the payment is received.',
                     };
                     appState.currentAction = PageAction(
-                        state: PageState.replace, page: SuccessViewPageConfig);
+                        state: PageState.addPage, page: SuccessViewPageConfig);
                   },
                 ),
               ],
@@ -319,24 +328,34 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            key,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: notifier.getbluewhitecolor,
-              fontSize: 13.sp,
-              fontFamily: fontbody,
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: width / 2.8,
+            ),
+            child: Text(
+              key,
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: notifier.getbluewhitecolor,
+                fontSize: 13.sp,
+                fontFamily: fontbody,
+              ),
             ),
           ),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: notifier.getbluewhitecolor,
-              fontSize: 13.sp,
-              fontFamily: fontsemibold,
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: width / 2.4,
+            ),
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: notifier.getbluewhitecolor,
+                fontSize: 13.sp,
+                fontFamily: fontsemibold,
+              ),
             ),
           ),
         ],

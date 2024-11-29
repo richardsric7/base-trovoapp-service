@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -117,6 +118,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       showCountryPicker(
         context: context,
         useSafeArea: true,
+        countryFilter: ['NG'],
         onSelect: (Country country) {
           setState(() {
             selectedCountry = country.name;
@@ -581,7 +583,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                onPressed: () async {},
+                onPressed: () =>
+                    appState.goToWebView(tokenizationRequirementsUrl),
                 child: Text(
                   "pleasecheckrequirements".tr(),
                   style: TextStyle(
@@ -728,7 +731,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                onPressed: () async {},
+                onPressed: () =>
+                    appState.goToWebView(tokenizationRequirementsUrl),
                 child: Text(
                   "doyouhaverequiredmanagerdocs".tr(),
                   style: TextStyle(
@@ -941,22 +945,25 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hideLoader(context);
 
       print('responseData ${responseData['data']}');
+      inspect(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
-        appState.viewData!["id"] = responseData['data']['id'];
-        appState.viewData!["assetSector"] = selectedAssetSectorId;
-        appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
-        appState.viewData!["assetType"] = selectedAssetTypeId;
-        appState.viewData!["offeringType"] =
-            offeringType == 1 ? 'private' : 'public';
-        appState.viewData!["approvedAssetCustodianId"] =
-            selectedAssetCustodian.length > 0
-                ? int.parse(selectedAssetCustodian)
-                : 1;
-        appState.viewData!["marketMakingWallet"] = marketMakingWallet;
-        appState.viewData!["secApproval"] = hasSecApproval ? 1 : 0;
-        appState.viewData!["secApprovalIdNumber"] = secApprovalId;
-        appState.viewData!["assetCountryLocation"] = selectedCountry;
+        appState.viewData = responseData['data'];
+        // appState.viewData!["assetSector"] = selectedAssetSectorId;
+        // appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
+        // appState.viewData!["assetType"] = selectedAssetTypeId;
+        // appState.viewData!["offeringType"] =
+        //     offeringType == 1 ? 'private' : 'public';
+        // appState.viewData!["approvedAssetCustodianId"] =
+        //     selectedAssetCustodian.length > 0
+        //         ? int.parse(selectedAssetCustodian)
+        //         : 1;
+        // appState.viewData!["marketMakingWallet"] = marketMakingWallet;
+        // appState.viewData!["secApproval"] = hasSecApproval ? 1 : 0;
+        // appState.viewData!["secApprovalIdNumber"] = secApprovalId;
+        // appState.viewData!["assetCountryLocation"] = selectedCountry;
+        // appState.viewData!["assetCountryLocation"] = selectedCountry;
+        // appState.viewData!["assetCountryLocation"] = selectedCountry;
 
         appState.currentAction = PageAction(
             state: PageState.addPage, page: TokenizeAssetViewPageConfig);
@@ -1006,6 +1013,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         );
       }
     }
+    assetTypes.sort((a, b) {
+      if (a.key?.toString().toLowerCase() == 'other') return 1;
+      if (b.key?.toString().toLowerCase() == 'other') return -1;
+      return a.value?.compareTo(b.value ?? '') ?? 0;
+    });
+
     return assetTypes;
   }
 

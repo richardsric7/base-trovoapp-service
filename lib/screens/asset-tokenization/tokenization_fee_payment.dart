@@ -686,7 +686,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   if (hasMadePayment &&
                       (transactionId.isNotEmpty || recieptFile != null)) {
                     showLoader(context);
-                    await Future.delayed(Duration(seconds: 5));
+                    await Future.delayed(Duration(seconds: 1));
                     hideLoader(context);
                     appState.viewData![SuccessViewPageConfig.key] = {
                       'title': '',

@@ -41,9 +41,8 @@ class _AssetInformation extends State<AssetInformation>
   late String nameOfOwner;
   late String assetName;
   late String addressOfOwner;
-  late String assetManager;
-  late String assetManagerAddress;
   late double currentValueOfAsset;
+  late double assetMiscCost;
   late double valueOfTokenizedAsset;
   late List<String> assetProtectionInPlace;
   late String insuranceCompanyName;
@@ -57,6 +56,7 @@ class _AssetInformation extends State<AssetInformation>
   bool formHasError = false;
   late dynamic data = {};
   final valueOfAssetController = TextEditingController();
+  final miscCostOfAssetController = TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
@@ -109,10 +109,10 @@ class _AssetInformation extends State<AssetInformation>
     longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
     nameOfOwner = data['assetOwnerName'] ?? "";
     addressOfOwner = data['assetOwnerAddress'] ?? "";
-    assetManager = data['assetManagerName'] ?? "";
-    assetManagerAddress = data['assetManagerAddress'] ?? "";
     currentValueOfAsset =
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
+    assetMiscCost =
+        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
     valueOfTokenizedAsset =
         double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
     assetProtectionInPlace = data['protectionMethods'] == null ||
@@ -129,6 +129,8 @@ class _AssetInformation extends State<AssetInformation>
     valueOfAssetController.text = currentValueOfAsset == 0
         ? ''
         : formatNumberForInput(currentValueOfAsset);
+    miscCostOfAssetController.text =
+        assetMiscCost == 0 ? '' : formatNumberForInput(assetMiscCost);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
@@ -360,7 +362,7 @@ class _AssetInformation extends State<AssetInformation>
                 ],
               ),
               SizedBox(
-                height: height / 70,
+                height: height / 50,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -416,6 +418,37 @@ class _AssetInformation extends State<AssetInformation>
                         TextInputType.numberWithOptions(decimal: true),
                   ),
                 ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Container(
+                width: width,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: TextButton(
+                        onPressed: () => findCoordinatesPopup(context),
+                        style: ButtonStyle(
+                          padding: MaterialStateProperty.all(EdgeInsets.zero),
+                          minimumSize: MaterialStateProperty.all(Size.zero),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          "howtofindcoordinates".tr(),
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(
                 height: height / 50,
@@ -745,147 +778,6 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "assetmanager".tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "provideassetmanagerinfo".tr(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "whoisassetmanager".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "assetmanager".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: assetManager,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetManager = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "assetmanageraddress".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "address".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: assetManagerAddress,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetManagerAddress = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
                       "assetvalue".tr(),
                       style: TextStyle(
                         fontSize: 15,
@@ -962,7 +854,8 @@ class _AssetInformation extends State<AssetInformation>
 
                           currentValueOfAsset = double.parse(
                               value!.toString().replaceAll(',', ''));
-                          valueOfTokenizedAsset = currentValueOfAsset;
+                          valueOfTokenizedAsset =
+                              (assetMiscCost + currentValueOfAsset);
                         });
                       },
                       validator: (value) {
@@ -976,6 +869,71 @@ class _AssetInformation extends State<AssetInformation>
                       },
                       autoFormatNumber: true,
                       controller: valueOfAssetController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "assetmisccost".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "misccost".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      width / 1.12,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value.toString().isEmpty) {
+                            assetMiscCost = 0;
+                            return;
+                          }
+
+                          assetMiscCost = double.parse(
+                              value!.toString().replaceAll(',', ''));
+                          valueOfTokenizedAsset =
+                              (assetMiscCost + currentValueOfAsset);
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        assetMiscCost = double.parse(value!.toString());
+                      },
+                      autoFormatNumber: true,
+                      controller: miscCostOfAssetController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
@@ -1366,6 +1324,7 @@ class _AssetInformation extends State<AssetInformation>
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
+      inspect(data);
       var newData = {...data as Map};
 
       newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
@@ -1378,9 +1337,8 @@ class _AssetInformation extends State<AssetInformation>
       newData['assetLongitude'] = longitude.toString();
       newData['assetOwnerName'] = nameOfOwner;
       newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetManagerName'] = assetManager;
-      newData['assetManagerAddress'] = assetManagerAddress;
       newData['assetCurrentValue'] = currentValueOfAsset;
+      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;
@@ -1391,7 +1349,8 @@ class _AssetInformation extends State<AssetInformation>
           freeOfLiensAndEncumbrances ? 1 : 0;
 
       String requestBody = jsonEncode(newData);
-      print('requestBody =======> $requestBody');
+      print('requestBody =======> ');
+      inspect(newData);
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
         body: requestBody,

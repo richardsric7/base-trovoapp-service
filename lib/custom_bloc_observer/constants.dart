@@ -10,3 +10,5 @@ String bantuBlockchainExplorerBaseUrl = 'https://explorer.bantu.network/tx/';
 String bantuBlockchainExplorerTestnetBaseUrl =
     'https://explorer-testnet.bantu.network/tx/';
 String hideBalanceText = '********';
+String tokenizationRequirementsUrl =
+    'https://tokenization-requirements-app-xu8c6.ondigitalocean.app/';
