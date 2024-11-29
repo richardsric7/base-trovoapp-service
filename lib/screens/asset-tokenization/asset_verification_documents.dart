@@ -33,75 +33,195 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Map<String, List<String>> documentOptions = {
-    "proofOfExistenceFiles": <String>[
-      "Purchase Receipt",
-      "Proof of Address",
-      "Other",
-    ],
-    "proofOfOwnershipFiles": <String>[
-      "Title Deed",
-      "Bill of sale",
-      "Signed transfer of ownership",
-      "Certificate of ownership",
-      "Other",
-    ],
-    "assetStatusVerificationFiles": <String>[
-      "Inspection reports",
-      "Maintenance/repair reports",
-      "Photos",
-      "Other",
-    ],
-    "assetCustodianAgreementFiles": <String>[
-      "Asset Custodian Agreement",
-      "Other",
-    ],
-    "proofOfAssetManagerFiles": <String>[
-      "Asset Management Agreement",
-      "Other",
-    ],
-    "assetProtectionDocumentFiles": <String>[
-      "Insurance Policy Document",
-      "Bill of sale",
-      "Premium payment receipts",
-      "Inspection/maintenance report",
-      "Other",
-    ],
-    "assetValuationCertificateFiles": <String>[
-      "Asset valaution report",
-      "Asset valaution certificate",
-      "Other",
-    ],
-  };
 
-  Map<String, String> documentTypeAndCodes = {
-    "proofOfAssetExistence": '1',
-    "proofOfAssetOwnership": '2',
-    "proofOfAssetStatusVerification": '3',
-    "assetCustodianAgreement": '4',
-    "proofOfAssetManager": '5',
-    "assetProtectionDocument": '6',
-    "assetValuationCertificate": '7',
-    "assetOwnerGovernmentID": '8',
-    "proofOfAssetCondition": '9',
-    "thirdPartyTokenizationAgreement": '10',
-    "thirdPartyAssetOwnerBusinessRegistration": '11',
-    "thirdPartyAssetOwnerProofOfAddress": '12',
-    "secApproval": '13',
-    "proofOfCompliance": '14',
-    "proofOfEnvCompliance": '15',
-    "envImpactAssessmentReport": '16',
-    "proofOfLegalCounsel": '17',
-    "legalAdvisorsContract": '18',
-    "proofofMortgagesorLiens": '19',
-    "proofofOutstandingLoans": '20',
-    "proofofLegalDisputesOnAsset": '21',
-  };
+  Map<String, Map<String, dynamic>> get initDocTypeAndCodes => {
+        "proofOfAssetExistence": {
+          'name': 'Proof of Asset Existence',
+          'documentType': '1',
+          'options': <String>[
+            "Purchase Receipt",
+            "Proof of Address",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfAssetOwnership": {
+          'name': 'Proof Of Asset Ownership',
+          'documentType': '2',
+          'options': <String>[
+            "Title Deed",
+            "Bill of sale",
+            "Signed transfer of ownership",
+            "Certificate of ownership",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfAssetStatusVerification": {
+          'name': 'Proof Of Asset Status Verification',
+          'documentType': '3',
+          'options': <String>[
+            "Inspection reports",
+            "Maintenance/repair reports",
+            "Photos",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "assetCustodianAgreement": {
+          'name': 'Asset Custodian Agreement',
+          'documentType': '4',
+          'options': <String>[
+            "Asset Custodian Agreement",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfAssetManager": {
+          'name': 'Proof of Asset Manager',
+          'documentType': '5',
+          'options': <String>[
+            "Asset Management Agreement",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "assetProtectionDocument": {
+          'name': 'Asset Protection Document',
+          'documentType': '6',
+          'options': <String>[
+            "Insurance Policy Document",
+            "Bill of sale",
+            "Premium payment receipts",
+            "Inspection/maintenance report",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "assetValuationCertificate": {
+          'name': 'Asset Valuation Certificate',
+          'documentType': '7',
+          'options': <String>[
+            "Asset valaution report",
+            "Asset valaution certificate",
+            "Other",
+          ],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "additionalCostOutsideValuation": {
+          'name': 'Proof of Additional Cost Outside Valuation',
+          'documentType': '8',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfAssetCondition": {
+          'name': 'Proof of Asset\'s Condition',
+          'documentType': '9',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "thirdPartyTokenizationAgreement": {
+          'name': 'Third Party Tokenization Agreement',
+          'documentType': '10',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "thirdPartyAssetOwnerBusinessRegistration": {
+          'name': 'Third Party Asset Owner Business Registration',
+          'documentType': '11',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "thirdPartyAssetOwnerProofOfAddress": {
+          'name': 'Third Party Asset Owner Proof Of Address',
+          'documentType': '12',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "secApproval": {
+          'name': 'SEC Registration/Tokenization Approval',
+          'documentType': '13',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfCompliance": {
+          'name': 'Proof of Compliance with Local Laws and Regulations',
+          'documentType': '14',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfEnvCompliance": {
+          'name': 'Proof of Compliance with Environmental Standards',
+          'documentType': '15',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "envImpactAssessmentReport": {
+          'name': 'Environmental Impact Assessment Report',
+          'documentType': '16',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfLegalCounsel": {
+          'name': 'Proof of Legal/Financial Counsel',
+          'documentType': '17',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "legalAdvisorsContact": {
+          'name': 'Legal/Financial Advisors Contact',
+          'documentType': '18',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofofMortgagesorLiens": {
+          'name': 'Proof of Mortgages or Liens',
+          'documentType': '19',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofofOutstandingLoans": {
+          'name': 'Proof of Outstanding Loans',
+          'documentType': '20',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofofLegalDisputesOnAsset": {
+          'name': 'Proof of  Legal Disputes or Encumbrances on Asset',
+          'documentType': '21',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+      };
 
-  List<DropdownMenuItem<String>> getDocumentOptions(String rel) {
+  Map<String, Map<String, dynamic>> documentTypeAndCodes = {};
+
+  List<DropdownMenuItem<String>> getDocumentOptions(
+      List<String> documentOptions) {
     List<DropdownMenuItem<String>> documentOption = [];
-    if (documentOptions[rel] != null) {
-      documentOptions[rel]!.forEach((item) {
+    if (documentOptions.length > 0) {
+      documentOptions.forEach((item) {
         documentOption.add(DropdownMenuItem(
             child: Text(
               item,
@@ -113,70 +233,27 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     return documentOption;
   }
 
-  String selectedProofOfExistenceOption = '';
-  Map<String, dynamic> proofOfExistenceFiles = {};
-
-  String selectedProofOfOwnershipOption = '';
-  Map<String, dynamic> proofOfOwnershipFiles = {};
-
-  String selectedAssetStatusVerificationOption = '';
-  Map<String, dynamic> assetStatusVerificationFiles = {};
-
-  String selectedAssetCustodianAgreementOption = '';
-  Map<String, dynamic> assetCustodianAgreementFiles = {};
-
-  String selectedProofOfAssetManagerOption = '';
-  Map<String, dynamic> proofOfAssetManagerFiles = {};
-
-  String selectedAssetProtectionDocumentOption = '';
-  Map<String, dynamic> assetProtectionDocumentFiles = {};
-
-  String selectedAssetValuationCertificateOption = '';
-  Map<String, dynamic> assetValuationCertificateFiles = {};
-
-  String selectedProofOfAdditionalCostOutsideValuationOption = '';
-  Map<String, dynamic> additionalCostOutsideValuationFiles = {};
-
-  String selectedProofOfAssetConditionOption = '';
-  Map<String, dynamic> proofOfAssetConditionFiles = {};
-
-  String selectedThirdPartyTokenizationAgreementOption = '';
-  Map<String, dynamic> thirdPartyTokenizationAgreementFiles = {};
-
-  String selectedThirdPartyAssetOwnerBusinessRegOption = '';
-  Map<String, dynamic> thirdPartyAssetOwnerBusinessRegFiles = {};
-
-  String selectedThirdPartyAssetOwnerProofOfAddressOption = '';
-  Map<String, dynamic> thirdPartyAssetOwnerProofOfAddressFiles = {};
-
-  String selectedSecApprovalOption = '';
-  Map<String, dynamic> secRegFiles = {};
-
-  String selectedProofOfComplianceOption = '';
-  Map<String, dynamic> proofOfComplianceFiles = {};
-
-  String selectedProofOfEnvComplianceOption = '';
-  Map<String, dynamic> proofOfEnvComplianceFiles = {};
-
-  String selectedEnvImpactAssessmentReportOption = '';
-  Map<String, dynamic> envImpactAssessmentReportFiles = {};
-
-  String selectedProofofLegalCounselOption = '';
-  Map<String, dynamic> proofOfLegalCounselFiles = {};
-
-  String selectedLegalAdvisorsContactOption = '';
-  Map<String, dynamic> legalAdvisorsContactFiles = {};
-
-  String selectedProofofMortgagesorLiensOption = '';
-  Map<String, dynamic> proofofMortgagesorLiensFiles = {};
-
-  String selectedProofofOutstandingLoansOption = '';
-  Map<String, dynamic> proofofOutstandingLoansFiles = {};
-
-  String selectedProofofLegalDisputesOnAssetOption = '';
-  Map<String, dynamic> proofofLegalDisputesOnAssetFiles = {};
-
   late dynamic documents = {};
+
+  List<DropdownMenuItem<String>> get getDocumentsList {
+    List<DropdownMenuItem<String>> documentOptions = [];
+
+    documentTypeAndCodes.forEach((key, value) {
+      documentOptions.add(
+        DropdownMenuItem(
+          child: Text(
+            value['name'].toString(),
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return documentOptions;
+  }
+
+  Map<String, Widget> selectedDocuments = {};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -191,6 +268,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
     initializeData();
     super.initState();
     getdarkmodepreviousstate();
@@ -215,309 +293,43 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(
-              height: height / 30,
-            ),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfAssetExistence']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Asset Existence"
-                        : selectedOption,
-                  );
-                },
-                label: 'Proof of Asset Existence',
-                selectedOption: selectedProofOfExistenceOption,
-                uploadedFiles: proofOfExistenceFiles,
-                documentOptions: getDocumentOptions('proofOfExistenceFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfAssetOwnership']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Asset Ownership"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofOfOwnershipOption,
-                uploadedFiles: proofOfOwnershipFiles,
-                label: 'Proof of Ownership',
-                documentOptions: getDocumentOptions('proofOfOwnershipFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfAssetStatusVerification']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Asset Status Verification"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedAssetStatusVerificationOption,
-                uploadedFiles: assetStatusVerificationFiles,
-                label: 'Asset Status Verification',
-                documentOptions:
-                    getDocumentOptions('assetStatusVerificationFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['assetCustodianAgreement']!,
-                    selectedOption.isEmpty
-                        ? "Asset Custodian Agreement"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedAssetCustodianAgreementOption,
-                uploadedFiles: assetCustodianAgreementFiles,
-                label: 'Asset Custodian Agreement',
-                documentOptions:
-                    getDocumentOptions('assetCustodianAgreementFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfAssetManager']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Asset Manager"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofOfAssetManagerOption,
-                uploadedFiles: proofOfAssetManagerFiles,
-                label: 'Proof of Asset Manager',
-                documentOptions:
-                    getDocumentOptions('proofOfAssetManagerFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['assetProtectionDocument']!,
-                    selectedOption.isEmpty
-                        ? "Asset Protection Document"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedAssetProtectionDocumentOption,
-                uploadedFiles: assetProtectionDocumentFiles,
-                label: 'Asset Protection Document',
-                documentOptions:
-                    getDocumentOptions('assetProtectionDocumentFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['assetValuationCertificate']!,
-                    selectedOption.isEmpty
-                        ? "Asset Valuation Certificate"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedAssetValuationCertificateOption,
-                uploadedFiles: assetValuationCertificateFiles,
-                label: 'Asset Valuation Certificate',
-                documentOptions:
-                    getDocumentOptions('assetValuationCertificateFiles')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['assetOwnerGovernmentID']!,
-                    selectedOption.isEmpty
-                        ? "Asset Owner Government ID"
-                        : selectedOption,
-                  );
-                },
-                selectedOption:
-                    selectedProofOfAdditionalCostOutsideValuationOption,
-                uploadedFiles: additionalCostOutsideValuationFiles,
-                label: 'Proof of Additional Cost Outside Valuation',
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfAssetCondition']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Asset Condition"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofOfAssetConditionOption,
-                uploadedFiles: proofOfAssetConditionFiles,
-                label: "Proof of Asset's Condition",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['thirdPartyTokenizationAgreement']!,
-                    selectedOption.isEmpty
-                        ? "Third Party Tokenization Agreement"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedThirdPartyTokenizationAgreementOption,
-                uploadedFiles: thirdPartyTokenizationAgreementFiles,
-                label: "Third Party Tokenization Agreement",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes[
-                        'thirdPartyAssetOwnerBusinessRegistration']!,
-                    selectedOption.isEmpty
-                        ? "Third Party Asset Owner Business Registration"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedThirdPartyAssetOwnerBusinessRegOption,
-                uploadedFiles: thirdPartyAssetOwnerBusinessRegFiles,
-                label: "Third Party Asset Owner’s Business Registration",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['thirdPartyAssetOwnerProofOfAddress']!,
-                    selectedOption.isEmpty
-                        ? "Third Party Asset Owner Proof Of Address"
-                        : selectedOption,
-                  );
-                },
-                selectedOption:
-                    selectedThirdPartyAssetOwnerProofOfAddressOption,
-                uploadedFiles: thirdPartyAssetOwnerProofOfAddressFiles,
-                label: "Third Party Asset Owner’s Proof of Address",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['secApproval']!,
-                    selectedOption.isEmpty ? "SEC Approval" : selectedOption,
-                  );
-                },
-                selectedOption: selectedSecApprovalOption,
-                uploadedFiles: secRegFiles,
-                label: "SEC Registration/Tokenization Approval",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfCompliance']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Compliance"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofOfComplianceOption,
-                uploadedFiles: proofOfComplianceFiles,
-                label: "Proof of Compliance with Local Laws and Regulations",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfEnvCompliance']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Env. Compliance"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofOfEnvComplianceOption,
-                uploadedFiles: proofOfEnvComplianceFiles,
-                label: "Proof of Compliance with Environmental Standards",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['envImpactAssessmentReport']!,
-                    selectedOption.isEmpty
-                        ? "Env. Impact Assessment Report"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedEnvImpactAssessmentReportOption,
-                uploadedFiles: envImpactAssessmentReportFiles,
-                label: "Environmental Impact Assessment Report",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofOfLegalCounsel']!,
-                    selectedOption.isEmpty
-                        ? "Proof Of Legal Counsel"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofofLegalCounselOption,
-                uploadedFiles: proofOfLegalCounselFiles,
-                label: "Proof of Legal/Financial Counsel",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['legalAdvisorsContract']!,
-                    selectedOption.isEmpty
-                        ? "Legal Advisors Contract"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofofLegalCounselOption,
-                uploadedFiles: proofOfLegalCounselFiles,
-                label: "Legal/Financial Advisors Contact",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofofMortgagesorLiens']!,
-                    selectedOption.isEmpty
-                        ? "Proof of Mortgages or Liens"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofofMortgagesorLiensOption,
-                uploadedFiles: proofofMortgagesorLiensFiles,
-                label: "Proof of Existing Mortgages or Liens on Asset",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofofOutstandingLoans']!,
-                    selectedOption.isEmpty
-                        ? "Proof of Outstanding Loans"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofofOutstandingLoansOption,
-                uploadedFiles: proofofOutstandingLoansFiles,
-                label: "Proof of Outstanding Loans on Asset",
-                documentOptions: getDocumentOptions('String rel')),
-            proofDocumentItem(
-                onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(
-                    file,
-                    documentTypeAndCodes['proofofLegalDisputesOnAsset']!,
-                    selectedOption.isEmpty
-                        ? "Proof of Legal Disputes On Asset"
-                        : selectedOption,
-                  );
-                },
-                selectedOption: selectedProofofLegalDisputesOnAssetOption,
-                uploadedFiles: proofofLegalDisputesOnAssetFiles,
-                label: "Proof of  Legal Disputes or Encumbrances on Asset",
-                documentOptions: getDocumentOptions('String rel')),
+            if (documentTypeAndCodes.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    var val = documentTypeAndCodes[value] as dynamic;
+                    setState(() {
+                      var files = val['files'];
+                      selectedDocuments[val['documentType']] =
+                          proofDocumentItem(
+                        onDone: (String selectedOption, PlatformFile file) {
+                          uploadFile(
+                            file,
+                            val['documentType'],
+                            selectedOption.isEmpty
+                                ? val['name']
+                                : selectedOption,
+                          );
+                        },
+                        label: val['name'],
+                        selectedOption: val['selectedFileOption'],
+                        uploadedFiles: files,
+                        documentOptions: getDocumentOptions(val['options']),
+                      );
+                    });
+                  },
+                  getDocumentsList,
+                  null,
+                  'Select document',
+                  context,
+                  null,
+                ),
+              ),
+            ],
+            for (var item in selectedDocuments.entries) ...[
+              item.value,
+            ],
             SizedBox(
               height: height / 30,
             ),
@@ -698,94 +510,432 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   }
 
   void initializeData() {
-    proofOfExistenceFiles = {};
-    proofOfOwnershipFiles = {};
-    assetStatusVerificationFiles = {};
-    assetCustodianAgreementFiles = {};
-    proofOfAssetManagerFiles = {};
-    assetProtectionDocumentFiles = {};
-    assetValuationCertificateFiles = {};
-    additionalCostOutsideValuationFiles = {};
-    proofOfAssetConditionFiles = {};
-    thirdPartyTokenizationAgreementFiles = {};
-    thirdPartyAssetOwnerBusinessRegFiles = {};
-    thirdPartyAssetOwnerProofOfAddressFiles = {};
-    secRegFiles = {};
-    proofOfComplianceFiles = {};
-    proofOfEnvComplianceFiles = {};
-    envImpactAssessmentReportFiles = {};
-    proofOfLegalCounselFiles = {};
-    legalAdvisorsContactFiles = {};
-    proofofMortgagesorLiensFiles = {};
-    proofofOutstandingLoansFiles = {};
-    proofofLegalDisputesOnAssetFiles = {};
-
-    inspect(appState.viewData);
+    documentTypeAndCodes = initDocTypeAndCodes;
+    selectedDocuments.clear();
+    // inspect(appState.viewData!['AssetTokenizationDocuments']);
+    print(selectedDocuments);
     documents = appState.viewData!['AssetTokenizationDocuments'] ?? [];
     for (var item in documents) {
       switch (item['documentType']) {
         case '1':
-          proofOfExistenceFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfAssetExistence'];
+          val?['files'][item['documentTitle'].toString()] = item;
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '2':
-          proofOfOwnershipFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfAssetOwnership'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '3':
-          assetStatusVerificationFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfAssetStatusVerification'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '4':
-          assetCustodianAgreementFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['assetCustodianAgreement'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '5':
-          proofOfAssetManagerFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfAssetManager'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '6':
-          assetProtectionDocumentFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['assetProtectionDocument'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '7':
-          assetValuationCertificateFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['assetValuationCertificate'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '8':
-          additionalCostOutsideValuationFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['additionalCostOutsideValuation'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '9':
-          proofOfAssetConditionFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfAssetCondition'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '10':
-          thirdPartyTokenizationAgreementFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['thirdPartyTokenizationAgreement'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '11':
-          thirdPartyAssetOwnerBusinessRegFiles[item['documentTitle']] = item;
+          var val =
+              documentTypeAndCodes['thirdPartyAssetOwnerBusinessRegistration'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '12':
-          thirdPartyAssetOwnerProofOfAddressFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['thirdPartyAssetOwnerProofOfAddress'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '13':
-          secRegFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['secApproval'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '14':
-          proofOfComplianceFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfCompliance'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '15':
-          proofOfEnvComplianceFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfEnvCompliance'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '16':
-          envImpactAssessmentReportFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['envImpactAssessmentReport'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '17':
-          proofOfLegalCounselFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofOfLegalCounsel'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '18':
-          legalAdvisorsContactFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['legalAdvisorsContact'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '19':
-          proofofMortgagesorLiensFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofofMortgagesorLiens'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '20':
-          proofofOutstandingLoansFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofofOutstandingLoans'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         case '21':
-          proofofLegalDisputesOnAssetFiles[item['documentTitle']] = item;
+          var val = documentTypeAndCodes['proofofLegalDisputesOnAsset'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
           break;
         default:
       }
@@ -793,6 +943,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   }
 
   Future<void> refreshCurrentTokenizationInfo() async {
+    print('refreshing tokenization info');
     try {
       var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
 
@@ -802,11 +953,11 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
+      inspect(responseData);
+      // print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         print('success');
         appState.viewData = responseData['data'];
-        inspect(appState.viewData);
         initializeData();
         setState(() {});
       } else {

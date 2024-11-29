@@ -2643,6 +2643,140 @@ shareAccessInfoPopup(context) async {
       });
 }
 
+findCoordinatesPopup(context) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
+                    child: Center(
+                      child: Text(
+                        "howtofindcoordinates".tr(),
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.8,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 20.0),
+                            child: RichText(
+                              text: TextSpan(
+                                text: "",
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '${"findcordinatesondesktop".tr()}\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        '${"findcordinatesondesktopsteps".tr()}\n\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        '${"findcordinatesonsmartphone".tr()}\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        "findcordinatesonsmartphonesteps".tr(),
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              textAlign: TextAlign.justify,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(), // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ));
+      });
+}
+
 void rejectionReasonPopup(context, void Function(String) action) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;

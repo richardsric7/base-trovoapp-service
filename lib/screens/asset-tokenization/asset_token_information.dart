@@ -49,7 +49,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late String assetName;
   late DateTime? salesStart;
   late DateTime? salesEnd;
-  late int capQuantity;
+  late double capQuantity;
   late String assetQuoteCurrency;
   late int capDurationInDays;
   late String proceedCycle;
@@ -63,6 +63,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   final numberOfTokenToBeIssuedController = TextEditingController();
   final numberOfTokenToBeSoldController = TextEditingController();
   final capQuantityController = TextEditingController();
+  final capAmountController = TextEditingController();
   final capDurationInDaysController = TextEditingController();
   bool formIsValid = true;
 
@@ -128,7 +129,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         i < appState.tokenizationData["tokenizationFees"].length;
         i++) {
       var item = appState.tokenizationData["tokenizationFees"][i];
-      print(item['feeDescription']);
       var fiatPercentage = item['feeFiatPercentage'];
       var assetPercentage = item['feeAssetPercentage'];
       var fiatFeeCap = double.parse(item['feeFiatCap'].toString());
@@ -138,7 +138,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       if (i == 4) {
         items.add(DropdownMenuItem(
             child: Text(
-              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFeeCap)}",
+              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber((data['assetCurrentValue'] * 0.5) / 100)}",
               overflow:
                   isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
             ),
@@ -210,7 +210,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     salesEnd =
         parsedSalesEnd.year == DateTime(0001).year ? null : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
-    capQuantity = data['capQuantity'];
+    capQuantity = double.parse(data['capQuantity'].toString());
     capDurationInDays = data['capDurationInDays'];
     proceedCycle = data['proceedCycle'];
     assetLogo = data['assetLogo'];
@@ -232,6 +232,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? ''
         : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
     capQuantityController.text = capQuantity == 0 ? '' : capQuantity.toString();
+    capAmountController.text =
+        capQuantity == 0 ? '' : (capQuantity * pricePerToken).toString();
     capDurationInDaysController.text =
         capDurationInDays == 0 ? '' : capDurationInDays.toString();
     super.initState();
@@ -587,7 +589,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         return null;
                       },
                       onChanged: (value) {
-                        print('this is value $value');
                         setState(() {
                           var val = value.toString().replaceAll('.', '');
                           numberOfTokenToBeSold =
@@ -974,7 +975,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           (salesStart == null ||
                               salesStart == DateTime(0))) ...[
                         Text(
-                          "pleaseuploadassetlogo".tr(),
+                          "pleaseselectdate".tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontFamily: fontbody,
@@ -1028,18 +1029,42 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       if (!formIsValid &&
                           (salesEnd == null || salesEnd == DateTime(0))) ...[
                         Text(
-                          "pleaseuploadassetlogo".tr(),
+                          "pleaseselectdate".tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontFamily: fontbody,
                             color: Colors.red,
                           ),
                         ),
-                      ],
+                      ]
                     ],
                   ),
                 ],
               ),
+              SizedBox(
+                height: height / 80,
+              ),
+              if (!formIsValid &&
+                  salesEnd != null &&
+                  salesEnd!.isBefore(salesStart!)) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "salesendmustbeaftersalesstart".tr(),
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               SizedBox(
                 height: height / 50,
               ),
@@ -1134,7 +1159,56 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         },
                         onSaved: (value) {
                           setState(() {
-                            capQuantity = int.parse(value!);
+                            capQuantity = double.parse(value!);
+                          });
+                        },
+                        autoFormatNumber: true,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "capamount".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "amount".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        300.sp,
+                        controller: capAmountController,
+                        onChanged: (value) {
+                          setState(() {
+                            capQuantity = int.parse(value!) / pricePerToken;
+                            capQuantityController.text = capQuantity.toString();
                           });
                         },
                         autoFormatNumber: true,
@@ -1542,7 +1616,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       onChanged: (value) {
                         setState(() {
                           hasAdditionalKYCRequirements = false;
-                          print('addAdditionalKyc: $value');
                         });
                       },
                     ),
@@ -1638,6 +1711,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       formIsValid = false;
                     }
 
+                    if (salesEnd!.isBefore(salesStart!)) {
+                      formIsValid = false;
+                    }
+
                     if (assetLogo == null) {
                       formIsValid = false;
                     }
@@ -1717,7 +1794,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       inspect(newData);
 
       String requestBody = jsonEncode(newData);
-      print('requestBody  =======> $requestBody');
+      // print('requestBody  =======> $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1729,7 +1806,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
       hideLoader(context);
 
-      print('responseData token information  ${responseData['data']}');
+      // print('responseData token information  ${responseData['data']}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
@@ -1755,9 +1832,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> token informationresponse ${responseData}');
+      // print('===============> token informationresponse ${responseData}');
       if (responseData['statusCode'] == 200) {
-        print('success');
         appState.viewData = responseData['data'];
         await inspect(appState.viewData);
       } else {
