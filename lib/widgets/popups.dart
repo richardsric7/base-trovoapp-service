@@ -5900,10 +5900,16 @@ addSubWalletPopup(context) async {
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
-                onPressed: () => Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop(false),
+                onPressed: () {
+                  setStateForDialog(() {
+                    appState.returnView = null;
+                    isFromTokenizationView = false;
+                  });
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop(false);
+                },
               ),
               SizedBox(height: height / 20),
             ],
