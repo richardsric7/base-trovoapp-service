@@ -42,7 +42,7 @@ class _SharedAccessState extends State<SharedAccess>
   TextEditingController initiatorsController = TextEditingController();
   final approversFormKey = GlobalKey<FormState>();
   late RefreshController _refreshController;
-  List<Wallet>? shareableWallets;
+  List<Wallet> shareableWallets = [];
   Wallet? activeWallet;
   String selectedWallet = '';
   dynamic selectedFilter = 'All';
@@ -138,7 +138,7 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
-    return shareableWallets!.map<DropdownMenuItem<String>>((wallet) {
+    return shareableWallets.map<DropdownMenuItem<String>>((wallet) {
       return DropdownMenuItem(
           child: Text(
             wallet.alias!,
@@ -234,7 +234,8 @@ class _SharedAccessState extends State<SharedAccess>
       query: appState.filterQuery,
     );
     appState.sharedAccesstabController = TabController(length: 3, vsync: this);
-    selectedWallet = shareableWallets!.first.publicKey!;
+    selectedWallet =
+        shareableWallets.isNotEmpty ? shareableWallets.first.publicKey! : '';
 
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
             appState.returnView!.pages!
@@ -249,7 +250,7 @@ class _SharedAccessState extends State<SharedAccess>
       if (appState.backupSecrets.isNotEmpty) {
         Account account =
             TrovoWalletSDK().parseSecretKey(appState.backupSecrets.first);
-        activeWallet = shareableWallets!
+        activeWallet = shareableWallets
             .where((wallet) => wallet.publicKey == account.publicKey)
             .first;
         selectedWallet = account.publicKey;
@@ -265,8 +266,8 @@ class _SharedAccessState extends State<SharedAccess>
     width = MediaQuery.of(context).size.width;
     shareableWallets = appState.userInfo!.getShareableWallets;
 
-    if (shareableWallets!.where((w) => w.publicKey == selectedWallet).isEmpty) {
-      selectedWallet = shareableWallets!.first.publicKey!;
+    if (shareableWallets.where((w) => w.publicKey == selectedWallet).isEmpty) {
+      selectedWallet = shareableWallets.first.publicKey!;
     }
 
     return ScreenUtilInit(

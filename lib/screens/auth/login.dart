@@ -168,7 +168,7 @@ class _LoginState extends State<Login> {
             ),
             Column(
               children: [
-                SizedBox(height: height / 20),
+                SizedBox(height: height / 40),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Row(
@@ -222,6 +222,7 @@ class _LoginState extends State<Login> {
                                         Icon(
                                           CustomIcon.globeOutlined,
                                           size: 18,
+                                          color: notifier.getbluewhitecolor,
                                         ),
                                         SizedBox(
                                           width: 6,
@@ -229,6 +230,9 @@ class _LoginState extends State<Login> {
                                         Text(
                                           "testnet".tr(),
                                           overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -240,6 +244,7 @@ class _LoginState extends State<Login> {
                                         Icon(
                                           CustomIcon.globeOutlined,
                                           size: 18,
+                                          color: notifier.getbluewhitecolor,
                                         ),
                                         SizedBox(
                                           width: 6,
@@ -247,6 +252,9 @@ class _LoginState extends State<Login> {
                                         Text(
                                           "mainnet".tr(),
                                           overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                          ),
                                         ),
                                       ],
                                     ),

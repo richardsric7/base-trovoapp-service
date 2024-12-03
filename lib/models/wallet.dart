@@ -129,7 +129,11 @@ class Wallet {
       accesses!.contains('INITIATOR');
 
   bool get canInitiate =>
-      (!isSharedWallet || isInitiator || isPrimaryWallet) && walletType == 0;
+      (!isSharedWallet ||
+          isInitiator ||
+          isPrimaryWallet ||
+          walletThreshold == 1) &&
+      walletType == 0;
 
   bool get isPrimaryWallet => primaryWallet == 1;
 

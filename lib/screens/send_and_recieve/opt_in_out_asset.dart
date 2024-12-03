@@ -137,7 +137,6 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             'assetIssuer': asset.assetIssuer,
             'assetCode': asset.assetCode,
           };
-          print('fokit:!!!!! ${asset.imageUrl}');
         } else {
           // if the record already exists which means its a curated asset that
           // we have already added to our claimed assets then we set the removable

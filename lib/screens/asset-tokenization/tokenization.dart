@@ -124,8 +124,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   borderRadius: BorderRadius.circular(15.0),
                 ),
                 color: notifier.isDark
-                    ? notifier.getaddsubwalletgrey
-                    : notifier.getbluecolor90,
+                    ? notifier.getbluecolor90
+                    : notifier.getaddsubwalletgrey,
                 child: Center(
                   child: Column(
                     children: [
@@ -138,7 +138,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
-                          color: notifier.getwihitecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                       SizedBox(
@@ -151,7 +151,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           fontSize: 13,
                           height: 1.4,
                           fontFamily: fontbody,
-                          color: notifier.getwihitecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                       SizedBox(
@@ -188,7 +188,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                               overlayColor: MaterialStateProperty.all<Color>(
                                   notifier.getsplashgrey),
                               backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluewhitecolor),
+                                notifier.isDark
+                                    ? notifier.getbluecolor90
+                                    : notifier.getaddsubwalletgrey,
+                              ),
                               side: MaterialStateProperty.all(
                                 BorderSide(
                                     color: notifier.getbluewhitecolor,
@@ -212,7 +215,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   Icon(
                                     Icons.add_circle_rounded,
                                     size: 20,
-                                    color: notifier.getwihitecolor,
+                                    color: notifier.getbluewhitecolor,
                                   ),
                                   SizedBox(
                                     width: 4,
@@ -222,7 +225,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                     style: TextStyle(
                                         fontFamily: fontsemibold,
                                         fontSize: 12,
-                                        color: notifier.getwihitecolor),
+                                        color: notifier.getbluewhitecolor),
                                   ),
                                 ],
                               ),
@@ -311,7 +314,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontFamily: fontsemibold,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                   ),
                                 ),
                               ],
@@ -328,7 +331,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontFamily: fontbody,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                   ),
                                 ),
                               ),
@@ -337,7 +340,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontFamily: fontsemibold,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ],
@@ -687,8 +690,11 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             child: Card(
               shadowColor: Colors.black,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5.0),
-              ),
+                  borderRadius: BorderRadius.circular(5.0),
+                  side: BorderSide(
+                    color: notifier.getbluewhitecolor,
+                    width: 1,
+                  )),
               color: notifier.isDark
                   ? notifier.getbluecolor90
                   : notifier.getaddsubwalletgrey,
@@ -786,7 +792,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       case 'approved':
         return notifier.getgreencolor;
       default: // pending
-        return notifier.getbluecolor;
+        return notifier.getbluewhitecolor;
     }
   }
 }

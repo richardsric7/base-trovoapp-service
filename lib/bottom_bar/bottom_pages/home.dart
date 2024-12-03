@@ -150,7 +150,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               Column(
                 children: [
                   SizedBox(
-                    height: 45,
+                    height: 5,
                   ),
                   firstRow(),
                   if (userInfo.hasSecurityQuestions == 0) ...[
@@ -217,7 +217,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(15.0)),
-                          color: notifier.getbluewhitecolor,
+                          color: notifier.getbluecolor,
                           // color: colors[wallets.indexOf(wallet)],
                         ),
                         child: Stack(
@@ -260,8 +260,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w600,
-                                                  color:
-                                                      notifier.getwihitecolor,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
                                                   fontFamily: fontsemibold),
                                             ),
                                             SizedBox(),
@@ -291,7 +291,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               child: Icon(
                                                 getIcon(),
                                                 size: 20,
-                                                color: notifier.getwihitecolor,
+                                                color:
+                                                    notifier.getbluewhitecolor,
                                               ),
                                             ),
                                           ],
@@ -311,7 +312,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: notifier.getwihitecolor,
+                                        color: notifier.getbluewhitecolor,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -324,7 +325,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w300,
                                         fontSize: 13,
-                                        color: notifier.getwihitecolor,
+                                        color: notifier.getbluewhitecolor,
                                         fontFamily: fontbody,
                                       ),
                                     ),
