@@ -236,18 +236,19 @@ class _WalletDetailsState extends State<WalletDetails>
                                         children: [
                                           Icon(
                                             Icons.local_gas_station,
-                                            color: notifier.getbluecolor,
+                                            color: notifier.getbluewhitecolor,
                                           ),
                                           Container(
                                             width: 100,
                                             child: Text(
-                                              'Gas ${formatHistoryNumber(gas.amount!, 1000)}',
+                                              '${"gas".tr()} ${formatHistoryNumber(gas.amount!, 1000)}',
                                               overflow: TextOverflow.visible,
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
                                                 fontFamily: fontsemibold,
-                                                color: notifier.getbluecolor,
+                                                color:
+                                                    notifier.getbluewhitecolor,
                                                 overflow: TextOverflow.visible,
                                               ),
                                             ),

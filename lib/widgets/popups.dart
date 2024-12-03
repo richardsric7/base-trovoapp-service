@@ -5131,7 +5131,6 @@ addSubWalletPopup(context) async {
   Asset? trov;
   Asset? xbn;
   primaryWallet.claimedAssets!.forEach((asset) {
-    print('asset ${asset.assetCode} balance ${asset.amount!}');
     if (asset.assetCode!.toLowerCase() == 'trov') {
       trov = asset;
     }
@@ -5412,7 +5411,7 @@ addSubWalletPopup(context) async {
               height: height / 20,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 "willattractcharges".tr(),
                 textAlign: TextAlign.center,
@@ -5578,7 +5577,7 @@ addSubWalletPopup(context) async {
                                   width: width / 1.5,
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(15.0)),
@@ -5608,14 +5607,17 @@ addSubWalletPopup(context) async {
                             ),
                           ],
                         ),
-                        Container(
-                          child: Text(
-                            "willattractcharges".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
-                                fontSize: 12.sp),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Container(
+                            child: Text(
+                              "willattractcharges".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                  fontSize: 12.sp),
+                            ),
                           ),
                         ),
                         SizedBox(
@@ -5895,7 +5897,7 @@ addSubWalletPopup(context) async {
                     fontSize: 14.0,
                     fontFamily: fontbody,
                     fontWeight: FontWeight.bold,
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                   ),
                 ),
                 onPressed: () => Navigator.of(

@@ -83,26 +83,28 @@ class _AppState extends State<App> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
-        ChangeNotifierProvider<DataProvider>(create: (_) => appState),
-      ],
-      child: GestureDetector(
-        onTap: _initializeTimer,
-        onPanDown: (_) => _initializeTimer(),
-        onScaleStart: (_) => _initializeTimer(),
-        child: MaterialApp.router(
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
-          locale: context.locale,
-          routerDelegate: delegate!,
-          routeInformationParser: parser,
-          backButtonDispatcher: backButtonDispatcher,
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorScheme: ThemeData().colorScheme.copyWith(primary: trovoblue),
-            fontFamily: fontbody,
+    return SafeArea(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
+          ChangeNotifierProvider<DataProvider>(create: (_) => appState),
+        ],
+        child: GestureDetector(
+          onTap: _initializeTimer,
+          onPanDown: (_) => _initializeTimer(),
+          onScaleStart: (_) => _initializeTimer(),
+          child: MaterialApp.router(
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            routerDelegate: delegate!,
+            routeInformationParser: parser,
+            backButtonDispatcher: backButtonDispatcher,
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              colorScheme: ThemeData().colorScheme.copyWith(primary: trovoblue),
+              fontFamily: fontbody,
+            ),
           ),
         ),
       ),

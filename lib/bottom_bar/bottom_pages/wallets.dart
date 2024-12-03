@@ -197,7 +197,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           backgroundColor: notifier.getbluecolor,
           child: Icon(
             appState.walletView.actionIcon,
-            color: notifier.getwihitecolor,
+            color: notifier.getbluewhitecolor,
             size: 30,
           ),
         ),
@@ -300,7 +300,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                         children: [
                                           Icon(
                                             Icons.list,
-                                            color: notifier.getbluecolor,
+                                            color: notifier.getbluewhitecolor,
                                           ),
                                           Container(
                                             width: 100,
@@ -311,7 +311,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
                                                 fontFamily: fontsemibold,
-                                                color: notifier.getbluecolor,
+                                                color:
+                                                    notifier.getbluewhitecolor,
                                                 overflow: TextOverflow.visible,
                                               ),
                                             ),
@@ -371,7 +372,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                         children: [
                                           Icon(
                                             Icons.local_gas_station,
-                                            color: notifier.getbluecolor,
+                                            color: notifier.getbluewhitecolor,
                                           ),
                                           Container(
                                             width: 100,
@@ -382,7 +383,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.bold,
                                                 fontFamily: fontsemibold,
-                                                color: notifier.getbluecolor,
+                                                color:
+                                                    notifier.getbluewhitecolor,
                                                 overflow: TextOverflow.visible,
                                               ),
                                             ),
