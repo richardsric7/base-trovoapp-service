@@ -197,7 +197,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           backgroundColor: notifier.getbluecolor,
           child: Icon(
             appState.walletView.actionIcon,
-            color: notifier.getbluewhitecolor,
+            color: wihitecolor,
             size: 30,
           ),
         ),

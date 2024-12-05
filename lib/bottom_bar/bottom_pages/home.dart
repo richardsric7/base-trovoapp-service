@@ -260,8 +260,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w600,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
+                                                  color: wihitecolor,
                                                   fontFamily: fontsemibold),
                                             ),
                                             SizedBox(),
@@ -291,8 +290,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               child: Icon(
                                                 getIcon(),
                                                 size: 20,
-                                                color:
-                                                    notifier.getbluewhitecolor,
+                                                color: wihitecolor,
                                               ),
                                             ),
                                           ],
@@ -312,7 +310,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: notifier.getbluewhitecolor,
+                                        color: wihitecolor,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -325,7 +323,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w300,
                                         fontSize: 13,
-                                        color: notifier.getbluewhitecolor,
+                                        color: wihitecolor,
                                         fontFamily: fontbody,
                                       ),
                                     ),
