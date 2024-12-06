@@ -998,7 +998,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		})
 
 		if hasLinkedWallet {
-			addedList = append(addedList, userModels.WalletPermission{
+			linkedAddedList = append(linkedAddedList, userModels.WalletPermission{
 				ID:              uuid.NewString(),
 				TargetUsername:  v.TargetUsername,
 				Permission:      v.Permission,
@@ -1079,7 +1079,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
 			}
-			if hasLinkedWallet {
+			if hasLinkedWallet && len(linkedRevokedList) > 0 {
 				e := dbTX.Delete(&linkedRevokedList).Error
 				if e != nil {
 					log.Println("[ModifySharedWalletAccess] error deleting linked revoked list: ", e)
@@ -1095,7 +1095,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
 			}
-			if hasLinkedWallet {
+			if hasLinkedWallet && len(linkedModifiedList) > 0 {
 				e := dbTX.Save(&linkedModifiedList).Error
 				if e != nil {
 					log.Println("[ModifySharedWalletAccess] error saving linked modified list: ", e)
@@ -1112,7 +1112,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				return
 			}
 
-			if hasLinkedWallet {
+			if hasLinkedWallet && len(linkedAddedList) > 0 {
 				e := dbTX.Create(&linkedAddedList).Error
 				if e != nil {
 					log.Println("[ModifySharedWalletAccess] error creating linked added permissions: ", e)
