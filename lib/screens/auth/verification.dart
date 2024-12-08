@@ -222,6 +222,7 @@ class _VeryficationState extends State<Veryfication> {
 
     var publicKey = state.tempPublicKey;
     var secretKey = state.tempSecretKey;
+    state.backupSecrets.add(secretKey);
 
     Map responseData = await makeGetRequest(
         uri:

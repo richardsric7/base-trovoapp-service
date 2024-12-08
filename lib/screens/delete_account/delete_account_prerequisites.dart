@@ -97,7 +97,9 @@ class _DeleteAccountPrerequisitesState
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: Colors.blue[50],
+                    color: notifier.isDark
+                        ? notifier.getbluecolor50
+                        : Colors.blue[50],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -114,7 +116,7 @@ class _DeleteAccountPrerequisitesState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Disable Account Recovery",
+                                  'disableaccountrecovery'.tr(),
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: notifier.getbluewhitecolor,
@@ -127,7 +129,7 @@ class _DeleteAccountPrerequisitesState
                                 Container(
                                   width: width / 1.5,
                                   child: Text(
-                                    '${"Please disable account recovery on your account.".tr()}',
+                                    'pleasedisableaccountrecovery'.tr(),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w400,
@@ -179,7 +181,9 @@ class _DeleteAccountPrerequisitesState
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: Colors.blue[50],
+                    color: notifier.isDark
+                        ? notifier.getbluecolor50
+                        : Colors.blue[50],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -197,7 +201,7 @@ class _DeleteAccountPrerequisitesState
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Disable Initiator Access",
+                                      "disableinitiatoraccess".tr(),
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: notifier.getbluewhitecolor,

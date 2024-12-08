@@ -126,15 +126,11 @@ class _ImportWalletState extends State<ImportWallet> {
                           customTextStyles: [
                             TextStyle(
                                 fontSize: height / 55,
-                                color: walletMode == 0
-                                    ? notifier.getwihitecolor
-                                    : notifier.getblck,
+                                color: walletMode == 0 ? wihitecolor : darkblck,
                                 fontFamily: fontbody),
                             TextStyle(
                                 fontSize: height / 55,
-                                color: walletMode == 1
-                                    ? notifier.getwihitecolor
-                                    : notifier.getblck,
+                                color: walletMode == 1 ? wihitecolor : darkblck,
                                 fontFamily: fontbody),
                           ],
                           fontSize: 16.0,
@@ -154,7 +150,6 @@ class _ImportWalletState extends State<ImportWallet> {
                               handleEnvironmentSwitch(
                                   index == 0 ? 'Mainnet' : 'Testnet');
                             });
-                            print('dkjflsdklsd ${appState.walletMode} $index');
                           },
                         ),
                         SizedBox(

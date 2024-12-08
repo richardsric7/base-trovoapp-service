@@ -138,15 +138,11 @@ class _SignUpState extends State<SignUp> {
                           customTextStyles: [
                             TextStyle(
                                 fontSize: height / 55,
-                                color: corporate == 0
-                                    ? notifier.getwihitecolor
-                                    : notifier.getblck,
+                                color: corporate == 0 ? wihitecolor : darkblck,
                                 fontFamily: fontbody),
                             TextStyle(
                                 fontSize: height / 55,
-                                color: corporate == 1
-                                    ? notifier.getwihitecolor
-                                    : notifier.getblck,
+                                color: corporate == 1 ? wihitecolor : darkblck,
                                 fontFamily: fontbody),
                           ],
                           fontSize: 16.0,

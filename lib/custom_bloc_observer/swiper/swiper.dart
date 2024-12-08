@@ -103,7 +103,7 @@ class _SwiperState extends State<Swiper> {
               ButtonOutlined(
                 currentPage == 2 ? "proceed".tr() : "skip".tr(),
                 notifier.getwihitecolor,
-                notifier.getbluecolor,
+                notifier.getbluewhitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: GetStartedViewPageConfig);
