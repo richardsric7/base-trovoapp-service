@@ -2,9 +2,9 @@ name: Build & upload to Firebase App Distribution
 
 on:
   push:
-    branches: ['add-gitactions']
+    branches: ['develop']
   pull_request:
-    branches: ['add-gitactions']
+    branches: ['develop']
 
 jobs:
   build:
