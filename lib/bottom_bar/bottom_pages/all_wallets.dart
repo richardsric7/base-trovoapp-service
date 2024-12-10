@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:sembast/sembast.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
@@ -47,6 +48,8 @@ class _AllWalletsView extends State<AllWalletsView>
   WalletAction? action = WalletAction.createNew;
   final Authenticator _authenticator = Authenticator();
   bool isTileView = false;
+  bool displaySearch = false;
+  String searchText = '';
   bool isImport = true;
   String? tag;
   String? description;
@@ -155,50 +158,102 @@ class _AllWalletsView extends State<AllWalletsView>
                 child: Container(
                     color: notifier.getfavorites,
                     padding: EdgeInsets.all(8.sp),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: DropdownButtonFormField(
-                            isExpanded: true,
-                            dropdownColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField(
+                                isExpanded: true,
+                                dropdownColor: notifier.isDark
+                                    ? darktilewhitecolor
+                                    : notifier.getaddsubwalletgrey,
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 0, horizontal: 20),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  filled: true,
+                                  fillColor: notifier.isDark
+                                      ? darktilewhitecolor
+                                      : notifier.getaddsubwalletgrey,
+                                ),
+                                value: selectedWalletMode,
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                                elevation: 0,
+                                style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontsemibold,
+                                    fontWeight: FontWeight.w500),
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    selectedWalletMode = newValue.toString();
+                                  });
+                                },
+                                items: walletListModeDropdownItems,
                               ),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(20),
+                            ),
+                            Container(
+                              child: Card(
+                                // shadowColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                color: notifier.isDark
+                                    ? notifier.getbluecolor90
+                                    : notifier.getaddsubwalletgrey,
+                                child: TextButton(
+                                  onPressed: () => setState(() {
+                                    displaySearch = !displaySearch;
+                                    setState(() {
+                                      searchText = '';
+                                    });
+                                  }),
+                                  child: Icon(
+                                    Icons.search,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
                               ),
-                              filled: true,
-                              fillColor: notifier.isDark
-                                  ? darktilewhitecolor
-                                  : notifier.getaddsubwalletgrey,
                             ),
-                            value: selectedWalletMode,
-                            icon: Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                            elevation: 0,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15,
-                                fontFamily: fontsemibold,
-                                fontWeight: FontWeight.w500),
-                            onChanged: (newValue) {
-                              setState(() {
-                                selectedWalletMode = newValue.toString();
-                              });
-                            },
-                            items: walletListModeDropdownItems,
-                          ),
+                          ],
                         ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        if (displaySearch) ...[
+                          CustomTextFormField.textFieldWithoutIcon(
+                            'searchwallets'.tr(),
+                            notifier.getbluecolor,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            40.sp,
+                            width,
+                            onChanged: (value) {
+                              if (value != null &&
+                                  value.toString().isNotEmpty) {
+                                setState(() {
+                                  searchText = value;
+                                });
+                              }
+                            },
+                            keyboardtype: TextInputType.text,
+                          ),
+                        ],
                       ],
                     )),
               ),
@@ -333,13 +388,17 @@ class _AllWalletsView extends State<AllWalletsView>
     ];
     return Column(
       children: getWallets(
-          switch (selectedWalletMode) {
-                'My wallets' => userInfo.mySolelyOwnedWallets,
-                'Shared wallets' => userInfo.sharedWallets,
-                'All wallets' => userInfo.allWallets,
-                _ => [],
-              } ??
-              [],
+          displaySearch && searchText.length > 0
+              ? userInfo.allWallets
+                  .where((wallet) => wallet.alias!.contains(searchText))
+                  .toList()
+              : switch (selectedWalletMode) {
+                    'My wallets' => userInfo.mySolelyOwnedWallets,
+                    'Shared wallets' => userInfo.sharedWallets,
+                    'All wallets' => userInfo.allWallets,
+                    _ => [],
+                  } ??
+                  [],
           false),
     );
   }
@@ -349,6 +408,7 @@ class _AllWalletsView extends State<AllWalletsView>
     int walletType,
     balanceUsd,
     preferredFiatBal,
+    assetCount,
     WalletTileColor color, {
     isShared = false,
   }) {
@@ -490,6 +550,16 @@ class _AllWalletsView extends State<AllWalletsView>
                     ),
                   ),
                 ],
+                Container(
+                  child: Text(
+                    '${assetCount} ${'assetplural'.tr()}',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: color.foreColor,
+                        fontFamily: fontsemibold),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1029,6 +1099,7 @@ class _AllWalletsView extends State<AllWalletsView>
                         filteredWallets[i].walletType ?? 0,
                         '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
                         '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
+                        filteredWallets[i].claimedAssets!.length.toString(),
                         colors[((i + 1) % colors.length)],
                         isShared: filteredWallets[i].isSharedWallet,
                       ),

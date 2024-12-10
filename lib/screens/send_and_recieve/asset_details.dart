@@ -203,7 +203,8 @@ class _AssetDetailsState extends State<AssetDetails>
                 foreColor: wihitecolor,
                 alias: wallet.alias.toString().capitalizeFirst!,
                 isSharedWallet: wallet.isSharedWallet,
-                walletType: wallet.walletType!,
+                walletType: wallet.walletType ?? 0,
+                assetCount: wallet.claimedAssets?.length.toString(),
                 totalBalance:
                     '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
                 fiatBalance:

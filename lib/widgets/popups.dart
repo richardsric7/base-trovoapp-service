@@ -6282,7 +6282,9 @@ confirmAccountDeletionPopup(
                             decoration: BoxDecoration(
                               borderRadius:
                                   const BorderRadius.all(Radius.circular(15.0)),
-                              color: Colors.blue[50],
+                              color: notifier.isDark
+                                  ? notifier.getbluecolor50
+                                  : Colors.blue[50],
                             ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(

@@ -13,6 +13,7 @@ import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -258,22 +259,22 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () async {
-                    // appState.viewData!['tokenizationStatus'] = 0;
-                    // var savedAssets =
-                    //     await StoreData().storeGetData('tokenizedAsset');
-                    // print(savedAssets);
-                    // if (savedAssets != null) {
-                    //   for (int i = 0; i < savedAssets.length; i++) {
-                    //     print(savedAssets);
-                    //   }
-                    //   savedAssets = [...savedAssets, appState.viewData];
-                    //   await StoreData()
-                    //       .storeInsertData('tokenizedAsset', savedAssets);
-                    // } else {
-                    //   savedAssets = [appState.viewData];
-                    //   await StoreData()
-                    //       .storeInsertData('tokenizedAsset', savedAssets);
-                    // }
+                    appState.viewData!['tokenizationStatus'] = 0;
+                    var savedAssets =
+                        await StoreData().storeGetData('tokenizedAsset');
+                    print(savedAssets);
+                    if (savedAssets != null) {
+                      for (int i = 0; i < savedAssets.length; i++) {
+                        print(savedAssets);
+                      }
+                      savedAssets = [...savedAssets, appState.viewData];
+                      await StoreData()
+                          .storeInsertData('tokenizedAsset', savedAssets);
+                    } else {
+                      savedAssets = [appState.viewData];
+                      await StoreData()
+                          .storeInsertData('tokenizedAsset', savedAssets);
+                    }
                     showLoader(context);
                     await Future.delayed(Duration(seconds: 1));
                     hideLoader(context);

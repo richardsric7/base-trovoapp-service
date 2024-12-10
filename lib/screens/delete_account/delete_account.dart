@@ -119,7 +119,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: Colors.red[50],
+          color: notifier.isDark ? notifier.getbluecolor50 : Colors.red[50],
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),

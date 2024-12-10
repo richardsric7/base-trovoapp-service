@@ -109,6 +109,7 @@ class _GetStartedState extends State<GetStarted> {
                                       Icon(
                                         CustomIcon.globeOutlined,
                                         size: 18,
+                                        color: notifier.getbluewhitecolor,
                                       ),
                                       SizedBox(
                                         width: 6,
@@ -116,6 +117,9 @@ class _GetStartedState extends State<GetStarted> {
                                       Text(
                                         "testnet".tr(),
                                         overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: notifier.getbluewhitecolor,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -127,6 +131,7 @@ class _GetStartedState extends State<GetStarted> {
                                       Icon(
                                         CustomIcon.globeOutlined,
                                         size: 18,
+                                        color: notifier.getbluewhitecolor,
                                       ),
                                       SizedBox(
                                         width: 6,
@@ -134,6 +139,9 @@ class _GetStartedState extends State<GetStarted> {
                                       Text(
                                         "mainnet".tr(),
                                         overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: notifier.getbluewhitecolor,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -171,7 +179,7 @@ class _GetStartedState extends State<GetStarted> {
               Button(
                 "getstarted".tr(),
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: CreatePasswordPageConfig);
@@ -181,7 +189,7 @@ class _GetStartedState extends State<GetStarted> {
               ButtonOutlined(
                 "importwallet".tr(),
                 notifier.getwihitecolor,
-                notifier.getbluecolor,
+                notifier.isDark ? wihitecolor : notifier.getbluecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: ImportWalletPageConfig);
