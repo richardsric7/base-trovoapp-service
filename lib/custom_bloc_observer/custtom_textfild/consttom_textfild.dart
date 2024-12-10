@@ -198,6 +198,7 @@ class CustomTextFormField {
     onSaved,
     keyboardtype,
     helperText,
+    fontsize,
     inputFormatters,
     controller,
     buildCounter,
@@ -206,16 +207,18 @@ class CustomTextFormField {
   }) {
     return Container(
       color: Colors.transparent,
-      height: h,
       width: w,
+      constraints: BoxConstraints(minHeight: h),
       child: TextFormField(
         key: key,
         maxLength: maxLength,
         readOnly: readOnly,
         style: TextStyle(
-            color: textcolor,
-            overflow: TextOverflow.visible,
-            fontFamily: fontbody),
+          color: textcolor,
+          overflow: TextOverflow.visible,
+          fontFamily: fontbody,
+          fontSize: fontsize,
+        ),
         initialValue: initialValue,
         cursorColor: lablecolor,
         onChanged: onChanged,

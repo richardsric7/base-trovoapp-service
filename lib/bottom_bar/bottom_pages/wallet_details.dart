@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -114,6 +116,9 @@ class _WalletDetailsState extends State<WalletDetails>
     gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
     rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
+    claimedAssets = wallet.claimedAssets!
+        .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+        .toList();
     reOrderClaimedAssets(wallet.publicKey!);
   }
 
@@ -180,6 +185,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 alias: wallet.alias!.capitalizeFirst!,
                 isSharedWallet: wallet.isSharedWallet,
                 walletType: wallet.walletType ?? 0,
+                assetCount: wallet.claimedAssets?.length.toString(),
                 totalBalance:
                     '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                 fiatBalance: appState.defaultCurrency == 'USD'
@@ -219,8 +225,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                     appState.viewData = {
                                       'assetCode': '',
                                       'assetIssuer': '',
-                                      'walletPublicKey':
-                                          appState.primaryWallet.publicKey,
+                                      'walletPublicKey': wallet.publicKey,
                                     };
                                     appState.currentAction = PageAction(
                                         state: PageState.addPage,
@@ -299,13 +304,11 @@ class _WalletDetailsState extends State<WalletDetails>
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      claimedAssets = wallet.claimedAssets!
-          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
-          .toList();
       claimedAssets.forEach((asset) => asset.userPreferredIndex =
           appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
       claimedAssets
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
+      print('testing the microphone $claimedAssets');
     }
   }
 
@@ -348,32 +351,6 @@ class _WalletDetailsState extends State<WalletDetails>
             ],
           ),
         ),
-        // Row(
-        //   children: [
-        //     Padding(
-        //       padding: const EdgeInsets.symmetric(horizontal: 20),
-        //       child: Text(
-        //         'Sort by:',
-        //         style: TextStyle(
-        //           fontSize: 13,
-        //           fontFamily: fontbody,
-        //           color: notifier.getbluecolor,
-        //         ),
-        //       ),
-        //     ),
-        //     Text(
-        //       'Asset Tokens',
-        //       style: TextStyle(
-        //         fontSize: 13,
-        //         fontFamily: fontsemibold,
-        //         color: notifier.getbluecolor,
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        // SizedBox(
-        //   height: height / 90,
-        // ),
       ],
     );
   }

@@ -63,8 +63,8 @@ class _TopDropdownsState extends State<TopDropdowns> {
             children: [
               Container(
                 constraints: isSelected
-                    ? BoxConstraints(maxWidth: width / 4)
-                    : BoxConstraints(maxWidth: width / 2.5),
+                    ? BoxConstraints(maxWidth: width / 5)
+                    : BoxConstraints(maxWidth: width / 3),
                 child: Text(
                   wallet.alias!,
                   overflow:
@@ -177,7 +177,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
               ),
             ),
             SizedBox(
-              width: width / 20,
+              width: width / 30,
             ),
           ]
         ],

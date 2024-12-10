@@ -497,6 +497,7 @@ Widget dropdown(
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 5.0),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         DropdownButtonFormField(
           selectedItemBuilder: selectedItemBuilder,

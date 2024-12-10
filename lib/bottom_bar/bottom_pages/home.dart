@@ -824,6 +824,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       assetCode: asset.assetCode!,
                       onDone: (walletPublicKey) {
                         setState(() {
+                          var wallet = wallets
+                              .where((wallet) =>
+                                  wallet.publicKey == walletPublicKey)
+                              .first;
+                          wallet.tokenizedAssets!.removeWhere((a) =>
+                              a.assetCode == asset.assetCode &&
+                              a.assetIssuer == asset.assetIssuer);
                           asset.isSubscribed = false;
                         });
                       },
@@ -834,6 +841,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       assetCode: asset.assetCode!,
                       onDone: (walletPublicKey) async {
                         setState(() {
+                          var wallet = wallets
+                              .where((wallet) =>
+                                  wallet.publicKey == walletPublicKey)
+                              .first;
+                          wallet.tokenizedAssets != null
+                              ? wallet.tokenizedAssets!.add(asset)
+                              : wallet.tokenizedAssets = [asset];
+
                           asset.isSubscribed = true;
                         });
                       },
@@ -863,25 +878,27 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
             ),
             child: Container(
-              width: width / 5,
+              width: asset.isSubscribed ?? false ? width / 7 : width / 3.7,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    asset.isSubscribed ?? false ? 'Subscribed' : 'Subscribe',
-                    style: TextStyle(
-                        fontFamily: fontsemibold,
-                        fontSize: 10,
-                        color: notifier.getwihitecolor),
-                  ),
-                  Icon(
-                      asset.isSubscribed ?? false
-                          ? Icons.check_circle
-                          : Icons.add_circle_rounded,
-                      size: 15,
-                      color: notifier.getwihitecolor),
-                ],
-              ),
+                  mainAxisAlignment: asset.isSubscribed ?? false
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (asset.isSubscribed ?? false) ...[
+                      Icon(Icons.check_circle,
+                          size: 20, color: notifier.getgreencolor),
+                    ] else ...[
+                      Text(
+                        'Express Interest',
+                        style: TextStyle(
+                            fontFamily: fontsemibold,
+                            fontSize: 10,
+                            color: notifier.getwihitecolor),
+                      ),
+                      Icon(Icons.add_circle_rounded,
+                          size: 15, color: notifier.getwihitecolor),
+                    ]
+                  ]),
             ),
           ),
         ),

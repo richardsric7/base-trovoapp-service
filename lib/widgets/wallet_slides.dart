@@ -152,7 +152,7 @@ class _WalletSlideState extends State<WalletSlide> {
                       if (widget.assetCount != null) ...[
                         Container(
                           child: Text(
-                            '${widget.assetCount} Assets',
+                            '${widget.assetCount} ${'assetplural'.tr()}',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
