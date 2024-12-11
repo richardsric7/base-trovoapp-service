@@ -1,0 +1,67 @@
+name: Deploy Build and Release apk
+
+on:
+  # pull_request:
+  #   branches:
+  #     - develop
+
+  push:
+    branches:
+      - add-gitactions
+
+jobs:
+  build:
+    name: Deploy Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - run: git config --global --add safe.directory /github/workspace
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.4
+        with:
+          node-version: '18' # Specify your Node.js version
+
+      - name: Get Flutter Version
+        id: flutter_version
+        uses: bungabear/flutter_version_read@main
+        with:
+          file: ./pubspec.yaml
+
+      - name: Flutter App Version Number
+        run: echo 'version_number:' ${{ steps.flutter_version.outputs.version_number }}
+
+      - name: Flutter App Build Number
+        run: echo 'build_number:' ${{ steps.flutter_version.outputs.build_number }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.13.0
+
+      - run: flutter pub get
+      - run: flutter build apk
+
+      - name: Rename APK
+        run: |
+          VERSION_NUMBER=${{ steps.flutter_version.outputs.version_number }}
+          BUILD_NUMBER=${{ steps.flutter_version.outputs.build_number }}
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app_name-${VERSION_NUMBER}-${BUILD_NUMBER}.apk
+
+      - name: Upload the APK onto Github
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'build/app/outputs/flutter-apk/*.apk'
+          token: ${{ secrets.GH_TOKEN }}
+          tag: ${{ steps.flutter_version.outputs.version_number }}+${{ steps.flutter_version.outputs.build_number }}
+
+      - name: Upload to Firebase App Distribution
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          curl -sL https://firebase.tools | bash  # Install Firebase CLI
+          firebase appdistribution:distribute build/app/outputs/flutter-a
