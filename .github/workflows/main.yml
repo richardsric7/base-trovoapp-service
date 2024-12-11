@@ -39,6 +39,17 @@ jobs:
       - name: Flutter App Build Number
         run: echo 'build_number:' ${{ steps.flutter_version.outputs.build_number }}
 
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.13.0
