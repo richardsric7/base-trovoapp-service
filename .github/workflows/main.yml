@@ -80,4 +80,4 @@ jobs:
       - name: Upload to Firebase App Distribution
         run: |
           curl -sL https://firebase.tools | bash  # Install Firebase CLI
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.apk --app ${{ secrets.FIREBASE_APP_ID }} --groups rpa-testers --release-notes "New release for version ${{ github.ref }}"
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.apk --app ${{ secrets.FIREBASE_APP_ID }} --groups trovo-core-group --release-notes "New release for version ${{ github.ref }}"
