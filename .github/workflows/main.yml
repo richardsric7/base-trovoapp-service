@@ -61,7 +61,7 @@ jobs:
         run: |
           VERSION_NUMBER=${{ steps.flutter_version.outputs.version_number }}
           BUILD_NUMBER=${{ steps.flutter_version.outputs.build_number }}
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app_name-${VERSION_NUMBER}-${BUILD_NUMBER}.apk
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/trovo-app-${VERSION_NUMBER}-${BUILD_NUMBER}.apk
 
       - name: Upload the APK onto Github
         uses: ncipollo/release-action@v1
@@ -78,13 +78,6 @@ jobs:
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=./credentials.json" >> $GITHUB_ENV
 
       - name: Upload to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{secrets.FIREBASE_APP_ID}}
-          token: ${{secrets.FIREBASE_TOKEN}}
-          groups: testers
-          file: build/app/outputs/flutter-apk/*.apk
-          debug: true
-        # run: |
-        #   curl -sL https://firebase.tools | bash  # Install Firebase CLI
-        #   firebase appdistribution:distribute build/app/outputs/flutter-a
+        run: |
+          curl -sL https://firebase.tools | bash  # Install Firebase CLI
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.apk --app ${{ secrets.FIREBASE_APP_ID }} --groups rpa-testers --release-notes "New release for version ${{ github.ref }}"
