@@ -70,9 +70,14 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ steps.flutter_version.outputs.version_number }}+${{ steps.flutter_version.outputs.build_number }}
 
+      - name: Decoding base64 Credentials
+        shell: bash
+        run: echo ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }} | base64 --decode > credentials.json
+
+      - name: Save credentials into environment variables
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=./credentials.json" >> $GITHUB_ENV
+
       - name: Upload to Firebase App Distribution
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           curl -sL https://firebase.tools | bash  # Install Firebase CLI
           firebase appdistribution:distribute build/app/outputs/flutter-a
