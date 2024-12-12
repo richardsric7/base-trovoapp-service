@@ -78,13 +78,13 @@ jobs:
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=./credentials.json" >> $GITHUB_ENV
 
       - name: Upload to Firebase App Distribution
-          uses: wzieba/Firebase-Distribution-Github-Action@v1
-          with:
-            appId: ${{secrets.FIREBASE_APP_ID}}
-            token: ${{secrets.FIREBASE_TOKEN}}
-            groups: testers
-            file: app/build/outputs/apk/release/app-release-unsigned.apk
-            debug: true
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{secrets.FIREBASE_APP_ID}}
+          token: ${{secrets.FIREBASE_TOKEN}}
+          groups: testers
+          file: app/build/outputs/apk/release/app-release-unsigned.apk
+          debug: true
         # run: |
         #   curl -sL https://firebase.tools | bash  # Install Firebase CLI
         #   firebase appdistribution:distribute build/app/outputs/flutter-a
