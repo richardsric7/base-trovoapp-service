@@ -83,7 +83,7 @@ jobs:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: testers
-          file: build/app/outputs/flutter-apk/app-release.apk
+          file: build/app/outputs/flutter-apk/*.apk
           debug: true
         # run: |
         #   curl -sL https://firebase.tools | bash  # Install Firebase CLI
