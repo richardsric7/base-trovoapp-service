@@ -1607,7 +1607,7 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   Widget showViewers() {
-    if (shareableWallets!.isEmpty) {
+    if (shareableWallets.isEmpty) {
       return Container(
         height: height / 1.9,
         child: Padding(
@@ -2717,7 +2717,7 @@ class _SharedAccessState extends State<SharedAccess>
                     : (newValue) {
                         setState(() {
                           selectedWallet = newValue?.toString() ?? '';
-                          activeWallet = shareableWallets!.firstWhere(
+                          activeWallet = shareableWallets.firstWhere(
                               (wallet) => wallet.publicKey == newValue);
                           addApprovers = false;
                           var user = appState.userInfo!;
