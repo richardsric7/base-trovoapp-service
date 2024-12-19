@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:sembast/sembast.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
@@ -430,17 +429,106 @@ class _AllWalletsView extends State<AllWalletsView>
               children: [
                 Container(
                   width: width / 5,
+                  height: height / 8,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Image.asset(
                         'assets/images/trovo_white.png',
-                        height: 60,
-                        width: 60,
+                        height: 40,
+                        width: 40,
                       ),
-                      SizedBox(
-                        height: height / 50,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(
+                            maxWidth: width / 2.5,
+                          ),
+                          child: Text(
+                            walletName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: color.foreColor,
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          color: color.foreColor,
+                          constraints: BoxConstraints(),
+                          onPressed: () => {
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: walletName,
+                              ),
+                            ),
+                            showSnackBar("walletalias".tr(), context),
+                          },
+                          icon: Icon(
+                            Icons.copy,
+                            fill: 1.0,
+                            size: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (assetCount != null) ...[
+                      Container(
+                        child: Text(
+                          '${assetCount} ${'assetplural'.tr()}',
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: color.foreColor,
+                              fontFamily: fontsemibold),
+                        ),
                       ),
-                      Row(
+                    ],
+                  ],
+                ),
+                SizedBox(
+                  height: height / 25,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      appState.hideBalances
+                          ? hideBalanceText
+                          : preferredFiatBal,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: color.foreColor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Container(
+                      width: 40,
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           if (isShared) ...[
@@ -472,74 +560,11 @@ class _AllWalletsView extends State<AllWalletsView>
                           ],
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: width / 2.5,
-                      ),
-                      child: Text(
-                        walletName,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: color.foreColor,
-                          fontFamily: fontsemibold,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      color: color.foreColor,
-                      constraints: BoxConstraints(),
-                      onPressed: () => {
-                        Clipboard.setData(
-                          ClipboardData(
-                            text: walletName,
-                          ),
-                        ),
-                        showSnackBar("walletalias".tr(), context),
-                      },
-                      icon: Icon(
-                        Icons.copy,
-                        fill: 1.0,
-                        size: 15,
-                      ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Text(
-                      appState.hideBalances
-                          ? hideBalanceText
-                          : preferredFiatBal,
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: color.foreColor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height / 80),
                 if (appState.defaultCurrency != 'USD') ...[
+                  SizedBox(height: height / 80),
                   Text(
                     appState.hideBalances ? hideBalanceText : balanceUsd,
                     style: TextStyle(
@@ -550,16 +575,6 @@ class _AllWalletsView extends State<AllWalletsView>
                     ),
                   ),
                 ],
-                Container(
-                  child: Text(
-                    '${assetCount} ${'assetplural'.tr()}',
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: color.foreColor,
-                        fontFamily: fontsemibold),
-                  ),
-                ),
               ],
             ),
           ),

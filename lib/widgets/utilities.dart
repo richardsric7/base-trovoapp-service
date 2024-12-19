@@ -205,7 +205,7 @@ String getFiatRate(String usdPrice, String currency, DataProvider appState,
   if (getUnFormatted)
     return (appState.fiatRate[currency] * double.parse(usdPrice)).toString();
 
-  return NumberFormat("#,##0.00000", "en_US")
+  return NumberFormat("#,##0.00", "en_US")
       .format(appState.fiatRate[currency] * double.parse(usdPrice))
       .toString();
 }
@@ -220,7 +220,11 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
           .replaceAll(',', ''));
     }
   }
-  return formatHistoryNumber(double.parse(balance.toString()), 1000000);
+  return formatHistoryNumber(
+    double.parse(balance.toString()),
+    1000000,
+    isShort: true,
+  );
 }
 
 Widget buildExpandable(context) {

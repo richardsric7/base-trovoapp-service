@@ -1149,7 +1149,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000,
+        isShort: true);
   }
 
   String get totalAccountBalanceInUSD {
@@ -1163,7 +1164,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000,
+        isShort: true);
   }
 
   Future<List<TokenizedAsset>> fetchTokenizationList() async {
