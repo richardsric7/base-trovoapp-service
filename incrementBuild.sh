@@ -3,6 +3,8 @@
 set -e  # Exit on errors
 set -x  # Print commands as they are executed
 
+# trigger new commit
+
 path_to_pubspec="pubspec.yaml"
 current_version=$(awk '/^version:/ {print $2}' $path_to_pubspec)
 echo "current version: $current_version"
