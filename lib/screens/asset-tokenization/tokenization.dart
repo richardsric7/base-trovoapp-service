@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -298,7 +299,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     );
                   } else if (snapshot.hasData) {
                     var records = snapshot.data!['records'];
-                    if (records.length > 0) {
+                    if (records.length < 0) {
                       return Column(
                         children: [
                           SizedBox(
@@ -467,149 +468,140 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               borderRadius: BorderRadius.circular(15.0),
             ),
             color: notifier.isDark
-                ? notifier.getaddsubwalletgrey
-                : notifier.getbluecolor50,
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
             child: Center(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Image.asset(
-                    'assets/images/tokenize.png',
-                    // height: 50,
-                    width: 250,
-                  ),
-                  SizedBox(
-                    height: height / 60,
-                  ),
-                  Text(
-                    "welcometoassettokenization7".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: height / 50,
                     ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    "welcometoassettokenization4".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      // fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                    Image.asset(
+                      'assets/images/tokenize.png',
+                      // height: 50,
+                      width: 250,
                     ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    "welcometoassettokenization5".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                    SizedBox(
+                      height: height / 60,
                     ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    "welcometoassettokenization6".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    "welcometoassettokenization8".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      List<String> excludedWallets = [];
-                      for (var asset in savedAssets) {
-                        excludedWallets.add(asset['issuingWalletPublicKey']);
-                      }
-                      appState.viewData = {
-                        'excludedWallets': excludedWallets,
-                      };
-                      hasInitiatorAccess
-                          ? appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: WalletPreparationViewPageConfig,
-                            )
-                          : showCreateTokenizationWalletPopup(context);
-                    },
-                    style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.all<Color>(
-                          notifier.getsplashgrey),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluewhitecolor),
-                      side: MaterialStateProperty.all(
-                        BorderSide(
-                            color: notifier.getbluewhitecolor,
-                            width: 1,
-                            style: BorderStyle.solid),
+                    Text(
+                      "welcometoassettokenization4".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        // fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      "welcometoassettokenization5".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      "welcometoassettokenization6".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      "welcometoassettokenization7".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        List<String> excludedWallets = [];
+                        for (var asset in savedAssets) {
+                          excludedWallets.add(asset['issuingWalletPublicKey']);
+                        }
+                        appState.viewData = {
+                          'excludedWallets': excludedWallets,
+                        };
+                        hasInitiatorAccess
+                            ? appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: WalletPreparationViewPageConfig,
+                              )
+                            : showCreateTokenizationWalletPopup(context);
+                      },
+                      style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluewhitecolor),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    child: Container(
-                      width: width / 1.5,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_circle_rounded,
-                            size: 20,
-                            color: notifier.getwihitecolor,
-                          ),
-                          SizedBox(
-                            width: 4,
-                          ),
-                          Text(
-                            "proceedtokenizeasset".tr(),
-                            style: TextStyle(
-                                fontFamily: fontsemibold,
-                                fontSize: 12,
-                                color: notifier.getwihitecolor),
-                          ),
-                        ],
+                      child: Container(
+                        width: width / 1.5,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_circle_rounded,
+                              size: 20,
+                              color: notifier.getwihitecolor,
+                            ),
+                            SizedBox(
+                              width: 4,
+                            ),
+                            Text(
+                              "proceedtokenizeasset".tr(),
+                              style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  color: notifier.getwihitecolor),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                ],
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

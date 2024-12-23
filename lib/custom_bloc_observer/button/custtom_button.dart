@@ -98,6 +98,212 @@ class _ButtonState extends State<Button> {
   }
 }
 
+class ButtonWithIcon extends StatefulWidget {
+  final String? buttontext;
+  final Color? colorbutton;
+  final Color? buttontextcolor;
+  final String imageUrl;
+  final double? width;
+  final double? height;
+  final void Function()? onTap;
+
+  const ButtonWithIcon(
+    this.buttontext,
+    this.colorbutton,
+    this.buttontextcolor,
+    this.imageUrl, {
+    Key? key,
+    this.onTap,
+    this.height,
+    this.width,
+  }) : super(key: key);
+
+  @override
+  State<ButtonWithIcon> createState() => _ButtonWithIconState();
+}
+
+class _ButtonWithIconState extends State<ButtonWithIcon> {
+  get borderRadius => BorderRadius.circular(15);
+
+  late ColorNotifier notifier;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: widget.height ?? height / 15,
+              width: widget.width ?? width / 1.1,
+              child: ElevatedButton(
+                onPressed: widget.onTap,
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(widget.colorbutton!),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15),
+                      ),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      widget.imageUrl,
+                      height: 50,
+                      width: 50,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      widget.buttontext!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontFamily: fontbody,
+                          fontSize: 15,
+                          color: widget.buttontextcolor),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class HalfButtonWithIcon extends StatefulWidget {
+  final String? buttontext;
+  final Color? colorbutton;
+  final Color? buttontextcolor;
+  final String imageUrl;
+  final double? width;
+  final double? height;
+  final void Function()? onTap;
+
+  const HalfButtonWithIcon(
+    this.buttontext,
+    this.colorbutton,
+    this.buttontextcolor,
+    this.imageUrl, {
+    Key? key,
+    this.onTap,
+    this.height,
+    this.width,
+  }) : super(key: key);
+
+  @override
+  State<HalfButtonWithIcon> createState() => _HalfButtonWithIconState();
+}
+
+class _HalfButtonWithIconState extends State<HalfButtonWithIcon> {
+  get borderRadius => BorderRadius.circular(15);
+
+  late ColorNotifier notifier;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: widget.height ?? height / 15,
+              width: widget.width ?? width / 1.1,
+              child: ElevatedButton(
+                onPressed: widget.onTap,
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(widget.colorbutton!),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15),
+                      ),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      widget.imageUrl,
+                      height: 40,
+                      width: 40,
+                    ),
+                    Container(
+                      constraints: BoxConstraints(maxWidth: 100),
+                      child: Text(
+                        widget.buttontext!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontFamily: fontbody,
+                            fontSize: 12,
+                            color: widget.buttontextcolor),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
 class ButtonOutlined extends StatefulWidget {
   final String? buttontext;
   final Color? colorbutton;

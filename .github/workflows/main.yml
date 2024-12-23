@@ -1,13 +1,9 @@
 name: Deploy Build and Release apk
 
 on:
-  # pull_request:
-  #   branches:
-  #     - develop
-
-  push:
+  pull_request:
     branches:
-      - add-gitaction-2
+      - develop
 
 jobs:
   build:
@@ -66,7 +62,7 @@ jobs:
       - name: Upload the APK onto Github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'build/app/outputs/flutter-apk/*.apk'
+          artifacts: 'build/app/outputs/bundle/release/*.aab'
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ steps.flutter_version.outputs.version_number }}+${{ steps.flutter_version.outputs.build_number }}
 

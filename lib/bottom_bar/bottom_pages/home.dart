@@ -342,7 +342,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
-                  if (!noXbnBalance) ...[
+                  if (noXbnBalance) ...[
                     SizedBox(
                       height: height / 50,
                     ),
@@ -978,6 +978,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
               child: Column(
                 children: [
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Image.asset(
+                    'assets/images/rafiki-buy-xbn.png',
+                    // height: 50,
+                    width: 180,
+                  ),
+                  SizedBox(
+                    height: height / 60,
+                  ),
                   Text(
                     "yourwalletisready".tr(),
                     textAlign: TextAlign.center,
@@ -994,7 +1005,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     "butyoucannotuseityet".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -1006,7 +1017,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     "youcangetbantutokens".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 15,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -1022,57 +1033,95 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         SizedBox(
           height: height / 50,
         ),
-        Button(
-          "requestfromuser".tr(),
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: () {
-            appState.viewData = {
-              'assetCode': '',
-              'assetIssuer': '',
-              'walletPublicKey': activeWallet,
-            };
-
-            appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: RequestSpecificPaymentViewPageConfig);
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HalfButtonWithIcon(
+              "buyfromp2p".tr(),
+              notifier.getbluecolor,
+              wihitecolor,
+              'assets/images/peers.png',
+              width: width / 2.2,
+              height: 60,
+              onTap: () {
+                popup(
+                  context,
+                  title: "comingsoon".tr(),
+                  message: "p2pwillbelaunchingsoon".tr(),
+                  bodyColor: notifier.getbluewhitecolor,
+                );
+                // _launchUrl();
+              },
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            HalfButtonWithIcon(
+              "buywithfiat".tr(),
+              notifier.getbluecolor,
+              wihitecolor,
+              'assets/images/cash.png',
+              width: width / 2.2,
+              height: 60,
+              onTap: () {
+                popup(
+                  context,
+                  title: "comingsoon".tr(),
+                  message: "p2pwillbelaunchingsoon".tr(),
+                  bodyColor: notifier.getbluewhitecolor,
+                );
+                // _launchUrl();
+              },
+            ),
+          ],
         ),
         SizedBox(
-          height: height / 50,
+          height: 10,
         ),
-        ButtonOutlined(
-          "sendxbntoyourwallet".tr(),
-          notifier.getbluecolor80,
-          wihitecolor,
-          onTap: () {
-            Clipboard.setData(
-              ClipboardData(
-                text: appState.primaryWallet.publicKey!,
-              ),
-            );
-            showSnackBar("publickey".tr(), context);
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HalfButtonWithIcon(
+              "requestfromuser".tr(),
+              notifier.getbluecolor,
+              wihitecolor,
+              'assets/images/arrow-diagonal-down.png',
+              width: width / 2.2,
+              height: 60,
+              onTap: () {
+                popup(
+                  context,
+                  title: "comingsoon".tr(),
+                  message: "p2pwillbelaunchingsoon".tr(),
+                  bodyColor: notifier.getbluewhitecolor,
+                );
+                // _launchUrl();
+              },
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            HalfButtonWithIcon(
+              "sendxbntoyourwallet".tr(),
+              notifier.getbluecolor,
+              wihitecolor,
+              'assets/images/arrow-diagonal-up.png',
+              width: width / 2.2,
+              height: 60,
+              onTap: () {
+                popup(
+                  context,
+                  title: "comingsoon".tr(),
+                  message: "p2pwillbelaunchingsoon".tr(),
+                  bodyColor: notifier.getbluewhitecolor,
+                );
+                // _launchUrl();
+              },
+            ),
+          ],
         ),
         SizedBox(
-          height: height / 50,
-        ),
-        ButtonOutlined(
-          "buyfromp2p".tr(),
-          notifier.getwihitecolor,
-          notifier.getbluewhitecolor,
-          onTap: () {
-            popup(
-              context,
-              title: "comingsoon".tr(),
-              message: "p2pwillbelaunchingsoon".tr(),
-              bodyColor: notifier.getbluewhitecolor,
-            );
-            // _launchUrl();
-          },
-        ),
-        SizedBox(
-          height: height / 50,
+          height: height / 20,
         ),
       ],
     );
