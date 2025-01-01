@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/all_wallets.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
@@ -484,6 +487,17 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.DeleteAccountView:
           _addPageData(DeleteAccount(), DeleteAccountViewPageConfig);
           break;
+        case Pages.BuyXBNWithFiatView:
+          _addPageData(BuyXBNWithFiat(), BuyXBNWithFiatViewPageConfig);
+          break;
+        case Pages.ConfirmBuyXBNWithFiatView:
+          _addPageData(
+              ConfirmBuyXBNWithFiat(), ConfirmBuyXBNWithFiatViewPageConfig);
+          break;
+        case Pages.SeeAllTokenizedAssetsView:
+          _addPageData(
+              SeeAllTokenizedAssets(), SeeAllTokenizedAssetsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -798,6 +812,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.DeleteAccountView:
         DeleteAccountViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyXBNWithFiatView:
+        BuyXBNWithFiatViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmBuyXBNWithFiatView:
+        ConfirmBuyXBNWithFiatViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

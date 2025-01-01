@@ -58,6 +58,7 @@ class CustomTextFormField {
     onSaved,
     keyboardtype,
     helperText,
+    hintText,
     autoFormatNumber = false,
     inputFormatters,
     focusNode,
@@ -133,7 +134,8 @@ class CustomTextFormField {
             fontSize: 12,
             fontFamily: fontbody,
           ),
-          label: Text(labletext),
+          hintText: hintText,
+          label: labletext != null ? Text(labletext) : null,
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
           ),

@@ -342,7 +342,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
-                  if (noXbnBalance) ...[
+                  if (!noXbnBalance) ...[
                     SizedBox(
                       height: height / 50,
                     ),
@@ -354,32 +354,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             length: tabLength,
                             child: Column(
                               children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: tabLength == 2 ? 0 : 100,
-                                  ),
-                                  child: TabBar(
-                                    controller: _tabController,
-                                    labelColor: notifier.getbluewhitecolor,
-                                    indicatorColor: notifier.getbluewhitecolor,
-                                    labelStyle: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: fontsemibold,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        "Tokenized Assets",
+                                        textScaleFactor: 1.0,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: notifier.getbluewhitecolor,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: fontsemibold,
+                                        ),
+                                      ),
                                     ),
-                                    tabs: [
-                                      Tab(
-                                        height: 20,
-                                        text: "primaryoffers".tr(),
-                                      ),
-                                      Tab(
-                                        height: 20,
-                                        text: "secondarylisting".tr(),
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
-                                listingTabs(),
+                                SizedBox(height: height / 50),
+                                primaryOffers(),
+                                SizedBox(height: height / 50),
+                                secondaryListing(),
                               ],
                             ),
                           ),
@@ -401,152 +398,314 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget listingTabs() {
-    return Container(
-      height: height / 1.77,
-      child: TabBarView(
-        controller: _tabController,
+  Widget primaryOffers() {
+    return SingleChildScrollView(
+      child: Column(
         children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                FutureBuilder<List<TokenizedAsset>>(
-                  future: listOfTokenizations,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SizedBox(
-                        height: height / 2,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            backgroundColor: notifier.getbluecolor,
-                            valueColor: new AlwaysStoppedAnimation<Color>(
-                              notifier.getgreencolor,
-                            ),
-                            strokeWidth: 3.0,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Text(
+                  "PRIMARY OFFERS",
+                  textScaleFactor: 1.0,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: notifier.getbluewhitecolor,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: SeeAllTokenizedAssetsViewPageConfig,
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero, // removes default padding
+                  minimumSize: Size(0, 0), // removes minimum size constraints
+                  tapTargetSize: MaterialTapTargetSize
+                      .shrinkWrap, // adjusts tap target size
+                ),
+                child: Text(
+                  "View all",
+                  textScaleFactor: 1.0,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      decoration: TextDecoration.underline,
+                      fontSize: 12.0),
+                ),
+              ),
+            ],
+          ),
+          FutureBuilder<List<TokenizedAsset>>(
+            future: listOfTokenizations,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SizedBox(
+                  height: height / 2,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: notifier.getbluecolor,
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                        notifier.getgreencolor,
+                      ),
+                      strokeWidth: 3.0,
+                    ),
+                  ),
+                );
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height / 6,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "somethingwentwrong".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
                           ),
-                        ),
-                      );
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.done) {
-                      if (snapshot.hasError) {
-                        return Padding(
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                listOfTokenizations = fetchTokenizationList();
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  notifier.getbluecolor!),
+                            ),
+                            child: Text(
+                              "retry".tr(),
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasData) {
+                  var records = snapshot.data!;
+                  return Column(
+                    children: [
+                      if (records.isNotEmpty) ...[
+                        for (var item in records) ...[
+                          GestureDetector(
+                            onTap: () {
+                              appState.tokenizedAsset = item;
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: TokenizedAssetDetailViewPageConfig,
+                              );
+                            },
+                            child: assetTile(item),
+                          ),
+                        ],
+                      ] else ...[
+                        Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
-                            height: height / 2,
+                            height: height / 6,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "somethingwentwrong".tr(),
+                                  "nothingtoshowhere2".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
                                       color: notifier.getbluewhitecolor,
                                       fontFamily: fontbody),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      listOfTokenizations =
-                                          fetchTokenizationList();
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            notifier.getbluecolor!),
-                                  ),
-                                  child: Text(
-                                    "retry".tr(),
-                                    style: TextStyle(
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ]
+                    ],
+                  );
+                }
+              }
+              return Text(
+                '',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: fontsemibold,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget secondaryListing() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Text(
+                  "Secondary Listing",
+                  textScaleFactor: 1.0,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: notifier.getbluewhitecolor,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: SeeAllTokenizedAssetsViewPageConfig,
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero, // removes default padding
+                  minimumSize: Size(0, 0), // removes minimum size constraints
+                  tapTargetSize: MaterialTapTargetSize
+                      .shrinkWrap, // adjusts tap target size
+                ),
+                child: Text(
+                  "View all",
+                  textScaleFactor: 1.0,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      decoration: TextDecoration.underline,
+                      fontSize: 12.0),
+                ),
+              ),
+            ],
+          ),
+          FutureBuilder<List<TokenizedAsset>>(
+            future: listOfTokenizations,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SizedBox(
+                  height: height / 2,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: notifier.getbluecolor,
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                        notifier.getgreencolor,
+                      ),
+                      strokeWidth: 3.0,
+                    ),
+                  ),
+                );
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height / 6,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "somethingwentwrong".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                listOfTokenizations = fetchTokenizationList();
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  notifier.getbluecolor!),
+                            ),
+                            child: Text(
+                              "retry".tr(),
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasData) {
+                  var records = snapshot.data!;
+                  return Column(
+                    children: [
+                      if (records.isNotEmpty) ...[
+                        for (var item in records) ...[
+                          GestureDetector(
+                            onTap: () {
+                              appState.tokenizedAsset = item;
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: TokenizedAssetDetailViewPageConfig,
+                              );
+                            },
+                            child: assetTile(item),
+                          ),
+                        ],
+                      ] else ...[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: height / 6,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "nothingtoshowhere2".tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody),
                                 ),
                               ],
                             ),
                           ),
-                        );
-                      } else if (snapshot.hasData) {
-                        var records = snapshot.data!;
-                        return Column(
-                          children: [
-                            if (records.isNotEmpty) ...[
-                              for (var item in records) ...[
-                                GestureDetector(
-                                  onTap: () {
-                                    appState.tokenizedAsset = item;
-                                    appState.currentAction = PageAction(
-                                      state: PageState.addPage,
-                                      page: TokenizedAssetDetailViewPageConfig,
-                                    );
-                                  },
-                                  child: assetTile(item),
-                                ),
-                              ],
-                            ] else ...[
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SizedBox(
-                                  height: height / 2,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "nothingtoshowhere2".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: notifier.getbluewhitecolor,
-                                            fontFamily: fontbody),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ]
-                          ],
-                        );
-                      }
-                    }
-                    return Text(
-                      '',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: fontsemibold,
-                      ),
-                    );
-                  },
+                        )
+                      ]
+                    ],
+                  );
+                }
+              }
+              return Text(
+                '',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: fontsemibold,
                 ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: height / 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "nothingtoshowhere2".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -861,8 +1020,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
               overlayColor:
                   MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
+              backgroundColor: MaterialStateProperty.all<Color>(
+                asset.isSubscribed ?? false
+                    ? notifier.getbluewhitecolor
+                    : notifier.getwihitecolor,
+              ),
               side: MaterialStateProperty.all(
                 BorderSide(
                     color: notifier.getbluewhitecolor,
@@ -878,25 +1040,46 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
             ),
             child: Container(
-              width: asset.isSubscribed ?? false ? width / 7 : width / 3.7,
+              width: width / 3.7,
               child: Row(
-                  mainAxisAlignment: asset.isSubscribed ?? false
-                      ? MainAxisAlignment.center
-                      : MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     if (asset.isSubscribed ?? false) ...[
-                      Icon(Icons.check_circle,
-                          size: 20, color: notifier.getgreencolor),
+                      Text(
+                        'Reserved',
+                        style: TextStyle(
+                          fontFamily: fontsemibold,
+                          fontSize: 12,
+                          color: asset.isSubscribed ?? false
+                              ? notifier.getwihitecolor
+                              : notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 20,
+                        color: asset.isSubscribed ?? false
+                            ? notifier.getwihitecolor
+                            : notifier.getbluewhitecolor,
+                      ),
                     ] else ...[
                       Text(
-                        'Express Interest',
+                        'Reserve',
                         style: TextStyle(
-                            fontFamily: fontsemibold,
-                            fontSize: 10,
-                            color: notifier.getwihitecolor),
+                          fontFamily: fontsemibold,
+                          fontSize: 12,
+                          color: asset.isSubscribed ?? false
+                              ? notifier.getwihitecolor
+                              : notifier.getbluewhitecolor,
+                        ),
                       ),
-                      Icon(Icons.add_circle_rounded,
-                          size: 15, color: notifier.getwihitecolor),
+                      Icon(
+                        Icons.add_circle_rounded,
+                        size: 20,
+                        color: asset.isSubscribed ?? false
+                            ? notifier.getwihitecolor
+                            : notifier.getbluewhitecolor,
+                      ),
                     ]
                   ]),
             ),
@@ -1037,30 +1220,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             HalfButtonWithIcon(
-              "buyfromp2p".tr(),
+              "buywithfiat".tr(),
               notifier.getbluecolor,
               wihitecolor,
-              'assets/images/peers.png',
+              'assets/images/cash.png',
               width: width / 2.2,
               height: 60,
               onTap: () {
-                popup(
-                  context,
-                  title: "comingsoon".tr(),
-                  message: "p2pwillbelaunchingsoon".tr(),
-                  bodyColor: notifier.getbluewhitecolor,
-                );
-                // _launchUrl();
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: BuyXBNWithFiatViewPageConfig);
               },
             ),
             SizedBox(
               width: 10,
             ),
             HalfButtonWithIcon(
-              "buywithfiat".tr(),
+              "buyfromp2p".tr(),
               notifier.getbluecolor,
               wihitecolor,
-              'assets/images/cash.png',
+              'assets/images/peers.png',
               width: width / 2.2,
               height: 60,
               onTap: () {
@@ -1089,13 +1268,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               width: width / 2.2,
               height: 60,
               onTap: () {
-                popup(
-                  context,
-                  title: "comingsoon".tr(),
-                  message: "p2pwillbelaunchingsoon".tr(),
-                  bodyColor: notifier.getbluewhitecolor,
-                );
-                // _launchUrl();
+                appState.viewData = {
+                  'assetCode': '',
+                  'assetIssuer': '',
+                  'walletPublicKey': activeWallet,
+                };
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: RequestSpecificPaymentViewPageConfig);
               },
             ),
             SizedBox(
@@ -1109,13 +1289,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               width: width / 2.2,
               height: 60,
               onTap: () {
-                popup(
-                  context,
-                  title: "comingsoon".tr(),
-                  message: "p2pwillbelaunchingsoon".tr(),
-                  bodyColor: notifier.getbluewhitecolor,
+                Clipboard.setData(
+                  ClipboardData(
+                    text: appState.primaryWallet.publicKey!,
+                  ),
                 );
-                // _launchUrl();
+                showSnackBar("publickey".tr(), context);
               },
             ),
           ],
