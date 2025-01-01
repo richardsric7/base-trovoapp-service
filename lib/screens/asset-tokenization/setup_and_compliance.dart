@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -119,6 +118,39 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         context: context,
         useSafeArea: true,
         countryFilter: ['NG'],
+        countryListTheme: CountryListThemeData(
+          backgroundColor:
+              notifier.isDark ? notifier.getbluecolor50 : Colors.white,
+          textStyle: TextStyle(color: notifier.getblck),
+          searchTextStyle: TextStyle(color: notifier.getblck),
+          inputDecoration: InputDecoration(
+            errorStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            labelText: 'Search',
+            helperStyle: TextStyle(
+              fontSize: 12,
+              fontFamily: fontbody,
+            ),
+            // label: Text(labletext),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            prefixIcon: Icon(Icons.search, color: notifier.getblck),
+            labelStyle: TextStyle(color: notifier.getblck),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: notifier.getgrey, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: notifier.getgrey, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+        ),
         onSelect: (Country country) {
           setState(() {
             selectedCountry = country.name;
@@ -146,8 +178,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     List<DropdownMenuItem<String>> assetTypes =
         getAssetTypes(tokenizationData, selectedAssetSubSectorId);
 
-    List<DropdownMenuItem<int>> assetCustodians =
-        getAssetCustodians(tokenizationData);
+    // List<DropdownMenuItem<int>> assetCustodians =
+    //     getAssetCustodians(tokenizationData);
 
     List<DropdownMenuItem<int>> assetManagers =
         getAssetManagers(tokenizationData);
@@ -486,7 +518,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        Icon(Icons.keyboard_arrow_down_rounded),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ],
                     ),
                   ),
@@ -513,12 +548,161 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             SizedBox(
               height: height / 30,
             ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            //   child: Row(
+            //     children: [
+            //       Text(
+            //         "assetcustodian".tr(),
+            //         style: TextStyle(
+            //           fontSize: 18,
+            //           fontFamily: fontsemibold,
+            //           color: notifier.getbluewhitecolor,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //     children: [
+            //       Text(
+            //         "selectapprovedcustodian".tr(),
+            //         style: TextStyle(
+            //           fontSize: 13,
+            //           fontFamily: fontsemibold,
+            //           color: notifier.getbluewhitecolor,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // SizedBox(
+            //   height: height / 70,
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            //   child: dropdown(
+            //     (value) {
+            //       setState(() {
+            //         selectedAssetCustodian = value.toString();
+            //         assetCustodians = getAssetCustodians(tokenizationData);
+            //       });
+            //     },
+            //     assetCustodians,
+            //     selectedAssetCustodian.isNotEmpty
+            //         ? assetCustodians
+            //             .where((element) {
+            //               return element.value.toString() ==
+            //                   selectedAssetCustodian;
+            //             })
+            //             .first
+            //             .value
+            //         : null,
+            //     selectedAssetCustodian.isNotEmpty
+            //         ? getSelectedAssetCustodianLabel(
+            //             selectedAssetCustodian, tokenizationData)
+            //         : "selectassetcustodian".tr(),
+            //     context,
+            //     null,
+            //     validator: (value) {
+            //       if (selectedAssetCustodian.isEmpty) {
+            //         return "pleaseselectassetcustodian".tr();
+            //       }
+            //       return null;
+            //     },
+            //   ),
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            //   child: TextButton(
+            //     onPressed: () =>
+            //         appState.goToWebView(tokenizationRequirementsUrl),
+            //     child: Text(
+            //       "pleasecheckrequirements".tr(),
+            //       style: TextStyle(
+            //         decoration: TextDecoration.underline,
+            //         fontSize: 13,
+            //         fontFamily: fontsemibold,
+            //         color: notifier.getbluewhitecolor,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // Row(
+            //   children: [
+            //     Row(
+            //       children: [
+            //         Transform.scale(
+            //           scale: 1,
+            //           child: Radio<bool>(
+            //             value: true,
+            //             groupValue: hasAllRequiredCustodianDocuments,
+            //             activeColor: notifier.getbluewhitecolor,
+            //             fillColor: MaterialStateColor.resolveWith(
+            //                 (states) => notifier.getbluewhitecolor),
+            //             onChanged: (value) => {
+            //               setState(
+            //                 () {
+            //                   hasAllRequiredCustodianDocuments = value!;
+            //                 },
+            //               )
+            //             },
+            //           ),
+            //         ),
+            //         Text(
+            //           "yes".tr(),
+            //           style: TextStyle(
+            //             fontSize: 14,
+            //             fontFamily: fontsemibold,
+            //             color: notifier.getbluewhitecolor,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //     Row(
+            //       children: [
+            //         Transform.scale(
+            //           scale: 1,
+            //           child: Radio<bool>(
+            //             value: false,
+            //             activeColor: notifier.getbluewhitecolor,
+            //             fillColor: MaterialStateColor.resolveWith(
+            //                 (states) => notifier.getbluewhitecolor),
+            //             groupValue: hasAllRequiredCustodianDocuments,
+            //             onChanged: (value) => {
+            //               setState(
+            //                 () {
+            //                   hasAllRequiredCustodianDocuments = value!;
+            //                 },
+            //               )
+            //             },
+            //           ),
+            //         ),
+            //         Text(
+            //           "no".tr(),
+            //           style: TextStyle(
+            //             fontSize: 14,
+            //             fontFamily: fontsemibold,
+            //             color: notifier.getbluewhitecolor,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ],
+            // ),
+            // SizedBox(
+            //   height: height / 50,
+            // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
                 children: [
                   Text(
-                    "assetcustodian".tr(),
+                    "assetissuer".tr(),
+                    // "assetmanager".tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -534,155 +718,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "selectapprovedcustodian".tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {
-                  setState(() {
-                    selectedAssetCustodian = value.toString();
-                    assetCustodians = getAssetCustodians(tokenizationData);
-                  });
-                },
-                assetCustodians,
-                selectedAssetCustodian.isNotEmpty
-                    ? assetCustodians
-                        .where((element) {
-                          return element.value.toString() ==
-                              selectedAssetCustodian;
-                        })
-                        .first
-                        .value
-                    : null,
-                selectedAssetCustodian.isNotEmpty
-                    ? getSelectedAssetCustodianLabel(
-                        selectedAssetCustodian, tokenizationData)
-                    : "selectassetcustodian".tr(),
-                context,
-                null,
-                validator: (value) {
-                  if (selectedAssetCustodian.isEmpty) {
-                    return "pleaseselectassetcustodian".tr();
-                  }
-                  return null;
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextButton(
-                onPressed: () =>
-                    appState.goToWebView(tokenizationRequirementsUrl),
-                child: Text(
-                  "pleasecheckrequirements".tr(),
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: true,
-                        groupValue: hasAllRequiredCustodianDocuments,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredCustodianDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "yes".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: false,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        groupValue: hasAllRequiredCustodianDocuments,
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredCustodianDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "no".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  Text(
-                    "assetmanager".tr(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "selectapprovedmanager".tr(),
+                    // "selectapprovedmanager".tr(),
+                    "selectapprovedissuer".tr(),
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontsemibold,
@@ -728,87 +765,87 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextButton(
-                onPressed: () =>
-                    appState.goToWebView(tokenizationRequirementsUrl),
-                child: Text(
-                  "doyouhaverequiredmanagerdocs".tr(),
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: true,
-                        groupValue: hasAllRequiredManagerDocuments,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredManagerDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "yes".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: false,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        groupValue: hasAllRequiredManagerDocuments,
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredManagerDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "no".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            //   child: TextButton(
+            //     onPressed: () =>
+            //         appState.goToWebView(tokenizationRequirementsUrl),
+            //     child: Text(
+            //       "doyouhaverequiredmanagerdocs".tr(),
+            //       style: TextStyle(
+            //         decoration: TextDecoration.underline,
+            //         fontSize: 13,
+            //         fontFamily: fontsemibold,
+            //         color: notifier.getbluewhitecolor,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // Row(
+            //   children: [
+            //     Row(
+            //       children: [
+            //         Transform.scale(
+            //           scale: 1,
+            //           child: Radio<bool>(
+            //             value: true,
+            //             groupValue: hasAllRequiredManagerDocuments,
+            //             activeColor: notifier.getbluewhitecolor,
+            //             fillColor: MaterialStateColor.resolveWith(
+            //                 (states) => notifier.getbluewhitecolor),
+            //             onChanged: (value) => {
+            //               setState(
+            //                 () {
+            //                   hasAllRequiredManagerDocuments = value!;
+            //                 },
+            //               )
+            //             },
+            //           ),
+            //         ),
+            //         Text(
+            //           "yes".tr(),
+            //           style: TextStyle(
+            //             fontSize: 14,
+            //             fontFamily: fontsemibold,
+            //             color: notifier.getbluewhitecolor,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //     Row(
+            //       children: [
+            //         Transform.scale(
+            //           scale: 1,
+            //           child: Radio<bool>(
+            //             value: false,
+            //             activeColor: notifier.getbluewhitecolor,
+            //             fillColor: MaterialStateColor.resolveWith(
+            //                 (states) => notifier.getbluewhitecolor),
+            //             groupValue: hasAllRequiredManagerDocuments,
+            //             onChanged: (value) => {
+            //               setState(
+            //                 () {
+            //                   hasAllRequiredManagerDocuments = value!;
+            //                 },
+            //               )
+            //             },
+            //           ),
+            //         ),
+            //         Text(
+            //           "no".tr(),
+            //           style: TextStyle(
+            //             fontSize: 14,
+            //             fontFamily: fontsemibold,
+            //             color: notifier.getbluewhitecolor,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ],
+            // ),
+            // SizedBox(
+            //   height: height / 50,
+            // ),
             SizedBox(
               height: height / 20,
             ),

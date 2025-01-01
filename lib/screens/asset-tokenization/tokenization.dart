@@ -299,7 +299,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     );
                   } else if (snapshot.hasData) {
                     var records = snapshot.data!['records'];
-                    if (records.length < 0) {
+                    if (records.length > 0) {
                       return Column(
                         children: [
                           SizedBox(
@@ -487,6 +487,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       height: height / 60,
                     ),
                     Text(
+                      "welcometoassettokenization7".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
                       "welcometoassettokenization4".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -525,7 +538,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       height: height / 70,
                     ),
                     Text(
-                      "welcometoassettokenization7".tr(),
+                      "welcometoassettokenization8".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
