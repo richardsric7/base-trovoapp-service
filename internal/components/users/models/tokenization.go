@@ -120,6 +120,7 @@ type TokenizedAsset struct {
 	InvestorAccreditationRequired  int                         `gorm:"default:0" json:"investorAccreditationRequired"`
 	AssetTokenizationStatus        int                         `gorm:"default:0" json:"assetTokenizationStatus"`
 	LastUpdatedBy                  *string                     `gorm:"null" json:"lastUpdatedBy"`
+	TokenizationTransaction        *string                     `gorm:"null" json:"tokenizationTransaction"`
 }
 
 type TokenizedAssetJSONInput struct {
@@ -261,6 +262,12 @@ type TokenizationCurrency struct {
 }
 type TokenizationPublicAssetAllowedCountryCode struct {
 	ID string `gorm:"size:3" json:"id"`
+}
+
+type TokenizationStatus struct {
+	ID          uint64 `gorm:"" json:"id"`
+	Description string `json:"description"`
+	// Inactive       int    `gorm:"default:0" json:"-"`
 }
 
 type TokenizationFee struct {

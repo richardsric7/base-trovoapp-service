@@ -1254,6 +1254,63 @@ func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermis
 	return
 }
 
+func (id UserWalletID) UserHasAccess(username, permissionToCheck string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck = strings.ToUpper(strings.TrimSpace(permissionToCheck))
+	if permissionToCheck == "" {
+		return
+	}
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+
+func (id UserWalletID) UserWithInitiatorAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "INITIATOR"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+
+func (id UserWalletID) UserWithApproverAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "APPROVER"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+func (id UserWalletID) UserWithViewOnlyAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "VIEW-ONLY"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+
 func (u *UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
 
 	if u.Permissions != nil {

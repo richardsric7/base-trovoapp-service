@@ -315,6 +315,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSector: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationStatus{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationStatus: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetSubSector{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSubSector: ", errMigrate)

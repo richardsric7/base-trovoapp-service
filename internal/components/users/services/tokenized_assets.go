@@ -87,6 +87,13 @@ func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	return
 }
 
+func GetTokenizationStatuses(db *gorm.DB) (statuses []userModels.TokenizationStatus) {
+	statuses = make([]userModels.TokenizationStatus, 0)
+	db.Find(&statuses)
+
+	return
+}
+
 func GetAssetTokenizationDocumentTypes(db *gorm.DB) (docTypes []userModels.AssetTokenizationDocumentType) {
 	docTypes = make([]userModels.AssetTokenizationDocumentType, 0)
 	// db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
@@ -220,6 +227,52 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	return url, nil
 }
 
+func DeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
+	// var document userModels.AssetTokenizationDocument
+	ato, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if err != nil {
+		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
+		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+
+	}
+	if len(ato.IssuingWalletPublicKey) != 56 {
+		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+
+	}
+
+	if ato.AssetTokenizationStatus > 0 {
+		err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-cannot-delete", ErrMessage: "You cannot delete this tokenization request because it has passed the editing stage."}
+
+		return ato.ToJSON(gc), err
+
+	}
+	//get access permission and see if the user taking action has an INITIATOR access.
+	if !userModels.UserWalletID(ato.IssuingWalletPublicKey).UserHasAccess(user.Username, "INITIATOR", gc.DB) {
+		err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-access", ErrMessage: "You cannot delete this tokenization request because you do not possess an initiator permission on the tokenization wallet."}
+
+		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+
+	}
+
+	e := gc.DB.Delete(&ato).Error
+	if e != nil {
+		log.Printf("[DeleteTokenization]error deleting existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+		return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
+
+	}
+
+	user.InvalidateUserCache(gc)
+	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	if err == nil {
+		if owner.Username == user.Username {
+			user = &owner
+		}
+
+	}
+
+	return ato.ToJSON(gc), nil
+}
+
 func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sharedconfig.GlobalConfig) (document userModels.AssetTokenizationDocument, err error) {
 	// var document userModels.AssetTokenizationDocument
 	gc.DB.Where("id = ?", documentID).First(&document)
@@ -310,6 +363,59 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, err
+}
+
+func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	//check if existing
+	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+
+	if e == nil {
+		//tokenization existing
+		if ato.AssetTokenizationStatus > 0 {
+			// error tokenization is already in progress
+			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", issuingWallet.ID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is already in progress, this action cannot be performed."}
+			return
+
+		}
+
+		if ato.ID != tokenizationID {
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-id-not-valid", ErrMessage: "Invalid tokenization specified."}
+			return
+		}
+
+		ato.LastUpdatedBy = &initiator.Username
+		ato.AssetTokenizationStatus = 1
+
+	} else {
+		if !NotFound {
+			//critical database error occured
+			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing tokenization from database  issuer [%v] for %v: %v\n", issuingWallet.ID, initiator.Username, e)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+
+		}
+
+		log.Printf("[SubmitTokenizationAssetInfo] Tokenization does not exist: %v\n", issuingWallet.ID)
+		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
+		return
+
+	}
+	if ato.TokenizationTransaction == nil {
+		log.Printf("[SubmitTokenizationAssetInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
+		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
+		return
+	}
+	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 

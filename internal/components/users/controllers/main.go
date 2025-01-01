@@ -4178,6 +4178,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
 			managers := userServices.GetAssetManagers(gc.DB)
 			fees := userServices.GetTokenizationFees(gc.DB)
+			statuses := userServices.GetTokenizationStatuses(gc.DB)
 			// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
 			currencies := userServices.GetTokenizationCurrencies(gc.DB)
 			apo := userServices.GetAssetProtectionOptions(gc.DB)
@@ -4185,7 +4186,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
 
 			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
-				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes})
+				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes, "tokenizationStatuses": statuses})
 
 		})
 
@@ -4396,7 +4397,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//update request
+			//perform request action
 			ta, err := userServices.SubmitTokenizationAssetInfo(&initiator, &issuingWallet, &tInput, gc)
 
 			if err != nil {
@@ -4414,6 +4415,270 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			c.JSON(http.StatusOK, ta.ToJSON(gc))
+
+		})
+
+		router.PUT("/v1/tokenization/confirm/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			//initiator is initiator on issuing wallet?
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range initiator.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			//get the wallet you are sending payment from
+			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-issuing-wallet-alias",
+					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			if issuingWallet.WalletType != 1 {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+				return
+			}
+
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+
+			//confirm request
+			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, &issuingWallet, c.Param("tokenizationID"), gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta)
+
+		})
+
+		router.PUT("/v1/tokenization/approve/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			//initiator is initiator on issuing wallet?
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range initiator.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			//get the wallet you are sending payment from
+			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-issuing-wallet-alias",
+					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			if issuingWallet.WalletType != 1 {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+				return
+			}
+
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+
+			//confirm request
+			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, &issuingWallet, c.Param("tokenizationID"), gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta)
+
+		})
+
+		router.DELETE("/v1/tokenization/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			//initiator is initiator on issuing wallet?
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range initiator.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			//get the wallet you are sending payment from
+			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-issuing-wallet-alias",
+					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			if issuingWallet.WalletType != 1 {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+				return
+			}
+
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+
+			//update request
+			ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta)
 
 		})
 
