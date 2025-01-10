@@ -253,14 +253,25 @@ func DeleteTokenization(user *userModels.User, tokenizationID string, gc *shared
 		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
 
 	}
+	tx := gc.DB.Begin()
+	defer tx.Rollback()
+	if len(ato.AssetTokenizationDocuments) > 0 {
+		e := tx.Delete(&ato.AssetTokenizationDocuments).Error
+		if e != nil {
+			log.Printf("[DeleteTokenization]error deleting existing tokenization documents in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+			return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
 
-	e := gc.DB.Delete(&ato).Error
+		}
+	}
+	//reset the document since it is purged
+	ato.AssetTokenizationDocuments = make([]userModels.AssetTokenizationDocument, 0)
+	e := tx.Delete(&ato).Error
 	if e != nil {
 		log.Printf("[DeleteTokenization]error deleting existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
 		return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
 
 	}
-
+	tx.Commit()
 	user.InvalidateUserCache(gc)
 	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
 	if err == nil {
