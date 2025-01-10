@@ -379,7 +379,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -432,7 +432,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -448,7 +448,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -483,7 +483,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -500,7 +500,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -520,7 +520,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var err error
 		f, err := c.FormFile("profilePicture")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			return
 		}
 
@@ -558,7 +558,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -575,7 +575,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -622,7 +622,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -636,7 +636,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -650,7 +650,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -674,7 +674,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -717,7 +717,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -732,7 +732,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -781,7 +781,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -849,7 +849,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -864,7 +864,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -878,7 +878,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -903,7 +903,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -946,7 +946,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -961,7 +961,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1010,7 +1010,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1061,7 +1061,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1075,7 +1075,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1089,7 +1089,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1127,7 +1127,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1171,7 +1171,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1185,7 +1185,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1199,7 +1199,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1237,7 +1237,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1283,7 +1283,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1298,7 +1298,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1362,7 +1362,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1425,7 +1425,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1440,7 +1440,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1503,7 +1503,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1676,7 +1676,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1693,7 +1693,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1785,7 +1785,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1817,7 +1817,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1832,7 +1832,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1857,7 +1857,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1872,7 +1872,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1897,7 +1897,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1912,7 +1912,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1949,7 +1949,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -1965,7 +1965,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2011,7 +2011,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2026,7 +2026,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2072,7 +2072,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2087,7 +2087,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2171,7 +2171,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2186,7 +2186,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2216,7 +2216,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2230,7 +2230,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2245,7 +2245,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2280,7 +2280,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2498,7 +2498,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2512,7 +2512,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2527,7 +2527,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -2585,7 +2585,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -3134,7 +3134,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if ok {
 				c.JSON(http.StatusBadRequest, ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
 			return
 		}
@@ -3217,7 +3217,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3231,7 +3231,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3245,7 +3245,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3269,7 +3269,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3608,7 +3608,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -3623,7 +3623,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3704,7 +3704,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -3719,7 +3719,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -3856,7 +3856,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -3958,7 +3958,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4238,7 +4238,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -4331,7 +4331,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4409,7 +4409,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"message": err.Error()})
 				}
 				return
 			}
@@ -4432,7 +4432,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4497,7 +4497,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"message": err.Error()})
 				}
 				return
 			}
@@ -4520,7 +4520,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4585,7 +4585,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -4608,7 +4608,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4673,7 +4673,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -4697,7 +4697,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4753,7 +4753,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
 				return
 			}
 
@@ -4768,7 +4768,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			blobFile, err := fileHeader.Open()
 
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
 
 				return
 			}
@@ -4780,7 +4780,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			{
 				//check for unsupported extension
 				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
 
 					return
 				}
@@ -4802,17 +4802,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			if tokenizationInput.DocumentType == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
 				return
 			}
 			if len(tokenizationInput.DocumentTitle) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
 				return
 			}
 			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
 				return
 			}
 			if t.AssetTokenizationStatus > 0 {
@@ -4821,7 +4821,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			tokenizationInput.TokenizedAssetID = t.ID
 			if len(tokenizationInput.TokenizedAssetID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
 				return
 			}
 
@@ -4837,7 +4837,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
@@ -4874,7 +4874,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
 			}
@@ -4950,7 +4950,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(http.StatusBadRequest, ex.JSONError())
 				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
 			}
