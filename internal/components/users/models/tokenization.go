@@ -290,11 +290,18 @@ type TokenizationFeePaymentMethod struct {
 }
 
 type TokenizationFeeProofOfPayment struct {
-	ID                   uint64 `json:"id"`
-	CreatedAt            time.Time
-	TokenizedAssetID     string  `json:"tokenizedAssetId"`
-	TransactionReference *string `json:"transactionReference"`
-	DocumentUrl          string  `json:"documentUrl"`
+	ID                             uint64 `json:"id"`
+	CreatedAt                      time.Time
+	TokenizationFeePaymentMethodID string  `gorm:"" json:"tokenizationFeePaymentMethodID"`
+	TokenizedAssetID               string  `json:"tokenizedAssetId"`
+	TransactionReference           *string `json:"transactionReference"`
+	DocumentUrl                    string  `json:"documentUrl"`
+}
+
+type TokenizationFeeProofOfPaymentInput struct {
+	TokenizationFeePaymentMethodID string `gorm:"" json:"tokenizationFeePaymentMethodID" form:"tokenizationFeePaymentMethodID"`
+	TransactionReference           string `json:"transactionReference" form:"transactionReference"`
+	// DocumentFile     *multipart.File `form:"documentFile"`
 }
 
 type TokenizedAssetType struct {

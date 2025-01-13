@@ -4188,7 +4188,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
 
 			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
-				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes, "tokenizationStatuses": statuses, "feePaymentMethods": fpms})
+				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
+				"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
+				"tokenizationStatuses": statuses, "feePaymentMethods": fpms})
 
 		})
 
@@ -4947,7 +4949,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
-		
 		router.PUT("/v1/tokenization/fee/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 			var err error
@@ -5051,7 +5052,25 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					return
 				}
 			}
+			var tokenizationInput userModels.TokenizationFeeProofOfPaymentInput
 
+			err = c.ShouldBind(&tokenizationInput)
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tokenizationInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+			if tokenizationInput.TokenizationFeePaymentMethodID == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "payment type not specified", "message": "payment type not specified"})
+				return
+			}
 			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenizationByID(c.Param("tokenizedAssetID"), gc)
 
 			if len(t.ID) < 5 {
@@ -5065,7 +5084,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/fee/%v %v", t.ID, initiator.Username), gc.DB)
 
-			url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), gc)
+			url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
 
 			if err != nil {
 				var ex tErrors.GenericError
@@ -5095,7 +5114,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, url)
 		})
 
-		
 		router.DELETE("/v1/tokenization/document/:documentID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 			var err error

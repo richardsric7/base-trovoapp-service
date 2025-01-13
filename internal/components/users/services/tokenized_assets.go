@@ -234,7 +234,7 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	return url, nil
 }
 
-func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenizedAssetID string, file multipart.File, fileNameWithExt string, gc *sharedconfig.GlobalConfig) (string, error) {
+func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenizedAssetID string, file multipart.File, fileNameWithExt string, feepaymentproofinput *userModels.TokenizationFeeProofOfPaymentInput, gc *sharedconfig.GlobalConfig) (string, error) {
 
 	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
 	if err != nil {
@@ -246,7 +246,9 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 	//check if document already saved and then retireve it:
 
 	documentUpload := userModels.TokenizationFeeProofOfPayment{
+		TokenizationFeePaymentMethodID: feepaymentproofinput.TokenizationFeePaymentMethodID,
 		TokenizedAssetID: tokenizedAssetID,
+		TransactionReference: &feepaymentproofinput.TransactionReference,
 		DocumentUrl:      url,
 	}
 	e := gc.DB.Create(&documentUpload).Error
