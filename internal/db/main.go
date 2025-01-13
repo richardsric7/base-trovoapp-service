@@ -335,6 +335,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizationFeePaymentMethod: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationFeeProofOfPayment{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationFeeProofOfPayment: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.AssetTokenizationDocumentType{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocumentType: ", errMigrate)
