@@ -108,6 +108,13 @@ func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee userModels.Tokenizat
 	return
 }
 
+func GetTokenizationFeePaymentMethods(db *gorm.DB) (feePMs []userModels.TokenizationFeePaymentMethod) {
+	feePMs = make([]userModels.TokenizationFeePaymentMethod, 0)
+	db.Preload(clause.Associations).Find(&feePMs)
+
+	return
+}
+
 func GetTokenizationCurrencies(db *gorm.DB) (currencies []userModels.TokenizationCurrency) {
 	currencies = make([]userModels.TokenizationCurrency, 0)
 	db.Preload(clause.Associations).Order("asset_code").Find(&currencies)
@@ -227,6 +234,39 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	return url, nil
 }
 
+func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenizedAssetID string, file multipart.File, fileNameWithExt string, gc *sharedconfig.GlobalConfig) (string, error) {
+
+	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
+	if err != nil {
+		return "", err
+	}
+
+	//update the thumbnail url
+	url := fmt.Sprintf("https://storage.googleapis.com/%v/%v", gc.FirebaseStorageUploader.BucketName, newThumbnail)
+	//check if document already saved and then retireve it:
+
+	documentUpload := userModels.TokenizationFeeProofOfPayment{
+		TokenizedAssetID: tokenizedAssetID,
+		DocumentUrl:      url,
+	}
+	e := gc.DB.Create(&documentUpload).Error
+	if e != nil {
+		log.Printf("[UploadTokenizationFeeProofOfPaymentDocument]error creating proof of payment document in database for %v: %v\n", user.Username, e)
+		return "", fmt.Errorf("error saving proof of payment for tokenization ID %v", tokenizedAssetID)
+	}
+
+	user.InvalidateUserCache(gc)
+	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	if err == nil {
+		if owner.Username == user.Username {
+			user = &owner
+		}
+
+	}
+
+	return url, nil
+}
+
 func DeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
 	// var document userModels.AssetTokenizationDocument
 	ato, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
@@ -302,6 +342,39 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 	if e != nil {
 		log.Printf("[UploadTokenizationDocument]error deleting existing document in database  [%v] for %v: %v\n", document, user.Username, e)
 		return document, fmt.Errorf("error deleting document %v", document.DocumentTitle)
+
+	}
+
+	user.InvalidateUserCache(gc)
+	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	if err == nil {
+		if owner.Username == user.Username {
+			user = &owner
+		}
+
+	}
+
+	return document, nil
+}
+
+func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint64, gc *sharedconfig.GlobalConfig) (document userModels.TokenizationFeeProofOfPayment, err error) {
+	// var document userModels.AssetTokenizationDocument
+	gc.DB.Where("id = ?", documentID).First(&document)
+
+	if document.ID != documentID || documentID == 0 {
+		return document, fmt.Errorf("error invalid document id %v", documentID)
+	}
+	err = gc.FirebaseStorageUploader.DeleteFile(document.DocumentUrl)
+	if err != nil {
+		log.Printf("[DeleteTokenizationFeePaymentDocument]error deleting existing document in database  [%v] for %v: %v\n", document, user.Username, err)
+
+		return document, err
+	}
+
+	e := gc.DB.Delete(&document).Error
+	if e != nil {
+		log.Printf("[DeleteTokenizationFeePaymentDocument]error deleting existing document in database  [%v] for %v: %v\n", document, user.Username, e)
+		return document, fmt.Errorf("error deleting document with ID %v", documentID)
 
 	}
 
@@ -419,14 +492,68 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *use
 		return
 
 	}
+
+	// if ato.TokenizationTransaction == nil {
+	// 	log.Printf("[SubmitTokenizationAssetInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
+	// 	err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
+	// 	return
+	// }
+	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, err
+}
+
+func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	//check if existing
+	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+
+	if e == nil {
+		//tokenization existing
+		if ato.AssetTokenizationStatus != 1 {
+			// error tokenization is already in progress
+			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization process not awaiting payment and cannot be modified: %v\n", issuingWallet.ID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is not awaiting payment, this action cannot be performed."}
+			return
+
+		}
+
+		if ato.ID != tokenizationID {
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-id-not-valid", ErrMessage: "Invalid tokenization specified."}
+			return
+		}
+
+		ato.LastUpdatedBy = &initiator.Username
+		ato.AssetTokenizationStatus = 2
+
+	} else {
+		if !NotFound {
+			//critical database error occured
+			log.Printf("[ConfirmTokenizationAssetPaymentInfo]error fetching existing tokenization from database  issuer [%v] for %v: %v\n", issuingWallet.ID, initiator.Username, e)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+
+		}
+
+		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization does not exist: %v\n", issuingWallet.ID)
+		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
+		return
+
+	}
 	if ato.TokenizationTransaction == nil {
-		log.Printf("[SubmitTokenizationAssetInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
+		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
 		return
 	}
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationAssetPaymentInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
