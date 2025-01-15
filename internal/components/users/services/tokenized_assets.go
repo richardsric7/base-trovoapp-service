@@ -593,11 +593,16 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	DB, _ := db.OpenDb()
 	DBC, _ := db.OpenDb()
 
+	onlyWithUserPermission := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlyWithUserPermission", "1")))
+
 	//get all wallets where user has access
 	sharedWallets := make([]string, 0)
-	for _, w := range user.WalletsSharedWithUser {
-		sharedWallets = append(sharedWallets, w.WalletPublicKey)
+	if onlyWithUserPermission == "1" {
+		for _, w := range user.WalletsSharedWithUser {
+			sharedWallets = append(sharedWallets, w.WalletPublicKey)
+		}
 	}
+
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
@@ -639,7 +644,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Order("updated_at desc, ownershipType asc, asset_country_location asc")
 	}
 
-	{
+	if onlyWithUserPermission == "1" {
 		query = query.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
 		countQuery = countQuery.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
 
