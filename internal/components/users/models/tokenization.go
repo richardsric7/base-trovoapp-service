@@ -434,7 +434,7 @@ func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (
 	return
 }
 func (i IssuingWalletPublicKey) GetTokenizationByID(id string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ? && id = ?", string(i), id).First(&t).Error
+	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ? AND id = ?", string(i), id).First(&t).Error
 	if e != nil {
 		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
