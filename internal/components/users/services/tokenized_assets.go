@@ -163,6 +163,26 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 	return
 }
 
+func GetTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, err error) {
+	// var ta userModels.TokenizedAsset
+	err = db.Preload(clause.Associations).Where("initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
+
 func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
 	err = db.Preload(clause.Associations).Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
@@ -247,9 +267,9 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 
 	documentUpload := userModels.TokenizationFeeProofOfPayment{
 		TokenizationFeePaymentMethodID: feepaymentproofinput.TokenizationFeePaymentMethodID,
-		TokenizedAssetID: tokenizedAssetID,
-		TransactionReference: &feepaymentproofinput.TransactionReference,
-		DocumentUrl:      url,
+		TokenizedAssetID:               tokenizedAssetID,
+		TransactionReference:           &feepaymentproofinput.TransactionReference,
+		DocumentUrl:                    url,
 	}
 	e := gc.DB.Create(&documentUpload).Error
 	if e != nil {
