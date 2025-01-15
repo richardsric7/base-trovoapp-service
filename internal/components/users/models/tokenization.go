@@ -425,9 +425,9 @@ type NonExistingAssetValidationAssetDocument struct {
 type NonExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
-
+//GetTokenization gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
 func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
+	e := gc.DB.Preload(clause.Associations).Order("asset_tokenization_status").Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
 	if e != nil {
 		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
