@@ -162,7 +162,8 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 
 	return
 }
-//GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
+
+// GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
 func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, err error) {
 	// var ta userModels.TokenizedAsset
 	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
@@ -182,10 +183,11 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 
 	return
 }
-//GetTokenizedAssetByIssuingWallet gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
+
+// GetTokenizedAssetByIssuingWallet gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
 func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
-	err = db.Preload(clause.Associations).Order("asset_tokenization_status").Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
+	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
 
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
