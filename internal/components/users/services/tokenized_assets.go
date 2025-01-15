@@ -570,11 +570,11 @@ func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, issuingWall
 		return
 
 	}
-	if ato.TokenizationTransaction == nil {
-		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
-		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
-		return
-	}
+	// if ato.TokenizationTransaction == nil {
+	// 	log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
+	// 	err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
+	// 	return
+	// }
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[ConfirmTokenizationAssetPaymentInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
