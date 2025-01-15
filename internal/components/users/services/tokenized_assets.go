@@ -655,11 +655,19 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Where("lower(initiator_username) = ?", initiatorUsername)
 
 	}
-	if len(tokenizationStatus) > 0 {
+	if len(tokenizationStatus) > 0 && onlyWithUserPermission == "1" {
 		ts, _ := strconv.ParseUint(strings.TrimSpace(tokenizationStatus), 10, 64)
 		tsInt := int(ts)
 		query = query.Where("Asset_Tokenization_Status = ?", tsInt)
-		countQuery = countQuery.Where("Asset_Tokenization_Status = ?", tokenizationStatus)
+		countQuery = countQuery.Where("Asset_Tokenization_Status = ?", tsInt)
+
+	}
+
+	//get only market ready list
+	if onlyWithUserPermission == "0" {
+		
+		query = query.Where("Asset_Tokenization_Status > ?", 3)
+		countQuery = countQuery.Where("Asset_Tokenization_Status > ?", 3)
 
 	}
 	if len(hasSecApproval) > 0 {
