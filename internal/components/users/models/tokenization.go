@@ -839,6 +839,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.IsFreeFromLiensAndEncumbrances = ti.IsFreeFromLiensAndEncumbrances
 	t.AssetAlreadyExists = ti.AssetAlreadyExists
 	t.AssetTokenizationDocuments = ti.AssetTokenizationDocuments
+	t.ProofOfPaymentDocuments = ti.ProofOfPaymentDocuments
 	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	t.TotalTokenHeldByManager = ti.TotalTokenHeldByManager
