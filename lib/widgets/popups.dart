@@ -6395,3 +6395,243 @@ confirmAccountDeletionPopup(
         });
       });
 }
+
+uploadTokenizationFeePopup(
+  context, {
+  required void Function(PlatformFile file, String transactionReference)
+      onSubmit,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  PlatformFile? recieptFile;
+  String transactionReference = '';
+  String errorMsg = '';
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: height / 50),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "uploadreceipt".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          errorMsg = "";
+                          recieptFile = await getFile();
+
+                          if (recieptFile != null &&
+                              recieptFile!.size > 900000) {
+                            errorMsg = "filesizeerror".tr();
+                            recieptFile = null;
+                          }
+                          setStateForDialog(() => {});
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: notifier.getbluewhitecolor, width: 1),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(15.0)),
+                              color: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(15.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: height / 70),
+                                      Icon(
+                                        Icons.file_present_rounded,
+                                        color: notifier.getbluewhitecolor,
+                                        size: 35,
+                                      ),
+                                      SizedBox(height: height / 70),
+                                      SizedBox(
+                                        width: 200,
+                                        child: Text(
+                                          recieptFile?.name ??
+                                              "browseimageorpdf".tr(),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: notifier.getbluewhitecolor,
+                                              fontFamily: fontbody),
+                                        ),
+                                      ),
+                                      SizedBox(height: height / 70),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (errorMsg.isNotEmpty) ...[
+                        Text(
+                          errorMsg,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.red,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: height / 50),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "entertransactionreference".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: CustomTextFormField.textField(
+                          "transactionreference".tr(),
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          null,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          70.sp,
+                          200.sp,
+                          onChanged: (value) {
+                            transactionReference = value;
+                            setStateForDialog(() {});
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (recieptFile != null) {
+                              onSubmit(recieptFile!, transactionReference);
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          style: ButtonStyle(
+                            fixedSize: MaterialStateProperty.all(
+                              Size(width / 1.5, height / 20),
+                            ),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                              recieptFile != null
+                                  ? notifier.getbluecolor
+                                  : notifier.getbluecolor80,
+                            ),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "upload".tr(),
+                            style: TextStyle(
+                                color: wihitecolor, fontFamily: fontbody),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              Navigator.of(context).pop(), // dismiss dialog,
+                          style: ButtonStyle(
+                            fixedSize: MaterialStateProperty.all(
+                              Size(width / 1.5, height / 20),
+                            ),
+                            overlayColor: MaterialStateProperty.all<Color>(
+                                notifier.getsplashgrey),
+                            elevation: MaterialStateProperty.all<double>(0),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getwihitecolor!),
+                            side: MaterialStateProperty.all(
+                              BorderSide(
+                                  color: notifier.getgrey,
+                                  width: 1,
+                                  style: BorderStyle.solid),
+                            ),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "cancel".tr(),
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20)
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        });
+      });
+}

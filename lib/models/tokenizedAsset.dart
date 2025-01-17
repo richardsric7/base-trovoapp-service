@@ -58,7 +58,9 @@ class TokenizedAsset {
   String? assetQuoteCurrency;
   String? additionalKYCRequirements;
   int? investorAccreditationRequired;
-  int? tokenizationStatus; // 0 pending, 1 completed, 2 rejected
+  int?
+      tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
+  List<ProofOfPaymentDocument>? proofOfPaymentDocuments;
   String? lastUpdatedBy;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -136,6 +138,7 @@ class TokenizedAsset {
     this.tokenizationStatus,
     this.assetQuoteCurrency,
     this.isSubscribed,
+    this.proofOfPaymentDocuments,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -212,8 +215,10 @@ class TokenizedAsset {
       closedGroupInfo: ClosedGroupInfo().deserializeJson(m["closedGroupInfo"]),
       assetTokenizationDocuments:
           deserializeDocuments(m["AssetTokenizationDocuments"]),
-      tokenizationStatus: m["tokenizationStatus"],
+      tokenizationStatus: m["assetTokenizationStatus"],
       isSubscribed: m["isSubscribed"],
+      proofOfPaymentDocuments:
+          deserializeProofOfPaymentDocuments(m["ProofOfPaymentDocuments"]),
     );
   }
 
@@ -221,6 +226,14 @@ class TokenizedAsset {
     List<Document> docs = [];
     for (int i = 0; i < m.length; i++) {
       docs.add(Document().deserializeJson(m[i]));
+    }
+    return docs;
+  }
+
+  List<ProofOfPaymentDocument> deserializeProofOfPaymentDocuments(m) {
+    List<ProofOfPaymentDocument> docs = [];
+    for (int i = 0; i < m.length; i++) {
+      docs.add(ProofOfPaymentDocument().deserializeJson(m[i]));
     }
     return docs;
   }
@@ -250,6 +263,37 @@ class CustodianInfo {
       assetCustodianAddress: m["assetCustodianAddress"],
       assetCustodianCountry: m["assetCustodianCountry"],
       requirementDocument: m["requirementDocument"],
+    );
+  }
+}
+
+class ProofOfPaymentDocument {
+  int? id;
+  DateTime? createdAt;
+  String? tokenizationFeePaymentMethodID;
+  String? tokenizedAssetId;
+  String? transactionReference;
+  String? documentUrl;
+
+  ProofOfPaymentDocument({
+    this.id,
+    this.createdAt,
+    this.tokenizationFeePaymentMethodID,
+    this.tokenizedAssetId,
+    this.transactionReference,
+    this.documentUrl,
+  });
+
+  ProofOfPaymentDocument deserializeJson(Map<String, dynamic> m) {
+    var info =
+        m["ProofOfPaymentDocument"] != null ? m["ProofOfPaymentDocument"] : m;
+    return ProofOfPaymentDocument(
+      createdAt: DateTime.parse(m["CreatedAt"]),
+      id: info["id"] != null ? info["id"] : null,
+      tokenizationFeePaymentMethodID: info["tokenizationFeePaymentMethodID"],
+      tokenizedAssetId: info["tokenizedAssetId"],
+      transactionReference: info["transactionReference"],
+      documentUrl: info["documentUrl"],
     );
   }
 }

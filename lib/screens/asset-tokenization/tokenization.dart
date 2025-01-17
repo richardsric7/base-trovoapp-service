@@ -32,6 +32,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   late TabController tabController;
   late Future<Map> listOfTokenizations;
+  TokenizedAssetListMode listMode = TokenizedAssetListMode.All;
   bool hasInitiatorAccess = false;
   late var savedAssets;
   getdarkmodepreviousstate() async {
@@ -53,15 +54,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     return false;
   }
 
-  List<DropdownMenuItem<String>> get getItems {
-    List<DropdownMenuItem<String>> items = [];
-    listMode.forEach((key) {
+  List<DropdownMenuItem<TokenizedAssetListMode>> get getItems {
+    List<DropdownMenuItem<TokenizedAssetListMode>> items = [];
+    listModes.forEach((key, value) {
       items.add(DropdownMenuItem(
           child: Text(
             key,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: value));
     });
     return items;
   }
@@ -79,10 +80,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     return wallets;
   }
 
-  List<String> listMode = [
-    'Tokenized Assets',
-    'Assets',
-  ];
+  Map<String, TokenizedAssetListMode> listModes = {
+    'All': TokenizedAssetListMode.All,
+    'Submitted': TokenizedAssetListMode.Submitted,
+    'Rejected': TokenizedAssetListMode.Rejected,
+    'Pending': TokenizedAssetListMode.Pending,
+    'Processing': TokenizedAssetListMode.Processing,
+  };
 
   @override
   void initState() {
@@ -336,14 +340,30 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   ),
                                 ),
                               ),
-                              Text(
-                                'All',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getbluewhitecolor,
+                              Container(
+                                width: 250,
+                                child: dropdown(
+                                  (value) {
+                                    setState(() {
+                                      listMode =
+                                          value as TokenizedAssetListMode;
+                                    });
+                                  },
+                                  getItems,
+                                  null,
+                                  "all".tr(),
+                                  context,
+                                  null,
                                 ),
                               ),
+                              // Text(
+                              //   'All',
+                              //   style: TextStyle(
+                              //     fontSize: 13,
+                              //     fontFamily: fontsemibold,
+                              //     color: notifier.getbluewhitecolor,
+                              //   ),
+                              // ),
                             ],
                           ),
                           SizedBox(
@@ -366,7 +386,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                                 'marketMakingWallet'];
 
                                         if (records[i].tokenizationStatus ==
-                                            null) {
+                                            0) {
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
                                             page:
@@ -377,7 +397,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         }
 
                                         if (records[i].tokenizationStatus ==
-                                            1) {
+                                            2) {
                                           appState.tokenizedAsset = records[i];
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
@@ -416,14 +436,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         records[i].assetLogo ?? '',
                                         '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
                                         '${records[i].assetSubSector}',
-                                        records[i].tokenizationStatus == null
-                                            ? 'Continue'
-                                            : records[i].tokenizationStatus == 0
-                                                ? 'Pending'
-                                                : records[i].tokenizationStatus ==
-                                                        1
-                                                    ? 'Approved'
-                                                    : 'Rejected',
+                                        getTokenizationStatus(
+                                            records[i].tokenizationStatus),
                                       ),
                                     ),
                                   ],
@@ -770,7 +784,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         await inspect(savedAssets);
         if (savedAssets != null) {
           for (int i = 0; i < savedAssets.length; i++) {
-            print(savedAssets[i]);
+            inspect(savedAssets[i]);
             var a = TokenizedAsset().deserializeJson(savedAssets[i]);
             a.usdPrice = 1.47;
             a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
@@ -790,14 +804,35 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     }
   }
 
+  String getTokenizationStatus(int status) {
+    switch (status) {
+      case 0:
+        return 'Continue';
+      case 1:
+        return 'Submitted';
+      case 2:
+        return 'Processing';
+      default:
+        return 'Rejected';
+    }
+  }
+
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'rejected':
         return Colors.red;
-      case 'approved':
+      case 'submitted':
         return notifier.getgreencolor;
       default: // pending
         return notifier.getbluewhitecolor;
     }
   }
+}
+
+enum TokenizedAssetListMode {
+  All,
+  Submitted,
+  Rejected,
+  Pending,
+  Processing,
 }

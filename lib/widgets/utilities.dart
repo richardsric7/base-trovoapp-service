@@ -146,6 +146,12 @@ truncatePublicKey(String? publicKey) {
       publicKey.substring(publicKey.length - 7);
 }
 
+truncateString(String? text) {
+  if (text == null) return "entertext".tr();
+  if (text.length <= 15) return text;
+  return truncate(text, length: 15) + text.substring(text.length - 15);
+}
+
 String truncate(String text, {length = 7, omission = '...'}) {
   if (length >= text.length) {
     return text;

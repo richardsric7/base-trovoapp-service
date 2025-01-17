@@ -758,7 +758,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 context,
                 null,
                 validator: (value) {
-                  if (selectedAssetCustodian.isEmpty) {
+                  if (selectedAssetManager.isEmpty) {
                     return "pleaseselectassetmanager".tr();
                   }
                   return null;
@@ -857,6 +857,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 submit();
               },
             ),
+            SizedBox(height: 10),
+            Button(
+              "deletetokenization".tr(),
+              Colors.red,
+              wihitecolor,
+              onTap: () {
+                deleteTokenization();
+              },
+            ),
             SizedBox(height: height / 10),
             Padding(
               padding: EdgeInsets.only(
@@ -881,15 +890,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     if (!form!.validate() && !formHasError) return;
 
-    if (!hasAllRequiredCustodianDocuments) {
-      message +=
-          "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
-    }
+    // if (!hasAllRequiredCustodianDocuments) {
+    //   message +=
+    //       "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
+    // }
 
-    if (!hasAllRequiredManagerDocuments) {
-      message +=
-          "You need to acquire all the documents in the asset manager's required documents list before you can proceed.\n\n";
-    }
+    // if (!hasAllRequiredManagerDocuments) {
+    //   message +=
+    //       "You need to acquire all the documents in the asset manager's required documents list before you can proceed.\n\n";
+    // }
 
     // if (offeringType == 0 && !hasCustodianAgreement) {
     //   message +=
@@ -1160,5 +1169,37 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         ),
       ),
     );
+  }
+
+  void deleteTokenization() async {
+    try {
+      showLoader(context);
+
+      Map responseData = await makeDeleteRequest(
+        uri: '/v1/tokenization/${appState.viewData!['id']}',
+        body: "",
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeTokenizationWalletPublicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData['data']}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: BottomHomePageConfig,
+        );
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 }
