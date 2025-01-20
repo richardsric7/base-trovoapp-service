@@ -173,7 +173,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               Colors.red,
               wihitecolor,
               onTap: () {
-                deleteTokenization();
+                confirmTokenizationDeletePopup(context,
+                    onConfirmationSuccess: deleteTokenization);
               },
             ),
             SizedBox(
@@ -336,7 +337,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
 
       if (responseData['statusCode'] == 200) {
         appState.currentAction = PageAction(
-          state: PageState.replace,
+          state: PageState.replaceAll,
           page: BottomHomePageConfig,
         );
       } else {

@@ -6396,6 +6396,98 @@ confirmAccountDeletionPopup(
       });
 }
 
+confirmTokenizationDeletePopup(
+  context, {
+  required void Function() onConfirmationSuccess,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(20),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: height / 50),
+                        Text(
+                          "confirmatokenizationdeletion".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: height / 50),
+                        Text(
+                          "areyousuredeletetokenization".tr(),
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Button(
+                          "yesdelete".tr(),
+                          Colors.red,
+                          wihitecolor,
+                          width: width / 1.5,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            onConfirmationSuccess();
+                          },
+                        ),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ButtonOutlined(
+                              "nocancel".tr(),
+                              notifier.getwihitecolor,
+                              notifier.getbluewhitecolor,
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                              width: width / 1.5,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
+                  ),
+                ),
+              ));
+        });
+      });
+}
+
 uploadTokenizationFeePopup(
   context, {
   required void Function(PlatformFile file, String transactionReference)

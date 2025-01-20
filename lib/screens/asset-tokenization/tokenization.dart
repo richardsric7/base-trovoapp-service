@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -35,6 +36,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   TokenizedAssetListMode listMode = TokenizedAssetListMode.All;
   bool hasInitiatorAccess = false;
   late var savedAssets;
+  late RefreshController _refreshController;
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -94,8 +96,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     getdarkmodepreviousstate();
     tabController = TabController(length: 2, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
+    _refreshController = RefreshController(initialRefresh: false);
     listOfTokenizations = fetchTokenizationList();
     hasInitiatorAccess = checkHasInitiatorAccess();
+  }
+
+  void refreshData() async {
+    try {
+      listOfTokenizations = fetchTokenizationList();
+      _refreshController.refreshCompleted();
+      appState.updateListeners();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 
   @override
@@ -108,364 +121,377 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
       drawer: getDrawer(context, appState, notifier),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            CustomAppBarWithoutLeading(
-              context,
-              notifier.getwihitecolor,
-              scaffoldKey: key,
-              showMenu: true,
-              txt: '',
-              titlecolor: notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
-            // SizedBox(height: height / 50),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Card(
-                shadowColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                color: notifier.isDark
-                    ? notifier.getbluecolor90
-                    : notifier.getaddsubwalletgrey,
-                child: Center(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "welcometoassettokenization2".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
+      body: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: refreshData,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              CustomAppBarWithoutLeading(
+                context,
+                notifier.getwihitecolor,
+                scaffoldKey: key,
+                showMenu: true,
+                txt: '',
+                titlecolor: notifier.getbluewhitecolor,
+                height: height / 15,
+              ).getBar(),
+              // SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getaddsubwalletgrey,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: height / 70,
                         ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "welcometoassettokenization3".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
+                        Text(
+                          "welcometoassettokenization2".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (appState.tokenizationData.isEmpty) {
-                                popup(context,
-                                    title: "error".tr(),
-                                    message:
-                                        "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
-                                return;
-                              }
-                              List<String> excludedWallets = [];
-                              for (var asset in savedAssets) {
-                                excludedWallets
-                                    .add(asset['issuingWalletPublicKey']);
-                              }
-                              appState.viewData = {
-                                'excludedWallets': excludedWallets,
-                              };
-                              hasInitiatorAccess
-                                  ? appState.currentAction = PageAction(
-                                      state: PageState.addPage,
-                                      page: WalletPreparationViewPageConfig,
-                                    )
-                                  : showCreateTokenizationWalletPopup(context);
-                            },
-                            style: ButtonStyle(
-                              overlayColor: MaterialStateProperty.all<Color>(
-                                  notifier.getsplashgrey),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                notifier.isDark
-                                    ? notifier.getbluecolor90
-                                    : notifier.getaddsubwalletgrey,
-                              ),
-                              side: MaterialStateProperty.all(
-                                BorderSide(
-                                    color: notifier.getbluewhitecolor,
-                                    width: 1,
-                                    style: BorderStyle.solid),
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Text(
+                          "welcometoassettokenization3".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (appState.tokenizationData.isEmpty) {
+                                  popup(context,
+                                      title: "error".tr(),
+                                      message:
+                                          "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
+                                  return;
+                                }
+                                List<String> excludedWallets = [];
+                                for (var asset in savedAssets) {
+                                  excludedWallets
+                                      .add(asset['issuingWalletPublicKey']);
+                                }
+                                appState.viewData = {
+                                  'excludedWallets': excludedWallets,
+                                };
+                                hasInitiatorAccess
+                                    ? appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: WalletPreparationViewPageConfig,
+                                      )
+                                    : showCreateTokenizationWalletPopup(
+                                        context);
+                              },
+                              style: ButtonStyle(
+                                overlayColor: MaterialStateProperty.all<Color>(
+                                    notifier.getsplashgrey),
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                  notifier.isDark
+                                      ? notifier.getbluecolor90
+                                      : notifier.getaddsubwalletgrey,
+                                ),
+                                side: MaterialStateProperty.all(
+                                  BorderSide(
+                                      color: notifier.getbluewhitecolor,
+                                      width: 1,
+                                      style: BorderStyle.solid),
+                                ),
+                                shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(
+                                  const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            child: Container(
-                              width: width / 1.5,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_circle_rounded,
-                                    size: 20,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-                                  Text(
-                                    "tokenizeasset".tr(),
-                                    style: TextStyle(
-                                        fontFamily: fontsemibold,
-                                        fontSize: 12,
-                                        color: notifier.getbluewhitecolor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            FutureBuilder<Map>(
-              future: listOfTokenizations,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return SizedBox(
-                    height: height / 2,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        backgroundColor: notifier.getbluecolor,
-                        valueColor: new AlwaysStoppedAnimation<Color>(
-                          notifier.getgreencolor,
-                        ),
-                        strokeWidth: 3.0,
-                      ),
-                    ),
-                  );
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        height: height / 2,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "somethingwentwrong".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  listOfTokenizations = fetchTokenizationList();
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
-                              ),
-                              child: Text(
-                                "retry".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
+                              child: Container(
+                                width: width / 1.5,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_circle_rounded,
+                                      size: 20,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                    SizedBox(
+                                      width: 4,
+                                    ),
+                                    Text(
+                                      "tokenizeasset".tr(),
+                                      style: TextStyle(
+                                          fontFamily: fontsemibold,
+                                          fontSize: 12,
+                                          color: notifier.getbluewhitecolor),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ],
                         ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              FutureBuilder<Map>(
+                future: listOfTokenizations,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SizedBox(
+                      height: height / 2,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          backgroundColor: notifier.getbluecolor,
+                          valueColor: new AlwaysStoppedAnimation<Color>(
+                            notifier.getgreencolor,
+                          ),
+                          strokeWidth: 3.0,
+                        ),
                       ),
                     );
-                  } else if (snapshot.hasData) {
-                    var records = snapshot.data!['records'];
-                    if (records.length > 0) {
-                      return Column(
-                        children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Tokenized Assets',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: height / 90),
-                          Row(
+                  } else if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          height: height / 2,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Text(
-                                  'Sort by:',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontFamily: fontbody,
+                              Text(
+                                "somethingwentwrong".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
                                     color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    listOfTokenizations =
+                                        fetchTokenizationList();
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          notifier.getbluecolor!),
+                                ),
+                                child: Text(
+                                  "retry".tr(),
+                                  style: TextStyle(
+                                    fontFamily: fontsemibold,
                                   ),
                                 ),
                               ),
-                              Container(
-                                width: 250,
-                                child: dropdown(
-                                  (value) {
-                                    setState(() {
-                                      listMode =
-                                          value as TokenizedAssetListMode;
-                                    });
-                                  },
-                                  getItems,
-                                  null,
-                                  "all".tr(),
-                                  context,
-                                  null,
-                                ),
-                              ),
-                              // Text(
-                              //   'All',
-                              //   style: TextStyle(
-                              //     fontSize: 13,
-                              //     fontFamily: fontsemibold,
-                              //     color: notifier.getbluewhitecolor,
-                              //   ),
-                              // ),
                             ],
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Container(
-                            height: height / 1.96,
-                            child: SingleChildScrollView(
-                              child: Column(
+                        ),
+                      );
+                    } else if (snapshot.hasData) {
+                      var records = snapshot.data!['records'];
+                      if (records.length > 0) {
+                        return Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  for (var i = 0; i < records.length; i++) ...[
-                                    GestureDetector(
-                                      onTap: () async {
-                                        appState.viewData = savedAssets[i];
-                                        appState.setActiveTokenizationWalletPublicKey =
-                                            appState.viewData![
-                                                'issuingWalletPublicKey'];
-                                        appState.setActiveDistributionWalletPublicKey =
-                                            appState.viewData![
-                                                'marketMakingWallet'];
-
-                                        if (records[i].tokenizationStatus ==
-                                            0) {
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page:
-                                                SetupAndComplianceViewPageConfig,
-                                          );
-
-                                          return;
-                                        }
-
-                                        if (records[i].tokenizationStatus ==
-                                            2) {
-                                          appState.tokenizedAsset = records[i];
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page: AssetDashboardViewPageConfig,
-                                          );
-                                          return;
-                                        }
-
-                                        var list = [];
-
-                                        for (var j = 0;
-                                            j < savedAssets.length;
-                                            j++) {
-                                          var data = Map.from(savedAssets[j]);
-                                          if (data['tokenizationStatus'] !=
-                                              null) {
-                                            if (data['id'] == records[i].id) {
-                                              data['tokenizationStatus'] = 1;
-                                            }
-                                            list.add(data);
-                                          }
-                                        }
-
-                                        await StoreData()
-                                            .storeDeleteItem('tokenizedAsset');
-                                        await StoreData().storeInsertData(
-                                            'tokenizedAsset', list);
-
-                                        appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page:
-                                              ConfirmTokenizationDetailsViewPageConfig,
-                                        );
-                                      },
-                                      child: assetTile(
-                                        records[i].assetLogo ?? '',
-                                        '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
-                                        '${records[i].assetSubSector}',
-                                        getTokenizationStatus(
-                                            records[i].tokenizationStatus),
-                                      ),
+                                  Text(
+                                    'Tokenized Assets',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
                                     ),
-                                  ],
-                                  SizedBox(height: height / 20),
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return ReadyToTokenizeView();
+                            SizedBox(height: height / 90),
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  child: Text(
+                                    'Sort by:',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 250,
+                                  child: dropdown(
+                                    (value) {
+                                      setState(() {
+                                        listMode =
+                                            value as TokenizedAssetListMode;
+                                      });
+                                    },
+                                    getItems,
+                                    null,
+                                    "all".tr(),
+                                    context,
+                                    null,
+                                  ),
+                                ),
+                                // Text(
+                                //   'All',
+                                //   style: TextStyle(
+                                //     fontSize: 13,
+                                //     fontFamily: fontsemibold,
+                                //     color: notifier.getbluewhitecolor,
+                                //   ),
+                                // ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Container(
+                              height: height / 1.96,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    for (var i = 0;
+                                        i < records.length;
+                                        i++) ...[
+                                      GestureDetector(
+                                        onTap: () async {
+                                          appState.viewData = savedAssets[i];
+                                          appState.setActiveTokenizationWalletPublicKey =
+                                              appState.viewData![
+                                                  'issuingWalletPublicKey'];
+                                          appState.setActiveDistributionWalletPublicKey =
+                                              appState.viewData![
+                                                  'marketMakingWallet'];
+
+                                          if (records[i].tokenizationStatus ==
+                                              0) {
+                                            appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page:
+                                                  SetupAndComplianceViewPageConfig,
+                                            );
+
+                                            return;
+                                          }
+
+                                          if (records[i].tokenizationStatus ==
+                                              2) {
+                                            appState.tokenizedAsset =
+                                                records[i];
+                                            appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page:
+                                                  AssetDashboardViewPageConfig,
+                                            );
+                                            return;
+                                          }
+
+                                          var list = [];
+
+                                          for (var j = 0;
+                                              j < savedAssets.length;
+                                              j++) {
+                                            var data = Map.from(savedAssets[j]);
+                                            if (data['tokenizationStatus'] !=
+                                                null) {
+                                              if (data['id'] == records[i].id) {
+                                                data['tokenizationStatus'] = 1;
+                                              }
+                                              list.add(data);
+                                            }
+                                          }
+
+                                          await StoreData().storeDeleteItem(
+                                              'tokenizedAsset');
+                                          await StoreData().storeInsertData(
+                                              'tokenizedAsset', list);
+
+                                          appState.currentAction = PageAction(
+                                            state: PageState.addPage,
+                                            page:
+                                                ConfirmTokenizationDetailsViewPageConfig,
+                                          );
+                                        },
+                                        child: assetTile(
+                                          records[i].assetLogo ?? '',
+                                          '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
+                                          '${records[i].assetSubSector}',
+                                          getTokenizationStatus(
+                                              records[i].tokenizationStatus),
+                                        ),
+                                      ),
+                                    ],
+                                    SizedBox(height: height / 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return ReadyToTokenizeView();
+                      }
                     }
                   }
-                }
-                return Text(
-                  '',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: fontsemibold,
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: height / 70),
-          ],
+                  return Text(
+                    '',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: fontsemibold,
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: height / 70),
+            ],
+          ),
         ),
       ),
     );

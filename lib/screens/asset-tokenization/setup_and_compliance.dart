@@ -34,6 +34,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   // bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
+  bool shouldTransferAsset = false;
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
@@ -43,6 +44,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   String selectedAssetCustodian = '';
   String selectedAssetManager = '';
   String secApprovalId = '';
+  String tokenizationRequirementsUrl = '';
   bool formHasError = false;
   bool isCountryPickerOpen = false;
   late dynamic data = {};
@@ -77,6 +79,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
       // hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
+      tokenizationRequirementsUrl =
+          'https://tokenization-requirements-app-xu8c6.ondigitalocean.app';
     }
   }
 
@@ -177,12 +181,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     List<DropdownMenuItem<String>> assetTypes =
         getAssetTypes(tokenizationData, selectedAssetSubSectorId);
-
-    // List<DropdownMenuItem<int>> assetCustodians =
-    //     getAssetCustodians(tokenizationData);
-
-    List<DropdownMenuItem<int>> assetManagers =
-        getAssetManagers(tokenizationData);
 
     return SingleChildScrollView(
       child: Form(
@@ -358,84 +356,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               ),
             ),
             SizedBox(
-              height: height / 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  Text(
-                    "offeringtype".tr(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Container(
-                width: width,
-                child: Text(
-                  "selectofferingtype".tr(),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  CheckItem(
-                    "public".tr(),
-                    () {
-                      setState(() {
-                        offeringType = 0;
-                      });
-                    },
-                    borderColor: notifier.getbluewhitecolor,
-                    foreColor: notifier.getbluewhitecolor,
-                    backColor: offeringType == 0
-                        ? notifier.getbluecolor60
-                        : notifier.getwihitecolor,
-                    icon: Icon(
-                      Icons.public_rounded,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  CheckItem(
-                    "private".tr(),
-                    () {
-                      setState(() {
-                        offeringType = 1;
-                      });
-                    },
-                    borderColor: notifier.getbluewhitecolor,
-                    foreColor: notifier.getbluewhitecolor,
-                    backColor: offeringType == 1
-                        ? notifier.getbluecolor60
-                        : notifier.getwihitecolor,
-                    icon: Icon(
-                      Icons.people_outline_outlined,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 15,
+              height: height / 30,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -548,161 +469,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             SizedBox(
               height: height / 30,
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            //   child: Row(
-            //     children: [
-            //       Text(
-            //         "assetcustodian".tr(),
-            //         style: TextStyle(
-            //           fontSize: 18,
-            //           fontFamily: fontsemibold,
-            //           color: notifier.getbluewhitecolor,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       Text(
-            //         "selectapprovedcustodian".tr(),
-            //         style: TextStyle(
-            //           fontSize: 13,
-            //           fontFamily: fontsemibold,
-            //           color: notifier.getbluewhitecolor,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // SizedBox(
-            //   height: height / 70,
-            // ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            //   child: dropdown(
-            //     (value) {
-            //       setState(() {
-            //         selectedAssetCustodian = value.toString();
-            //         assetCustodians = getAssetCustodians(tokenizationData);
-            //       });
-            //     },
-            //     assetCustodians,
-            //     selectedAssetCustodian.isNotEmpty
-            //         ? assetCustodians
-            //             .where((element) {
-            //               return element.value.toString() ==
-            //                   selectedAssetCustodian;
-            //             })
-            //             .first
-            //             .value
-            //         : null,
-            //     selectedAssetCustodian.isNotEmpty
-            //         ? getSelectedAssetCustodianLabel(
-            //             selectedAssetCustodian, tokenizationData)
-            //         : "selectassetcustodian".tr(),
-            //     context,
-            //     null,
-            //     validator: (value) {
-            //       if (selectedAssetCustodian.isEmpty) {
-            //         return "pleaseselectassetcustodian".tr();
-            //       }
-            //       return null;
-            //     },
-            //   ),
-            // ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            //   child: TextButton(
-            //     onPressed: () =>
-            //         appState.goToWebView(tokenizationRequirementsUrl),
-            //     child: Text(
-            //       "pleasecheckrequirements".tr(),
-            //       style: TextStyle(
-            //         decoration: TextDecoration.underline,
-            //         fontSize: 13,
-            //         fontFamily: fontsemibold,
-            //         color: notifier.getbluewhitecolor,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // Row(
-            //   children: [
-            //     Row(
-            //       children: [
-            //         Transform.scale(
-            //           scale: 1,
-            //           child: Radio<bool>(
-            //             value: true,
-            //             groupValue: hasAllRequiredCustodianDocuments,
-            //             activeColor: notifier.getbluewhitecolor,
-            //             fillColor: MaterialStateColor.resolveWith(
-            //                 (states) => notifier.getbluewhitecolor),
-            //             onChanged: (value) => {
-            //               setState(
-            //                 () {
-            //                   hasAllRequiredCustodianDocuments = value!;
-            //                 },
-            //               )
-            //             },
-            //           ),
-            //         ),
-            //         Text(
-            //           "yes".tr(),
-            //           style: TextStyle(
-            //             fontSize: 14,
-            //             fontFamily: fontsemibold,
-            //             color: notifier.getbluewhitecolor,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //     Row(
-            //       children: [
-            //         Transform.scale(
-            //           scale: 1,
-            //           child: Radio<bool>(
-            //             value: false,
-            //             activeColor: notifier.getbluewhitecolor,
-            //             fillColor: MaterialStateColor.resolveWith(
-            //                 (states) => notifier.getbluewhitecolor),
-            //             groupValue: hasAllRequiredCustodianDocuments,
-            //             onChanged: (value) => {
-            //               setState(
-            //                 () {
-            //                   hasAllRequiredCustodianDocuments = value!;
-            //                 },
-            //               )
-            //             },
-            //           ),
-            //         ),
-            //         Text(
-            //           "no".tr(),
-            //           style: TextStyle(
-            //             fontSize: 14,
-            //             fontFamily: fontsemibold,
-            //             color: notifier.getbluewhitecolor,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(
-            //   height: height / 50,
-            // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
                 children: [
                   Text(
-                    "assetissuer".tr(),
-                    // "assetmanager".tr(),
+                    "offeringtype".tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -713,15 +485,73 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
+                child: Text(
+                  "selectofferingtype".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CheckItem(
+                    "public".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 0;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 0
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.public_rounded,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  CheckItem(
+                    "private".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 1;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 1
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.people_outline_outlined,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(height: height / 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
                 children: [
                   Text(
-                    // "selectapprovedmanager".tr(),
-                    "selectapprovedissuer".tr(),
+                    "requireddocuments".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 18,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -729,123 +559,141 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {
-                  setState(() {
-                    selectedAssetManager = value.toString();
-                    assetManagers = getAssetManagers(tokenizationData);
-                  });
-                },
-                assetManagers,
-                selectedAssetManager.isNotEmpty
-                    ? assetManagers
-                        .where((element) {
-                          return element.value.toString() ==
-                              selectedAssetManager;
-                        })
-                        .first
-                        .value
-                    : null,
-                selectedAssetManager.isNotEmpty
-                    ? getSelectedAssetManagerLabel(
-                        selectedAssetManager, tokenizationData)
-                    : "selectapprovedmanager".tr(),
-                context,
-                null,
-                validator: (value) {
-                  if (selectedAssetManager.isEmpty) {
-                    return "pleaseselectassetmanager".tr();
-                  }
-                  return null;
-                },
+              child: TextButton(
+                onPressed: () =>
+                    appState.goToWebView(tokenizationRequirementsUrl),
+                child: Text(
+                  "doyouhaverequiredmanagerdocs".tr(),
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
               ),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            //   child: TextButton(
-            //     onPressed: () =>
-            //         appState.goToWebView(tokenizationRequirementsUrl),
-            //     child: Text(
-            //       "doyouhaverequiredmanagerdocs".tr(),
-            //       style: TextStyle(
-            //         decoration: TextDecoration.underline,
-            //         fontSize: 13,
-            //         fontFamily: fontsemibold,
-            //         color: notifier.getbluewhitecolor,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // Row(
-            //   children: [
-            //     Row(
-            //       children: [
-            //         Transform.scale(
-            //           scale: 1,
-            //           child: Radio<bool>(
-            //             value: true,
-            //             groupValue: hasAllRequiredManagerDocuments,
-            //             activeColor: notifier.getbluewhitecolor,
-            //             fillColor: MaterialStateColor.resolveWith(
-            //                 (states) => notifier.getbluewhitecolor),
-            //             onChanged: (value) => {
-            //               setState(
-            //                 () {
-            //                   hasAllRequiredManagerDocuments = value!;
-            //                 },
-            //               )
-            //             },
-            //           ),
-            //         ),
-            //         Text(
-            //           "yes".tr(),
-            //           style: TextStyle(
-            //             fontSize: 14,
-            //             fontFamily: fontsemibold,
-            //             color: notifier.getbluewhitecolor,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //     Row(
-            //       children: [
-            //         Transform.scale(
-            //           scale: 1,
-            //           child: Radio<bool>(
-            //             value: false,
-            //             activeColor: notifier.getbluewhitecolor,
-            //             fillColor: MaterialStateColor.resolveWith(
-            //                 (states) => notifier.getbluewhitecolor),
-            //             groupValue: hasAllRequiredManagerDocuments,
-            //             onChanged: (value) => {
-            //               setState(
-            //                 () {
-            //                   hasAllRequiredManagerDocuments = value!;
-            //                 },
-            //               )
-            //             },
-            //           ),
-            //         ),
-            //         Text(
-            //           "no".tr(),
-            //           style: TextStyle(
-            //             fontSize: 14,
-            //             fontFamily: fontsemibold,
-            //             color: notifier.getbluewhitecolor,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(
-            //   height: height / 50,
-            // ),
+            Row(
+              children: [
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: true,
+                        groupValue: hasAllRequiredManagerDocuments,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              hasAllRequiredManagerDocuments = value!;
+                            },
+                          )
+                        },
+                      ),
+                    ),
+                    Text(
+                      "yes".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: false,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        groupValue: hasAllRequiredManagerDocuments,
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              hasAllRequiredManagerDocuments = value!;
+                            },
+                          )
+                        },
+                      ),
+                    ),
+                    Text(
+                      "no".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: height / 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Transform.scale(
+                  scale: 1,
+                  child: FormField(
+                    builder: (state) {
+                      return Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(5),
+                          ),
+                        ),
+                        activeColor: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor90,
+                        side: BorderSide(
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
+                        value: shouldTransferAsset,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            shouldTransferAsset = value!;
+                          });
+                        },
+                      );
+                    },
+                    validator: (value) {
+                      if (!shouldTransferAsset) {
+                        setState(() {
+                          formHasError = true;
+                        });
+                        return '';
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  width: width / 1.2,
+                  child: Text(
+                    "confirmshouldtransferasset".tr(),
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: formHasError && !shouldTransferAsset
+                            ? Colors.red
+                            : notifier.getbluewhitecolor,
+                        fontFamily: fontbody),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(
               height: height / 20,
             ),
@@ -857,15 +705,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 submit();
               },
             ),
-            SizedBox(height: 10),
-            Button(
-              "deletetokenization".tr(),
-              Colors.red,
-              wihitecolor,
-              onTap: () {
-                deleteTokenization();
-              },
-            ),
+            if (appState.viewData?['id'] != null) ...[
+              SizedBox(height: 10),
+              Button(
+                "deletetokenization".tr(),
+                Colors.red,
+                wihitecolor,
+                onTap: () {
+                  confirmTokenizationDeletePopup(context,
+                      onConfirmationSuccess: deleteTokenization);
+                },
+              ),
+            ],
             SizedBox(height: height / 10),
             Padding(
               padding: EdgeInsets.only(
@@ -888,17 +739,17 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       });
     }
 
-    if (!form!.validate() && !formHasError) return;
+    if (!form!.validate() || formHasError) return;
 
     // if (!hasAllRequiredCustodianDocuments) {
     //   message +=
     //       "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
     // }
 
-    // if (!hasAllRequiredManagerDocuments) {
-    //   message +=
-    //       "You need to acquire all the documents in the asset manager's required documents list before you can proceed.\n\n";
-    // }
+    if (!hasAllRequiredManagerDocuments) {
+      message +=
+          "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
+    }
 
     // if (offeringType == 0 && !hasCustodianAgreement) {
     //   message +=
