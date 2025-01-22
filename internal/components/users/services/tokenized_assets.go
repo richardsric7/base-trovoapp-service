@@ -999,5 +999,48 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 	}
 
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
+t.AgreeTransferTitleToCustodian=ti.AgreeTransferTitleToCustodian
+t.ContractualProtectionRevGuarantees=ti.ContractualProtectionRevGuarantees
+t.ContractualProtectionPerfBond=ti.ContractualProtectionPerfBond
+t.ContractualProtectionSLA=ti.ContractualProtectionSLA
+t.RiskSharingMechanismPPPs=ti.RiskSharingMechanismPPPs
+t.RiskSharingMechanismHedgeInstruments=ti.RiskSharingMechanismHedgeInstruments
+t.RiskSharingMechanismCompletionGuarantees=ti.RiskSharingMechanismCompletionGuarantees
+	if len(ti.IndependentMonitoringList) > 0{
+
+		t.IndependentMonitoringList = &ti.IndependentMonitoringList
+	}
+	t.ESGSafeguardsSusCerts=ti.ESGSafeguardsSusCerts
+	t.ESGSafeguardsCommEngPlans=ti.ESGSafeguardsCommEngPlans
+	t.SecurityMeasuresAccessControl=ti.SecurityMeasuresAccessControl
+	t.SecurityMeasuresSurveilanceSystems=ti.SecurityMeasuresSurveilanceSystems
+	t.SecurityMeasuresOnSiteSecurityPersonnel=ti.SecurityMeasuresOnSiteSecurityPersonnel
+	t.SecurityMeasuresPerimeterSecurity=ti.SecurityMeasuresPerimeterSecurity
+	t.SecurityMeasuresCriticalInfraProtections=ti.SecurityMeasuresCriticalInfraProtections
+	if len(ti.OtherAssetProtection) > 0{
+
+		t.OtherAssetProtection = &ti.OtherAssetProtection
+	}
+	if len(ti.LegalAdvisor) > 0{
+
+		t.LegalAdvisor = &ti.LegalAdvisor
+	}
+	if len(ti.FinancialAdvisor) > 0{
+
+		t.FinancialAdvisor = &ti.FinancialAdvisor
+	}
+
+	t.UndertakingNoLien=ti.UndertakingNoLien
+	t.UndertakingNotCollateral=ti.UndertakingNotCollateral
+	t.UndertakingNoClaims=ti.UndertakingNoClaims
+	t.UndertakingNoForeclosure=ti.UndertakingNoForeclosure
+	t.ComplianceNoViolation=ti.ComplianceNoViolation
+	t.ComplianceAllPermits=ti.ComplianceAllPermits
+	t.OutstandingFinancialRespNoDebts=ti.OutstandingFinancialRespNoDebts
+	t.OutstandingFinancialRespNoHiddenLiabilities=ti.OutstandingFinancialRespNoHiddenLiabilities
+	t.RiskManagementFullyInsured=ti.RiskManagementFullyInsured
+	t.RiskManagementDeclaredValue=ti.RiskManagementDeclaredValue
+	t.PhysicalConditionSound=ti.PhysicalConditionSound
+	t.PhysicalConditionNolease=ti.PhysicalConditionNolease
 	return *t
 }
