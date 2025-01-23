@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -49,12 +48,46 @@ class _AssetInformation extends State<AssetInformation>
   late String insurancePolicyNumber;
   late String insurancePolicyHolder;
   late double percentageValueOfInsurance;
-  late bool freeOfLiensAndEncumbrances;
-  bool freeOfMortgages = false;
-  bool freeOfLoans = false;
-  bool freeOfDisputes = false;
   bool formHasError = false;
   late dynamic data = {};
+
+  String independentMonitoringList = "";
+  String otherAssetProtection = "";
+  String legalAdvisor = "";
+  String financialAdvisor = "";
+
+  bool hasIndependentMonitoring = false;
+  bool hasLegalAdvisor = false;
+  bool hasFinancialAdvisor = false;
+  bool hasOtherAssetProtection = false;
+
+  bool contractualProtectionRevGuarantees = false;
+  bool contractualProtectionPerfBond = false;
+  bool contractualProtectionSLA = false;
+  bool riskSharingMechanismPPPs = false;
+  bool riskSharingMechanismHedgeInstruments = false;
+  bool riskSharingMechanismCompletionGuarantees = false;
+  bool eSGSafeguardsSusCerts = false;
+  bool eSGSafeguardsCommEngPlans = false;
+  bool securityMeasuresAccessControl = false;
+  bool securityMeasuresSurveilanceSystems = false;
+  bool securityMeasuresOnSiteSecurityPersonnel = false;
+  bool securityMeasuresPerimeterSecurity = false;
+  bool securityMeasuresCriticalInfraProtections = false;
+  bool undertakingNoLien = false;
+  bool undertakingNotCollateral = false;
+  bool undertakingNoClaims = false;
+  bool undertakingNoForeclosure = false;
+  bool complianceNoViolation = false;
+  bool complianceAllPermits = false;
+  bool outstandingFinancialRespNoDebts = false;
+  bool outstandingFinancialRespNoHiddenLiabilities = false;
+  bool riskManagementFullyInsured = false;
+  bool riskManagementDeclaredValue = false;
+  bool physicalConditionSound = false;
+  bool physicalConditionNolease = false;
+  bool hasInsurance = false;
+
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
@@ -89,9 +122,7 @@ class _AssetInformation extends State<AssetInformation>
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    inspect(appState.viewData);
     data = appState.viewData;
-    inspect(data);
 
     assetExisting = data!['assetAlreadyExists'] == 1;
     assetOwnership =
@@ -124,7 +155,6 @@ class _AssetInformation extends State<AssetInformation>
     insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
     percentageValueOfInsurance =
         double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-    freeOfLiensAndEncumbrances = data['IsFreeFromLiensAndEncumbrances'] == 1;
 
     valueOfAssetController.text = currentValueOfAsset == 0
         ? ''
@@ -134,6 +164,53 @@ class _AssetInformation extends State<AssetInformation>
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
+
+    independentMonitoringList = data['independentMonitoringList'] ?? "";
+    otherAssetProtection = data['otherAssetProtection'] ?? "";
+    legalAdvisor = data['legalAdvisor'] ?? "";
+    financialAdvisor = data['financialAdvisor'] ?? "";
+
+    contractualProtectionRevGuarantees =
+        data['contractualProtectionRevGuarantees'] == 1;
+    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
+    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
+    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
+    riskSharingMechanismHedgeInstruments =
+        data['riskSharingMechanismHedgeInstruments'] == 1;
+    riskSharingMechanismCompletionGuarantees =
+        data['riskSharingMechanismCompletionGuarantees'] == 1;
+    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
+    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
+    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
+    securityMeasuresSurveilanceSystems =
+        data['securityMeasuresSurveilanceSystems'] == 1;
+    securityMeasuresOnSiteSecurityPersonnel =
+        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
+    securityMeasuresPerimeterSecurity =
+        data['securityMeasuresPerimeterSecurity'] == 1;
+    securityMeasuresCriticalInfraProtections =
+        data['securityMeasuresCriticalInfraProtections'] == 1;
+    undertakingNoLien = data['undertakingNoLien'] == 1;
+    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
+    undertakingNoClaims = data['undertakingNoClaims'] == 1;
+    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
+    complianceNoViolation = data['complianceNoViolation'] == 1;
+    complianceAllPermits = data['complianceAllPermits'] == 1;
+    outstandingFinancialRespNoDebts =
+        data['outstandingFinancialRespNoDebts'] == 1;
+    outstandingFinancialRespNoHiddenLiabilities =
+        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
+    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
+    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
+    physicalConditionSound = data['physicalConditionSound'] == 1;
+    physicalConditionNolease = data['physicalConditionNolease'] == 1;
+    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
+    hasIndependentMonitoring =
+        data['independentMonitoringList'].toString().isNotEmpty;
+    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
+    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
+    hasOtherAssetProtection =
+        data['otherAssetProtection'].toString().isNotEmpty;
 
     super.initState();
     getdarkmodepreviousstate();
@@ -161,7 +238,25 @@ class _AssetInformation extends State<AssetInformation>
                 height: height / 15,
               ).getBar(),
               SizedBox(
-                height: height / 30,
+                height: height / 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Row(
+                  children: [
+                    Text(
+                      "assetstatus".tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: height / 70,
               ),
               Container(
                 width: width,
@@ -172,7 +267,7 @@ class _AssetInformation extends State<AssetInformation>
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       fontSize: 13,
-                      fontFamily: fontsemibold,
+                      fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -203,7 +298,7 @@ class _AssetInformation extends State<AssetInformation>
                         "assetexisting".tr(),
                         style: TextStyle(
                           fontSize: 14,
-                          fontFamily: fontsemibold,
+                          fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
@@ -232,7 +327,7 @@ class _AssetInformation extends State<AssetInformation>
                         "assetnotyetexisting".tr(),
                         style: TextStyle(
                           fontSize: 14,
-                          fontFamily: fontsemibold,
+                          fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
@@ -250,7 +345,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       "assetdescription".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -302,7 +397,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       "enterassetphysicaladdress".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -353,7 +448,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       "entergooglemapcords".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -364,60 +459,63 @@ class _AssetInformation extends State<AssetInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  CustomTextFormField.textField(
-                    "latitude".tr(),
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    50.sp,
-                    width / 2.5,
-                    initialValue: latitude == 0 ? '' : latitude.toString(),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "fieldcannotbeempty".tr();
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      setState(() {
-                        latitude = double.parse(value!.toString());
-                      });
-                    },
-                    keyboardtype:
-                        TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  CustomTextFormField.textField(
-                    "longitude".tr(),
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    50.sp,
-                    width / 2.5,
-                    initialValue: longitude == 0 ? '' : longitude.toString(),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "fieldcannotbeempty".tr();
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      setState(() {
-                        longitude = double.parse(value!.toString());
-                      });
-                    },
-                    keyboardtype:
-                        TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextFormField.textField(
+                      "latitude".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      width / 2.5,
+                      initialValue: latitude == 0 ? '' : latitude.toString(),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          latitude = double.parse(value!.toString());
+                        });
+                      },
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    CustomTextFormField.textField(
+                      "longitude".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      width / 2.5,
+                      initialValue: longitude == 0 ? '' : longitude.toString(),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          longitude = double.parse(value!.toString());
+                        });
+                      },
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(
                 height: height / 70,
@@ -458,9 +556,9 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "ownership".tr(),
+                      "assetownership".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -517,8 +615,8 @@ class _AssetInformation extends State<AssetInformation>
                         child: Text(
                           "whatbestdescribesthirdparty".tr(),
                           style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
+                            fontSize: 13,
+                            fontFamily: fontbody,
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
@@ -780,7 +878,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       "assetvalue".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -842,7 +940,7 @@ class _AssetInformation extends State<AssetInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       width / 1.12,
                       onChanged: (value) {
                         setState(() {
@@ -876,7 +974,7 @@ class _AssetInformation extends State<AssetInformation>
                 ],
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 90,
               ),
               Row(
                 children: [
@@ -908,7 +1006,7 @@ class _AssetInformation extends State<AssetInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       width / 1.12,
                       onChanged: (value) {
                         setState(() {
@@ -941,7 +1039,7 @@ class _AssetInformation extends State<AssetInformation>
                 ],
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 90,
               ),
               Row(
                 children: [
@@ -1001,7 +1099,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       "assetprotectioninplace".tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1009,79 +1107,673 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "assetprotectioninplace2".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 70,
+              // ),
+              // Row(
+              //   children: [
+              //     Container(
+              //       width: width,
+              //       child: Padding(
+              //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //         child: Text(
+              //           "selectprotectionoption".tr(),
+              //           style: TextStyle(
+              //             fontSize: 13,
+              //             fontFamily: fontbody,
+              //             color: notifier.getbluewhitecolor,
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              //   child: dropdown(
+              //     (value) {
+              //       setState(() {
+              //         if (!assetProtectionInPlace.contains(value.toString())) {
+              //           assetProtectionInPlace.add(value.toString());
+              //         }
+              //       });
+              //     },
+              //     getAssetProtectionOptions,
+              //     null,
+              //     'Select asset protection',
+              //     context,
+              //     null,
+              //     validator: (value) {
+              //       if (assetProtectionInPlace.isEmpty) {
+              //         return "fieldcannotbeempty".tr();
+              //       }
+              //       return null;
+              //     },
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              //   child: Container(
+              //     width: width,
+              //     child: Wrap(
+              //       alignment: WrapAlignment.start,
+              //       children: [
+              //         for (var item in assetProtectionInPlace) ...[
+              //           userItem(
+              //             item,
+              //             () {
+              //               setState(() {
+              //                 assetProtectionInPlace
+              //                     .removeWhere((element) => element == item);
+              //               });
+              //             },
+              //             foreColor: notifier.getwihitecolor,
+              //             backColor: notifier.getbluewhitecolor,
+              //           ),
+              //         ],
+              //       ],
+              //     ),
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "insurancecompanyname".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "companyname".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         width / 1.12,
+              //         initialValue: insuranceCompanyName,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             insuranceCompanyName = value!;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "insurancypolicynumber".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "insurancypolicynumber".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         width / 1.12,
+              //         initialValue: insurancePolicyNumber,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             insurancePolicyNumber = value!;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "insurancypolicyholder".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "insurancypolicyholder".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         width / 1.12,
+              //         initialValue: insurancePolicyHolder,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             insurancePolicyHolder = value!;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "percentagevalueofinsurance".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "percentagevalueofinsurance".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         width / 1.12,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "enterassetdescription".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             percentageValueOfInsurance = double.parse(value);
+              //           });
+              //         },
+              //         autoFormatNumber: true,
+              //         controller: percentValueOfInsuranceController,
+              //         keyboardtype:
+              //             TextInputType.numberWithOptions(decimal: true),
+              //       ),
+              //     ),
+              //   ],
+              // ),
               SizedBox(
-                height: height / 70,
+                height: height / 50,
               ),
               Row(
                 children: [
-                  Container(
-                    width: width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "selectprotectionoption".tr(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "insurance".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: hasInsurance,
+                              label: "comprehensiveinsurance".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  hasInsurance = value!;
+                                });
+                              },
+                            ),
+                            if (hasInsurance) ...[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "insurancecompanyname".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "companyname".tr(),
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue:
+                                                  insuranceCompanyName,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  insuranceCompanyName = value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "insurancypolicynumber".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "insurancypolicynumber".tr(),
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue:
+                                                  insurancePolicyNumber,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  insurancePolicyNumber =
+                                                      value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "insurancypolicyholder".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "insurancypolicyholder".tr(),
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue:
+                                                  insurancePolicyHolder,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  insurancePolicyHolder =
+                                                      value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "percentagevalueofinsurance".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "percentagevalueofinsurance".tr(),
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "enterassetdescription"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  percentageValueOfInsurance =
+                                                      double.parse(value);
+                                                });
+                                              },
+                                              autoFormatNumber: true,
+                                              controller:
+                                                  percentValueOfInsuranceController,
+                                              keyboardtype: TextInputType
+                                                  .numberWithOptions(
+                                                      decimal: true),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               SizedBox(
                 height: height / 50,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      if (!assetProtectionInPlace.contains(value.toString())) {
-                        assetProtectionInPlace.add(value.toString());
-                      }
-                    });
-                  },
-                  getAssetProtectionOptions,
-                  null,
-                  'Select asset protection',
-                  context,
-                  null,
-                  validator: (value) {
-                    if (assetProtectionInPlace.isEmpty) {
-                      return "fieldcannotbeempty".tr();
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Container(
-                  width: width,
-                  child: Wrap(
-                    alignment: WrapAlignment.start,
-                    children: [
-                      for (var item in assetProtectionInPlace) ...[
-                        userItem(
-                          item,
-                          () {
-                            setState(() {
-                              assetProtectionInPlace
-                                  .removeWhere((element) => element == item);
-                            });
-                          },
-                          foreColor: notifier.getwihitecolor,
-                          backColor: notifier.getbluewhitecolor,
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "contractualprotections".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: contractualProtectionRevGuarantees,
+                              label: "revenueguarantees".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  contractualProtectionRevGuarantees = value!;
+                                });
+                              },
+                            ),
+                            CheckboxItem(
+                              value: contractualProtectionPerfBond,
+                              label: "performancebond".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  contractualProtectionPerfBond = value!;
+                                });
+                              },
+                            ),
+                            CheckboxItem(
+                              value: contractualProtectionSLA,
+                              label: "slas".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  contractualProtectionSLA = value!;
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                  )
+                ],
               ),
               SizedBox(
                 height: height / 50,
@@ -1089,11 +1781,714 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "risksharingmechanisms".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: riskSharingMechanismPPPs,
+                              label: "ppps".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  riskSharingMechanismPPPs = value!;
+                                });
+                              },
+                            ),
+                            CheckboxItem(
+                              value: riskSharingMechanismHedgeInstruments,
+                              label: "hedginginstruments".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  riskSharingMechanismHedgeInstruments = value!;
+                                });
+                              },
+                            ),
+                            CheckboxItem(
+                              value: riskSharingMechanismCompletionGuarantees,
+                              label: "completionguarantees".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  riskSharingMechanismCompletionGuarantees =
+                                      value!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "governanceandoversight".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: hasIndependentMonitoring,
+                              label: "independentmonitoring".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  hasIndependentMonitoring = value!;
+                                });
+                              },
+                            ),
+                            if (hasIndependentMonitoring) ...[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Container(
+                                              width: 260,
+                                              child: Text(
+                                                "listmonitoringoperators".tr(),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontFamily: fontsemibold,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "eg John Doe, Anna Harry",
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue:
+                                                  independentMonitoringList,
+                                              validator: (value) {
+                                                if (hasIndependentMonitoring &&
+                                                    value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  independentMonitoringList =
+                                                      value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ]
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: width / 1.3,
+                                  child: Text(
+                                    "esgs".tr(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: eSGSafeguardsSusCerts,
+                              label: "sustainabilitycertifications".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  eSGSafeguardsSusCerts = value!;
+                                });
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: eSGSafeguardsCommEngPlans,
+                              label: "communityengagementplans".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  eSGSafeguardsCommEngPlans = value!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "securitymeasures".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: securityMeasuresAccessControl,
+                              label: "accesscontrol".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  securityMeasuresAccessControl = value!;
+                                });
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: securityMeasuresSurveilanceSystems,
+                              label: "surveillancesystems".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  securityMeasuresSurveilanceSystems = value!;
+                                });
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: securityMeasuresOnSiteSecurityPersonnel,
+                              label: "onsitesecuritypersonnel".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  securityMeasuresOnSiteSecurityPersonnel =
+                                      value!;
+                                });
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: securityMeasuresPerimeterSecurity,
+                              label: "perimetersecurity".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  securityMeasuresPerimeterSecurity = value!;
+                                });
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: securityMeasuresCriticalInfraProtections,
+                              label: "criticalinfrastructureprotections".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  securityMeasuresCriticalInfraProtections =
+                                      value!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "legalfinancialcounsel".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: hasLegalAdvisor,
+                              label: "legaladvisor".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  hasLegalAdvisor = value!;
+                                });
+                              },
+                            ),
+                            if (hasLegalAdvisor) ...[
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "nameoflegaladvisor".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "",
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue: legalAdvisor,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  legalAdvisor = value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: hasFinancialAdvisor,
+                              label: "financialadvisor".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  hasFinancialAdvisor = value!;
+                                });
+                              },
+                            ),
+                            if (hasFinancialAdvisor) ...[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "nameoffinancialadvisor".tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "",
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue: financialAdvisor,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  financialAdvisor = value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "others".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: hasOtherAssetProtection,
+                              label: "other".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  hasOtherAssetProtection = value!;
+                                });
+                              },
+                            ),
+                            if (hasOtherAssetProtection) ...[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              "enterotherprotectionsinplace"
+                                                  .tr(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: fontsemibold,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: height / 50,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child:
+                                                CustomTextFormField.textField(
+                                              "",
+                                              notifier.getbluecolor,
+                                              null,
+                                              notifier.getgrey,
+                                              null,
+                                              notifier.getblck,
+                                              notifier.getgrey,
+                                              85,
+                                              267,
+                                              initialValue:
+                                                  otherAssetProtection,
+                                              validator: (value) {
+                                                if (value.isEmpty) {
+                                                  return "fieldcannotbeempty"
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (value) {
+                                                setState(() {
+                                                  otherAssetProtection = value!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: height / 30,
+              ),
+              Row(
+                children: [
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "insurancecompanyname".tr(),
+                      "assetverificationundertaking".tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1107,49 +2502,126 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "companyname".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: insuranceCompanyName,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          insuranceCompanyName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "insurancypolicynumber".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "ownershipandlegalindependence".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: undertakingNoLien,
+                              label: "confirmfreeofloans".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  undertakingNoLien = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!undertakingNoLien) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: undertakingNotCollateral,
+                              label: "confirmfreeofcolateral".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  undertakingNotCollateral = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!undertakingNotCollateral) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: undertakingNoClaims,
+                              label: "confirmfreeofthirdparties".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  undertakingNoClaims = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!undertakingNoClaims) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: undertakingNoForeclosure,
+                              label: "confirmfreeoflegaldisputes".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  undertakingNoForeclosure = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!undertakingNoForeclosure) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               SizedBox(
@@ -1158,49 +2630,82 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "insurancypolicynumber".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: insurancePolicyNumber,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          insurancePolicyNumber = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "insurancypolicyholder".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "regulatorycomplianceandapprovals".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: complianceNoViolation,
+                              label: "confirmenvcompliance".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  complianceNoViolation = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!complianceNoViolation) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: complianceAllPermits,
+                              label: "confirmhaspermits".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  complianceAllPermits = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!complianceAllPermits) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               SizedBox(
@@ -1209,49 +2714,84 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "insurancypolicyholder".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: insurancePolicyHolder,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          insurancePolicyHolder = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "percentagevalueofinsurance".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "outstandingfinancialresponsibilities".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: outstandingFinancialRespNoDebts,
+                              label: "confirmnooutstandingpayments".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  outstandingFinancialRespNoDebts = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!outstandingFinancialRespNoDebts) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value:
+                                  outstandingFinancialRespNoHiddenLiabilities,
+                              label: "confirmnohiddenliabilities".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  outstandingFinancialRespNoHiddenLiabilities =
+                                      value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!outstandingFinancialRespNoHiddenLiabilities) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               SizedBox(
@@ -1260,37 +2800,168 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "percentagevalueofinsurance".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "enterassetdescription".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          percentageValueOfInsurance = double.parse(value);
-                        });
-                      },
-                      autoFormatNumber: true,
-                      controller: percentValueOfInsuranceController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "riskmanagementandinsurancecoverage".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: riskManagementFullyInsured,
+                              label: "confirmassetinsured".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  riskManagementFullyInsured = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!riskManagementFullyInsured) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: riskManagementDeclaredValue,
+                              label: "confirmvalueiscurrent".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  riskManagementDeclaredValue = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!riskManagementDeclaredValue) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  )
                 ],
               ),
-              confirmLiensAndEncumbrance(),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "physicalconditionandlegalstatus".tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: physicalConditionSound,
+                              label: "confirmassetstructuralysound".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  physicalConditionSound = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!physicalConditionSound) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: physicalConditionNolease,
+                              label: "confirmnoexistingleaseagreements".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  physicalConditionNolease = value!;
+                                });
+                              },
+                              validator: (value) {
+                                if (!physicalConditionNolease) {
+                                  setState(() {
+                                    formHasError = true;
+                                  });
+                                  return '';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
               SizedBox(
                 height: height / 30,
               ),
@@ -1324,7 +2995,28 @@ class _AssetInformation extends State<AssetInformation>
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
-      inspect(data);
+      if (!hasInsurance) {
+        insuranceCompanyName = "";
+        insurancePolicyNumber = "";
+        insurancePolicyHolder = "";
+        percentageValueOfInsurance = 0;
+      }
+
+      if (!hasLegalAdvisor) {
+        legalAdvisor = "";
+      }
+
+      if (!hasFinancialAdvisor) {
+        financialAdvisor = "";
+      }
+
+      if (!hasIndependentMonitoring) {
+        independentMonitoringList = "";
+      }
+
+      if (!hasOtherAssetProtection) {
+        otherAssetProtection = "";
+      }
       var newData = {...data as Map};
 
       newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
@@ -1345,11 +3037,54 @@ class _AssetInformation extends State<AssetInformation>
       newData['insurancePolicyNumber'] = insurancePolicyNumber;
       newData['insurancePolicyHolder'] = insurancePolicyHolder;
       newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-      newData['IsFreeFromLiensAndEncumbrances'] =
-          freeOfLiensAndEncumbrances ? 1 : 0;
+
+      newData['independentMonitoringList'] = independentMonitoringList;
+      newData['otherAssetProtection'] = otherAssetProtection;
+      newData['legalAdvisor'] = legalAdvisor;
+      newData['financialAdvisor'] = financialAdvisor;
+
+      newData['contractualProtectionRevGuarantees'] =
+          contractualProtectionRevGuarantees ? 1 : 0;
+      newData['contractualProtectionPerfBond'] =
+          contractualProtectionPerfBond ? 1 : 0;
+      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
+      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
+      newData['riskSharingMechanismHedgeInstruments'] =
+          riskSharingMechanismHedgeInstruments ? 1 : 0;
+      newData['riskSharingMechanismCompletionGuarantees'] =
+          riskSharingMechanismCompletionGuarantees ? 1 : 0;
+      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
+      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
+      newData['securityMeasuresAccessControl'] =
+          securityMeasuresAccessControl ? 1 : 0;
+      newData['securityMeasuresSurveilanceSystems'] =
+          securityMeasuresSurveilanceSystems ? 1 : 0;
+      newData['securityMeasuresOnSiteSecurityPersonnel'] =
+          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
+      newData['securityMeasuresPerimeterSecurity'] =
+          securityMeasuresPerimeterSecurity ? 1 : 0;
+      newData['securityMeasuresCriticalInfraProtections'] =
+          securityMeasuresCriticalInfraProtections ? 1 : 0;
+      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
+      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
+      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
+      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
+      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
+      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
+      newData['outstandingFinancialRespNoDebts'] =
+          outstandingFinancialRespNoDebts ? 1 : 0;
+      newData['outstandingFinancialRespNoHiddenLiabilities'] =
+          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
+      newData['riskManagementFullyInsured'] =
+          riskManagementFullyInsured ? 1 : 0;
+      newData['riskManagementDeclaredValue'] =
+          riskManagementDeclaredValue ? 1 : 0;
+      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
+      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
+      newData['hasInsurance'] = hasInsurance ? 1 : 0;
 
       String requestBody = jsonEncode(newData);
-      print('requestBody =======> ');
+      print('requestBody =======> $requestBody');
       inspect(newData);
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1360,7 +3095,6 @@ class _AssetInformation extends State<AssetInformation>
       );
 
       print('responseData ${responseData['data']}');
-      inspect(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
@@ -1390,262 +3124,12 @@ class _AssetInformation extends State<AssetInformation>
       if (responseData['statusCode'] == 200) {
         print('success');
         appState.viewData = responseData['data'];
-        await inspect(appState.viewData);
       } else {
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
       return Future.error('Error! ${e}');
     }
-  }
-
-  Widget confirmLiensAndEncumbrance() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                "financialencumbrances".tr(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Transform.scale(
-              scale: 1.sp,
-              child: FormField(
-                builder: (state) {
-                  return Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.isDark
-                        ? notifier.getbluecolor50
-                        : notifier.getbluecolor90,
-                    side: BorderSide(
-                      color: notifier.isDark
-                          ? notifier.getbluecolor50
-                          : notifier.getbluecolor90,
-                    ),
-                    value: freeOfLiensAndEncumbrances,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        freeOfLiensAndEncumbrances = value!;
-                      });
-                    },
-                  );
-                },
-                validator: (value) {
-                  if (!freeOfLiensAndEncumbrances) {
-                    setState(() {
-                      formHasError = true;
-                    });
-                    return '';
-                  }
-
-                  return null;
-                },
-              ),
-            ),
-            Container(
-              width: width / 1.2,
-              child: Text(
-                "confirmfreeofencumbrances".tr(),
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                    fontSize: 15,
-                    color: formHasError && !freeOfLiensAndEncumbrances
-                        ? Colors.red
-                        : notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Transform.scale(
-              scale: 1.sp,
-              child: FormField(
-                builder: (state) {
-                  return Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.isDark
-                        ? notifier.getbluecolor50
-                        : notifier.getbluecolor90,
-                    side: BorderSide(
-                      color: notifier.isDark
-                          ? notifier.getbluecolor50
-                          : notifier.getbluecolor90,
-                    ),
-                    value: freeOfMortgages,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        freeOfMortgages = value!;
-                      });
-                    },
-                  );
-                },
-                validator: (value) {
-                  if (!freeOfMortgages) {
-                    setState(() {
-                      formHasError = true;
-                    });
-                    return '';
-                  }
-
-                  return null;
-                },
-              ),
-            ),
-            Container(
-              width: width / 1.2,
-              child: Text(
-                "confirmfreeofmortgages".tr(),
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                    fontSize: 15,
-                    color: formHasError && !freeOfMortgages
-                        ? Colors.red
-                        : notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Transform.scale(
-              scale: 1.sp,
-              child: FormField(
-                builder: (state) {
-                  return Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.isDark
-                        ? notifier.getbluecolor50
-                        : notifier.getbluecolor90,
-                    side: BorderSide(
-                      color: notifier.isDark
-                          ? notifier.getbluecolor50
-                          : notifier.getbluecolor90,
-                    ),
-                    value: freeOfLoans,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        freeOfLoans = value!;
-                      });
-                    },
-                  );
-                },
-                validator: (value) {
-                  if (!freeOfLoans) {
-                    setState(() {
-                      formHasError = true;
-                    });
-                    return '';
-                  }
-
-                  return null;
-                },
-              ),
-            ),
-            Container(
-              width: width / 1.2,
-              child: Text(
-                "confirmfreeofloans".tr(),
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                    fontSize: 15,
-                    color: formHasError && !freeOfLoans
-                        ? Colors.red
-                        : notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Transform.scale(
-              scale: 1.sp,
-              child: FormField(
-                builder: (state) {
-                  return Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.isDark
-                        ? notifier.getbluecolor50
-                        : notifier.getbluecolor90,
-                    side: BorderSide(
-                      color: notifier.isDark
-                          ? notifier.getbluecolor50
-                          : notifier.getbluecolor90,
-                    ),
-                    value: freeOfDisputes,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        freeOfDisputes = value!;
-                      });
-                    },
-                  );
-                },
-                validator: (value) {
-                  if (!freeOfDisputes) {
-                    setState(() {
-                      formHasError = true;
-                    });
-                    return '';
-                  }
-
-                  return null;
-                },
-              ),
-            ),
-            Container(
-              width: width / 1.2,
-              child: Text(
-                "confirmfreeofdisputes".tr(),
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                    fontSize: 15,
-                    color: formHasError && !freeOfDisputes
-                        ? Colors.red
-                        : notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   Widget CheckItem(
@@ -1690,6 +3174,62 @@ class _AssetInformation extends State<AssetInformation>
           ],
         ),
       ),
+    );
+  }
+
+  Widget CheckboxItem({
+    required String label,
+    required bool value,
+    required void Function(bool?) onChanged,
+    String? Function(Object?)? validator,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Transform.scale(
+          scale: 1,
+          child: FormField(
+            builder: (state) {
+              return SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(5.sp),
+                    ),
+                  ),
+                  activeColor: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                  side: BorderSide(
+                    color: notifier.isDark
+                        ? notifier.getbluecolor50
+                        : notifier.getbluecolor90,
+                  ),
+                  value: value,
+                  onChanged: onChanged,
+                ),
+              );
+            },
+            validator: validator,
+          ),
+        ),
+        SizedBox(width: 10),
+        Container(
+          width: width / 1.4,
+          child: Text(
+            label,
+            overflow: TextOverflow.visible,
+            style: TextStyle(
+                fontSize: 15,
+                color: formHasError && !value && validator != null
+                    ? Colors.red
+                    : notifier.getbluewhitecolor,
+                fontFamily: fontbody),
+          ),
+        ),
+      ],
     );
   }
 }

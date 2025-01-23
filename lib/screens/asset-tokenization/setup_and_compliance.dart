@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -35,6 +34,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   // bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
+  bool agreeTransferTitleToCustodian = false;
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
@@ -44,6 +44,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   String selectedAssetCustodian = '';
   String selectedAssetManager = '';
   String secApprovalId = '';
+  String tokenizationRequirementsUrl = '';
   bool formHasError = false;
   bool isCountryPickerOpen = false;
   late dynamic data = {};
@@ -65,6 +66,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
+    inspect(data);
     if (data != null && data.isNotEmpty) {
       selectedAssetSectorId = data!["assetSector"];
       selectedAssetSubSectorId = data!["assetSubSector"];
@@ -78,6 +80,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
       // hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
+      tokenizationRequirementsUrl =
+          'https://tokenization-requirements-app-xu8c6.ondigitalocean.app';
+      agreeTransferTitleToCustodian =
+          data!["agreeTransferTitleToCustodian"] != 0;
     }
   }
 
@@ -119,6 +125,39 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         context: context,
         useSafeArea: true,
         countryFilter: ['NG'],
+        countryListTheme: CountryListThemeData(
+          backgroundColor:
+              notifier.isDark ? notifier.getbluecolor50 : Colors.white,
+          textStyle: TextStyle(color: notifier.getblck),
+          searchTextStyle: TextStyle(color: notifier.getblck),
+          inputDecoration: InputDecoration(
+            errorStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            labelText: 'Search',
+            helperStyle: TextStyle(
+              fontSize: 12,
+              fontFamily: fontbody,
+            ),
+            // label: Text(labletext),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            prefixIcon: Icon(Icons.search, color: notifier.getblck),
+            labelStyle: TextStyle(color: notifier.getblck),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: notifier.getgrey, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: notifier.getgrey, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+        ),
         onSelect: (Country country) {
           setState(() {
             selectedCountry = country.name;
@@ -145,12 +184,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     List<DropdownMenuItem<String>> assetTypes =
         getAssetTypes(tokenizationData, selectedAssetSubSectorId);
-
-    List<DropdownMenuItem<int>> assetCustodians =
-        getAssetCustodians(tokenizationData);
-
-    List<DropdownMenuItem<int>> assetManagers =
-        getAssetManagers(tokenizationData);
 
     return SingleChildScrollView(
       child: Form(
@@ -326,84 +359,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               ),
             ),
             SizedBox(
-              height: height / 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  Text(
-                    "offeringtype".tr(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Container(
-                width: width,
-                child: Text(
-                  "selectofferingtype".tr(),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  CheckItem(
-                    "public".tr(),
-                    () {
-                      setState(() {
-                        offeringType = 0;
-                      });
-                    },
-                    borderColor: notifier.getbluewhitecolor,
-                    foreColor: notifier.getbluewhitecolor,
-                    backColor: offeringType == 0
-                        ? notifier.getbluecolor60
-                        : notifier.getwihitecolor,
-                    icon: Icon(
-                      Icons.public_rounded,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  CheckItem(
-                    "private".tr(),
-                    () {
-                      setState(() {
-                        offeringType = 1;
-                      });
-                    },
-                    borderColor: notifier.getbluewhitecolor,
-                    foreColor: notifier.getbluewhitecolor,
-                    backColor: offeringType == 1
-                        ? notifier.getbluecolor60
-                        : notifier.getwihitecolor,
-                    icon: Icon(
-                      Icons.people_outline_outlined,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 15,
+              height: height / 30,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -486,7 +442,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        Icon(Icons.keyboard_arrow_down_rounded),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ],
                     ),
                   ),
@@ -518,7 +477,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               child: Row(
                 children: [
                   Text(
-                    "assetcustodian".tr(),
+                    "offeringtype".tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -529,144 +488,71 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "selectapprovedcustodian".tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {
-                  setState(() {
-                    selectedAssetCustodian = value.toString();
-                    assetCustodians = getAssetCustodians(tokenizationData);
-                  });
-                },
-                assetCustodians,
-                selectedAssetCustodian.isNotEmpty
-                    ? assetCustodians
-                        .where((element) {
-                          return element.value.toString() ==
-                              selectedAssetCustodian;
-                        })
-                        .first
-                        .value
-                    : null,
-                selectedAssetCustodian.isNotEmpty
-                    ? getSelectedAssetCustodianLabel(
-                        selectedAssetCustodian, tokenizationData)
-                    : "selectassetcustodian".tr(),
-                context,
-                null,
-                validator: (value) {
-                  if (selectedAssetCustodian.isEmpty) {
-                    return "pleaseselectassetcustodian".tr();
-                  }
-                  return null;
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextButton(
-                onPressed: () =>
-                    appState.goToWebView(tokenizationRequirementsUrl),
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
                 child: Text(
-                  "pleasecheckrequirements".tr(),
+                  "selectofferingtype".tr(),
+                  textAlign: TextAlign.left,
                   style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
+                    fontSize: 15,
+                    fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
               ),
             ),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: true,
-                        groupValue: hasAllRequiredCustodianDocuments,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredCustodianDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "yes".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: false,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
-                        groupValue: hasAllRequiredCustodianDocuments,
-                        onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredCustodianDocuments = value!;
-                            },
-                          )
-                        },
-                      ),
-                    ),
-                    Text(
-                      "no".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
             SizedBox(
-              height: height / 50,
+              height: height / 70,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
                 children: [
+                  CheckItem(
+                    "public".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 0;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 0
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.public_rounded,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  CheckItem(
+                    "private".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 1;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 1
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.people_outline_outlined,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(height: height / 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
                   Text(
-                    "assetmanager".tr(),
+                    "requireddocuments".tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -674,58 +560,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     ),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "selectapprovedmanager".tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {
-                  setState(() {
-                    selectedAssetManager = value.toString();
-                    assetManagers = getAssetManagers(tokenizationData);
-                  });
-                },
-                assetManagers,
-                selectedAssetManager.isNotEmpty
-                    ? assetManagers
-                        .where((element) {
-                          return element.value.toString() ==
-                              selectedAssetManager;
-                        })
-                        .first
-                        .value
-                    : null,
-                selectedAssetManager.isNotEmpty
-                    ? getSelectedAssetManagerLabel(
-                        selectedAssetManager, tokenizationData)
-                    : "selectapprovedmanager".tr(),
-                context,
-                null,
-                validator: (value) {
-                  if (selectedAssetCustodian.isEmpty) {
-                    return "pleaseselectassetmanager".tr();
-                  }
-                  return null;
-                },
               ),
             ),
             Padding(
@@ -806,8 +640,62 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
+            SizedBox(height: height / 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Transform.scale(
+                  scale: 1,
+                  child: FormField(
+                    builder: (state) {
+                      return Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(5),
+                          ),
+                        ),
+                        activeColor: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor90,
+                        side: BorderSide(
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
+                        value: agreeTransferTitleToCustodian,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            agreeTransferTitleToCustodian = value!;
+                          });
+                        },
+                      );
+                    },
+                    validator: (value) {
+                      if (!agreeTransferTitleToCustodian) {
+                        setState(() {
+                          formHasError = true;
+                        });
+                        return '';
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  width: width / 1.2,
+                  child: Text(
+                    "confirmshouldtransferasset".tr(),
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: formHasError && !agreeTransferTitleToCustodian
+                            ? Colors.red
+                            : notifier.getbluewhitecolor,
+                        fontFamily: fontbody),
+                  ),
+                ),
+              ],
             ),
             SizedBox(
               height: height / 20,
@@ -820,6 +708,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 submit();
               },
             ),
+            if (appState.viewData?['id'] != null) ...[
+              SizedBox(height: 10),
+              Button(
+                "deletetokenization".tr(),
+                Colors.red,
+                wihitecolor,
+                onTap: () {
+                  confirmTokenizationDeletePopup(context,
+                      onConfirmationSuccess: deleteTokenization);
+                },
+              ),
+            ],
             SizedBox(height: height / 10),
             Padding(
               padding: EdgeInsets.only(
@@ -842,16 +742,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       });
     }
 
-    if (!form!.validate() && !formHasError) return;
+    if (!form!.validate() || formHasError) return;
 
-    if (!hasAllRequiredCustodianDocuments) {
-      message +=
-          "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
-    }
+    // if (!hasAllRequiredCustodianDocuments) {
+    //   message +=
+    //       "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
+    // }
 
     if (!hasAllRequiredManagerDocuments) {
       message +=
-          "You need to acquire all the documents in the asset manager's required documents list before you can proceed.\n\n";
+          "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
     }
 
     // if (offeringType == 0 && !hasCustodianAgreement) {
@@ -883,6 +783,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "assetManagerId": selectedAssetManager.length > 0
             ? int.parse(selectedAssetManager)
             : 1,
+        "agreeTransferTitleToCustodian": agreeTransferTitleToCustodian ? 1 : 0,
         "marketMakingWallet": marketMakingWallet,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
@@ -930,9 +831,51 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "percentageValueOfInsurance": newData['percentageValueOfInsurance'],
         "IsFreeFromLiensAndEncumbrances":
             newData['IsFreeFromLiensAndEncumbrances'],
+        "contractualProtectionRevGuarantees":
+            newData['contractualProtectionRevGuarantees'],
+        "contractualProtectionPerfBond":
+            newData['contractualProtectionPerfBond'],
+        "contractualProtectionSLA": newData['contractualProtectionSLA'],
+        "riskSharingMechanismPPPs": newData['riskSharingMechanismPPPs'],
+        "riskSharingMechanismHedgeInstruments":
+            newData['riskSharingMechanismHedgeInstruments'],
+        "riskSharingMechanismCompletionGuarantees":
+            newData['riskSharingMechanismCompletionGuarantees'],
+        "independentMonitoringList": newData['independentMonitoringList'],
+        "eSGSafeguardsSusCerts": newData['eSGSafeguardsSusCerts'],
+        "eSGSafeguardsCommEngPlans": newData['eSGSafeguardsCommEngPlans'],
+        "securityMeasuresAccessControl":
+            newData['securityMeasuresAccessControl'],
+        "securityMeasuresSurveilanceSystems":
+            newData['securityMeasuresSurveilanceSystems'],
+        "securityMeasuresOnSiteSecurityPersonnel":
+            newData['securityMeasuresOnSiteSecurityPersonnel'],
+        "securityMeasuresPerimeterSecurity":
+            newData['securityMeasuresPerimeterSecurity'],
+        "securityMeasuresCriticalInfraProtections":
+            newData['securityMeasuresCriticalInfraProtections'],
+        "otherAssetProtection": newData['otherAssetProtection'],
+        "legalAdvisor": newData['legalAdvisor'],
+        "financialAdvisor": newData['financialAdvisor'],
+        "undertakingNoLien": newData['undertakingNoLien'],
+        "undertakingNotCollateral": newData['undertakingNotCollateral'],
+        "undertakingNoClaims": newData['undertakingNoClaims'],
+        "undertakingNoForeclosure": newData['undertakingNoForeclosure'],
+        "complianceNoViolation": newData['complianceNoViolation'],
+        "complianceAllPermits": newData['complianceAllPermits'],
+        "outstandingFinancialRespNoDebts":
+            newData['outstandingFinancialRespNoDebts'],
+        "outstandingFinancialRespNoHiddenLiabilities":
+            newData['outstandingFinancialRespNoHiddenLiabilities'],
+        "riskManagementFullyInsured": newData['riskManagementFullyInsured'],
+        "riskManagementDeclaredValue": newData['riskManagementDeclaredValue'],
+        "physicalConditionSound": newData['physicalConditionSound'],
+        "physicalConditionNolease": newData['physicalConditionNolease'],
+        "assetMscCostOutisdeOfValuation":
+            newData['assetMscCostOutisdeOfValuation'],
       };
       String requestBody = jsonEncode(map);
-      inspect(map);
+      print('dsafsad smap ${map["agreeTransferTitleToCustodian"]}');
 
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
@@ -1123,5 +1066,37 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         ),
       ),
     );
+  }
+
+  void deleteTokenization() async {
+    try {
+      showLoader(context);
+
+      Map responseData = await makeDeleteRequest(
+        uri: '/v1/tokenization/${appState.viewData!['id']}',
+        body: "",
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeTokenizationWalletPublicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData['data']}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: BottomHomePageConfig,
+        );
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 }

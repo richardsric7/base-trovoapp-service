@@ -61,7 +61,7 @@ android {
     defaultConfig {
         applicationId "com.trovo.wallet"
         //println localProperties
-        minSdkVersion localProperties.getProperty('flutter.minSdkVersion').toInteger()
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

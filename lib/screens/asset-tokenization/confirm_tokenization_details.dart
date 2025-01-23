@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -10,11 +11,12 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/models/tokenizedAsset.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -45,7 +47,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var isAlreadySubmitted = tokenizedAsset.tokenizationStatus != null;
+    var isAlreadySubmitted = tokenizedAsset.tokenizationStatus == 1;
     inspect(appState.viewData);
 
     return ScreenUtilInit(
@@ -258,42 +260,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   "submitapplication".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: () async {
-                    appState.viewData!['tokenizationStatus'] = 0;
-                    var savedAssets =
-                        await StoreData().storeGetData('tokenizedAsset');
-                    print(savedAssets);
-                    if (savedAssets != null) {
-                      for (int i = 0; i < savedAssets.length; i++) {
-                        print(savedAssets);
-                      }
-                      savedAssets = [...savedAssets, appState.viewData];
-                      await StoreData()
-                          .storeInsertData('tokenizedAsset', savedAssets);
-                    } else {
-                      savedAssets = [appState.viewData];
-                      await StoreData()
-                          .storeInsertData('tokenizedAsset', savedAssets);
-                    }
-                    showLoader(context);
-                    await Future.delayed(Duration(seconds: 1));
-                    hideLoader(context);
-                    appState.viewData![SuccessViewPageConfig.key] = {
-                      'title': '',
-                      'buttonText': 'Proceed to Pay',
-                      'useOnDone': true,
-                      'onDone': () {
-                        appState.currentAction = PageAction(
-                          state: PageState.replace,
-                          page: TokenizationFeePaymentViewPageConfig,
-                        );
-                      },
-                      'message':
-                          'Your asset tokenization request has been submitted successfully. Please complete the payment to proceed. We will begin processing your application once the payment is received.',
-                    };
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage, page: SuccessViewPageConfig);
-                  },
+                  onTap: () => submitForm(),
                 ),
               ],
               SizedBox(
@@ -307,6 +274,53 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         ),
       ),
     );
+  }
+
+  void submitForm() async {
+    try {
+      showLoader(context);
+
+      String requestBody = jsonEncode(appState.viewData);
+      print('requestBody  =======> $requestBody');
+
+      Map responseData = await makePutRequest(
+        uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
+        body: "",
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeTokenizationWalletPublicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData['data']}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        Navigator.of(context).pop();
+        appState.viewData![SuccessViewPageConfig.key] = {
+          'title': '',
+          'buttonText': 'Proceed to Pay',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = PageAction(
+              state: PageState.replace,
+              page: TokenizationFeePaymentViewPageConfig,
+            );
+          },
+          'message':
+              'Your asset tokenization request has been submitted successfully. Please complete the payment to proceed. We will begin processing your application once the payment is received.',
+        };
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 
   String getFeeInfo(int index) {

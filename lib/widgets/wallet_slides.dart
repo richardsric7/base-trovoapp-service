@@ -89,10 +89,10 @@ class _WalletSlideState extends State<WalletSlide> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Image.asset(
-                      //   'assets/images/trovo_white.png',
-                      //   width: 40,
-                      // ),
+                      Image.asset(
+                        'assets/images/trovo_white.png',
+                        width: 40,
+                      ),
                     ],
                   ),
                 ),

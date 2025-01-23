@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,7 +48,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData!['transactionData'];
-    print('==> viewData: $viewData');
+    inspect(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(

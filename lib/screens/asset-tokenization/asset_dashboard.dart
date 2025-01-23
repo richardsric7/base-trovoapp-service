@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -78,371 +77,373 @@ class _AssetDashboardState extends State<AssetDashboard>
               ),
             ),
             SizedBox(height: height / 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: width / 2.3,
-                  height: height / 5.5,
-                  child: Card(
-                    shadowColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    color: notifier.isDark
-                        ? notifier.getbluecolor90
-                        : notifier.getaddsubwalletgrey,
-                    child: TextButton(
-                      onPressed: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: AssetSubscribersViewPageConfig,
-                        );
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            'Total Subscriptions',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
+            if (tokenizedAsset.tokenizationStatus == 3) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width / 2.3,
+                    height: height / 5.5,
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      color: notifier.isDark
+                          ? notifier.getbluecolor90
+                          : notifier.getaddsubwalletgrey,
+                      child: TextButton(
+                        onPressed: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetSubscribersViewPageConfig,
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: height / 70,
                             ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 21,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              pill(
-                                '+23.4%',
-                                backColor: Color(0xFF4F9A94),
-                                foreColor: wihitecolor,
-                              ),
-                              Icon(
-                                Icons.arrow_forward,
+                            Text(
+                              'Total Subscriptions',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor,
-                                size: 18,
                               ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                Container(
-                  width: width / 2.3,
-                  height: height / 5.5,
-                  child: Card(
-                    shadowColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    color: notifier.isDark
-                        ? notifier.getbluecolor90
-                        : notifier.getaddsubwalletgrey,
-                    child: TextButton(
-                      onPressed: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: TotalSalesViewPageConfig,
-                        );
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            'Total Sale',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
                             ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
+                            SizedBox(
+                              height: height / 70,
                             ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '${tokenizedAsset.pricePerToken! * (tokenizedAsset.amount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              pill(
-                                '+23.4%',
-                                backColor: Color(0xFF4F9A94),
-                                foreColor: wihitecolor,
-                              ),
-                              Icon(
-                                Icons.arrow_forward,
+                            Text(
+                              '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontsemibold,
                                 color: notifier.getbluewhitecolor,
-                                size: 18,
                               ),
-                            ],
-                          )
-                        ],
+                            ),
+                            SizedBox(
+                              height: height / 21,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                pill(
+                                  '+23.4%',
+                                  backColor: Color(0xFF4F9A94),
+                                  foreColor: wihitecolor,
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: notifier.getbluewhitecolor,
+                                  size: 18,
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: width / 2.3,
-                  height: height / 5.5,
-                  child: Card(
-                    shadowColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    color: notifier.isDark
-                        ? notifier.getbluecolor90
-                        : notifier.getaddsubwalletgrey,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            'Asset Value',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
+                  SizedBox(
+                    width: width / 50,
+                  ),
+                  Container(
+                    width: width / 2.3,
+                    height: height / 5.5,
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      color: notifier.isDark
+                          ? notifier.getbluecolor90
+                          : notifier.getaddsubwalletgrey,
+                      child: TextButton(
+                        onPressed: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: TotalSalesViewPageConfig,
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: height / 70,
                             ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '${formatHistoryNumber(tokenizedAsset.assetCurrentValue!, 10000)} ${tokenizedAsset.assetQuoteCurrency}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '',
-                            // '\$${formatHistoryNumber(tokenizedAsset.assetCurrentValue! / tokenizedAsset.usdPrice!, 1000000)}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(),
-                              Icon(
-                                Icons.edit,
+                            Text(
+                              'Total Sale',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor,
-                                size: 18,
                               ),
-                            ],
-                          )
-                        ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '${tokenizedAsset.pricePerToken! * (tokenizedAsset.amount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                pill(
+                                  '+23.4%',
+                                  backColor: Color(0xFF4F9A94),
+                                  foreColor: wihitecolor,
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: notifier.getbluewhitecolor,
+                                  size: 18,
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                Container(
-                  width: width / 2.3,
-                  height: height / 5.5,
-                  child: Card(
-                    shadowColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    color: notifier.isDark
-                        ? notifier.getbluecolor90
-                        : notifier.getaddsubwalletgrey,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            'Price Per Asset',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                          Text(
-                            '',
-                            // '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 30,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(),
-                              Container(),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: width / 9,
-                  height: height / 40,
-                  child: pill('',
-                      backColor: Colors.blueAccent,
-                      foreColor: Colors.blueAccent,
-                      hideDirectionUp: true),
-                ),
-                Text(
-                  'Sales',
-                  textAlign: TextAlign.center,
-                  softWrap: true,
-                  style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: width / 9,
-                  height: height / 40,
-                  child: pill('',
-                      backColor: Colors.green,
-                      foreColor: Colors.green,
-                      hideDirectionUp: true),
-                ),
-                Text(
-                  'Subscribers',
-                  textAlign: TextAlign.center,
-                  softWrap: true,
-                  style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 30),
-            Container(
-              height: height / 3,
-              width: width / 1.2,
-              child: BarChartWidget(
-                points: pricePoints,
+                ],
               ),
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width / 2.3,
+                    height: height / 5.5,
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      color: notifier.isDark
+                          ? notifier.getbluecolor90
+                          : notifier.getaddsubwalletgrey,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              'Asset Value',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '${formatHistoryNumber(tokenizedAsset.assetCurrentValue!, 10000)} ${tokenizedAsset.assetQuoteCurrency}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '',
+                              // '\$${formatHistoryNumber(tokenizedAsset.assetCurrentValue! / tokenizedAsset.usdPrice!, 1000000)}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(),
+                                Icon(
+                                  Icons.edit,
+                                  color: notifier.getbluewhitecolor,
+                                  size: 18,
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 50,
+                  ),
+                  Container(
+                    width: width / 2.3,
+                    height: height / 5.5,
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      color: notifier.isDark
+                          ? notifier.getbluecolor90
+                          : notifier.getaddsubwalletgrey,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              'Price Per Asset',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Text(
+                              '',
+                              // '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 30,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(),
+                                Container(),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width / 9,
+                    height: height / 40,
+                    child: pill('',
+                        backColor: Colors.blueAccent,
+                        foreColor: Colors.blueAccent,
+                        hideDirectionUp: true),
+                  ),
+                  Text(
+                    'Sales',
+                    textAlign: TextAlign.center,
+                    softWrap: true,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width / 9,
+                    height: height / 40,
+                    child: pill('',
+                        backColor: Colors.green,
+                        foreColor: Colors.green,
+                        hideDirectionUp: true),
+                  ),
+                  Text(
+                    'Subscribers',
+                    textAlign: TextAlign.center,
+                    softWrap: true,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 30),
+              Container(
+                height: height / 3,
+                width: width / 1.2,
+                child: BarChartWidget(
+                  points: pricePoints,
+                ),
+              ),
+              SizedBox(
+                height: height / 30,
+              ),
+            ],
             Row(
               children: [
                 Padding(
@@ -607,33 +608,95 @@ class _AssetDashboardState extends State<AssetDashboard>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 30,
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proof of Payment Documents',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          for (var item
+                              in tokenizedAsset.proofOfPaymentDocuments!) ...[
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(50, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  alignment: Alignment.centerLeft),
+                              onPressed: () {
+                                var fileUrl = item.documentUrl;
+                                if (fileUrl!.isNotEmpty &&
+                                    fileUrl.endsWith('.pdf')) {
+                                  appState.pdfUrl = fileUrl;
+                                  appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig);
+
+                                  return;
+                                }
+
+                                appState.goToWebView(fileUrl);
+                              },
+                              child: Text(
+                                truncateString(item.documentUrl) ?? '',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            Button(
-              'Payout Proceeds',
-              notifier.getbluecolor,
-              wihitecolor,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: ProceedsPayOutViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(height: height / 70),
-            ButtonOutlined(
-              'Liquidate Asset',
-              notifier.getwihitecolor,
-              Colors.red,
-              borderColor: Colors.red,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: LiquidateAssetViewPageConfig,
-                );
-              },
-            ),
+            // SizedBox(
+            //   height: height / 30,
+            // ),
+            // Button(
+            //   'Payout Proceeds',
+            //   notifier.getbluecolor,
+            //   wihitecolor,
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //       state: PageState.addPage,
+            //       page: ProceedsPayOutViewPageConfig,
+            //     );
+            //   },
+            // ),
+            // SizedBox(height: height / 70),
+            // ButtonOutlined(
+            //   'Liquidate Asset',
+            //   notifier.getwihitecolor,
+            //   Colors.red,
+            //   borderColor: Colors.red,
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //       state: PageState.addPage,
+            //       page: LiquidateAssetViewPageConfig,
+            //     );
+            //   },
+            // ),
             SizedBox(
               height: height / 10,
             ),

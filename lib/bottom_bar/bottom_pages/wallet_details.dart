@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -177,29 +175,34 @@ class _WalletDetailsState extends State<WalletDetails>
           child: Column(
             children: [
               SizedBox(
-                height: height / 50,
+                height: height / 80,
               ),
-              WalletSlide(
-                backColor: notifier.getbluecolor,
-                foreColor: wihitecolor,
-                alias: wallet.alias!.capitalizeFirst!,
-                isSharedWallet: wallet.isSharedWallet,
-                walletType: wallet.walletType ?? 0,
-                assetCount: wallet.claimedAssets?.length.toString(),
-                totalBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
-                fiatBalance: appState.defaultCurrency == 'USD'
-                    ? null
-                    : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
-                initialHiddenState: appState.hideBalances,
-                onHiddenStateChanged: (state) => {
-                  setState(
-                    () => localHideBalance = state,
-                  )
-                },
+              Container(
+                constraints: BoxConstraints(
+                  maxHeight: height / 5.8,
+                ),
+                child: WalletSlide(
+                  backColor: notifier.getbluecolor,
+                  foreColor: wihitecolor,
+                  alias: wallet.alias!.capitalizeFirst!,
+                  isSharedWallet: wallet.isSharedWallet,
+                  walletType: wallet.walletType ?? 0,
+                  assetCount: wallet.claimedAssets?.length.toString(),
+                  totalBalance:
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
+                  fiatBalance: appState.defaultCurrency == 'USD'
+                      ? null
+                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
+                  initialHiddenState: appState.hideBalances,
+                  onHiddenStateChanged: (state) => {
+                    setState(
+                      () => localHideBalance = state,
+                    )
+                  },
+                ),
               ),
               SizedBox(
-                height: height / 30,
+                height: height / 80,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -289,7 +292,7 @@ class _WalletDetailsState extends State<WalletDetails>
                     )),
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 95,
               ),
               listMode == DashboardAssetListMode.TokenizedAssets
                   ? showAssets()

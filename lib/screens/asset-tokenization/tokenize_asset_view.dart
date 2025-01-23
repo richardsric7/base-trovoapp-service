@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -5,10 +7,12 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -162,6 +166,16 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 );
               },
             ),
+            SizedBox(height: 10),
+            Button(
+              "deletetokenization".tr(),
+              Colors.red,
+              wihitecolor,
+              onTap: () {
+                confirmTokenizationDeletePopup(context,
+                    onConfirmationSuccess: deleteTokenization);
+              },
+            ),
             SizedBox(
               height: height / 10,
             ),
@@ -301,5 +315,37 @@ class _TokenizeAssetState extends State<TokenizeAsset>
         ],
       ),
     );
+  }
+
+  void deleteTokenization() async {
+    try {
+      showLoader(context);
+
+      Map responseData = await makeDeleteRequest(
+        uri: '/v1/tokenization/${appState.viewData!['id']}',
+        body: "",
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeTokenizationWalletPublicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData['data']}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: BottomHomePageConfig,
+        );
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 }

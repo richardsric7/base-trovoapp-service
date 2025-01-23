@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -46,6 +47,7 @@ class _ImportWalletState extends State<ImportWallet> {
   String? passPhrase;
   String? secretKey;
   String? password;
+  Account? info;
   late DataProvider appState;
 
   getdarkmodepreviousstate() async {
@@ -221,6 +223,17 @@ class _ImportWalletState extends State<ImportWallet> {
                             notifier.getblck,
                             70.sp,
                             300.sp,
+                            onChanged: (value) async {
+                              if (value != null && value.length == 56) {
+                                setState(() {
+                                  info = parseKey(context, value)!;
+                                });
+                              } else {
+                                setState(() {
+                                  info = null;
+                                });
+                              }
+                            },
                             validator: (value) {
                               var trimmedVal =
                                   value!.trim().replaceAll(' ', '');
@@ -239,6 +252,63 @@ class _ImportWalletState extends State<ImportWallet> {
                             maxLength: 56,
                             focusNode: secretKeyFocusNode,
                           )
+                        ],
+                        if (info != null) ...[
+                          SizedBox(
+                            height: height / 90,
+                          ),
+                          Container(
+                            constraints: BoxConstraints(maxWidth: width / 1.2),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'publickey'.tr(),
+                                  overflow: TextOverflow.visible,
+                                  style: TextStyle(
+                                    color: notifier.getblck,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
+                                  ),
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      constraints:
+                                          BoxConstraints(maxWidth: width / 1.4),
+                                      child: Text(
+                                        info?.publicKey ?? '',
+                                        overflow: TextOverflow.visible,
+                                        style: TextStyle(
+                                            color: notifier.getblck,
+                                            fontSize: 13,
+                                            fontFamily: fontbody),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: IconButton(
+                                        onPressed: () => {
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                              text: info!.publicKey,
+                                            ),
+                                          ),
+                                          showSnackBar(
+                                              "publickey".tr(), context),
+                                        },
+                                        icon: Icon(
+                                          Icons.copy,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                         SizedBox(height: height / 40),
                         CustomPasswordFormField(

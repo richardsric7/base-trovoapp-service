@@ -58,7 +58,9 @@ class TokenizedAsset {
   String? assetQuoteCurrency;
   String? additionalKYCRequirements;
   int? investorAccreditationRequired;
-  int? tokenizationStatus; // 0 pending, 1 completed, 2 rejected
+  int?
+      tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
+  List<ProofOfPaymentDocument>? proofOfPaymentDocuments;
   String? lastUpdatedBy;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -68,6 +70,37 @@ class TokenizedAsset {
   String? closedGroupId;
   ClosedGroupInfo? closedGroupInfo;
   List<Document>? assetTokenizationDocuments;
+  int? agreeTransferTitleToCustodian;
+  int? contractualProtectionRevGuarantees;
+  int? contractualProtectionPerfBond;
+  int? contractualProtectionSLA;
+  int? riskSharingMechanismPPPs;
+  int? riskSharingMechanismHedgeInstruments;
+  int? riskSharingMechanismCompletionGuarantees;
+  String? independentMonitoringList;
+  int? eSGSafeguardsSusCerts;
+  int? eSGSafeguardsCommEngPlans;
+  int? securityMeasuresAccessControl;
+  int? securityMeasuresSurveilanceSystems;
+  int? securityMeasuresOnSiteSecurityPersonnel;
+  int? securityMeasuresPerimeterSecurity;
+  int? securityMeasuresCriticalInfraProtections;
+  String? otherAssetProtection;
+  String? legalAdvisor;
+  String? financialAdvisor;
+  int? undertakingNoLien;
+  int? undertakingNotCollateral;
+  int? undertakingNoClaims;
+  int? undertakingNoForeclosure;
+  int? complianceNoViolation;
+  int? complianceAllPermits;
+  int? outstandingFinancialRespNoDebts;
+  int? outstandingFinancialRespNoHiddenLiabilities;
+  int? riskManagementFullyInsured;
+  int? riskManagementDeclaredValue;
+  int? physicalConditionSound;
+  int? physicalConditionNolease;
+  int? assetMscCostOutisdeOfValuation;
 
   TokenizedAsset({
     this.id,
@@ -136,6 +169,38 @@ class TokenizedAsset {
     this.tokenizationStatus,
     this.assetQuoteCurrency,
     this.isSubscribed,
+    this.proofOfPaymentDocuments,
+    this.agreeTransferTitleToCustodian,
+    this.contractualProtectionRevGuarantees,
+    this.contractualProtectionPerfBond,
+    this.contractualProtectionSLA,
+    this.riskSharingMechanismPPPs,
+    this.riskSharingMechanismHedgeInstruments,
+    this.riskSharingMechanismCompletionGuarantees,
+    this.independentMonitoringList,
+    this.eSGSafeguardsSusCerts,
+    this.eSGSafeguardsCommEngPlans,
+    this.securityMeasuresAccessControl,
+    this.securityMeasuresSurveilanceSystems,
+    this.securityMeasuresOnSiteSecurityPersonnel,
+    this.securityMeasuresPerimeterSecurity,
+    this.securityMeasuresCriticalInfraProtections,
+    this.otherAssetProtection,
+    this.legalAdvisor,
+    this.financialAdvisor,
+    this.undertakingNoLien,
+    this.undertakingNotCollateral,
+    this.undertakingNoClaims,
+    this.undertakingNoForeclosure,
+    this.complianceNoViolation,
+    this.complianceAllPermits,
+    this.outstandingFinancialRespNoDebts,
+    this.outstandingFinancialRespNoHiddenLiabilities,
+    this.riskManagementFullyInsured,
+    this.riskManagementDeclaredValue,
+    this.physicalConditionSound,
+    this.physicalConditionNolease,
+    this.assetMscCostOutisdeOfValuation,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -212,8 +277,48 @@ class TokenizedAsset {
       closedGroupInfo: ClosedGroupInfo().deserializeJson(m["closedGroupInfo"]),
       assetTokenizationDocuments:
           deserializeDocuments(m["AssetTokenizationDocuments"]),
-      tokenizationStatus: m["tokenizationStatus"],
+      tokenizationStatus: m["assetTokenizationStatus"],
       isSubscribed: m["isSubscribed"],
+      agreeTransferTitleToCustodian: m["agreeTransferTitleToCustodian"],
+      contractualProtectionRevGuarantees:
+          m["contractualProtectionRevGuarantees"],
+      proofOfPaymentDocuments:
+          deserializeProofOfPaymentDocuments(m["ProofOfPaymentDocuments"]),
+      contractualProtectionPerfBond: m["contractualProtectionPerfBond"],
+      contractualProtectionSLA: m["contractualProtectionSLA"],
+      riskSharingMechanismPPPs: m["riskSharingMechanismPPPs"],
+      riskSharingMechanismHedgeInstruments:
+          m["riskSharingMechanismHedgeInstruments"],
+      riskSharingMechanismCompletionGuarantees:
+          m["riskSharingMechanismCompletionGuarantees"],
+      independentMonitoringList: m["independentMonitoringList"],
+      eSGSafeguardsSusCerts: m["eSGSafeguardsSusCerts"],
+      eSGSafeguardsCommEngPlans: m["eSGSafeguardsCommEngPlans"],
+      securityMeasuresAccessControl: m["securityMeasuresAccessControl"],
+      securityMeasuresSurveilanceSystems:
+          m["securityMeasuresSurveilanceSystems"],
+      securityMeasuresOnSiteSecurityPersonnel:
+          m["securityMeasuresOnSiteSecurityPersonnel"],
+      securityMeasuresPerimeterSecurity: m["securityMeasuresPerimeterSecurity"],
+      securityMeasuresCriticalInfraProtections:
+          m["securityMeasuresCriticalInfraProtections"],
+      otherAssetProtection: m["otherAssetProtection"],
+      legalAdvisor: m["legalAdvisor"],
+      financialAdvisor: m["financialAdvisor"],
+      undertakingNoLien: m["undertakingNoLien"],
+      undertakingNotCollateral: m["undertakingNotCollateral"],
+      undertakingNoClaims: m["undertakingNoClaims"],
+      undertakingNoForeclosure: m["undertakingNoForeclosure"],
+      complianceNoViolation: m["complianceNoViolation"],
+      complianceAllPermits: m["complianceAllPermits"],
+      outstandingFinancialRespNoDebts: m["outstandingFinancialRespNoDebts"],
+      outstandingFinancialRespNoHiddenLiabilities:
+          m["outstandingFinancialRespNoHiddenLiabilities"],
+      riskManagementFullyInsured: m["riskManagementFullyInsured"],
+      riskManagementDeclaredValue: m["riskManagementDeclaredValue"],
+      physicalConditionSound: m["physicalConditionSound"],
+      physicalConditionNolease: m["physicalConditionNolease"],
+      assetMscCostOutisdeOfValuation: m["assetMscCostOutisdeOfValuation"],
     );
   }
 
@@ -221,6 +326,14 @@ class TokenizedAsset {
     List<Document> docs = [];
     for (int i = 0; i < m.length; i++) {
       docs.add(Document().deserializeJson(m[i]));
+    }
+    return docs;
+  }
+
+  List<ProofOfPaymentDocument> deserializeProofOfPaymentDocuments(m) {
+    List<ProofOfPaymentDocument> docs = [];
+    for (int i = 0; i < m.length; i++) {
+      docs.add(ProofOfPaymentDocument().deserializeJson(m[i]));
     }
     return docs;
   }
@@ -250,6 +363,37 @@ class CustodianInfo {
       assetCustodianAddress: m["assetCustodianAddress"],
       assetCustodianCountry: m["assetCustodianCountry"],
       requirementDocument: m["requirementDocument"],
+    );
+  }
+}
+
+class ProofOfPaymentDocument {
+  int? id;
+  DateTime? createdAt;
+  String? tokenizationFeePaymentMethodID;
+  String? tokenizedAssetId;
+  String? transactionReference;
+  String? documentUrl;
+
+  ProofOfPaymentDocument({
+    this.id,
+    this.createdAt,
+    this.tokenizationFeePaymentMethodID,
+    this.tokenizedAssetId,
+    this.transactionReference,
+    this.documentUrl,
+  });
+
+  ProofOfPaymentDocument deserializeJson(Map<String, dynamic> m) {
+    var info =
+        m["ProofOfPaymentDocument"] != null ? m["ProofOfPaymentDocument"] : m;
+    return ProofOfPaymentDocument(
+      createdAt: DateTime.parse(m["CreatedAt"]),
+      id: info["id"] != null ? info["id"] : null,
+      tokenizationFeePaymentMethodID: info["tokenizationFeePaymentMethodID"],
+      tokenizedAssetId: info["tokenizedAssetId"],
+      transactionReference: info["transactionReference"],
+      documentUrl: info["documentUrl"],
     );
   }
 }

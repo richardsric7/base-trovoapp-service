@@ -146,6 +146,12 @@ truncatePublicKey(String? publicKey) {
       publicKey.substring(publicKey.length - 7);
 }
 
+truncateString(String? text) {
+  if (text == null) return "entertext".tr();
+  if (text.length <= 15) return text;
+  return truncate(text, length: 15) + text.substring(text.length - 15);
+}
+
 String truncate(String text, {length = 7, omission = '...'}) {
   if (length >= text.length) {
     return text;
@@ -205,7 +211,7 @@ String getFiatRate(String usdPrice, String currency, DataProvider appState,
   if (getUnFormatted)
     return (appState.fiatRate[currency] * double.parse(usdPrice)).toString();
 
-  return NumberFormat("#,##0.00000", "en_US")
+  return NumberFormat("#,##0.00", "en_US")
       .format(appState.fiatRate[currency] * double.parse(usdPrice))
       .toString();
 }
@@ -220,7 +226,11 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
           .replaceAll(',', ''));
     }
   }
-  return formatHistoryNumber(double.parse(balance.toString()), 1000000);
+  return formatHistoryNumber(
+    double.parse(balance.toString()),
+    1000000,
+    isShort: true,
+  );
 }
 
 Widget buildExpandable(context) {
@@ -738,7 +748,7 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      value,
+                      value.isEmpty ? 'Nill' : value,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
                         fontSize: 13,

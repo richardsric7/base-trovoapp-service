@@ -1,0 +1,79 @@
+name: Deploy Build and Release apk
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    name: Deploy Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - run: git config --global --add safe.directory /github/workspace
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.4
+        with:
+          node-version: '18' # Specify your Node.js version
+
+      - name: Get Flutter Version
+        id: flutter_version
+        uses: bungabear/flutter_version_read@main
+        with:
+          file: ./pubspec.yaml
+
+      - name: Flutter App Version Number
+        run: echo 'version_number:' ${{ steps.flutter_version.outputs.version_number }}
+
+      - name: Flutter App Build Number
+        run: echo 'build_number:' ${{ steps.flutter_version.outputs.build_number }}
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.13.0
+
+      - run: flutter pub get
+      - run: flutter build appbundle
+
+      - name: Rename APK
+        run: |
+          VERSION_NUMBER=${{ steps.flutter_version.outputs.version_number }}
+          BUILD_NUMBER=${{ steps.flutter_version.outputs.build_number }}
+          mv build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/trovo-app-${VERSION_NUMBER}-${BUILD_NUMBER}.aab
+
+      - name: Upload the APK onto Github
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'build/app/outputs/bundle/release/*.aab'
+          token: ${{ secrets.GH_TOKEN }}
+          tag: ${{ steps.flutter_version.outputs.version_number }}+${{ steps.flutter_version.outputs.build_number }}
+
+      - name: Decoding base64 Credentials
+        shell: bash
+        run: echo ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }} | base64 --decode > credentials.json
+
+      - name: Save credentials into environment variables
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=./credentials.json" >> $GITHUB_ENV
+
+      - name: Upload to Firebase App Distribution
+        run: |
+          curl -sL https://firebase.tools | bash  # Install Firebase CLI
+          firebase appdistribution:distribute build/app/outputs/bundle/release/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.aab --app ${{ secrets.FIREBASE_APP_ID }} --groups trovo-core-group --release-notes "New release for version ${{ github.ref }}"
