@@ -34,7 +34,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   // bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
-  bool shouldTransferAsset = false;
+  bool agreeTransferTitleToCustodian = false;
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
@@ -66,6 +66,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
+    inspect(data);
     if (data != null && data.isNotEmpty) {
       selectedAssetSectorId = data!["assetSector"];
       selectedAssetSubSectorId = data!["assetSubSector"];
@@ -81,6 +82,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
       tokenizationRequirementsUrl =
           'https://tokenization-requirements-app-xu8c6.ondigitalocean.app';
+      agreeTransferTitleToCustodian =
+          data!["agreeTransferTitleToCustodian"] != 0;
     }
   }
 
@@ -659,16 +662,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                               ? notifier.getbluecolor50
                               : notifier.getbluecolor90,
                         ),
-                        value: shouldTransferAsset,
+                        value: agreeTransferTitleToCustodian,
                         onChanged: (bool? value) {
                           setState(() {
-                            shouldTransferAsset = value!;
+                            agreeTransferTitleToCustodian = value!;
                           });
                         },
                       );
                     },
                     validator: (value) {
-                      if (!shouldTransferAsset) {
+                      if (!agreeTransferTitleToCustodian) {
                         setState(() {
                           formHasError = true;
                         });
@@ -686,7 +689,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     overflow: TextOverflow.visible,
                     style: TextStyle(
                         fontSize: 15,
-                        color: formHasError && !shouldTransferAsset
+                        color: formHasError && !agreeTransferTitleToCustodian
                             ? Colors.red
                             : notifier.getbluewhitecolor,
                         fontFamily: fontbody),
@@ -780,6 +783,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "assetManagerId": selectedAssetManager.length > 0
             ? int.parse(selectedAssetManager)
             : 1,
+        "agreeTransferTitleToCustodian": agreeTransferTitleToCustodian ? 1 : 0,
         "marketMakingWallet": marketMakingWallet,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
@@ -827,9 +831,51 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "percentageValueOfInsurance": newData['percentageValueOfInsurance'],
         "IsFreeFromLiensAndEncumbrances":
             newData['IsFreeFromLiensAndEncumbrances'],
+        "contractualProtectionRevGuarantees":
+            newData['contractualProtectionRevGuarantees'],
+        "contractualProtectionPerfBond":
+            newData['contractualProtectionPerfBond'],
+        "contractualProtectionSLA": newData['contractualProtectionSLA'],
+        "riskSharingMechanismPPPs": newData['riskSharingMechanismPPPs'],
+        "riskSharingMechanismHedgeInstruments":
+            newData['riskSharingMechanismHedgeInstruments'],
+        "riskSharingMechanismCompletionGuarantees":
+            newData['riskSharingMechanismCompletionGuarantees'],
+        "independentMonitoringList": newData['independentMonitoringList'],
+        "eSGSafeguardsSusCerts": newData['eSGSafeguardsSusCerts'],
+        "eSGSafeguardsCommEngPlans": newData['eSGSafeguardsCommEngPlans'],
+        "securityMeasuresAccessControl":
+            newData['securityMeasuresAccessControl'],
+        "securityMeasuresSurveilanceSystems":
+            newData['securityMeasuresSurveilanceSystems'],
+        "securityMeasuresOnSiteSecurityPersonnel":
+            newData['securityMeasuresOnSiteSecurityPersonnel'],
+        "securityMeasuresPerimeterSecurity":
+            newData['securityMeasuresPerimeterSecurity'],
+        "securityMeasuresCriticalInfraProtections":
+            newData['securityMeasuresCriticalInfraProtections'],
+        "otherAssetProtection": newData['otherAssetProtection'],
+        "legalAdvisor": newData['legalAdvisor'],
+        "financialAdvisor": newData['financialAdvisor'],
+        "undertakingNoLien": newData['undertakingNoLien'],
+        "undertakingNotCollateral": newData['undertakingNotCollateral'],
+        "undertakingNoClaims": newData['undertakingNoClaims'],
+        "undertakingNoForeclosure": newData['undertakingNoForeclosure'],
+        "complianceNoViolation": newData['complianceNoViolation'],
+        "complianceAllPermits": newData['complianceAllPermits'],
+        "outstandingFinancialRespNoDebts":
+            newData['outstandingFinancialRespNoDebts'],
+        "outstandingFinancialRespNoHiddenLiabilities":
+            newData['outstandingFinancialRespNoHiddenLiabilities'],
+        "riskManagementFullyInsured": newData['riskManagementFullyInsured'],
+        "riskManagementDeclaredValue": newData['riskManagementDeclaredValue'],
+        "physicalConditionSound": newData['physicalConditionSound'],
+        "physicalConditionNolease": newData['physicalConditionNolease'],
+        "assetMscCostOutisdeOfValuation":
+            newData['assetMscCostOutisdeOfValuation'],
       };
       String requestBody = jsonEncode(map);
-      inspect(map);
+      print('dsafsad smap ${map["agreeTransferTitleToCustodian"]}');
 
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(

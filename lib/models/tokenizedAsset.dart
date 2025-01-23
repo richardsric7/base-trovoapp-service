@@ -70,6 +70,37 @@ class TokenizedAsset {
   String? closedGroupId;
   ClosedGroupInfo? closedGroupInfo;
   List<Document>? assetTokenizationDocuments;
+  int? agreeTransferTitleToCustodian;
+  int? contractualProtectionRevGuarantees;
+  int? contractualProtectionPerfBond;
+  int? contractualProtectionSLA;
+  int? riskSharingMechanismPPPs;
+  int? riskSharingMechanismHedgeInstruments;
+  int? riskSharingMechanismCompletionGuarantees;
+  String? independentMonitoringList;
+  int? eSGSafeguardsSusCerts;
+  int? eSGSafeguardsCommEngPlans;
+  int? securityMeasuresAccessControl;
+  int? securityMeasuresSurveilanceSystems;
+  int? securityMeasuresOnSiteSecurityPersonnel;
+  int? securityMeasuresPerimeterSecurity;
+  int? securityMeasuresCriticalInfraProtections;
+  String? otherAssetProtection;
+  String? legalAdvisor;
+  String? financialAdvisor;
+  int? undertakingNoLien;
+  int? undertakingNotCollateral;
+  int? undertakingNoClaims;
+  int? undertakingNoForeclosure;
+  int? complianceNoViolation;
+  int? complianceAllPermits;
+  int? outstandingFinancialRespNoDebts;
+  int? outstandingFinancialRespNoHiddenLiabilities;
+  int? riskManagementFullyInsured;
+  int? riskManagementDeclaredValue;
+  int? physicalConditionSound;
+  int? physicalConditionNolease;
+  int? assetMscCostOutisdeOfValuation;
 
   TokenizedAsset({
     this.id,
@@ -139,6 +170,37 @@ class TokenizedAsset {
     this.assetQuoteCurrency,
     this.isSubscribed,
     this.proofOfPaymentDocuments,
+    this.agreeTransferTitleToCustodian,
+    this.contractualProtectionRevGuarantees,
+    this.contractualProtectionPerfBond,
+    this.contractualProtectionSLA,
+    this.riskSharingMechanismPPPs,
+    this.riskSharingMechanismHedgeInstruments,
+    this.riskSharingMechanismCompletionGuarantees,
+    this.independentMonitoringList,
+    this.eSGSafeguardsSusCerts,
+    this.eSGSafeguardsCommEngPlans,
+    this.securityMeasuresAccessControl,
+    this.securityMeasuresSurveilanceSystems,
+    this.securityMeasuresOnSiteSecurityPersonnel,
+    this.securityMeasuresPerimeterSecurity,
+    this.securityMeasuresCriticalInfraProtections,
+    this.otherAssetProtection,
+    this.legalAdvisor,
+    this.financialAdvisor,
+    this.undertakingNoLien,
+    this.undertakingNotCollateral,
+    this.undertakingNoClaims,
+    this.undertakingNoForeclosure,
+    this.complianceNoViolation,
+    this.complianceAllPermits,
+    this.outstandingFinancialRespNoDebts,
+    this.outstandingFinancialRespNoHiddenLiabilities,
+    this.riskManagementFullyInsured,
+    this.riskManagementDeclaredValue,
+    this.physicalConditionSound,
+    this.physicalConditionNolease,
+    this.assetMscCostOutisdeOfValuation,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -217,8 +279,46 @@ class TokenizedAsset {
           deserializeDocuments(m["AssetTokenizationDocuments"]),
       tokenizationStatus: m["assetTokenizationStatus"],
       isSubscribed: m["isSubscribed"],
+      agreeTransferTitleToCustodian: m["agreeTransferTitleToCustodian"],
+      contractualProtectionRevGuarantees:
+          m["contractualProtectionRevGuarantees"],
       proofOfPaymentDocuments:
           deserializeProofOfPaymentDocuments(m["ProofOfPaymentDocuments"]),
+      contractualProtectionPerfBond: m["contractualProtectionPerfBond"],
+      contractualProtectionSLA: m["contractualProtectionSLA"],
+      riskSharingMechanismPPPs: m["riskSharingMechanismPPPs"],
+      riskSharingMechanismHedgeInstruments:
+          m["riskSharingMechanismHedgeInstruments"],
+      riskSharingMechanismCompletionGuarantees:
+          m["riskSharingMechanismCompletionGuarantees"],
+      independentMonitoringList: m["independentMonitoringList"],
+      eSGSafeguardsSusCerts: m["eSGSafeguardsSusCerts"],
+      eSGSafeguardsCommEngPlans: m["eSGSafeguardsCommEngPlans"],
+      securityMeasuresAccessControl: m["securityMeasuresAccessControl"],
+      securityMeasuresSurveilanceSystems:
+          m["securityMeasuresSurveilanceSystems"],
+      securityMeasuresOnSiteSecurityPersonnel:
+          m["securityMeasuresOnSiteSecurityPersonnel"],
+      securityMeasuresPerimeterSecurity: m["securityMeasuresPerimeterSecurity"],
+      securityMeasuresCriticalInfraProtections:
+          m["securityMeasuresCriticalInfraProtections"],
+      otherAssetProtection: m["otherAssetProtection"],
+      legalAdvisor: m["legalAdvisor"],
+      financialAdvisor: m["financialAdvisor"],
+      undertakingNoLien: m["undertakingNoLien"],
+      undertakingNotCollateral: m["undertakingNotCollateral"],
+      undertakingNoClaims: m["undertakingNoClaims"],
+      undertakingNoForeclosure: m["undertakingNoForeclosure"],
+      complianceNoViolation: m["complianceNoViolation"],
+      complianceAllPermits: m["complianceAllPermits"],
+      outstandingFinancialRespNoDebts: m["outstandingFinancialRespNoDebts"],
+      outstandingFinancialRespNoHiddenLiabilities:
+          m["outstandingFinancialRespNoHiddenLiabilities"],
+      riskManagementFullyInsured: m["riskManagementFullyInsured"],
+      riskManagementDeclaredValue: m["riskManagementDeclaredValue"],
+      physicalConditionSound: m["physicalConditionSound"],
+      physicalConditionNolease: m["physicalConditionNolease"],
+      assetMscCostOutisdeOfValuation: m["assetMscCostOutisdeOfValuation"],
     );
   }
 

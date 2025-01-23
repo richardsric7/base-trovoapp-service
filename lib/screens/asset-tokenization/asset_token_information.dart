@@ -294,7 +294,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       300.sp,
                       initialValue: assetName,
                       onChanged: (value) {
@@ -347,7 +347,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       300.sp,
                       initialValue: assetCode,
                       onChanged: (value) {
@@ -505,7 +505,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       300.sp,
                       controller: numberOfTokenToBeIssuedController,
                       validator: (value) {
@@ -579,7 +579,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       null,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      85,
                       300.sp,
                       controller: numberOfTokenToBeSoldController,
                       validator: (value) {
@@ -799,7 +799,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ),
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 30,
               ),
               Row(
                 children: [
@@ -808,7 +808,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: Text(
                       "assetsalesandpricing".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1075,7 +1075,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: Text(
                       "caponpurchase".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1148,7 +1148,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         null,
                         notifier.getblck,
                         notifier.getgrey,
-                        70.sp,
+                        85,
                         300.sp,
                         controller: capQuantityController,
                         validator: (value) {
@@ -1202,7 +1202,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         null,
                         notifier.getblck,
                         notifier.getgrey,
-                        70.sp,
+                        85,
                         300.sp,
                         controller: capAmountController,
                         onChanged: (value) {
@@ -1251,7 +1251,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         null,
                         notifier.getblck,
                         notifier.getgrey,
-                        70.sp,
+                        85,
                         300.sp,
                         controller: capDurationInDaysController,
                         validator: (value) {
@@ -1283,7 +1283,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: Text(
                       "proceedpayout".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1292,7 +1292,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ],
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 30,
               ),
               Row(
                 children: [
@@ -1427,7 +1427,25 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: Text(
                       "primarybuyerrequirement".tr(),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Exempted Countries".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1576,48 +1594,65 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               ),
               Column(
                 children: [
-                  ListTile(
-                    title: Text(
-                      'yes'.tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: SizedBox(
+                      height: 25,
+                      child: Row(
+                        children: [
+                          Radio(
+                            value: hasAdditionalKYCRequirements,
+                            groupValue: true,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: MaterialStateProperty.all(
+                                notifier.getbluewhitecolor),
+                            onChanged: (value) {
+                              setState(() {
+                                hasAdditionalKYCRequirements = true;
+                              });
+                            },
+                          ),
+                          Text(
+                            'yes'.tr(),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    leading: Radio(
-                      value: hasAdditionalKYCRequirements,
-                      groupValue: true,
-                      activeColor: notifier.getbluewhitecolor,
-                      fillColor:
-                          MaterialStateProperty.all(notifier.getbluewhitecolor),
-                      onChanged: (value) {
-                        setState(() {
-                          hasAdditionalKYCRequirements = true;
-                        });
-                      },
                     ),
                   ),
-                  ListTile(
-                    title: Text(
-                      'no'.tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: SizedBox(
+                      height: 25,
+                      child: Row(
+                        children: [
+                          Radio(
+                            value: hasAdditionalKYCRequirements,
+                            groupValue: false,
+                            fillColor: MaterialStateProperty.all(
+                                notifier.getbluewhitecolor),
+                            activeColor: notifier.getbluewhitecolor,
+                            onChanged: (value) {
+                              setState(() {
+                                hasAdditionalKYCRequirements = false;
+                              });
+                            },
+                          ),
+                          Text(
+                            'no'.tr(),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    leading: Radio(
-                      value: hasAdditionalKYCRequirements,
-                      groupValue: false,
-                      fillColor:
-                          MaterialStateProperty.all(notifier.getbluewhitecolor),
-                      activeColor: notifier.getbluewhitecolor,
-                      onChanged: (value) {
-                        setState(() {
-                          hasAdditionalKYCRequirements = false;
-                        });
-                      },
                     ),
                   ),
                   SizedBox(
@@ -1707,11 +1742,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       formIsValid = false;
                     }
 
-                    if (salesEnd == null) {
-                      formIsValid = false;
-                    }
-
-                    if (salesEnd!.isBefore(salesStart!)) {
+                    if (salesEnd == null || salesEnd!.isBefore(salesStart!)) {
                       formIsValid = false;
                     }
 

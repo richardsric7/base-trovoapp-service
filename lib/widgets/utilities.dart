@@ -748,7 +748,7 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      value,
+                      value.isEmpty ? 'Nill' : value,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
                         fontSize: 13,
