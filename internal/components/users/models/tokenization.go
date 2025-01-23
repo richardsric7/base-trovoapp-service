@@ -71,8 +71,8 @@ type TokenizedAsset struct {
 	ClosedGroup                                 ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
 	SecApproval                                 int                             `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                         *string                         `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                      string                          `gorm:"size:60" json:"issuingWalletPublicKey"`
-	IssuingWalletAlias                          string                          `gorm:"size:60" json:"issuingWalletAlias"`
+	IssuingWalletPublicKey                      *string                         `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAlias                          *string                         `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                          *string                         `json:"marketMakingWallet"`
 	AssetDescription                            *string                         `json:"assetDescription"`
 	AssetCountryLocation                        *string                         `json:"assetCountryLocation"`
@@ -192,7 +192,7 @@ type TokenizedAssetJSONInput struct {
 	NumberOfTokenToBeIssued                     float64      `json:"numberOfTokenToBeIssued"`
 	NumberOfTokenToBeSold                       float64      `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64      `json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale                string       `json:"walletToHoldAssetsNotForSale"`
+	WalletToHoldAssetsNotForSale                string       `json:"walletToHoldAssetsNotForSale"`//wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
 	PricePerToken                               float64      `json:"pricePerToken"`
 	SalesStart                                  time.Time    `json:"salesStart"`
 	SalesEnd                                    time.Time    `json:"salesEnd"`
@@ -585,6 +585,7 @@ func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfi
 }
 
 func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
+
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
 	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
@@ -951,9 +952,13 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.SecApproval = ti.SecApproval
 		t.SecApprovalIdNumber = *ti.SecApprovalIdNumber
 	}
-	t.IssuingWalletPublicKey = ti.IssuingWalletPublicKey
-	t.IssuingWalletAlias = ti.IssuingWalletAlias
 
+	if ti.IssuingWalletPublicKey != nil {
+		t.IssuingWalletPublicKey = *ti.IssuingWalletPublicKey
+	}
+	if ti.IssuingWalletAlias != nil {
+		t.IssuingWalletAlias = *ti.IssuingWalletAlias
+	}
 	if ti.MarketMakingWallet != nil {
 		t.MarketMakingWallet = *ti.MarketMakingWallet
 	}

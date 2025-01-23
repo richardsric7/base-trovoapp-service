@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"log"
 	"mime/multipart"
+	"os"
 	"strconv"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/keypair"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -143,7 +146,7 @@ func GetTokenizationDocumentById(id string, db *gorm.DB) (documents []userModels
 	return
 }
 
-func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, err error) {
+func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
 	err = db.Preload(clause.Associations).Where("id = ?", id).First(&tokenizedAsset).Error
 
@@ -155,6 +158,7 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 
 		} else {
 			//record not found
+			NotFound = true
 			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("Tokenization ID %v is invalid.", id)}
 			return
 		}
@@ -164,7 +168,7 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 }
 
 // GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
-func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, err error) {
+func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
 	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
@@ -176,6 +180,7 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 
 		} else {
 			//record not found
+			NotFound = true
 			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
 			return
 		}
@@ -293,15 +298,17 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 
 func DeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
 	// var document userModels.AssetTokenizationDocument
-	ato, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	ato, _, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if err != nil {
 		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
 		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
 
 	}
-	if len(ato.IssuingWalletPublicKey) != 56 {
-		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+	if ato.IssuingWalletPublicKey != nil {
+		if len(*ato.IssuingWalletPublicKey) != 56 {
+			return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
 
+		}
 	}
 
 	if ato.AssetTokenizationStatus > 0 {
@@ -311,12 +318,15 @@ func DeleteTokenization(user *userModels.User, tokenizationID string, gc *shared
 
 	}
 	//get access permission and see if the user taking action has an INITIATOR access.
-	if !userModels.UserWalletID(ato.IssuingWalletPublicKey).UserHasAccess(user.Username, "INITIATOR", gc.DB) {
-		err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-access", ErrMessage: "You cannot delete this tokenization request because you do not possess an initiator permission on the tokenization wallet."}
+	if ato.IssuingWalletPublicKey != nil {
+		if !userModels.UserWalletID(*ato.IssuingWalletPublicKey).UserHasAccess(user.Username, "INITIATOR", gc.DB) {
+			err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-access", ErrMessage: "You cannot delete this tokenization request because you do not possess an initiator permission on the tokenization wallet."}
 
-		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+			return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
 
+		}
 	}
+
 	tx := gc.DB.Begin()
 	defer tx.Rollback()
 	if len(ato.AssetTokenizationDocuments) > 0 {
@@ -414,32 +424,33 @@ func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint
 	return document, nil
 }
 
-func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	// initialize message array
 	input.Messages = make([]string, 0)
 	// check asset manager ID
-	if input.AssetManagerID == 0 {
-		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
-		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
-		return
-	}
+	// if input.AssetManagerID == 0 {
+	// 	log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
+	// 	err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
+	// 	return
+	// }
 
-	// check asset manager ID
-	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
-	if am.ID == 0 {
-		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
-		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
-		return
-	}
+	// // check asset manager ID
+	// am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
+	// if am.ID == 0 {
+	// 	log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
+	// 	err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
+	// 	return
+	// }
 	//check if existing
-	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
+	// ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
 
 	if e == nil {
 		//tokenization existing
 		if ato.AssetTokenizationStatus > 0 {
 			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", issuingWallet.ID)
+			log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error tokenization procesing is in progress and cannot be modified: %v\n", ato.ID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization cannot be modified by this method."}
 			return
 
@@ -451,7 +462,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing document from database  [%v] for %v: %v\n", input, initiator.Username, e)
+			log.Printf("[SubmitTokenizationAssetInfoByInitiator]error fetching existing tokenization from database  [%v] for %v: %v\n", input, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
@@ -459,10 +470,10 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 
 		//create new tokenization
 		ato = userModels.TokenizedAsset{
-			ID:                     uuid.NewString(),
-			InitiatorUsername:      initiator.Username,
-			IssuingWalletPublicKey: issuingWallet.ID,
-			IssuingWalletAlias:     issuingWallet.Alias,
+			ID:                uuid.NewString(),
+			InitiatorUsername: initiator.Username,
+			// IssuingWalletPublicKey: issuingWallet.ID,
+			// IssuingWalletAlias:     issuingWallet.Alias,
 		}
 		ato = UpdateFromInput(&ato, input, gc)
 
@@ -470,13 +481,148 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfoByInitiator] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, err
+}
+
+func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+
+	input.AssetCode = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(input.AssetCode), " ", ""))
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		// error tokenization is already in progress
+		log.Printf("[SubmitTokenizationAssetInfo] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+
+	//tokenization existing
+	if ato.AssetTokenizationStatus < 2 {
+		// error tokenization is already in progress
+		log.Printf("[SubmitTokenizationAssetInfo] Error tokenization information submission is in progress and cannot be modified: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization cannot be modified by this method."}
+		return
+
+	}
+	ato = UpdateFromInput(&ato, input, gc)
+
+	ato.LastUpdatedBy = &initiator.Username
+
+	if ato.IssuingWalletPublicKey == nil && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
+
+		//create issuing wallet
+
+		//get atprofile
+		var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
+			tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+		}
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+		tokenizationIssuer, _ := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		issuer, _ := keypair.Random()
+		distributor, _ := keypair.Random()
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		walletTag := fmt.Sprintf("%v_issuer", input.AssetCode)
+		p := userModels.SubWalletInfo{
+			PublicKey:             issuer.Address(),
+			WalletTag:             walletTag,
+			WalletType:            1,
+			LinkedWalletPublicKey: distributor.Address(),
+		}
+		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
+
+		if err != nil {
+			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", issuer.Address(), err)
+			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
+			return
+		}
+
+		//sign transactions
+		{
+
+			if p.LinkedWalletMustSign == 1 {
+				dsigned, e := middleware.SignBase64Txn(distributor.Seed(), p.Transaction, p.NetworkPassPhrase)
+				if e != nil {
+					log.Printf("[SubmitTokenizationAssetInfo.SignBase64Txn] Error signing issuing wallet with linked wallet [%v], err: %v\n", distributor.Address(), e)
+					err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
+					return
+				}
+				p.LinkedWalletSignature = dsigned
+			}
+
+			primarySignature, subwalletSignature, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), issuer.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if e != nil {
+				log.Printf("[SubmitTokenizationAssetInfo.SignSubwalletBase64Txn] Error signing issuing wallet with primary and sub wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), e)
+				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
+				return
+
+			}
+
+			p.PrimarySignature = primarySignature
+			p.SubWalletSignature = subwalletSignature
+
+		}
+
+		//second submission to blockchain
+		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
+		if err != nil {
+			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", issuer.Address(), err)
+			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
+			return
+		}
+
+		log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", issuer.Address(), p.TransactionID)
+
+		w, e := userModels.WalletAlias(p.Alias).GetWallet(gc.DB, gc)
+		if e != nil {
+			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", issuer.Address(), e)
+			err = e
+			return
+		}
+
+		//set issuing wallet
+		issuingWallet = w
+		ato.IssuingWalletAlias = &w.Alias
+		ato.IssuingWalletPublicKey = &w.ID
+		ato.MarketMakingWallet = &w.ID
+	}
+
+	// initialize message array
+	input.Messages = make([]string, 0)
+	// check asset manager ID
+	if input.AssetManagerID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
+	if am.ID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID,tokenizationID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
+		return
+	}
+
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
-	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
-	return ato, err
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, issuingWallet, nil
 }
 
 func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
@@ -529,7 +675,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *use
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
-	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, err
 }
 
@@ -582,7 +728,7 @@ func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, issuingWall
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
-	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, err
 }
 
