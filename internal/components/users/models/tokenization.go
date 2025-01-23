@@ -585,10 +585,14 @@ func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfi
 }
 
 func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
-	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
+	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
+
+	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
-
+	} else {
+		t.AdditionalKYCRequirements = nil
+		t.HasAdditionalKYCRequirements = 0
 	}
 
 	if len(ti.AssetSector) > 0 {
@@ -621,6 +625,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.ClosedGroupID) > 0 {
 
 		t.ClosedGroupID = &ti.ClosedGroupID
+	} else {
+		t.ClosedGroupID = nil
 	}
 
 	if len(ti.SecApprovalIdNumber) > 0 && ti.SecApproval > 0 {
@@ -628,6 +634,10 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.SecApproval = ti.SecApproval
 
 		t.SecApprovalIdNumber = &ti.SecApprovalIdNumber
+	} else {
+		t.SecApproval = 0
+
+		t.SecApprovalIdNumber = nil
 	}
 
 	if len(ti.MarketMakingWallet) > 0 {
@@ -692,6 +702,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.AssetQuoteCurrency) > 0 {
 
 		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
+	} else {
+		t.AssetQuoteCurrency = nil
 	}
 
 	t.AssetCurrentValue = ti.AssetCurrentValue
@@ -701,21 +713,30 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.ProtectionMethods) > 0 {
 
 		t.ProtectionMethods = &ti.ProtectionMethods
+	} else {
+		t.ProtectionMethods = nil
 	}
 
 	if len(ti.InsuranceCompanyName) > 0 {
 
 		t.InsuranceCompanyName = &ti.InsuranceCompanyName
+	} else {
+		t.InsuranceCompanyName = nil
+
 	}
 
 	if len(ti.InsurancePolicyHolder) > 0 {
 
 		t.InsurancePolicyHolder = &ti.InsurancePolicyHolder
+	} else {
+		t.InsurancePolicyHolder = nil
 	}
 
 	if len(ti.InsurancePolicyNumber) > 0 {
 
 		t.InsurancePolicyNumber = &ti.InsurancePolicyNumber
+	} else {
+		t.InsurancePolicyNumber = nil
 	}
 
 	t.PercentageValueOfInsurance = ti.PercentageValueOfInsurance
@@ -770,6 +791,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
 
 		t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
+	} else {
+		t.WalletToHoldAssetsNotForSale = nil
 	}
 
 	/**
@@ -787,16 +810,22 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.ProceedCycle) > 0 {
 
 		t.ProceedCycle = &ti.ProceedCycle
+	} else {
+		t.ProceedCycle = nil
 	}
 
 	if len(ti.ProceedPayoutCurrency) > 0 {
 
 		t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
+	} else {
+		t.ProceedPayoutCurrency = nil
 	}
 
 	if len(ti.ExemptedCountries) > 0 {
 
 		t.ExemptedCountries = &ti.ExemptedCountries
+	} else {
+		t.ExemptedCountries = nil
 	}
 
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
@@ -804,6 +833,9 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
+	} else {
+		t.AdditionalKYCRequirements = nil
+		t.HasAdditionalKYCRequirements = 0
 	}
 
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
@@ -817,6 +849,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.IndependentMonitoringList) > 0 {
 
 		t.IndependentMonitoringList = &ti.IndependentMonitoringList
+	} else {
+		t.IndependentMonitoringList = nil
 	}
 	t.ESGSafeguardsSusCerts = ti.ESGSafeguardsSusCerts
 	t.ESGSafeguardsCommEngPlans = ti.ESGSafeguardsCommEngPlans
@@ -828,14 +862,22 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	if len(ti.OtherAssetProtection) > 0 {
 
 		t.OtherAssetProtection = &ti.OtherAssetProtection
+	} else {
+		t.OtherAssetProtection = nil
+
 	}
 	if len(ti.LegalAdvisor) > 0 {
 
 		t.LegalAdvisor = &ti.LegalAdvisor
+	} else {
+		t.LegalAdvisor = nil
 	}
+
 	if len(ti.FinancialAdvisor) > 0 {
 
 		t.FinancialAdvisor = &ti.FinancialAdvisor
+	} else {
+		t.FinancialAdvisor = nil
 	}
 
 	t.UndertakingNoLien = ti.UndertakingNoLien
