@@ -514,8 +514,12 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	ato = UpdateFromInput(&ato, input, gc)
 
 	ato.LastUpdatedBy = &initiator.Username
+	var NotIssuedByIssuer bool
+	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
+		NotIssuedByIssuer = *ato.IssuingWalletAlias != strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+	}
 
-	if ato.IssuingWalletPublicKey == nil && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
+	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
 
 		//create issuing wallet
 
@@ -609,7 +613,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	// check asset manager ID
 	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
 	if am.ID == 0 {
-		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID,tokenizationID)
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
 		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
 		return
 	}
@@ -682,8 +686,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	ato, NotFound, e :=	 GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
-
+	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
 
 	if e == nil {
 		//tokenization existing
