@@ -761,6 +761,17 @@ func main() {
 		}
 	}
 
+	{
+		//Start processing payment streams
+		go func() {
+			for {
+
+				MonitorStream(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
 	//setup router
 
 	if os.Getenv("GIN_MODE") == "release" {
