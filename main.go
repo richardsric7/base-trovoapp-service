@@ -92,6 +92,7 @@ func main() {
 			"SUBWALLET_FEE_AMOUNT_USD", "SUBWALLET_FEE_ASSET_ISSUER", "SUBWALLET_FEE_ASSET_CODE",
 			"SUBWALLET_FEE_WALLET", "DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED", "FEE_QUOTE_DEX_ASSET",
 			"CLOSED_GROUP_FEE_WALLET", "CLOSED_GROUP_FEE_QUOTE_AMOUNT", "CLOSED_GROUP_FEE_ASSET_CODE", "CLOSED_GROUP_FEE_ASSET_ISSUER",
+			"BLOCKCHAIN_DATA_CACHE_LIFETIME",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -163,6 +164,11 @@ func main() {
 
 		if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") == "" {
 			log.Println("ENV variable ENABLE_EMAIL_NOTIFICATIONS is not set.")
+		}
+
+		if os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME") == "" {
+			log.Println("ENV variable BLOCKCHAIN_DATA_CACHE_LIFETIME is not set. Using 3yrs by default")
+			os.Setenv("BLOCKCHAIN_DATA_CACHE_LIFETIME", "94608000")
 		}
 
 		if os.Getenv("ACCOUNT_DELETION_REQUEST_TEMPLATE") == "" {

@@ -152,6 +152,7 @@ type TokenizedAsset struct {
 	RiskManagementDeclaredValue                 int                             `gorm:"default:0" json:"riskManagementDeclaredValue"`
 	PhysicalConditionSound                      int                             `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int                             `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
 
 type TokenizedAssetJSONInput struct {
@@ -192,7 +193,7 @@ type TokenizedAssetJSONInput struct {
 	NumberOfTokenToBeIssued                     float64      `json:"numberOfTokenToBeIssued"`
 	NumberOfTokenToBeSold                       float64      `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64      `json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale                string       `json:"walletToHoldAssetsNotForSale"`//wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
+	WalletToHoldAssetsNotForSale                string       `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
 	PricePerToken                               float64      `json:"pricePerToken"`
 	SalesStart                                  time.Time    `json:"salesStart"`
 	SalesEnd                                    time.Time    `json:"salesEnd"`
@@ -238,6 +239,7 @@ type TokenizedAssetJSONInput struct {
 	RiskManagementDeclaredValue                 int          `gorm:"default:0" json:"riskManagementDeclaredValue"`
 	PhysicalConditionSound                      int          `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int          `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements     int          `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
 type TokenizedAssetJSON struct {
 	ID                                          string                          `json:"id"`
@@ -335,6 +337,7 @@ type TokenizedAssetJSON struct {
 	RiskManagementDeclaredValue                 int                             `gorm:"default:0" json:"riskManagementDeclaredValue"`
 	PhysicalConditionSound                      int                             `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int                             `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
 
 type TokenizedAssetSector struct {

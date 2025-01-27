@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -676,13 +677,19 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 				if horizonException.Problem.Status == http.StatusNotFound {
 					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
 				}
-				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
+				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
 			}
 
 		}
 		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
 	}
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
+
+	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
+	if cacheTimeStr == "" {
+		cacheTimeStr = "94608000" //3yrs
+	}
+	cacheTime, _ := strconv.Atoi(cacheTimeStr)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
 	return clientAccount, true, nil
 }
 
@@ -2481,6 +2488,8 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 		return
 	}
 	cacheKey1 := fmt.Sprintf("GetBalance_%s", u.PublicKey)
+	// cacheKeyBCA := fmt.Sprintf("bca_%v", u.PublicKey)
+
 	cacheKeyUsername := fmt.Sprintf("userObj %v", u.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", u.Email)
 	cacheKeySigner := fmt.Sprintf("userObj %v", u.PrimarySigner)
@@ -2511,7 +2520,7 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
 		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
-		cacheKeybca1 := fmt.Sprintf("bca_%v", u.ID)
+		cacheKeybca1 := fmt.Sprintf("bca_%v", w.ID)
 		if w.TempPublicKey != nil {
 			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
 			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempPublicKey)
