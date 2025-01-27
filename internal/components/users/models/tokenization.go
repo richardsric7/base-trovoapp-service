@@ -896,6 +896,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	t.RiskManagementDeclaredValue = ti.RiskManagementDeclaredValue
 	t.PhysicalConditionSound = ti.PhysicalConditionSound
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
+	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
 	return *t
 
 }
@@ -1105,6 +1106,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.RiskManagementDeclaredValue = ti.RiskManagementDeclaredValue
 	t.PhysicalConditionSound = ti.PhysicalConditionSound
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
+	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
 	return t
 
 }
