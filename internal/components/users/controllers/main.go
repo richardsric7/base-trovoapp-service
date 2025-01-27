@@ -4561,55 +4561,55 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
 
-			}
+			// }
 
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
-				return
-			}
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+			// 	return
+			// }
 
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
 
 			//confirm request
-			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, &issuingWallet, c.Param("tokenizationID"), gc)
+			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
 
@@ -4697,7 +4697,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			//confirm request
-			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, &issuingWallet, c.Param("tokenizationID"), gc)
+			ta, err := userServices.ConfirmTokenizationAssetInfo(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
 
@@ -4736,53 +4736,53 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
 
-			}
+			// }
 
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
-				return
-			}
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+			// 	return
+			// }
 
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
 
 			//update request
 			ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
@@ -4806,6 +4806,182 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		})
 
 		router.PUT("/v1/tokenization/document", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+			var err error
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			// if getWalletError != nil {
+
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
+
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
+
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
+
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
+
+			// }
+
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			// 	return
+			// }
+
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
+			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+			r := c.Request
+			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+				return
+			}
+
+			f, fileHeader, err := r.FormFile("documentFile")
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+				return
+			}
+			defer f.Close()
+			blobFile, err := fileHeader.Open()
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+
+				return
+			}
+			defer blobFile.Close()
+
+			fnameSplit := strings.Split(fileHeader.Filename, ".")
+			fileExtension := fnameSplit[len(fnameSplit)-1]
+
+			{
+				//check for unsupported extension
+				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+					return
+				}
+			}
+
+			var tokenizationInput userModels.AssetTokenizationInputDocument
+
+			err = c.ShouldBind(&tokenizationInput)
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tokenizationInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+			if tokenizationInput.DocumentType == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+				return
+			}
+			if len(tokenizationInput.DocumentTitle) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+				return
+			}
+			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+			if len(t.ID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				return
+			}
+			if t.AssetTokenizationStatus > 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+				return
+			}
+			tokenizationInput.TokenizedAssetID = t.ID
+			if len(tokenizationInput.TokenizedAssetID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				return
+			}
+
+			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", initiator.Username), gc.DB)
+
+			url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if initiator.PushNotificationToken != nil && len(url) > 0 {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+
+			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+			//At this point, there was no error.
+
+			c.JSON(http.StatusOK, url)
+		})
+
+		
+		router.PUT("/v1/trovo-manager/tokenization/document", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 			var err error
 			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
@@ -4980,6 +5156,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, url)
 		})
 
+		
+		
 		router.POST("/v1/tokenization/fee/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			var err error
 			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
@@ -4999,56 +5177,56 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
 
-			}
+			// }
 
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
-				return
-			}
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
+			// 	return
+			// }
 
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
 
 			//confirm request
-			ta, err := userServices.ConfirmTokenizationAssetPaymentInfo(&initiator, &issuingWallet, c.Param("tokenizationID"), gc)
+			ta, err := userServices.ConfirmTokenizationAssetPaymentInfo(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
 
@@ -5088,53 +5266,53 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
 
-			}
+			// }
 
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
-				return
-			}
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			// 	return
+			// }
 
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
 			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
@@ -5190,8 +5368,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusBadRequest, gin.H{"error": "payment type not specified", "message": "payment type not specified"})
 				return
 			}
-			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenizationByID(c.Param("tokenizedAssetID"), gc)
+			//c.Param("tokenizedAssetID")
+			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
+			if t.InitiatorUsername!=initiator.Username {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+				return
+			}
 			if len(t.ID) < 5 {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
 				return
@@ -5255,58 +5438,63 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
+
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
+
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
+
+			// }
+
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			// 	return
+			// }
+
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
+
+			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+			if t.InitiatorUsername!=initiator.Username {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}
-
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
-
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
-
-			}
-
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
-				return
-			}
-
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
-
-			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Wallet Public Key " + issuingWallet.ID + " does not have a valid tokenized asset."})
+				c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
 				return
 			}
 			if t.AssetTokenizationStatus > 0 {
@@ -5368,58 +5556,63 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
-			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
+
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
+
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
+
+			// }
+
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			// 	return
+			// }
+
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
+
+			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+			if t.InitiatorUsername!=initiator.Username {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}
-
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
-
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
-
-			}
-
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
-				return
-			}
-
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
-
-			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Wallet Public Key " + issuingWallet.ID + " does not have a valid tokenized asset."})
+				c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
 				return
 			}
 			if t.AssetTokenizationStatus != 1 {

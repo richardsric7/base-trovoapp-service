@@ -625,16 +625,16 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	return ato, issuingWallet, nil
 }
 
-func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
 
 	if e == nil {
 		//tokenization existing
 		if ato.AssetTokenizationStatus > 0 {
 			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", issuingWallet.ID)
+			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is already in progress, this action cannot be performed."}
 			return
 
@@ -651,13 +651,13 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *use
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing tokenization from database  issuer [%v] for %v: %v\n", issuingWallet.ID, initiator.Username, e)
+			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing tokenization from database ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
 		}
 
-		log.Printf("[SubmitTokenizationAssetInfo] Tokenization does not exist: %v\n", issuingWallet.ID)
+		log.Printf("[SubmitTokenizationAssetInfo] Tokenization does not exist: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
 		return
 
@@ -679,16 +679,17 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, issuingWallet *use
 	return ato, err
 }
 
-func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+	ato, NotFound, e :=	 GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
+
 
 	if e == nil {
 		//tokenization existing
 		if ato.AssetTokenizationStatus != 1 {
 			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization process not awaiting payment and cannot be modified: %v\n", issuingWallet.ID)
+			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization process not awaiting payment and cannot be modified: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is not awaiting payment, this action cannot be performed."}
 			return
 
@@ -705,13 +706,13 @@ func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, issuingWall
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[ConfirmTokenizationAssetPaymentInfo]error fetching existing tokenization from database  issuer [%v] for %v: %v\n", issuingWallet.ID, initiator.Username, e)
+			log.Printf("[ConfirmTokenizationAssetPaymentInfo]error fetching existing tokenization from database  ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
 		}
 
-		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization does not exist: %v\n", issuingWallet.ID)
+		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization does not exist: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
 		return
 
