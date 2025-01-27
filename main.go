@@ -35,7 +35,9 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/protocols/horizon/operations"
 	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -870,4 +872,232 @@ func getUniqueUsernamesSlice(uniqueUsernames map[string]struct{}) []string {
 		usernames = append(usernames, username)
 	}
 	return usernames
+}
+
+func MonitorStream(gc *sharedconfig.GlobalConfig) {
+	log.Println("[MonitorStream] <<<<<<<<<<<<Starting ..... active and processing transactions>>>>>>>>>>>>>")
+
+	client := gc.BantuExpansionClient
+	workerChan := make(chan operations.Operation, 200000)
+
+	// var opsRequest horizonclient.OperationRequest
+
+	log.Println("[MonitorStream] Starting monitoring from current state of blockchain")
+
+	// opsRequest = horizonclient.OperationRequest{
+	// 	Cursor: "0",
+	// 	Order:  horizonclient.OrderAsc,
+	// 	Join:   "transactions",
+	// }
+	opsRequest := horizonclient.OperationRequest{
+		Join: "transactions",
+	}
+
+	worker := func() {
+		for {
+			o := <-workerChan
+			ProcessOperation(o, gc)
+		}
+
+	}
+	{
+		//start two workers
+		go worker()
+		go worker()
+
+	}
+
+	operationsStreamHandler := func(o operations.Operation) {
+		//send to worker channel
+		workerChan <- o
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	streamOperations := func() {
+
+		err := client.StreamOperations(ctx, opsRequest, operationsStreamHandler)
+		if err != nil {
+			log.Printf("[MonitorStream.StreamOps]stream error:[%v]", err)
+			cancel()
+		}
+
+	}
+
+	//Start stream
+	streamOperations()
+	log.Println("#####[MonitorStream]...Ending streaming operation")
+	//close channels
+	// close(workerChan)
+	time.Sleep(30 * time.Second)
+
+}
+
+func ProcessOperation(o operations.Operation, gc *sharedconfig.GlobalConfig) {
+	// defer SaveLastCursor(o.PagingToken(), roachDB)
+	invalidateCache := func(k string) {
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", k)
+		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", k)
+		cacheKey4 := fmt.Sprintf("userObj %v", k)
+		cacheKeybca1 := fmt.Sprintf("bca_%v", k)
+		if gc.RedisCache.DeleteFromCache(cacheKey1, cacheKeyWalletID, cacheKey4, cacheKeybca1) {
+			log.Println("[ProcessOperation.invalidateCache]", k)
+		}
+	}
+	if o.GetType() == "payment" {
+		log.Println("found payment operation....beginning processing")
+		pmt := interface{}(o).(operations.Payment)
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "create_account" {
+		log.Println("found create account operation....beginning processing")
+		pmt := interface{}(o).(operations.CreateAccount)
+
+		invalidateCache(pmt.Funder)
+		invalidateCache(pmt.Account)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "path_payment_strict_send" {
+		//payment transaction.
+		log.Println("found path payment strict send operation....beginning processing")
+		pmt := interface{}(o).(operations.PathPaymentStrictSend)
+
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "path_payment" {
+		//payment transaction.
+		log.Println("found path payment operation....beginning processing")
+		pmt := interface{}(o).(operations.PathPayment)
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "account_merge" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.AccountMerge)
+		invalidateCache(pmt.Account)
+		invalidateCache(pmt.Into)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "change_trust" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.ChangeTrust)
+		invalidateCache(pmt.Trustor)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "set_trust_line_flags" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.SetTrustLineFlags)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Trustor)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "begin_sponsoring_future_reserves" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.BeginSponsoringFutureReserves)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.SponsoredID)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "set_options" {
+		//payment transaction.
+
+		pmt := interface{}(o).(operations.BumpSequence)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "set_options" {
+
+		pmt := interface{}(o).(operations.SetOptions)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "clawback" {
+
+		pmt := interface{}(o).(operations.Clawback)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "clawback_claimable_balance" {
+
+		pmt := interface{}(o).(operations.ClawbackClaimableBalance)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "create_claimable_balance" {
+
+		pmt := interface{}(o).(operations.CreateClaimableBalance)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "claim_claimable_balance" {
+
+		pmt := interface{}(o).(operations.CreatePassiveSellOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "create_passive_sell_offer" {
+
+		pmt := interface{}(o).(operations.CreatePassiveSellOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "end_sponsoring_future_reserves" {
+
+		pmt := interface{}(o).(operations.EndSponsoringFutureReserves)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "liquidity_pool_deposit" {
+
+		pmt := interface{}(o).(operations.LiquidityPoolDeposit)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "liquidity_pool_withdraw" {
+
+		pmt := interface{}(o).(operations.LiquidityPoolWithdraw)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_buy_offer" {
+
+		pmt := interface{}(o).(operations.ManageBuyOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_data" {
+
+		pmt := interface{}(o).(operations.ManageData)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_sell_offer" {
+
+		pmt := interface{}(o).(operations.ManageSellOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "revoke_sponsorship" {
+
+		pmt := interface{}(o).(operations.RevokeSponsorship)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Sponsor)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "inflation" {
+
+		pmt := interface{}(o).(operations.Inflation)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Sponsor)
+		invalidateCache(pmt.SourceAccount)
+	}
+
 }

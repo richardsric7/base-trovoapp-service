@@ -2489,6 +2489,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	if err != nil {
 		return
 	}
+	
 	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
