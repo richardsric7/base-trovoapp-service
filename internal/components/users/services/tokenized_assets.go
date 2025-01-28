@@ -170,7 +170,7 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 // GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
 func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
-	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
