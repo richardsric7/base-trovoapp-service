@@ -2,6 +2,7 @@ package users
 
 import (
 	"log"
+	"os"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	dl "trovo-wallet-api/internal/dynamiclinks"
@@ -14,6 +15,9 @@ import (
 func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
 	currency = strings.ToUpper(currency)
 	depositAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
+	if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE") != "1" {
+		return
+	}
 	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
 
 	if e != nil {
