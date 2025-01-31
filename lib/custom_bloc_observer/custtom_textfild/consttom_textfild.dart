@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -61,15 +59,12 @@ class CustomTextFormField {
     hintText,
     autoFormatNumber = false,
     inputFormatters,
-    focusNode,
     controller,
     buildCounter,
     readOnly = false,
     onTap,
     key,
   }) {
-    Timer? textEditingTimer = null;
-
     if (autoFormatNumber && controller == null) {
       throw Exception(
           "Please supply controller in order to enable number auto formatting!");
@@ -79,107 +74,111 @@ class CustomTextFormField {
       color: Colors.transparent,
       height: double.parse(h.toString()),
       width: double.parse(w.toString()),
-      child: TextFormField(
-        key: key,
-        maxLength: maxLength,
-        readOnly: readOnly,
-        style: TextStyle(color: textcolor, fontFamily: fontbody),
-        initialValue: initialValue,
-        cursorColor: lablecolor,
-        onChanged: (newVal) {
-          if (textEditingTimer != null) {
-            textEditingTimer!.cancel();
-          }
-
-          textEditingTimer = Timer(Duration(milliseconds: 600), () {
-            // check if there are multiple dots on the text
-            var splitText = newVal.split('.');
-            if (splitText.length > 2) {
-              // remove all dots except the first one.
-              newVal = '${splitText[0]}.${splitText[1]}';
-            }
-
-            if (newVal == '.') {
-              newVal = '';
-              controller.text = newVal;
-            }
-
-            textEditingTimer = null;
-            if (autoFormatNumber && newVal.isNotEmpty) {
-              controller!.text = formatNumberForInput(double.parse(
-                  newVal.toString().replaceAll(',', '').replaceAll('-', '')));
-
-              if (!newVal.endsWith('.')) {
-                controller.selection =
-                    TextSelection.collapsed(offset: controller.selection.end);
+      child: Focus(
+        onFocusChange: (hasFocus) {
+          if (autoFormatNumber) {
+            if (!hasFocus) {
+              var newVal = controller.text;
+              // check if there are multiple dots on the text
+              var splitText = newVal.split('.');
+              if (splitText.length > 2) {
+                // remove all dots except the first one.
+                newVal = '${splitText[0]}.${splitText[1]}';
               }
-              newVal = newVal.replaceAll(',', '');
-            }
 
+              if (newVal == '.') {
+                newVal = '';
+                controller.text = newVal;
+              }
+
+              if (newVal.isNotEmpty) {
+                controller!.text = formatNumberForInput(double.parse(
+                    newVal.toString().replaceAll(',', '').replaceAll('-', '')));
+
+                if (!newVal.endsWith('.')) {
+                  controller.selection =
+                      TextSelection.collapsed(offset: controller.selection.end);
+                }
+                newVal = newVal.replaceAll(',', '');
+              }
+              print('not has focus');
+            } else {
+              print('has focus');
+            }
+          }
+        },
+        child: TextFormField(
+          key: key,
+          maxLength: maxLength,
+          readOnly: readOnly,
+          style: TextStyle(color: textcolor, fontFamily: fontbody),
+          initialValue: initialValue,
+          cursorColor: lablecolor,
+          onChanged: (newVal) {
             if (onChanged != null) {
               onChanged(newVal);
             }
-          });
-        },
-        decoration: InputDecoration(
-          counterStyle: TextStyle(
-            fontFamily: fontbody,
-            color: textcolor,
+          },
+          decoration: InputDecoration(
+            counterStyle: TextStyle(
+              fontFamily: fontbody,
+              color: textcolor,
+            ),
+            errorStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            helperText: helperText,
+            helperStyle: TextStyle(
+              fontSize: 12,
+              fontFamily: fontbody,
+            ),
+            hintText: hintText,
+            label: labletext != null ? Text(labletext) : null,
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            prefixIcon:
+                preicon == null ? null : Icon(preicon, color: iconcolor),
+            labelStyle: TextStyle(color: lablecolor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: bordercolor, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: focuscolor, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
           ),
-          errorStyle: TextStyle(
-            fontFamily: fontbody,
-          ),
-          helperText: helperText,
-          helperStyle: TextStyle(
-            fontSize: 12,
-            fontFamily: fontbody,
-          ),
-          hintText: hintText,
-          label: labletext != null ? Text(labletext) : null,
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          prefixIcon: preicon == null ? null : Icon(preicon, color: iconcolor),
-          labelStyle: TextStyle(color: lablecolor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: bordercolor, width: 1),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: focuscolor, width: 1),
-            borderRadius: BorderRadius.circular(15),
-          ),
+          inputFormatters: inputFormatters,
+          keyboardType: keyboardtype,
+          validator: (value) {
+            if (validator != null) {
+              var newVal = value;
+              if (autoFormatNumber) {
+                newVal = value.toString().replaceAll(',', '');
+              }
+
+              return validator(newVal);
+            }
+            return null;
+          },
+          controller: controller,
+          onSaved: (value) {
+            if (onSaved != null) {
+              var newVal = value;
+              if (autoFormatNumber) {
+                newVal = value.toString().replaceAll(',', '');
+              }
+
+              onSaved(newVal);
+            }
+          },
+          onTap: onTap,
+          buildCounter: buildCounter,
         ),
-        inputFormatters: inputFormatters,
-        keyboardType: keyboardtype,
-        validator: (value) {
-          if (validator != null) {
-            var newVal = value;
-            if (autoFormatNumber) {
-              newVal = value.toString().replaceAll(',', '');
-            }
-
-            return validator(newVal);
-          }
-          return null;
-        },
-        controller: controller,
-        onSaved: (value) {
-          if (onSaved != null) {
-            var newVal = value;
-            if (autoFormatNumber) {
-              newVal = value.toString().replaceAll(',', '');
-            }
-
-            onSaved(newVal);
-          }
-        },
-        onTap: onTap,
-        focusNode: focusNode,
-        buildCounter: buildCounter,
       ),
     );
   }

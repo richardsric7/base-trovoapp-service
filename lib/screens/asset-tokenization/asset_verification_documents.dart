@@ -241,9 +241,26 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     documentTypeAndCodes.forEach((key, value) {
       documentOptions.add(
         DropdownMenuItem(
-          child: Text(
-            value['name'].toString(),
-            overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              Container(
+                constraints: BoxConstraints(maxWidth: 250),
+                child: Text(
+                  value['name'].toString(),
+                  overflow: TextOverflow.visible,
+                ),
+              ),
+              if (selectedDocuments[value['documentType']] != null) ...[
+                SizedBox(
+                  width: 3,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
           ),
           value: key,
         ),

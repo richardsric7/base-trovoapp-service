@@ -433,22 +433,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       return;
     }
 
-    // go to the definition of appState.viewData
-    // to learn more about viewData
-    // appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
-    // appState.viewData![ConfirmTransactionViewPageConfig.key]["walletInfo"] = {
-    //   'alias': activeWallet['alias'],
-    //   'publicKey': activeWallet['publicKey'],
-    // };
-    // appState.viewData![ConfirmTransactionViewPageConfig.key]["usdPrice"] =
-    //     viewData['usdPrice'];
-    // appState.viewData![ConfirmTransactionViewPageConfig.key]["isSharedWallet"] =
-    //     isSharedWallet;
-    // if (isSharedWallet) {
-    //   appState.viewData![ConfirmTransactionViewPageConfig.key]["rel"] =
-    //       'dashboard';
-    // }
-
     appState.viewData = {
       'walletPublicKey': wallet.publicKey,
       'assetCode': asset!.assetCode,
@@ -590,7 +574,6 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
           readOnly: widget.isReadOnly,
           validator: widget.validator,
           onSaved: widget.onSaved,
-          focusNode: widget.focusNode,
         ),
       ),
     );

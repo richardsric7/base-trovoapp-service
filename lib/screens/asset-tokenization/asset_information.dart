@@ -85,6 +85,7 @@ class _AssetInformation extends State<AssetInformation>
   bool riskManagementFullyInsured = false;
   bool riskManagementDeclaredValue = false;
   bool physicalConditionSound = false;
+  bool physicalConditionNoUndisclosedEasements = false;
   bool physicalConditionNolease = false;
   bool hasInsurance = false;
 
@@ -123,7 +124,7 @@ class _AssetInformation extends State<AssetInformation>
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-
+    // inspect(data);
     assetExisting = data!['assetAlreadyExists'] == 1;
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
@@ -203,6 +204,8 @@ class _AssetInformation extends State<AssetInformation>
     riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
     riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
     physicalConditionSound = data['physicalConditionSound'] == 1;
+    physicalConditionNoUndisclosedEasements =
+        data['physicalConditionNoUndisclosedEasements'] == 1;
     physicalConditionNolease = data['physicalConditionNolease'] == 1;
     hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
     hasIndependentMonitoring =
@@ -2540,16 +2543,6 @@ class _AssetInformation extends State<AssetInformation>
                                   undertakingNoLien = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!undertakingNoLien) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2752,16 +2745,6 @@ class _AssetInformation extends State<AssetInformation>
                                   outstandingFinancialRespNoDebts = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!outstandingFinancialRespNoDebts) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2775,16 +2758,6 @@ class _AssetInformation extends State<AssetInformation>
                                   outstandingFinancialRespNoHiddenLiabilities =
                                       value!;
                                 });
-                              },
-                              validator: (value) {
-                                if (!outstandingFinancialRespNoHiddenLiabilities) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
                               },
                             ),
                           ],
@@ -2838,16 +2811,6 @@ class _AssetInformation extends State<AssetInformation>
                                   riskManagementFullyInsured = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!riskManagementFullyInsured) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2859,16 +2822,6 @@ class _AssetInformation extends State<AssetInformation>
                                 setState(() {
                                   riskManagementDeclaredValue = value!;
                                 });
-                              },
-                              validator: (value) {
-                                if (!riskManagementDeclaredValue) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
                               },
                             ),
                           ],
@@ -2922,8 +2875,21 @@ class _AssetInformation extends State<AssetInformation>
                                   physicalConditionSound = value!;
                                 });
                               },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: physicalConditionNoUndisclosedEasements,
+                              label: "confirmnoundisclosedeasements".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  physicalConditionNoUndisclosedEasements =
+                                      value!;
+                                });
+                              },
                               validator: (value) {
-                                if (!physicalConditionSound) {
+                                if (!physicalConditionNoUndisclosedEasements) {
                                   setState(() {
                                     formHasError = true;
                                   });
@@ -3080,6 +3046,8 @@ class _AssetInformation extends State<AssetInformation>
       newData['riskManagementDeclaredValue'] =
           riskManagementDeclaredValue ? 1 : 0;
       newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
+      newData['physicalConditionNoUndisclosedEasements'] =
+          physicalConditionNoUndisclosedEasements ? 1 : 0;
       newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
       newData['hasInsurance'] = hasInsurance ? 1 : 0;
 

@@ -465,12 +465,6 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
-      String result = await FCM().getPushNotificationToken();
-
-      var token = result.split('|').first;
-      DateTime createdAt = DateTime.parse(result.split('|').last);
-      var dateDifference = DateTime.now().difference(createdAt);
-
       await updateUserInfo(
         userInfo!.wallets![0].signer,
         secretKeys[0],
@@ -478,7 +472,6 @@ class DataProvider with ChangeNotifier {
         userInfo!.username,
         this,
         forceRefresh: true,
-        pnt: dateDifference.inDays > 10 ? token : null,
       );
       await getFiatRates(this);
       print('fiatRates ${fiatRate['NGN']}');

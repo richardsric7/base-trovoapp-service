@@ -754,9 +754,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
           "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
     }
 
-    // if (offeringType == 0 && !hasCustodianAgreement) {
+    // if (!agreeTransferTitleToCustodian) {
     //   message +=
-    //       "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
+    //       "Tokenizing your asset requires transferring it to a licensed Asset Custodian.\n\n";
     // }
 
     if (message.isNotEmpty) {
