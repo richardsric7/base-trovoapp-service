@@ -360,7 +360,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		}
 
 		//build transaction that will activate the subwallet from the primary wallet
-		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+		if subWalletInfo.WalletType == 0 {
 
 			//after creation, it now exists with enough balance to add primary wallet as signer
 			ops = append(ops, &txnbuild.SetOptions{
@@ -368,6 +368,23 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 					Address: accountOwner.PrimarySigner,
 					Weight:  1,
 				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		}
+		if subWalletInfo.WalletType == 1 {
+
+			//if it is minting wallet add options to set auth
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: accountOwner.PrimarySigner,
+					Weight:  1,
+				},
+				SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthRequired, txnbuild.AuthClawbackEnabled},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+			//prevent any future changes to the auth flag of the wallet.
+			ops = append(ops, &txnbuild.SetOptions{
+				SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
 		}
@@ -450,7 +467,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		}
 
 		//account exists and native balance is less than needed. add 3 native token to the wallet
-		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+		if subWalletInfo.WalletType == 0 {
 
 			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
 			if !accountOwner.SignerIsValidWA(accountOwner.PrimarySigner, subWalletAccountObject) {
@@ -460,6 +477,29 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 						Address: accountOwner.PrimarySigner,
 						Weight:  1,
 					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+				//prevent any future changes to the auth flag of the wallet.
+				ops = append(ops, &txnbuild.SetOptions{
+					SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			} else {
+				subWalletInfo.SubWalletMustSign = 0
+			}
+
+		}
+		if subWalletInfo.WalletType == 1 {
+
+			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+			if !accountOwner.SignerIsValidWA(accountOwner.PrimarySigner, subWalletAccountObject) {
+
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: accountOwner.PrimarySigner,
+						Weight:  1,
+					},
+					SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthRequired, txnbuild.AuthClawbackEnabled},
 					SourceAccount: subWalletInfo.PublicKey,
 				})
 			} else {

@@ -1776,12 +1776,23 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	{
 		//adjust account threshold
 		if authThreshold > 0 {
-			ops = append(ops, &txnbuild.SetOptions{
-				LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
-				MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
-				HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
-				SourceAccount:   wallet.ID,
-			})
+
+			if wallet.WalletType == 1 {
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(1)), //enable issuing profile to perform allowTrust operation
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+					SourceAccount:   wallet.ID,
+				})
+			} else {
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(authThreshold)),
+					SourceAccount:   wallet.ID,
+				})
+			}
+
 			walletMustSign = true
 			{
 				if hasLinkedWallet {
@@ -1797,20 +1808,20 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 
 	if len(ops) == 0 {
-		// no operations to sign. create a dummy ops, will be ignored on next try.
+		// no operations to sign. create a dummy ops, will be ignored on next try. use what exists in the wallet source account
 		ops = append(ops, &txnbuild.SetOptions{
-			LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
-			MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
-			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+			LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.LowThreshold)),
+			MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.MedThreshold)),
+			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.HighThreshold)),
 			SourceAccount:   wallet.ID,
 		})
 		walletMustSign = true
 		{
 			if hasLinkedWallet {
 				ops = append(ops, &txnbuild.SetOptions{
-					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
-					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
-					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.LowThreshold)),
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.MedThreshold)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(walletSourceAccount.Thresholds.HighThreshold)),
 					SourceAccount:   linkedWallet.ID,
 				})
 			}
@@ -1940,12 +1951,22 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		//adjust account threshold
 		if numberOfApprovalsNeeded > 0 || len(ops) == 0 {
 			// len(ops) == 0 prevents empty ops error
-			ops = append(ops, &txnbuild.SetOptions{
-				LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
-				MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
-				HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
-				SourceAccount:   wallet.ID,
-			})
+			if wallet.WalletType == 1 {
+
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(1)), //enable allowTrust operation to run using issuer signer
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					SourceAccount:   wallet.ID,
+				})
+			} else {
+				ops = append(ops, &txnbuild.SetOptions{
+					LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
+					SourceAccount:   wallet.ID,
+				})
+			}
 
 			if hasLinkedWallet {
 				ops = append(ops, &txnbuild.SetOptions{

@@ -352,6 +352,14 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetManager: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingApprover{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingApprover: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingInitiator{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingInitiator: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetInformation{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetInformation: ", errMigrate)

@@ -81,6 +81,7 @@ type TokenizedAsset struct {
 	AssetLatitude                               *string                         `json:"assetLatitude"`
 	OwnershipType                               *string                         `json:"ownershipType"` //DIRECT,THIRD-PARTY
 	OwnershipKind                               *string                         `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress          *string                         `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              *string                         `json:"assetOwnerName"`
 	AssetOwnerAddress                           *string                         `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
@@ -173,6 +174,7 @@ type TokenizedAssetJSONInput struct {
 	AssetLatitude                               string       `json:"assetLatitude"`
 	OwnershipType                               string       `json:"ownershipType"` //DIRECT,THIRD-PARTY
 	OwnershipKind                               string       `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress          string       `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              string       `json:"assetOwnerName"`
 	AssetOwnerAddress                           string       `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64       `json:"assetManagerId"`
@@ -267,6 +269,7 @@ type TokenizedAssetJSON struct {
 	AssetLatitude                               string                          `json:"assetLatitude"`
 	OwnershipType                               string                          `json:"ownershipType"` //DIRECT,THIRD-PARTY
 	OwnershipKind                               string                          `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress          string                          `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              string                          `json:"assetOwnerName"`
 	AssetOwnerAddress                           string                          `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
@@ -373,6 +376,15 @@ type TokenizationFee struct {
 	// FeeAssetCap        float64 `json:"feeAssetCap"`
 	FeeDescription string `json:"feeDescription"`
 	Inactive       int    `gorm:"default:0" json:"-"`
+}
+
+type TokenizationMintingApprover struct {
+	ID       uint64 `gorm:"" json:"id"`
+	Approver string `json:"approver"`
+}
+type TokenizationMintingInitiator struct {
+	ID        uint64 `gorm:"" json:"id"`
+	Initiator string `json:"initiator"`
 }
 
 type TokenizationFeePaymentMethod struct {
@@ -736,6 +748,13 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.InsurancePolicyHolder = nil
 	}
 
+	if len(ti.InitialOwnerPreferredWalletAddress) > 0 {
+
+		t.InitialOwnerPreferredWalletAddress = &ti.InitialOwnerPreferredWalletAddress
+	} else {
+		t.InitialOwnerPreferredWalletAddress = nil
+	}
+
 	if len(ti.InsurancePolicyNumber) > 0 {
 
 		t.InsurancePolicyNumber = &ti.InsurancePolicyNumber
@@ -908,6 +927,11 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.UpdatedAt = ti.UpdatedAt
 	t.InitiatorUsername = ti.InitiatorUsername
 
+	if ti.InitialOwnerPreferredWalletAddress != nil {
+
+		t.InitialOwnerPreferredWalletAddress = *ti.InitialOwnerPreferredWalletAddress
+
+	}
 	if ti.AdditionalKYCRequirements != nil {
 
 		t.AdditionalKYCRequirements = *ti.AdditionalKYCRequirements

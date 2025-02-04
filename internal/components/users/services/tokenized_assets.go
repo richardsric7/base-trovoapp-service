@@ -12,12 +12,15 @@ import (
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/middleware"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
+	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -121,6 +124,12 @@ func GetTokenizationFeePaymentMethods(db *gorm.DB) (feePMs []userModels.Tokeniza
 func GetTokenizationCurrencies(db *gorm.DB) (currencies []userModels.TokenizationCurrency) {
 	currencies = make([]userModels.TokenizationCurrency, 0)
 	db.Preload(clause.Associations).Order("asset_code").Find(&currencies)
+
+	return
+}
+
+func GetTokenizationCurrencyByCode(code string, db *gorm.DB) (currency userModels.TokenizationCurrency) {
+	db.Where("asset_code = ?", strings.ToUpper(code)).First(&currency)
 
 	return
 }
@@ -1020,6 +1029,11 @@ func UpdateFromInputOld(t *userModels.TokenizedAsset, ti *userModels.TokenizedAs
 		t.AssetOwnerName = &ti.AssetOwnerName
 	}
 
+	if len(ti.InitialOwnerPreferredWalletAddress) > 0 {
+
+		t.InitialOwnerPreferredWalletAddress = &ti.InitialOwnerPreferredWalletAddress
+	}
+
 	if len(ti.AssetOwnerAddress) > 0 {
 
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
@@ -1197,4 +1211,217 @@ func UpdateFromInputOld(t *userModels.TokenizedAsset, ti *userModels.TokenizedAs
 	t.PhysicalConditionSound = ti.PhysicalConditionSound
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
 	return *t
+}
+
+func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
+	client := gc.BantuExpansionClient
+	ops := make([]txnbuild.Operation, 0)
+	messages = make([]string, 0)
+	var permInfo []userModels.WalletPermissionInfo
+
+	var minBalance = decimal.NewFromFloat(3.0)
+
+	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
+		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
+	}
+	if t.AssetQuoteCurrency == nil {
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] Error locating quote currency")
+
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-invalid-quote-currency",
+			ErrMessage: "Tokenization does not have valid tokenization currency.",
+			Code:       404,
+		}
+		return "", messages, walletMustSign, err
+	}
+	// get currency
+	quoteCurrency := GetTokenizationCurrencyByCode(*t.AssetQuoteCurrency, gc.DB)
+
+	if len(quoteCurrency.AssetIssuer) == 0 {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error locating quote currency %v\n", *t.AssetQuoteCurrency)
+
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-invalid-quote-currency",
+			ErrMessage: "Tokenization does not have valid tokenization currency.",
+			Code:       404,
+		}
+		return "", messages, walletMustSign, err
+	}
+
+	var aps []userModels.TokenizationMintingApprover
+	var inits []userModels.TokenizationMintingInitiator
+	gc.DB.Find(&aps)
+	gc.DB.Find(&inits)
+
+	if len(aps) == 0 || len(inits) == 0 {
+		err = &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-no-approver-or-initiator-specified",
+			ErrMessage: "No approvers /initiators specified",
+			Code:       404,
+		}
+		return "", messages, walletMustSign, err
+	}
+	//get atprofile
+	var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
+	if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
+		tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+	}
+	if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+		tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+	}
+	tokenizationIssuerUser, _ := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+	issuingWallet, _ := userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+	distributionWallet, _ := userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+
+	tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+	for _, v := range aps {
+		permInfo = append(permInfo, userModels.WalletPermissionInfo{
+			TargetUsername: v.Approver,
+			Permission:     "APPROVER",
+		})
+	}
+
+	for _, v := range inits {
+		permInfo = append(permInfo, userModels.WalletPermissionInfo{
+			TargetUsername: v.Initiator,
+			Permission:     "INITIATOR",
+		})
+	}
+	var p userModels.UserWalletSharedAccessInfo
+
+	p = userModels.UserWalletSharedAccessInfo{
+		WalletPublicKey:         *t.IssuingWalletPublicKey,
+		NumberOfApprovalsNeeded: 2,
+		Permissions:             permInfo,
+	}
+
+	if issuingWallet.SharedAccessEnabled == 0 {
+
+		//create sharedAccess on issuing wallet
+		_, errSharedAccess := CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
+
+		if errSharedAccess != nil {
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error creating shared access on issuing wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), errSharedAccess)
+
+			err = &tErrors.CustomError{
+				Param:      "IssuingWalletPublicKey",
+				Err:        "error-could-not-create-shared-access-on-wallets",
+				ErrMessage: "Could not create shared access on issuing wallet",
+				Code:       404,
+			}
+			return "", messages, walletMustSign, err
+		}
+
+		//sign and submit
+		//sign transactions
+		if p.SignatureRequired == 1 {
+			signedBase64, e := middleware.SignBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if e != nil {
+				log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error signing issuing wallet with primary wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), e)
+				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
+				return
+
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		//second submission to blockchain
+		_, err = CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
+		if err != nil {
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating issuing wallet [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), err)
+			return
+		}
+
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess] Succesfully Created shared access on issuing wallet [%v], txID: %v\n", tokenizationIssuerProfileWalletKP.Address(), p.TransactionID)
+	}
+	// create distributionWallet trustline to asset
+	ops = append(ops, &txnbuild.ChangeTrust{
+		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
+		Limit:         "900000000000",
+		SourceAccount: distributionWallet.ID,
+	})
+
+	// allow trust from issuer to distribution wallet
+	ops = append(ops, &txnbuild.SetTrustLineFlags{
+		Trustor:       distributionWallet.ID,
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+		SourceAccount: *t.IssuingWalletPublicKey,
+	})
+
+	//mint the token to distribution wallet
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   distributionWallet.ID,
+		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7),
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SourceAccount: *t.IssuingWalletPublicKey,
+	})
+
+	//make market
+	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
+	d := int32(fraction.Denom().Int64())
+	n := int32(fraction.Num().Int64())
+	//mint the token to distribution wallet
+	ops = append(ops, &txnbuild.ManageSellOffer{
+		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeSold).StringFixed(7),
+		Selling:       txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
+		SourceAccount: distributionWallet.ID,
+	})
+
+	//check if issuing account has native enough native balance
+	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	_, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
+	if errWalletAct != nil {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] for shared Account Properties error:[%v] \n", issuingWallet.Alias, errWalletAct)
+
+		return "", messages, walletMustSign, errWalletAct
+	}
+	if (walletAccountNativeBalance).LessThan(minBalance) {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] shared WalletAccount underfunded \n", issuingWallet.Alias)
+
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-wallet-underfunded",
+			ErrMessage: fmt.Sprintf("Wallet %v does not have enough %v balance to perform this operation", issuingWallet.Alias, os.Getenv("NATIVE_ASSET_CODE")),
+			Code:       404,
+		}
+		return "", messages, walletMustSign, err
+	}
+
+	//activating shared access is free. No fee.
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        walletSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           ops,
+			BaseFee:              txnbuild.MinBaseFee,
+			Preconditions: txnbuild.Preconditions{
+				TimeBounds: txnbuild.NewInfiniteTimeout(),
+			},
+			Memo: txnbuild.MemoText("Mint " + *t.AssetCode),
+		},
+	)
+	if err != nil {
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] error constructing transaction ", err)
+		return "", messages, walletMustSign, err
+	}
+
+	var xdrBase64 string
+
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] error getting txn base64", err)
+		return "", messages, walletMustSign, err
+	}
+
+	return xdrBase64, messages, walletMustSign, nil
+
 }
