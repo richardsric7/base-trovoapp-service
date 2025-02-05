@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -18,12 +19,14 @@ import 'package:path_provider/path_provider.dart' as syspaths;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/countdown.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
@@ -719,6 +722,252 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
     popup(context, title: "error".tr(), message: e.toString());
     hideLoader(context);
   }
+}
+
+Widget tokenizedAssetTile({
+  required ColorNotifier notifier,
+  required TokenizedAsset asset,
+  void Function()? onSubscribe,
+  void Function()? onBuyToken,
+}) {
+  return Card(
+    elevation: notifier.isDark ? 0 : 5,
+    shadowColor: Colors.black,
+    color: notifier.gettilewihitecolor,
+    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ListTile(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (asset.assetLogo != null) ...[
+                  Image.memory(
+                    base64Decode(asset.assetLogo!),
+                    height: 35,
+                    width: 35,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/trovo.png',
+                        height: 35,
+                        width: 35,
+                      );
+                    },
+                  ),
+                ] else ...[
+                  Image.asset(
+                    'assets/images/trovo.png',
+                    height: 35,
+                    width: 35,
+                  ),
+                ],
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${asset.assetName!} (${asset.assetCode})',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getblck,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                                child: Text(
+                                  asset.assetSector!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getblck,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (onSubscribe != null) ...[
+              if (asset.salesEnd!.difference(DateTime.now()).inDays <= 0) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Countdown(startDate: asset.salesStart!),
+                    ElevatedButton(
+                      onPressed: () async {
+                        asset.isSubscribed ?? false ? null : onSubscribe();
+                      },
+                      style: ButtonStyle(
+                        padding: MaterialStateProperty.all(
+                          EdgeInsets.symmetric(vertical: 0, horizontal: 6),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          asset.isSubscribed ?? false
+                              ? notifier.getbluewhitecolor
+                              : notifier.getwihitecolor,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              if (asset.isSubscribed ?? false) ...[
+                                Text(
+                                  'Interest Expressed',
+                                  style: TextStyle(
+                                    fontFamily: fontsemibold,
+                                    fontSize: 12,
+                                    color: asset.isSubscribed ?? false
+                                        ? notifier.getwihitecolor
+                                        : notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 20,
+                                  color: asset.isSubscribed ?? false
+                                      ? notifier.getwihitecolor
+                                      : notifier.getbluewhitecolor,
+                                ),
+                              ] else ...[
+                                Text(
+                                  'Express Interest',
+                                  style: TextStyle(
+                                    fontFamily: fontsemibold,
+                                    fontSize: 12,
+                                    color: asset.isSubscribed ?? false
+                                        ? notifier.getwihitecolor
+                                        : notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.add_circle_rounded,
+                                  size: 20,
+                                  color: asset.isSubscribed ?? false
+                                      ? notifier.getwihitecolor
+                                      : notifier.getbluewhitecolor,
+                                ),
+                              ]
+                            ]),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                Container(
+                  width: 270,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Card(
+                        margin: EdgeInsets.zero,
+                        shadowColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            side: BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                            )),
+                        color: notifier.isDark
+                            ? notifier.getbluecolor90
+                            : notifier.getaddsubwalletgrey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            'Available',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: onBuyToken,
+                        style: ButtonStyle(
+                          padding: MaterialStateProperty.all(EdgeInsets.zero),
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor90),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluewhitecolor),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                                style: BorderStyle.solid),
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Buy',
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  color: notifier.getwihitecolor,
+                                ),
+                              ),
+                              Image.asset('assets/images/money.png'),
+                            ]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 Widget infoTile(ColorNotifier notifier, String key, String value) {

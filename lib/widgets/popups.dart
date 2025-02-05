@@ -4147,15 +4147,15 @@ Future<PlatformFile?>? getFile() async {
 
 showSubscribePopup(
   context, {
-  required void Function(String walletPublicKey) onDone,
+  required void Function(String amount) onDone,
   required String assetCode,
-  required List<DropdownMenuItem<String>> dropdownItems,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
-  String selectedWalletPublicKey = '';
-  bool showNoSelectedWalletError = false;
+  String amount = '';
+  final _formKey = GlobalKey<FormState>();
+  final amountController = TextEditingController();
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4177,10 +4177,6 @@ showSubscribePopup(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      "assets/images/thinking_man.png",
-                      height: height / 4,
-                    ),
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4188,7 +4184,7 @@ showSubscribePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmsubscribewithwallet".tr(args: [assetCode]),
+                          "enterinterestedamount".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4197,52 +4193,56 @@ showSubscribePopup(
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {
-                          selectedWalletPublicKey = value.toString();
-                        },
-                        dropdownItems,
-                        null,
-                        "choosewallet".tr(),
-                        context,
-                        null,
-                      ),
-                    ),
-                    if (showNoSelectedWalletError) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              "pleaseselectwallet".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                  fontFamily: fontbody),
-                            ),
-                          ],
+                    Form(
+                      key: _formKey,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: CustomTextFormField.textField(
+                          "amount".tr(),
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          null,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          85,
+                          260,
+                          onChanged: (value) {
+                            setStateForDialog(() {
+                              amount = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value.toString().isEmpty) {
+                              return 'fieldcannotbeempty'.tr();
+                            }
+
+                            var parsedValue = double.tryParse(value);
+                            if (parsedValue == null ||
+                                parsedValue <= 0 ||
+                                parsedValue.isNaN) {
+                              return 'pleaseentervalidamount'.tr();
+                            }
+
+                            return null;
+                          },
+                          controller: amountController,
+                          autoFormatNumber: true,
+                          keyboardtype:
+                              TextInputType.numberWithOptions(decimal: true),
                         ),
                       ),
-                    ],
-                    SizedBox(
-                      height: height / 50,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          if (selectedWalletPublicKey.isEmpty) {
-                            setStateForDialog(() {
-                              showNoSelectedWalletError = true;
-                            });
+                          if (!_formKey.currentState!.validate()) {
                             return;
                           }
 
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedWalletPublicKey);
+                          onDone(amount);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4260,7 +4260,7 @@ showSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          "iwanttosubscribe".tr(),
+                          "continuee".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),

@@ -13,7 +13,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
@@ -35,7 +34,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   late Future<Map> listOfTokenizations;
   TokenizedAssetListMode listMode = TokenizedAssetListMode.All;
   bool hasInitiatorAccess = false;
-  late var savedAssets;
+  late var tokenizedAssets;
   late RefreshController _refreshController;
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -192,7 +191,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   return;
                                 }
                                 List<String> excludedWallets = [];
-                                for (var asset in savedAssets) {
+                                for (var asset in tokenizedAssets) {
                                   excludedWallets
                                       .add(asset['issuingWalletPublicKey']);
                                 }
@@ -400,7 +399,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         i++) ...[
                                       GestureDetector(
                                         onTap: () async {
-                                          appState.viewData = savedAssets[i];
+                                          appState.viewData =
+                                              tokenizedAssets[i];
                                           appState.setActiveTokenizationWalletPublicKey =
                                               appState.viewData![
                                                   'issuingWalletPublicKey'];
@@ -430,26 +430,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                             );
                                             return;
                                           }
-
-                                          var list = [];
-
-                                          for (var j = 0;
-                                              j < savedAssets.length;
-                                              j++) {
-                                            var data = Map.from(savedAssets[j]);
-                                            if (data['tokenizationStatus'] !=
-                                                null) {
-                                              if (data['id'] == records[i].id) {
-                                                data['tokenizationStatus'] = 1;
-                                              }
-                                              list.add(data);
-                                            }
-                                          }
-
-                                          await StoreData().storeDeleteItem(
-                                              'tokenizedAsset');
-                                          await StoreData().storeInsertData(
-                                              'tokenizedAsset', list);
 
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
@@ -580,7 +560,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     ElevatedButton(
                       onPressed: () async {
                         List<String> excludedWallets = [];
-                        for (var asset in savedAssets) {
+                        for (var asset in tokenizedAssets) {
                           excludedWallets.add(asset['issuingWalletPublicKey']);
                         }
                         appState.viewData = {
@@ -766,21 +746,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   Future<Map> fetchTokenizationList() async {
-    // await fetchTokenizationData();
-    // savedAssets = await StoreData().storeGetData('tokenizedAsset');
-    // List<TokenizedAsset> tokenizedAssets = [];
-    // if (savedAssets != null) {
-    //   for (int i = 0; i < savedAssets.length; i++) {
-    //     print(savedAssets[i]);
-    //     var a = TokenizedAsset().deserializeJson(savedAssets[i]);
-    //     a.usdPrice = 1.47;
-    //     a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-    //     a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-    //         a.numberOfTokenToBeIssued!);
-    //     tokenizedAssets.add(a);
-    //   }
-    // }
-    // return {"records": tokenizedAssets};
     try {
       var uri = '/v1/tokenization/list';
       Map responseData = await makeGetRequest(
@@ -792,21 +757,21 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         await fetchTokenizationData();
-        List<TokenizedAsset> tokenizedAssets = [];
-        savedAssets = responseData['data']['records'];
-        await inspect(savedAssets);
-        if (savedAssets != null) {
-          for (int i = 0; i < savedAssets.length; i++) {
-            inspect(savedAssets[i]);
-            var a = TokenizedAsset().deserializeJson(savedAssets[i]);
+        List<TokenizedAsset> assets = [];
+        tokenizedAssets = responseData['data']['records'];
+        await inspect(tokenizedAssets);
+        if (tokenizedAssets != null) {
+          for (int i = 0; i < tokenizedAssets.length; i++) {
+            inspect(tokenizedAssets[i]);
+            var a = TokenizedAsset().deserializeJson(tokenizedAssets[i]);
             a.usdPrice = 1.47;
             a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
             a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
                 a.numberOfTokenToBeIssued!);
-            tokenizedAssets.add(a);
+            assets.add(a);
           }
         }
-        return {"records": tokenizedAssets};
+        return {"records": assets};
       } else {
         return Future.error('Error! Something went wrong.');
       }

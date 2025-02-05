@@ -12,7 +12,6 @@ import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';

@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -61,6 +60,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     var tokenizedAsset = appState.tokenizedAsset!;
+    var countdown =
+        tokenizedAsset.salesStart!.difference(DateTime.now()).inDays;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -77,6 +78,29 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             SizedBox(
               height: height / 50,
             ),
+            // if (tokenizedAsset.assetLogo != null) ...[
+            //   Image.memory(
+            //     base64Decode(tokenizedAsset.assetLogo!),
+            //     height: 50,
+            //     width: 50,
+            //     errorBuilder: (context, error, stackTrace) {
+            //       return Image.asset(
+            //         'assets/images/trovo.png',
+            //         height: 50,
+            //         width: 50,
+            //       );
+            //     },
+            //   ),
+            // ] else ...[
+            //   Image.asset(
+            //     'assets/images/trovo.png',
+            //     height: 45,
+            //     width: 45,
+            //   ),
+            // ],
+            // SizedBox(
+            //   height: height / 70,
+            // ),
             Text(
               tokenizedAsset.assetName!,
               style: TextStyle(
@@ -89,109 +113,215 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 70,
             ),
             Text(
-              '${tokenizedAsset.assetName} token',
+              '${tokenizedAsset.assetCode} token',
               style: TextStyle(
                 fontSize: 15,
                 fontFamily: fontbody,
                 color: notifier.getbluewhitecolor,
               ),
             ),
+            SizedBox(height: height / 70),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < countdown.toString().length; i++) ...[
+                      Card(
+                        margin: EdgeInsets.zero,
+                        shadowColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            side: BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                            )),
+                        color: notifier.isDark
+                            ? notifier.getbluecolor90
+                            : notifier.getaddsubwalletgrey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            countdown.toString()[i],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                    ],
+                  ],
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'days left',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(
-              height: height / 30,
+              height: height / 50,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Column(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        showSubscribePopup(context,
+                ElevatedButton(
+                  onPressed: tokenizedAsset.isSubscribed ?? false
+                      ? null
+                      : () {
+                          showSubscribePopup(
+                            context,
                             assetCode: tokenizedAsset.assetCode!,
-                            onDone: (publicKey) {
-                          setState(() {
-                            tokenizedAsset.isSubscribed = true;
-                          });
-                        }, dropdownItems: getStandardWallets);
-                      },
-                      child: Column(
-                        children: [
-                          Icon(
-                            tokenizedAsset.isSubscribed ?? false
-                                ? Icons.check_circle
-                                : Icons.add_circle_rounded,
-                            size: 25,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
-                          Text(
-                            tokenizedAsset.isSubscribed ?? false
-                                ? 'Subscribed'
-                                : 'Subscribe',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        showBuyTokenPopup(context,
-                            assetCode: tokenizedAsset.assetCode!,
-                            onDone: (publicKey) {
-                          var wallet = appState.userInfo!.getWallet(publicKey);
-                          appState.setActiveWallet = wallet;
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: BuyTokensViewPageConfig,
+                            onDone: (amount) async {
+                              setState(() {
+                                print(amount);
+                                tokenizedAsset.isSubscribed = true;
+                              });
+                            },
                           );
-                        }, dropdownItems: getStandardWallets);
-                      },
-                      child: Column(
-                        children: [
-                          Icon(
-                            CupertinoIcons.cart_fill,
-                            size: 25,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
-                          Text(
-                            'Buy',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ],
+                        },
+                  style: ButtonStyle(
+                    padding: MaterialStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                        notifier.getsplashgrey),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      tokenizedAsset.isSubscribed ?? false
+                          ? notifier.getaddsubwalletgrey
+                          : notifier.getwihitecolor,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                          color: tokenizedAsset.isSubscribed ?? false
+                              ? notifier.getaddsubwalletgrey
+                              : notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(10),
+                        ),
                       ),
                     ),
-                  ],
-                )
+                  ),
+                  child: Container(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          if (tokenizedAsset.isSubscribed ?? false) ...[
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 20,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Interest Expressed',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ] else ...[
+                            Icon(
+                              Icons.add_circle_rounded,
+                              size: 20,
+                              color: tokenizedAsset.isSubscribed ?? false
+                                  ? notifier.getwihitecolor
+                                  : notifier.getbluewhitecolor,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Express Interest',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
+                                color: tokenizedAsset.isSubscribed ?? false
+                                    ? notifier.getwihitecolor
+                                    : notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ]
+                        ]),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: height / 90),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    showBuyTokenPopup(context,
+                        assetCode: tokenizedAsset.assetCode!,
+                        onDone: (publicKey) {
+                      var wallet = appState.userInfo!.getWallet(publicKey);
+                      appState.setActiveWallet = wallet;
+                      appState.tokenizedAsset = tokenizedAsset;
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: BuyTokensViewPageConfig,
+                      );
+                    }, dropdownItems: getStandardWallets);
+                  },
+                  style: ButtonStyle(
+                    padding: MaterialStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 95),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                        notifier.getbluecolor90),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        notifier.getbluewhitecolor),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid),
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset('assets/images/money.png'),
+                        SizedBox(width: 10),
+                        Text(
+                          'Buy',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            fontSize: 12,
+                            color: notifier.getwihitecolor,
+                          ),
+                        ),
+                      ]),
+                ),
               ],
             ),
             SizedBox(height: height / 90),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
-                // shadowColor: Colors.black,
-                // shape: RoundedRectangleBorder(
-                //   borderRadius: BorderRadius.circular(15.0),
-                // ),
-                // color: notifier.isDark
-                //     ? notifier.getbluecolor90
-                //     : notifier.getaddsubwalletgrey,
                 child: Center(
                   child: Column(
                     children: [
@@ -223,99 +353,41 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
+                  label: 'Asset Value',
+                  value: 'N${tokenizedAsset.pricePerToken}',
+                  extraValue: '\$4,390.23',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
                   label: 'Total Supply',
                   value:
                       '${tokenizedAsset.numberOfTokenToBeSold} ${tokenizedAsset.assetCode}',
                   extraValue: '',
                 ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                infoCard(
-                  label: 'Total Subscribed',
-                  value: '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
-                  extraValue: '',
-                ),
               ],
             ),
             SizedBox(height: height / 70),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                infoCard(
-                  label: 'Price Per Asset',
-                  value:
-                      '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
-                ),
-                // '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}'),
-                SizedBox(
-                  width: width / 50,
-                ),
                 infoCard(
                   label: 'Funding Currency',
-                  value: '${tokenizedAsset.assetQuoteCurrency}',
+                  value: 'CNGN',
                   extraValue: '',
-                ),
-              ],
-            ),
-            SizedBox(height: height / 70),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                infoCard(
-                  label: 'Subscription Amount',
-                  value: '0 ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
-                  // extraValue: '\$2,205',
                 ),
                 SizedBox(
                   width: width / 50,
                 ),
                 infoCard(
-                  label: 'Amount Bought',
+                  label: 'Price Per Token',
                   value:
-                      '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
-                  extraValue:
-                      '${tokenizedAsset.amount ?? 0 * tokenizedAsset.pricePerToken!} ${tokenizedAsset.assetQuoteCurrency}',
+                      '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
+                  extraValue: '\$0.12',
                 ),
               ],
             ),
-            // SizedBox(height: height / 70),
-            // Row(
-            //   children: [
-            //     Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 30.0),
-            //       child: Text(
-            //         'Purchase with cNGN',
-            //         style: TextStyle(
-            //           fontSize: 15,
-            //           fontFamily: fontsemibold,
-            //           color: notifier.getbluewhitecolor,
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // Row(
-            //   children: [
-            //     Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            //       child: TextButton(
-            //         onPressed: () {},
-            //         child: Text(
-            //           'Tap to fund wallet now',
-            //           style: TextStyle(
-            //             decoration: TextDecoration.underline,
-            //             fontSize: 15,
-            //             fontFamily: fontbody,
-            //             color: notifier.getbluewhitecolor,
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
             SizedBox(height: height / 50),
             Row(
               children: [
@@ -525,13 +597,16 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   SizedBox(
                     height: height / 70,
                   ),
-                  Text(
-                    value,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                  SizedBox(
+                    width: 130,
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                   if (extraValue != null) ...[
