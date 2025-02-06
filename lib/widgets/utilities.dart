@@ -116,17 +116,24 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) {
-  var formattedString = NumberFormat("#,##0.0000000", "en_US").format(number);
-  var splitFormattedString = formattedString.split('.');
-  if (int.parse(splitFormattedString[1]) == 0) {
-    return splitFormattedString[0];
-  }
+  var formattedString = NumberFormat("#,##0.#######", "en_US").format(number);
+  // var splitFormattedString = formattedString.split('.');
+  // // if (int.parse(splitFormattedString[1]) == 0) {
+  // //   return splitFormattedString[0];
+  // // }
 
   return formattedString;
 }
 
-formatNumberShort(double number) =>
-    NumberFormat("#,##0.00", "en_US").format(number);
+formatNumberShort(double number) {
+  var formattedString = NumberFormat("#,##0.##", "en_US").format(number);
+  // var splitFormattedString = formattedString.split('.');
+  // if (int.parse(splitFormattedString[1]) == 0) {
+  //   return splitFormattedString[0];
+  // }
+
+  return formattedString;
+}
 
 formatNumberForInput(double number) {
   var splitNumber = number.toString().split('.');

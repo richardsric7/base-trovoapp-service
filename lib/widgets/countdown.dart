@@ -7,65 +7,114 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 
 class Countdown extends StatefulWidget {
   final DateTime startDate;
-  const Countdown({super.key, required this.startDate});
+  final bool isColumn;
+  const Countdown({super.key, required this.startDate, this.isColumn = false});
 
   @override
   State<Countdown> createState() => _CountdownState();
 }
 
 class _CountdownState extends State<Countdown> {
-  late Timer _timer;
+  Timer? _timer = null;
   Widget countdown = Row();
   late ColorNotifier notifier;
   @override
   initState() {
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
     var diff = widget.startDate.difference(DateTime.now()).inDays;
+    print('diff: $diff');
     if (diff > 0) {
-      countdown = Row(
-        children: [
-          for (var i = 0; i < diff.toString().length; i++) ...[
-            Card(
-              margin: EdgeInsets.zero,
-              shadowColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
-                  side: BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                  )),
-              color: notifier.isDark
-                  ? notifier.getbluecolor90
-                  : notifier.getaddsubwalletgrey,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  countdown.toString()[i],
-                  textAlign: TextAlign.center,
+      countdown = widget.isColumn
+          ? Column(
+              children: [
+                Row(
+                  children: [
+                    for (var i = 0; i < diff.toString().length; i++) ...[
+                      Card(
+                        margin: EdgeInsets.zero,
+                        shadowColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            side: BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                            )),
+                        color: notifier.isDark
+                            ? notifier.getbluecolor90
+                            : notifier.getaddsubwalletgrey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            diff.toString()[i],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 2)
+                    ],
+                  ],
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'days left',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
+                    fontSize: 15,
+                    fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
-                    overflow: TextOverflow.visible,
                   ),
                 ),
-              ),
-            ),
-            SizedBox(width: 2),
-          ],
-          SizedBox(width: 4),
-          Text(
-            'days left',
-            style: TextStyle(
-              fontSize: 12,
-              fontFamily: fontbody,
-              color: notifier.getblck,
-            ),
-          ),
-        ],
-      );
+              ],
+            )
+          : Row(
+              children: [
+                for (var i = 0; i < diff.toString().length; i++) ...[
+                  Card(
+                    margin: EdgeInsets.zero,
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        side: BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                        )),
+                    color: notifier.isDark
+                        ? notifier.getbluecolor90
+                        : notifier.getaddsubwalletgrey,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Text(
+                        diff.toString()[i],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 2),
+                ],
+                SizedBox(width: 4),
+                Text(
+                  'days left',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontFamily: fontbody,
+                    color: notifier.getblck,
+                  ),
+                ),
+              ],
+            );
     } else {
       _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-        print('dfjslkd');
         setState(() {
           DateTime now = DateTime.now();
           var endTime = DateTime(
@@ -73,59 +122,118 @@ class _CountdownState extends State<Countdown> {
           var remainingTime = endTime.difference(now);
           if (remainingTime.isNegative) remainingTime = Duration.zero;
           var time = formatTime(remainingTime).split(':');
-          countdown = Row(
-            children: [
-              for (var i = 0; i < time.length; i++) ...[
-                Card(
-                  margin: EdgeInsets.zero,
-                  shadowColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                      side: BorderSide(
-                        color: notifier.getbluewhitecolor,
-                        width: 1,
-                      )),
-                  color: notifier.isDark
-                      ? notifier.getbluecolor90
-                      : notifier.getaddsubwalletgrey,
-                  child: Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Text(
-                      time[i],
-                      textAlign: TextAlign.center,
+          countdown = widget.isColumn
+              ? Column(
+                  children: [
+                    Row(
+                      children: [
+                        for (var i = 0; i < time.length; i++) ...[
+                          Card(
+                            margin: EdgeInsets.zero,
+                            shadowColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5.0),
+                                side: BorderSide(
+                                  color: notifier.getbluewhitecolor,
+                                  width: 1,
+                                )),
+                            color: notifier.isDark
+                                ? notifier.getbluecolor90
+                                : notifier.getaddsubwalletgrey,
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Text(
+                                time[i],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (i + 1 < time.length) ...[
+                            SizedBox(width: 2),
+                            Text(
+                              ':',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: notifier.getblck,
+                              ),
+                            ),
+                          ],
+                          SizedBox(width: 2),
+                        ],
+                      ],
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'hours left',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
+                        fontSize: 15,
+                        fontFamily: fontbody,
                         color: notifier.getbluewhitecolor,
-                        overflow: TextOverflow.visible,
                       ),
                     ),
-                  ),
-                ),
-                if (i + 1 < time.length) ...[
-                  SizedBox(width: 2),
-                  Text(
-                    ':',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getblck,
+                  ],
+                )
+              : Row(
+                  children: [
+                    for (var i = 0; i < time.length; i++) ...[
+                      Card(
+                        margin: EdgeInsets.zero,
+                        shadowColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            side: BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                            )),
+                        color: notifier.isDark
+                            ? notifier.getbluecolor90
+                            : notifier.getaddsubwalletgrey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            time[i],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (i + 1 < time.length) ...[
+                        SizedBox(width: 2),
+                        Text(
+                          ':',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: notifier.getblck,
+                          ),
+                        ),
+                      ],
+                      SizedBox(width: 2),
+                    ],
+                    SizedBox(width: 4),
+                    Text(
+                      'hours left',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
                     ),
-                  ),
-                ],
-                SizedBox(width: 2),
-              ],
-              SizedBox(width: 4),
-              Text(
-                'hours left',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: fontbody,
-                  color: notifier.getblck,
-                ),
-              ),
-            ],
-          );
+                  ],
+                );
+          ;
         });
       });
     }
@@ -134,13 +242,14 @@ class _CountdownState extends State<Countdown> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_timer != null) {
+      _timer?.cancel();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    notifier = Provider.of<ColorNotifier>(context, listen: true);
     return countdown;
   }
 
