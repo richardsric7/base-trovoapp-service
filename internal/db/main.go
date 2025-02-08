@@ -148,6 +148,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Bank: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.Country{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Country: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserFiatPaymentMethod{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserFiatPaymentMethod: ", errMigrate)
