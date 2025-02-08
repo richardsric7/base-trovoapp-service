@@ -102,6 +102,8 @@ type TokenizedAsset struct {
 	AssetCode                                   *string                         `json:"assetCode"`
 	AssetLogo                                   *string                         `json:"assetLogo"`
 	NumberOfTokenToBeIssued                     float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
+	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
+	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
 	NumberOfTokenToBeSold                       float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                *string                         `json:"walletToHoldAssetsNotForSale"`
@@ -290,6 +292,8 @@ type TokenizedAssetJSON struct {
 	AssetCode                                   string                          `json:"assetCode"`
 	AssetLogo                                   string                          `json:"assetLogo"`
 	NumberOfTokenToBeIssued                     float64                         `json:"numberOfTokenToBeIssued"`
+	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
+	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
 	NumberOfTokenToBeSold                       float64                         `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                string                          `json:"walletToHoldAssetsNotForSale"`
@@ -380,11 +384,11 @@ type TokenizationFee struct {
 
 type TokenizationMintingApprover struct {
 	ID       uint64 `gorm:"" json:"id"`
-	Approver string `json:"approver"`
+	Approver string `gorm:"not null;size:16; index:idx__mintapprover_unique_user, unique" json:"approver"`
 }
 type TokenizationMintingInitiator struct {
 	ID        uint64 `gorm:"" json:"id"`
-	Initiator string `json:"initiator"`
+	Initiator string `gorm:"not null;size:16; index:idx__mintinitiator_unique_user, unique" json:"initiator"`
 }
 
 type TokenizationFeePaymentMethod struct {
@@ -524,6 +528,22 @@ type NonExistingAssetValidationAssetInformation struct {
 	PercentageValueOfInsurance     int    `gorm:"default:1" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances int    `gorm:"default:1" json:"isFreeFromLiensAndEncumbrances"`
 }
+type TokenMinting struct {
+	TokenizedAssetID     string   `json:"tokenizedAssetId"`
+	Destination          string   `json:"destination" `
+	Amount               string   `json:"amount" `
+	AssetCode            string   `json:"assetCode"`
+	AssetIssuer          string   `json:"assetIssuer"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	TransactionSource    string   `json:"-"`
+	ReturnedDescription  string   `json:"-"`
+	Commit               int      `json:"commit"`
+	Messages             []string `json:"messages"`
+}
+
 type NonExistingAssetValidationAssetDocument struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
@@ -775,6 +795,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 
 		t.AssetLogo = &ti.AssetLogo
 	}
+	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
 		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
@@ -787,30 +809,35 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.TokenizationFeeID = &ti.TokenizationFeeID
 		t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
 
-		{
-			// Calculate Fees
-			assetFee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-
-		}
+		// Calculate Fees
+		assetFee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+		t.FeeInAsset = assetFee
 
 	}
 
-	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
-	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	// auto calculate, token to be held is less the fee
 
 	{
 		//ensure correct the number of token to be sold.
 		maxTokenToBeSold := t.NumberOfTokenToBeIssued - assetFee
-
-		if t.NumberOfTokenToBeSold > maxTokenToBeSold {
-			t.NumberOfTokenToBeSold = maxTokenToBeSold
-			ti.NumberOfTokenToBeSold = maxTokenToBeSold
+		t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
+		if t.NumberOfTokenToBeSold > t.MaxNumberOfTokenAvailableForSale {
+			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+			ti.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
 			ti.Messages = append(ti.Messages, fmt.Sprintf("Submitted Number of tokens to be sold has been adjusted to %v to account for deduction of the asset fee of %v. You may wish to adjust your fee option and then adjust the amount to be sold manually again.", maxTokenToBeSold, assetFee))
 
 		}
 	}
-	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - assetFee
+	if (t.MaxNumberOfTokenAvailableForSale - t.NumberOfTokenToBeSold) < ti.TotalTokenHeldByManager {
+		t.TotalTokenHeldByManager = 0
+		ti.TotalTokenHeldByManager = 0
+		ti.Messages = append(ti.Messages, "Number of tokens to be held by manager is bigger than max available for sale after fees. Manager amount has been reset to 0")
+
+	} else {
+		t.TotalTokenHeldByManager = t.MaxNumberOfTokenAvailableForSale - t.NumberOfTokenToBeSold
+		ti.TotalTokenHeldByManager = t.TotalTokenHeldByManager
+	}
+
 	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
 
 		t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale

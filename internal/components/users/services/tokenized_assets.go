@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -57,6 +58,20 @@ func GetAssetProtectionOptions(db *gorm.DB) (apo []userModels.AssetProtectionOpt
 	db.Preload(clause.Associations).Order("id").Find(&apo)
 
 	return
+}
+func IsTokenizationMintingApprover(username string, db *gorm.DB) (access bool) {
+	if username == "" {
+		return
+	}
+	return db.Where("approver = ?", username).First(&userModels.TokenizationMintingApprover{}).Error == nil
+
+}
+func IsTokenizationMintingInitiator(username string, db *gorm.DB) (access bool) {
+	if username == "" {
+		return
+	}
+	return db.Where("initiator = ?", username).First(&userModels.TokenizationMintingInitiator{}).Error == nil
+
 }
 
 func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAssetCustodian) {
@@ -497,12 +512,17 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, err
-}
-
+} //SubmitTokenizationAssetInfo used by trovoManager
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
-
+	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
+		return
+	}
 	input.AssetCode = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(input.AssetCode), " ", ""))
-
+	if len(input.AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
+		return
+	}
 	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if errorGetTokenizationByID != nil {
 		// error tokenization is already in progress
@@ -540,7 +560,11 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
-		tokenizationIssuer, _ := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		tokenizationIssuer, e := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		if e != nil {
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
+			return
+		}
 		issuer, _ := keypair.Random()
 		distributor, _ := keypair.Random()
 		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
@@ -606,10 +630,36 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		//set issuing wallet
 		issuingWallet = w
 		ato.IssuingWalletAlias = &w.Alias
-		ato.IssuingWalletPublicKey = &w.ID
-		ato.MarketMakingWallet = &w.ID
-	}
 
+		ato.IssuingWalletPublicKey = &w.ID
+		ato.MarketMakingWallet = w.LinkedWalletPublicKey
+		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
+	}
+	if ato.IssuingWalletAlias == nil {
+		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
+		return
+	}
+	if *ato.IssuingWalletAlias == "" {
+		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
+		return
+	}
+	if len(issuingWallet.ID) == 0 {
+		//new wallet not generated. populate with existing wallet info.
+		w, e := userModels.WalletAlias(*ato.IssuingWalletAlias).GetWallet(gc.DB, gc)
+		if e != nil {
+			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", ato.IssuingWalletAlias, e)
+			err = e
+			return
+		}
+
+		//set issuing wallet
+		issuingWallet = w
+		// ato.IssuingWalletAlias = &w.Alias
+		ato.IssuingWalletPublicKey = &w.ID
+		ato.MarketMakingWallet = w.LinkedWalletPublicKey
+		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
+		input.WalletToHoldAssetsNotForSale = *w.LinkedWalletPublicKey
+	}
 	// initialize message array
 	input.Messages = make([]string, 0)
 	// check asset manager ID
@@ -1213,8 +1263,9 @@ func UpdateFromInputOld(t *userModels.TokenizedAsset, ti *userModels.TokenizedAs
 	return *t
 }
 
-func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
+func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
 	client := gc.BantuExpansionClient
+	feeWallet := keypair.MustParse(os.Getenv("TOKENIZATION_FEE_WALLET"))
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
 	var permInfo []userModels.WalletPermissionInfo
@@ -1233,7 +1284,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 			ErrMessage: "Tokenization does not have valid tokenization currency.",
 			Code:       404,
 		}
-		return "", messages, walletMustSign, err
+		return "", "", messages, issuingWallet, err
 	}
 	// get currency
 	quoteCurrency := GetTokenizationCurrencyByCode(*t.AssetQuoteCurrency, gc.DB)
@@ -1247,7 +1298,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 			ErrMessage: "Tokenization does not have valid tokenization currency.",
 			Code:       404,
 		}
-		return "", messages, walletMustSign, err
+		return "", "", messages, issuingWallet, err
 	}
 
 	var aps []userModels.TokenizationMintingApprover
@@ -1262,7 +1313,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 			ErrMessage: "No approvers /initiators specified",
 			Code:       404,
 		}
-		return "", messages, walletMustSign, err
+		return "", "", messages, issuingWallet, err
 	}
 	//get atprofile
 	var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
@@ -1272,8 +1323,13 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
 		tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 	}
+	var e error
 	tokenizationIssuerUser, _ := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-	issuingWallet, _ := userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+	issuingWallet, e = userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+	if e != nil {
+		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "error validating issuing wallet."}
+		return
+	}
 	distributionWallet, _ := userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
 
 	tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
@@ -1313,7 +1369,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 				ErrMessage: "Could not create shared access on issuing wallet",
 				Code:       404,
 			}
-			return "", messages, walletMustSign, err
+			return "", "", messages, issuingWallet, err
 		}
 
 		//sign and submit
@@ -1346,9 +1402,25 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SourceAccount: distributionWallet.ID,
 	})
 
+	//create trusline on fee wallet
+
+	//get fee wallet
+	ops = append(ops, &txnbuild.ChangeTrust{
+		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
+		Limit:         "900000000000",
+		SourceAccount: feeWallet.Address(),
+	})
+
 	// allow trust from issuer to distribution wallet
 	ops = append(ops, &txnbuild.SetTrustLineFlags{
 		Trustor:       distributionWallet.ID,
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+		SourceAccount: *t.IssuingWalletPublicKey,
+	})
+	// allow trust from issuer to distribution wallet
+	ops = append(ops, &txnbuild.SetTrustLineFlags{
+		Trustor:       feeWallet.Address(),
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
 		SourceAccount: *t.IssuingWalletPublicKey,
@@ -1362,11 +1434,18 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
 
+	//deduct fee to fee wallet, from distribution wallet
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   feeWallet.Address(),
+		Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SourceAccount: distributionWallet.ID,
+	})
+
 	//make market
 	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
-	//mint the token to distribution wallet
 	ops = append(ops, &txnbuild.ManageSellOffer{
 		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeSold).StringFixed(7),
@@ -1375,13 +1454,15 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SourceAccount: distributionWallet.ID,
 	})
 
+	//
+
 	//check if issuing account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
-	_, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
+	_, _, walletAccountNativeBalance, _, _, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
 	if errWalletAct != nil {
 		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] for shared Account Properties error:[%v] \n", issuingWallet.Alias, errWalletAct)
 
-		return "", messages, walletMustSign, errWalletAct
+		return "", "", messages, issuingWallet, errWalletAct
 	}
 	if (walletAccountNativeBalance).LessThan(minBalance) {
 		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] shared WalletAccount underfunded \n", issuingWallet.Alias)
@@ -1392,14 +1473,21 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 			ErrMessage: fmt.Sprintf("Wallet %v does not have enough %v balance to perform this operation", issuingWallet.Alias, os.Getenv("NATIVE_ASSET_CODE")),
 			Code:       404,
 		}
-		return "", messages, walletMustSign, err
+		return "", "", messages, issuingWallet, err
 	}
 
-	//activating shared access is free. No fee.
+	// minting is free. No fee.
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+
+	transactionSource = chanSourceAccount.AccountID
 
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
-			SourceAccount:        walletSourceAccount,
+			SourceAccount:        chanSourceAccount,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              txnbuild.MinBaseFee,
@@ -1411,17 +1499,100 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	)
 	if err != nil {
 		log.Println("[generateMintRegulatedTokenizedAssetXdr] error constructing transaction ", err)
-		return "", messages, walletMustSign, err
+		return "", transactionSource, messages, issuingWallet, err
 	}
 
+	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+	if err != nil {
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount key ", err)
+		return "", transactionSource, messages, issuingWallet, &tErrors.ErrorTemporaryServerError{}
+	}
 	var xdrBase64 string
 
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateMintRegulatedTokenizedAssetXdr] error getting txn base64", err)
-		return "", messages, walletMustSign, err
+		return "", transactionSource, messages, issuingWallet, err
 	}
 
-	return xdrBase64, messages, walletMustSign, nil
+	t.TokenizationTransaction = &xdrBase64
+
+	return xdrBase64, transactionSource, messages, issuingWallet, nil
+
+}
+
+// ClaimPendingAsset claim pending assets
+func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	ato, _, err = GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if err != nil {
+		// error tokenization is already in progress
+		log.Printf("[MintRegulatedTokenizedAsset] Error fetching tokenization with ID: %v\n", tokenizationID)
+		return
+
+	}
+	{
+		//check staff access
+		if !IsTokenizationMintingApprover(initiator.Username, gc.DB) && !IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
+			log.Printf("[MintRegulatedTokenizedAsset] Error %v not minting inititor/approver.\n", initiator.Username)
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-access-denied",
+				ErrMessage: fmt.Sprintf("%v does not have minting permission to perform this action.", initiator.Username),
+				Code:       401,
+			}
+			return
+		}
+	}
+	//validators
+	{
+
+	}
+
+	xdrBase64, transactionSource, messages, issuingWallet, err := generateMintRegulatedTokenizedAssetXdr(&ato, gc)
+
+	if err != nil {
+
+		return
+	}
+	description := fmt.Sprintf("Minting tokenized asset %v:%v...%v", *ato.AssetCode, issuingWallet.ID[0:4], issuingWallet.ID[51:55])
+	mintObj := userModels.TokenMinting{
+		TokenizedAssetID:     ato.ID,
+		Destination:          *issuingWallet.LinkedWalletPublicKey,
+		Amount:               decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7),
+		AssetCode:            *ato.AssetCode,
+		AssetIssuer:          issuingWallet.ID,
+		Transaction:          xdrBase64,
+		NetworkPassPhrase:    gc.BantuNetworkPassphrase,
+		TransactionSignature: transactionSource,
+		ReturnedDescription:  description,
+		Commit:               1,
+		Messages:             messages,
+	}
+	id := uuid.NewString()
+	transactionByte, _ := json.Marshal(mintObj)
+	transactionStr := string(transactionByte)
+	pendingAuth := userModels.PendingAuth{
+		ID:                       id,
+		Initiator:                initiator.Username,
+		InitiatorSignerPublicKey: initiator.PrimarySigner,
+		WalletPublicKey:          issuingWallet.ID,
+		TransactionType:          "TOKENIZE ASSET",
+		Description:              description,
+		TransactionSource:        transactionSource,
+		ApprovalsNeeded:          issuingWallet.NumberOfApprovalsNeeded,
+		TransactionXdr:           xdrBase64,
+		TransactionInfoStr:       &transactionStr,
+	}
+	//save and commit this to database
+	e := gc.DB.Create(&pendingAuth).Error
+	if e != nil {
+		log.Printf("[ClaimPendingAsset] Error saving txn [%+v] on pending auth table: %s\n", pendingAuth, e.Error())
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	return ato, nil
 
 }

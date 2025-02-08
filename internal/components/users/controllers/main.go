@@ -4033,6 +4033,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE is missing!")
 
 		}
+		if len(os.Getenv("TOKENIZATION_FEE_WALLET")) != 56 {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_FEE_WALLET is missing!")
+
+		}
 
 		router.GET("/v1/closed-groups", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error//true-client-ip
@@ -4431,18 +4435,25 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
-		router.POST("/v1/trovo-manager/tokenization/:tid", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		router.POST("/v1/trovo-manager/tokenization/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 			var err error
+			au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+			if err != nil {
 
-				c.JSON(statusCode, response)
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
 				return
 			}
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
 
 			if getUserError != nil {
 				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -4456,6 +4467,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				} else {
 					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
+				return
+			}
+
+			tid := c.Param("tid")
+			if strings.EqualFold(tid, "null") {
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+				c.JSON(statusCode, response)
 				return
 			}
 
@@ -4932,7 +4952,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
 				return
 			}
-			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
 			if len(t.ID) < 5 {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
@@ -4944,7 +4964,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			tokenizationInput.TokenizedAssetID = t.ID
 			if len(tokenizationInput.TokenizedAssetID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid. Ensure you ahve an open tokenizstion and try again."})
 				return
 			}
 
@@ -4980,11 +5000,26 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, url)
 		})
 
-		
-		router.PUT("/v1/trovo-manager/tokenization/document", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		router.PUT("/v1/trovo-manager/tokenization/document", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 
 			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+			au, err := middleware.ExtractTokenMetadata(c.Request)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
 
 			if getUserError != nil {
 				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -5000,17 +5035,46 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
+			var tokenizationInput userModels.AssetTokenizationInputDocument
 
-			//initiator is initiator on issuing wallet?
-			hasInitiatorAccess := false
-			// check if user has initiator access to wallet.
-			for _, p := range initiator.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-					hasInitiatorAccess = true
-				}
+			err = c.ShouldBind(&tokenizationInput)
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tokenizationInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", c.Request.Body, err)
+
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
 			}
-			//get the wallet you are sending payment from
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			if tokenizationInput.DocumentType == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+				return
+			}
+			if len(tokenizationInput.DocumentTitle) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+				return
+			}
+			t, _, _ := userServices.GetTokenizedAssetByID(tokenizationInput.TokenizedAssetID, gc.DB)
+
+			if len(t.ID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				return
+			}
+			if t.AssetTokenizationStatus < 2 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please ensure application has confirmed payment."})
+				return
+			}
+
+			if !userServices.IsTokenizationMintingApprover(initiator.Username, gc.DB) || !userServices.IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have a permission for this operation."})
+				return
+			}
+
+			issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletPublicKey, gc.DB)
 
 			if getWalletError != nil {
 
@@ -5044,10 +5108,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-				return
-			}
 			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
@@ -5085,44 +5145,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 			}
 
-			var tokenizationInput userModels.AssetTokenizationInputDocument
-
-			err = c.ShouldBind(&tokenizationInput)
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tokenizationInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
-
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			if tokenizationInput.DocumentType == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
-				return
-			}
-			if len(tokenizationInput.DocumentTitle) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
-				return
-			}
-			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
-				return
-			}
-			if t.AssetTokenizationStatus > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-				return
-			}
-			tokenizationInput.TokenizedAssetID = t.ID
-			if len(tokenizationInput.TokenizedAssetID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
-				return
-			}
+			// t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", initiator.Username), gc.DB)
 
@@ -5156,8 +5179,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, url)
 		})
 
-		
-		
 		router.POST("/v1/tokenization/fee/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			var err error
 			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
@@ -5369,9 +5390,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			//c.Param("tokenizedAssetID")
-			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
-			if t.InitiatorUsername!=initiator.Username {
+			if t.InitiatorUsername != initiator.Username {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}
@@ -5486,9 +5507,127 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			// 	return
 			// }
 
-			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
-			if t.InitiatorUsername!=initiator.Username {
+			if t.InitiatorUsername != initiator.Username {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+				return
+			}
+
+			if len(t.ID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
+				return
+			}
+			if t.AssetTokenizationStatus > 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option withint the tokenization detail."})
+				return
+			}
+
+			conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/tokenization/document/%v %v", documentID, initiator.Username), gc.DB)
+
+			document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if initiator.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+
+			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+			//At this point, there was no error.
+
+			c.JSON(http.StatusOK, document)
+		})
+
+		router.DELETE("/v1/trovo-manager/tokenization/document/:documentID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+			var err error
+			documentIDStr := c.Param("documentID")
+			documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			// //initiator is initiator on issuing wallet?
+			// hasInitiatorAccess := false
+			// // check if user has initiator access to wallet.
+			// for _, p := range initiator.WalletsSharedWithUser {
+			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
+			// 		hasInitiatorAccess = true
+			// 	}
+			// }
+			// //get the wallet you are sending payment from
+			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			// if getWalletError != nil {
+
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
+
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
+
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-issuing-wallet-alias",
+			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
+
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
+
+			// }
+
+			// if issuingWallet.WalletType != 1 {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			// 	return
+			// }
+
+			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			// 	return
+			// }
+
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+			if t.InitiatorUsername != initiator.Username {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}
@@ -5604,9 +5743,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			// 	return
 			// }
 
-			t,_,_ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
-			if t.InitiatorUsername!=initiator.Username {
+			if t.InitiatorUsername != initiator.Username {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}

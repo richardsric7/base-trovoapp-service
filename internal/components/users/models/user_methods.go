@@ -2036,6 +2036,7 @@ func (id UserWalletID) GetUserPermissionOnWallet(username, permission string, db
 	return
 }
 
+// GetFullUser get user by username or id
 func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner User, err error) {
 	cacheKeyInfo := fmt.Sprintf("userObj %v", string(u))
 
@@ -2053,7 +2054,7 @@ func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner
 
 	}
 
-	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("username = ?", string(u)).First(&owner).Error
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("(username = ? OR id= ?)", string(u), string(u)).First(&owner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -2135,7 +2136,7 @@ func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB)
 // GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
 func (u Username) GetOpenTokenizedAssetByInitiatorUsername(db *gorm.DB) (tokenizedAsset TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
-	initiatorUsername:= u.String()
+	initiatorUsername := u.String()
 	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
 	if err != nil {
@@ -2489,7 +2490,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	if err != nil {
 		return
 	}
-	
+
 	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
