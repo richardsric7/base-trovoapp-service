@@ -88,6 +88,7 @@ type TokenizedAsset struct {
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetQuoteCurrency                          *string                         `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                           float64                         `gorm:"default:0" json:"assetCurrentValue"`
+	AssetOwnerRetainedOrContributedValue        float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
 	AssetMscCostOutisdeOfValuation              float64                         `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
 	ValueOfTokenizedAsset                       float64                         `gorm:"default:0" json:"valueOfTokenizedAsset"`
 	ProtectionMethods                           *string                         `json:"protectionMethods"` //csv format
@@ -185,6 +186,7 @@ type TokenizedAssetJSONInput struct {
 	OwnershipKind                               string       `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
 	InitialOwnerPreferredWalletAddress          string       `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              string       `json:"assetOwnerName"`
+	AssetOwnerRetainedOrContributedValue        float64      `json:"assetOwnerRetainedOrContributedValue"`
 	AssetOwnerAddress                           string       `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64       `json:"assetManagerId"`
 	AssetManager                                AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
@@ -280,6 +282,7 @@ type TokenizedAssetJSON struct {
 	OwnershipKind                               string                          `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
 	InitialOwnerPreferredWalletAddress          string                          `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              string                          `json:"assetOwnerName"`
+	AssetOwnerRetainedOrContributedValue        float64                         `json:"assetOwnerRetainedOrContributedValue"`
 	AssetOwnerAddress                           string                          `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
@@ -739,7 +742,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
-
+	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
 	// if len(ti.AssetManagerName) > 0 {
 
 	t.AssetManagerID = ti.AssetManagerID
@@ -824,7 +827,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
+		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation + ti.AssetOwnerRetainedOrContributedValue)
 		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 
@@ -974,6 +977,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.AssetManagerFeeValue = ti.AssetManagerFeeValue
 	t.CustodianFeePercent = ti.CustodianFeePercent
 	t.CustodianFeeValue = ti.CustodianFeeValue
+	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
 
 	if ti.InitialOwnerPreferredWalletAddress != nil {
 
