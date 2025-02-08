@@ -5000,6 +5000,129 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, url)
 		})
 
+		router.PUT("/v1/tokenization/logo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+			var err error
+			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+			r := c.Request
+			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+				return
+			}
+
+			f, fileHeader, err := r.FormFile("documentFile")
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+				return
+			}
+			defer f.Close()
+			blobFile, err := fileHeader.Open()
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+
+				return
+			}
+			defer blobFile.Close()
+
+			fnameSplit := strings.Split(fileHeader.Filename, ".")
+			fileExtension := fnameSplit[len(fnameSplit)-1]
+
+			{
+				//check for unsupported extension
+				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png and gif are supported"})
+
+					return
+				}
+			}
+
+			// var tokenizationInput userModels.AssetTokenizationInputDocument
+
+			// err = c.ShouldBind(&tokenizationInput)
+			// // data, _ := io.ReadAll(c.Request.Body)
+			// // // log.Println(string(data))
+			// // err = json.Unmarshal(data, &tokenizationInput)
+
+			// var invalidJSON tErrors.ErrorInvalidJSON
+
+			// if err != nil {
+			// 	log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
+			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			// 	return
+			// }
+			// if tokenizationInput.DocumentType == "" {
+			// 	c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+			// 	return
+			// }
+			// if len(tokenizationInput.DocumentTitle) < 5 {
+			// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+			// 	return
+			// }
+			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+			if len(t.ID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				return
+			}
+			if t.AssetTokenizationStatus > 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+				return
+			}
+
+			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/logo %v", initiator.Username), gc.DB)
+
+			url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if initiator.PushNotificationToken != nil && len(url) > 0 {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+
+			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+			//At this point, there was no error.
+
+			c.JSON(http.StatusOK, url)
+		})
+
 		router.PUT("/v1/trovo-manager/tokenization/document", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 
 			var err error

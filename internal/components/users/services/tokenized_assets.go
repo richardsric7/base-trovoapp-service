@@ -320,6 +320,37 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 	return url, nil
 }
 
+func UploadTokenizationAssetLogo(user *userModels.User, ato *userModels.TokenizedAsset, file multipart.File, fileNameWithExt string, gc *sharedconfig.GlobalConfig) (string, error) {
+
+	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
+	if err != nil {
+		return "", err
+	}
+
+	//update the thumbnail url
+	url := fmt.Sprintf("https://storage.googleapis.com/%v/%v", gc.FirebaseStorageUploader.BucketName, newThumbnail)
+	//check if document already saved and then retireve it:
+	ato.AssetLogo = &url
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[UploadTokenizationAssetLogo] error saving asset logo to database [%v] for %v: %v\n", ato.ID, user.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+
+	user.InvalidateUserCache(gc)
+	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	if err == nil {
+		if owner.Username == user.Username {
+			user = &owner
+		}
+
+	}
+
+	return url, nil
+}
+
 func DeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
 	// var document userModels.AssetTokenizationDocument
 	ato, _, err := GetTokenizedAssetByID(tokenizationID, gc.DB)

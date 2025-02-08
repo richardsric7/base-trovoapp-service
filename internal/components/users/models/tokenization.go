@@ -791,10 +791,11 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetCode = &ti.AssetCode
 	}
 
-	if len(ti.AssetLogo) > 0 {
+	// if len(ti.AssetLogo) > 0 {
 
-		t.AssetLogo = &ti.AssetLogo
-	}
+	// 	t.AssetLogo = &ti.AssetLogo
+	// }
+
 	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
