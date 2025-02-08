@@ -5069,7 +5069,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			if !userServices.IsTokenizationMintingApprover(initiator.Username, gc.DB) || !userServices.IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
+			if !userServices.IsTokenizationMintingApprover(initiator.Username, gc.DB) && !userServices.IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have a permission for this operation."})
 				return
 			}
