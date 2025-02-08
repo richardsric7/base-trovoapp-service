@@ -104,6 +104,7 @@ type TokenizedAsset struct {
 	NumberOfTokenToBeIssued                     float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
 	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
 	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInFiat                                   float64                         `gorm:"default:0" json:"feeInFiat"`
 	NumberOfTokenToBeSold                       float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                *string                         `json:"walletToHoldAssetsNotForSale"`
@@ -116,6 +117,12 @@ type TokenizedAsset struct {
 	ProceedCycle                                *string                         `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
 	TokenizationFee                             TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	SECTokenizationFeePercent                   float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeValue                     float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
+	CustodianFeePercent                         float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeValue                           float64                         `gorm:"default:0" json:"custodianFeeValue"`
+	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
+	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
 	ProceedPayoutCurrency                       *string                         `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           *string                         `json:"exemptedCountries"`
@@ -294,6 +301,7 @@ type TokenizedAssetJSON struct {
 	NumberOfTokenToBeIssued                     float64                         `json:"numberOfTokenToBeIssued"`
 	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
 	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInFiat                                   float64                         `gorm:"default:0" json:"feeInFiat"`
 	NumberOfTokenToBeSold                       float64                         `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                string                          `json:"walletToHoldAssetsNotForSale"`
@@ -306,6 +314,12 @@ type TokenizedAssetJSON struct {
 	ProceedCycle                                string                          `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           uint64                          `json:"tokenizationFeeId"`
 	TokenizationFee                             TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	SECTokenizationFeePercent                   float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeValue                     float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
+	CustodianFeePercent                         float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeValue                           float64                         `gorm:"default:0" json:"custodianFeeValue"`
+	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
+	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
 	ProceedPayoutCurrency                       string                          `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           string                          `json:"exemptedCountries"`
@@ -620,7 +634,7 @@ func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfi
 }
 
 func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
-
+	//TODO: set the SEC fee, Custody fee, Asset manager fee and recover feeInFiat from total asset value
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
 	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
@@ -744,6 +758,8 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 
 	t.AssetCurrentValue = ti.AssetCurrentValue
 	t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
+
+	//autocompute
 	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
 
 	if len(ti.ProtectionMethods) > 0 {
@@ -791,17 +807,6 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetCode = &ti.AssetCode
 	}
 
-	// if len(ti.AssetLogo) > 0 {
-
-	// 	t.AssetLogo = &ti.AssetLogo
-	// }
-
-	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
-	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
-	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
-		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-	}
 	var feeCompo TokenizationFee
 	var assetFee float64
 
@@ -813,7 +818,14 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		// Calculate Fees
 		assetFee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		t.FeeInAsset = assetFee
+		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(2).InexactFloat64()
 
+	}
+	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
+	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
+		totalValuation := (ti.ValueOfTokenizedAsset + ti.AssetMscCostOutisdeOfValuation)
+		t.PricePerToken = decimal.NewFromFloat(totalValuation / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 	}
 
 	// auto calculate, token to be held is less the fee
@@ -954,6 +966,14 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.CreatedAt = ti.CreatedAt
 	t.UpdatedAt = ti.UpdatedAt
 	t.InitiatorUsername = ti.InitiatorUsername
+	t.FeeInAsset = ti.FeeInAsset
+	t.FeeInFiat = ti.FeeInFiat
+	t.SECTokenizationFeePercent = ti.SECTokenizationFeePercent
+	t.SECTokenizationFeeValue = ti.SECTokenizationFeeValue
+	t.AssetManagerFeePercent = ti.AssetManagerFeePercent
+	t.AssetManagerFeeValue = ti.AssetManagerFeeValue
+	t.CustodianFeePercent = ti.CustodianFeePercent
+	t.CustodianFeeValue = ti.CustodianFeeValue
 
 	if ti.InitialOwnerPreferredWalletAddress != nil {
 
