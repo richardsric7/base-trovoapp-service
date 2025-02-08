@@ -805,12 +805,12 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	onlyWithUserPermission := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlyWithUserPermission", "1")))
 
 	//get all wallets where user has access
-	sharedWallets := make([]string, 0)
-	if onlyWithUserPermission == "1" {
-		for _, w := range user.WalletsSharedWithUser {
-			sharedWallets = append(sharedWallets, w.WalletPublicKey)
-		}
-	}
+	// sharedWallets := make([]string, 0)
+	// if onlyWithUserPermission == "1" {
+	// 	for _, w := range user.WalletsSharedWithUser {
+	// 		sharedWallets = append(sharedWallets, w.WalletPublicKey)
+	// 	}
+	// }
 
 	var query *gorm.DB
 	var countQuery *gorm.DB
@@ -854,9 +854,10 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	}
 
 	if onlyWithUserPermission == "1" {
-		query = query.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
-		countQuery = countQuery.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
-
+		// query = query.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
+		// countQuery = countQuery.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
+		query = query.Where("lower(initiator_username) = ?", user.Username)
+		countQuery = countQuery.Where("lower(initiator_username) = ?", user.Username)
 	}
 
 	if len(initiatorUsername) > 2 {
@@ -867,16 +868,16 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	if len(tokenizationStatus) > 0 && onlyWithUserPermission == "1" {
 		ts, _ := strconv.ParseUint(strings.TrimSpace(tokenizationStatus), 10, 64)
 		tsInt := int(ts)
-		query = query.Where("Asset_Tokenization_Status = ?", tsInt)
-		countQuery = countQuery.Where("Asset_Tokenization_Status = ?", tsInt)
+		query = query.Where("asset_tokenization_status = ?", tsInt)
+		countQuery = countQuery.Where("asset_tokenization_status = ?", tsInt)
 
 	}
 
 	//get only market ready list
 	if onlyWithUserPermission == "0" {
 
-		query = query.Where("Asset_Tokenization_Status > ?", 3)
-		countQuery = countQuery.Where("Asset_Tokenization_Status > ?", 3)
+		query = query.Where("asset_tokenization_status > ?", 3)
+		countQuery = countQuery.Where("asset_tokenization_status > ?", 3)
 
 	}
 	if len(hasSecApproval) > 0 {
