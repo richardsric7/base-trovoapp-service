@@ -13,31 +13,31 @@ import (
 /*
 *
 *****DocumentType and codes****
-ProofOfAssetExistence = 1
-ProofOfAssetOwnership = 2
-ProofOfAssetStatusVerification = 3
-AssetCustodianAgreement = 4
-ProofOfAssetManager = 5
-AssetProtectionDocument = 6
-AssetValuationCertificate = 7
-AssetOwnerGovernmentID = 8
-ProofOfAssetCondtion = 9
-ThirdPartyTokenizationAgreement = 10
-ThirdPartyAssetOwnerBusinessRegistration = 11
-ThirdPartyAssetOwnerProofOfAddress = 12
-SEC Registration/Tokenization Approval = 13
-Compliance With Local Laws/regulation = 14
-Compliance With Environmental Standard = 15
-Environmental Impact Assessment Report = 16
-Proof Of Legal/Financial Counsel = 17
-Legal/Financial Advisor's Contract = 18
-Proof of existing mortgages or liens n asset = 19
-Proof of outstanding loans on asset = 20
-Proof of legal dispute or encumbrances on asset = 21
-ProofOfAssetAddress = 22
-TitleDeedsOrCertificates = 23
-OwnershipAgreements = 24
-EngineeringReportsForConstruction = 25
+ProofOfAssetExistence
+ProofOfAssetOwnership
+ProofOfAssetStatusVerification
+AssetCustodianAgreement
+ProofOfAssetManager
+AssetProtectionDocument
+AssetValuationCertificate
+AssetOwnerGovernmentID
+ProofOfAssetCondtion
+ThirdPartyTokenizationAgreement
+ThirdPartyAssetOwnerBusinessRegistration
+ThirdPartyAssetOwnerProofOfAddress
+SEC Registration/Tokenization Approval
+ComplianceWithLocalRegulation
+ComplianceWithEnvironmentalStandard
+EnvironmentalImpactAssessmentReport
+ProofOfLegalFinancialCounsel
+LegalFinancialAdvisorsContract
+ProofOfExistingMortgagesOrLiens&Asset
+ProofOfOutstandingLoansOnAsset
+ProofOfLegalDisputeOrEncumbrancesOnAsset
+ProofOfAssetAddress
+TitleDeedsOrCertificates
+OwnershipAgreements
+EngineeringReportsForConstruction
 
 *
 */
