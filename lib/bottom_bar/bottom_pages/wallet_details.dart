@@ -524,7 +524,6 @@ class _WalletDetailsState extends State<WalletDetails>
                       context,
                       assetCode: 'tokenizedAsset.assetCode!',
                       onDone: (walletPublicKey) {},
-                      dropdownItems: getStandardWallets,
                     );
             },
             style: ButtonStyle(

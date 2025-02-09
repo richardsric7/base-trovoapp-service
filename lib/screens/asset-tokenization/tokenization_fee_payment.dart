@@ -514,7 +514,6 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   void confirmPayments() async {
     try {
       showLoader(context);
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       // String requestBody = jsonEncode(appState.viewData);
       // print('requestBody  =======> $requestBody');
 
@@ -523,7 +522,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);
@@ -753,13 +752,12 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   ) async {
     try {
       showLoader(context);
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
 
       Map responseData = await makePutRequestForFeeRecieptUpload(
         uri: '/v1/tokenization/fee/${tokenizedAsset.id}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
         file: file,
         transactionReference: transactionReference ?? '',
         tokenizationFeePaymentMethodID: preferredPaymentMethod,
@@ -788,13 +786,12 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   Future<void> deleteFile(String documentId) async {
     try {
       showLoader(context);
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       Map requestBody = {};
       Map responseData = await makeDeleteRequest(
         uri: '/v1/tokenization/fee/$documentId',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
         body: jsonEncode(requestBody),
       );
 

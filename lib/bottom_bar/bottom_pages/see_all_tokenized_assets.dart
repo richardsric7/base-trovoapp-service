@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +8,12 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SeeAllTokenizedAssets extends StatefulWidget {
@@ -61,7 +61,13 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
               children: [
-                primaryOffers(),
+                Container(
+                  constraints: BoxConstraints(
+                    minWidth: double.infinity,
+                    minHeight: 500,
+                  ),
+                  child: primaryOffers(),
+                ),
                 SizedBox(
                   height: height / 20,
                 ),
@@ -101,7 +107,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: SizedBox(
-                      height: height / 6,
+                      height: 400,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -148,14 +154,37 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                                 page: TokenizedAssetDetailViewPageConfig,
                               );
                             },
-                            child: assetTile(item),
+                            child: tokenizedAssetTile(
+                              notifier: notifier,
+                              asset: item,
+                              onSubscribe: () {
+                                showSubscribePopup(
+                                  context,
+                                  assetCode: item.assetCode!,
+                                  onDone: (walletPublicKey) async {
+                                    setState(() {
+                                      var wallet = wallets
+                                          .where((wallet) =>
+                                              wallet.publicKey ==
+                                              walletPublicKey)
+                                          .first;
+                                      wallet.tokenizedAssets != null
+                                          ? wallet.tokenizedAssets!.add(item)
+                                          : wallet.tokenizedAssets = [item];
+
+                                      item.isSubscribed = true;
+                                    });
+                                  },
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ] else ...[
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
-                            height: height / 6,
+                            height: 400,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -193,202 +222,39 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
   }
 
   Future<List<TokenizedAsset>> fetchTokenizationList() async {
-    List<TokenizedAsset> tokenizedAssets = [];
-    if (appState.tempTokenizedAssetList.isEmpty) {
-      var savedAssets = await StoreData().storeGetData('tokenizedAsset');
-      if (savedAssets != null) {
-        for (int i = 0; i < savedAssets.length; i++) {
-          print(savedAssets[i]);
-          var a = TokenizedAsset().deserializeJson(savedAssets[i]);
-          a.usdPrice = 1.47;
-          a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-          a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-              a.numberOfTokenToBeIssued!);
-          tokenizedAssets.add(a);
+    try {
+      var uri = '/v1/tokenization/list?assetTokenizationStatus=2';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        List<TokenizedAsset> tokenizedAssets = [];
+        var assets = responseData['data']['records'];
+        await inspect(assets);
+        if (assets != null) {
+          for (int i = 0; i < assets.length; i++) {
+            inspect(assets[i]);
+            var a = TokenizedAsset().deserializeJson(assets[i]);
+            a.usdPrice = 1.47;
+            a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+            a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+                a.numberOfTokenToBeIssued!);
+            tokenizedAssets.add(a);
+          }
         }
+        return tokenizedAssets;
+      } else {
+        return Future.error('Error! Something went wrong.');
       }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
     }
-    appState.tempTokenizedAssetList = tokenizedAssets;
-    inspect(tokenizedAssets);
-    return tokenizedAssets;
-  }
-
-  Widget assetTile(TokenizedAsset asset) {
-    return Card(
-      elevation: notifier.isDark ? 0 : 5,
-      shadowColor: Colors.black,
-      color: notifier.gettilewihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-          title: Row(
-            children: [
-              if (asset.assetLogo != null) ...[
-                Image.memory(
-                  base64Decode(asset.assetLogo!),
-                  height: 35,
-                  width: 35,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/trovo.png',
-                      height: 35,
-                      width: 35,
-                    );
-                  },
-                ),
-              ] else ...[
-                Image.asset(
-                  'assets/images/trovo.png',
-                  height: 35,
-                  width: 35,
-                ),
-              ],
-              SizedBox(width: 20),
-              Container(
-                width: width / 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${asset.assetName!} (${asset.assetCode})',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                      child: Text(
-                        asset.assetSector!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          trailing: ElevatedButton(
-            onPressed: () async {
-              asset.isSubscribed ?? false
-                  ? showUnSubscribePopup(
-                      context,
-                      assetCode: asset.assetCode!,
-                      onDone: (walletPublicKey) {
-                        setState(() {
-                          var wallet = wallets
-                              .where((wallet) =>
-                                  wallet.publicKey == walletPublicKey)
-                              .first;
-                          wallet.tokenizedAssets!.removeWhere((a) =>
-                              a.assetCode == asset.assetCode &&
-                              a.assetIssuer == asset.assetIssuer);
-                          asset.isSubscribed = false;
-                        });
-                      },
-                      dropdownItems: getUnsubscribableWallets(asset),
-                    )
-                  : showSubscribePopup(
-                      context,
-                      assetCode: asset.assetCode!,
-                      onDone: (walletPublicKey) async {
-                        setState(() {
-                          var wallet = wallets
-                              .where((wallet) =>
-                                  wallet.publicKey == walletPublicKey)
-                              .first;
-                          wallet.tokenizedAssets != null
-                              ? wallet.tokenizedAssets!.add(asset)
-                              : wallet.tokenizedAssets = [asset];
-
-                          asset.isSubscribed = true;
-                        });
-                      },
-                      dropdownItems: getStandardWallets,
-                    );
-            },
-            style: ButtonStyle(
-              padding: MaterialStateProperty.all(
-                EdgeInsets.symmetric(vertical: 0, horizontal: 6),
-              ),
-              overlayColor:
-                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                asset.isSubscribed ?? false
-                    ? notifier.getbluewhitecolor
-                    : notifier.getwihitecolor,
-              ),
-              side: MaterialStateProperty.all(
-                BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                    style: BorderStyle.solid),
-              ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            child: Container(
-              width: width / 3.7,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    if (asset.isSubscribed ?? false) ...[
-                      Text(
-                        'Reserved',
-                        style: TextStyle(
-                          fontFamily: fontsemibold,
-                          fontSize: 12,
-                          color: asset.isSubscribed ?? false
-                              ? notifier.getwihitecolor
-                              : notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      Icon(
-                        Icons.check_circle_rounded,
-                        size: 20,
-                        color: asset.isSubscribed ?? false
-                            ? notifier.getwihitecolor
-                            : notifier.getbluewhitecolor,
-                      ),
-                    ] else ...[
-                      Text(
-                        'Reserve',
-                        style: TextStyle(
-                          fontFamily: fontsemibold,
-                          fontSize: 12,
-                          color: asset.isSubscribed ?? false
-                              ? notifier.getwihitecolor
-                              : notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      Icon(
-                        Icons.add_circle_rounded,
-                        size: 20,
-                        color: asset.isSubscribed ?? false
-                            ? notifier.getwihitecolor
-                            : notifier.getbluewhitecolor,
-                      ),
-                    ]
-                  ]),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   List<DropdownMenuItem<String>> get getStandardWallets {

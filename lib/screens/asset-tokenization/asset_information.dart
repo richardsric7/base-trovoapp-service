@@ -30,7 +30,6 @@ class _AssetInformation extends State<AssetInformation>
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late bool assetExisting;
   late String assetOwnership;
   late String thirdPartyOwnerType;
   late String assetDescription;
@@ -85,6 +84,7 @@ class _AssetInformation extends State<AssetInformation>
   bool riskManagementFullyInsured = false;
   bool riskManagementDeclaredValue = false;
   bool physicalConditionSound = false;
+  bool physicalConditionNoUndisclosedEasements = false;
   bool physicalConditionNolease = false;
   bool hasInsurance = false;
 
@@ -123,8 +123,7 @@ class _AssetInformation extends State<AssetInformation>
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-
-    assetExisting = data!['assetAlreadyExists'] == 1;
+    // inspect(data);
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
             ? data['ownershipType']
@@ -203,6 +202,8 @@ class _AssetInformation extends State<AssetInformation>
     riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
     riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
     physicalConditionSound = data['physicalConditionSound'] == 1;
+    physicalConditionNoUndisclosedEasements =
+        data['physicalConditionNoUndisclosedEasements'] == 1;
     physicalConditionNolease = data['physicalConditionNolease'] == 1;
     hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
     hasIndependentMonitoring =
@@ -254,86 +255,6 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Container(
-                width: width,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "selectwhatappliestoasset".tr(),
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: true,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          groupValue: assetExisting,
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "assetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: false,
-                          groupValue: assetExisting,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "assetnotyetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
               SizedBox(
                 height: height / 50,
@@ -2540,16 +2461,6 @@ class _AssetInformation extends State<AssetInformation>
                                   undertakingNoLien = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!undertakingNoLien) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2752,16 +2663,6 @@ class _AssetInformation extends State<AssetInformation>
                                   outstandingFinancialRespNoDebts = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!outstandingFinancialRespNoDebts) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2775,16 +2676,6 @@ class _AssetInformation extends State<AssetInformation>
                                   outstandingFinancialRespNoHiddenLiabilities =
                                       value!;
                                 });
-                              },
-                              validator: (value) {
-                                if (!outstandingFinancialRespNoHiddenLiabilities) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
                               },
                             ),
                           ],
@@ -2838,16 +2729,6 @@ class _AssetInformation extends State<AssetInformation>
                                   riskManagementFullyInsured = value!;
                                 });
                               },
-                              validator: (value) {
-                                if (!riskManagementFullyInsured) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
                             ),
                             SizedBox(
                               height: 10,
@@ -2859,16 +2740,6 @@ class _AssetInformation extends State<AssetInformation>
                                 setState(() {
                                   riskManagementDeclaredValue = value!;
                                 });
-                              },
-                              validator: (value) {
-                                if (!riskManagementDeclaredValue) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
                               },
                             ),
                           ],
@@ -2922,8 +2793,21 @@ class _AssetInformation extends State<AssetInformation>
                                   physicalConditionSound = value!;
                                 });
                               },
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CheckboxItem(
+                              value: physicalConditionNoUndisclosedEasements,
+                              label: "confirmnoundisclosedeasements".tr(),
+                              onChanged: (value) {
+                                setState(() {
+                                  physicalConditionNoUndisclosedEasements =
+                                      value!;
+                                });
+                              },
                               validator: (value) {
-                                if (!physicalConditionSound) {
+                                if (!physicalConditionNoUndisclosedEasements) {
                                   setState(() {
                                     formHasError = true;
                                   });
@@ -2994,7 +2878,6 @@ class _AssetInformation extends State<AssetInformation>
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       if (!hasInsurance) {
         insuranceCompanyName = "";
         insurancePolicyNumber = "";
@@ -3019,7 +2902,6 @@ class _AssetInformation extends State<AssetInformation>
       }
       var newData = {...data as Map};
 
-      newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
       newData['ownershipType'] = assetOwnership;
       newData['ownershipKind'] = thirdPartyOwnerType;
       newData['assetName'] = assetName;
@@ -3080,6 +2962,8 @@ class _AssetInformation extends State<AssetInformation>
       newData['riskManagementDeclaredValue'] =
           riskManagementDeclaredValue ? 1 : 0;
       newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
+      newData['physicalConditionNoUndisclosedEasements'] =
+          physicalConditionNoUndisclosedEasements ? 1 : 0;
       newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
       newData['hasInsurance'] = hasInsurance ? 1 : 0;
 
@@ -3091,7 +2975,7 @@ class _AssetInformation extends State<AssetInformation>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       print('responseData ${responseData['data']}');

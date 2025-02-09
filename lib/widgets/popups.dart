@@ -4147,15 +4147,15 @@ Future<PlatformFile?>? getFile() async {
 
 showSubscribePopup(
   context, {
-  required void Function(String walletPublicKey) onDone,
+  required void Function(String amount) onDone,
   required String assetCode,
-  required List<DropdownMenuItem<String>> dropdownItems,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
-  String selectedWalletPublicKey = '';
-  bool showNoSelectedWalletError = false;
+  String amount = '';
+  final _formKey = GlobalKey<FormState>();
+  final amountController = TextEditingController();
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4177,10 +4177,6 @@ showSubscribePopup(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      "assets/images/thinking_man.png",
-                      height: height / 4,
-                    ),
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4188,7 +4184,7 @@ showSubscribePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmsubscribewithwallet".tr(args: [assetCode]),
+                          "enterinterestedamount".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4197,52 +4193,56 @@ showSubscribePopup(
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {
-                          selectedWalletPublicKey = value.toString();
-                        },
-                        dropdownItems,
-                        null,
-                        "choosewallet".tr(),
-                        context,
-                        null,
-                      ),
-                    ),
-                    if (showNoSelectedWalletError) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              "pleaseselectwallet".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                  fontFamily: fontbody),
-                            ),
-                          ],
+                    Form(
+                      key: _formKey,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: CustomTextFormField.textField(
+                          "amount".tr(),
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          null,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          85,
+                          260,
+                          onChanged: (value) {
+                            setStateForDialog(() {
+                              amount = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value.toString().isEmpty) {
+                              return 'fieldcannotbeempty'.tr();
+                            }
+
+                            var parsedValue = double.tryParse(value);
+                            if (parsedValue == null ||
+                                parsedValue <= 0 ||
+                                parsedValue.isNaN) {
+                              return 'pleaseentervalidamount'.tr();
+                            }
+
+                            return null;
+                          },
+                          controller: amountController,
+                          autoFormatNumber: true,
+                          keyboardtype:
+                              TextInputType.numberWithOptions(decimal: true),
                         ),
                       ),
-                    ],
-                    SizedBox(
-                      height: height / 50,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          if (selectedWalletPublicKey.isEmpty) {
-                            setStateForDialog(() {
-                              showNoSelectedWalletError = true;
-                            });
+                          if (!_formKey.currentState!.validate()) {
                             return;
                           }
 
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedWalletPublicKey);
+                          onDone(amount);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4260,7 +4260,7 @@ showSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          "iwanttosubscribe".tr(),
+                          "continuee".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -5255,7 +5255,7 @@ addSubWalletPopup(context) async {
             child: Column(
           children: [
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Container(
               width: width / 1.4,
@@ -5272,7 +5272,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Text(
               "tag".tr(),
@@ -5293,7 +5293,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Text(
               "description".tr(),
@@ -5314,7 +5314,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Text(
               "method".tr(),
@@ -5337,7 +5337,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Text(
               "wallettype".tr(),
@@ -5358,7 +5358,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             Text(
               "publickey".tr(),
@@ -5382,7 +5382,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: 15,
             ),
             if (newSubWalletKeyPair.distributionWalletPublicKey != null) ...[
               Text(
@@ -5408,7 +5408,7 @@ addSubWalletPopup(context) async {
               ),
             ],
             SizedBox(
-              height: height / 20,
+              height: 30,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -5423,7 +5423,7 @@ addSubWalletPopup(context) async {
               ),
             ),
             SizedBox(
-              height: height / 30,
+              height: 20,
             ),
           ],
         )),
@@ -5450,9 +5450,7 @@ addSubWalletPopup(context) async {
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: 15),
         Form(
           key: _formKey2,
           child: Column(
@@ -5471,7 +5469,7 @@ addSubWalletPopup(context) async {
                     child: Column(
                       children: [
                         SizedBox(
-                          height: height / 50,
+                          height: 15,
                         ),
                         Container(
                           width: width / 1.4,
@@ -5486,7 +5484,7 @@ addSubWalletPopup(context) async {
                           ),
                         ),
                         SizedBox(
-                          height: height / 50,
+                          height: 15,
                         ),
                         Text(
                           "chooseamethod".tr(),
@@ -5498,28 +5496,31 @@ addSubWalletPopup(context) async {
                           ),
                         ),
                         SizedBox(
-                          height: height / 50,
+                          height: 15,
                         ),
                         Row(
                           children: [
                             SizedBox(
                               width: width / 10,
                             ),
-                            Transform.scale(
-                              scale: 1.5,
-                              child: Radio<WalletAction>(
-                                value: WalletAction.import,
-                                groupValue: action,
-                                activeColor: notifier.getbluewhitecolor,
-                                fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor),
-                                onChanged: (value) => {
-                                  setStateForDialog(
-                                    () {
-                                      action = value;
-                                    },
-                                  )
-                                },
+                            SizedBox(
+                              height: 20,
+                              child: Transform.scale(
+                                scale: 1.3,
+                                child: Radio<WalletAction>(
+                                  value: WalletAction.import,
+                                  groupValue: action,
+                                  activeColor: notifier.getbluewhitecolor,
+                                  fillColor: MaterialStateColor.resolveWith(
+                                      (states) => notifier.getbluewhitecolor),
+                                  onChanged: (value) => {
+                                    setStateForDialog(
+                                      () {
+                                        action = value;
+                                      },
+                                    )
+                                  },
+                                ),
                               ),
                             ),
                             Text(
@@ -5532,26 +5533,30 @@ addSubWalletPopup(context) async {
                             ),
                           ],
                         ),
+                        SizedBox(height: 15),
                         Row(
                           children: [
                             SizedBox(
                               width: width / 10,
                             ),
-                            Transform.scale(
-                              scale: 1.5,
-                              child: Radio<WalletAction>(
-                                value: WalletAction.createNew,
-                                activeColor: notifier.getbluewhitecolor,
-                                fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor),
-                                groupValue: action,
-                                onChanged: (value) => {
-                                  setStateForDialog(
-                                    () {
-                                      action = value;
-                                    },
-                                  )
-                                },
+                            SizedBox(
+                              height: 20,
+                              child: Transform.scale(
+                                scale: 1.3,
+                                child: Radio<WalletAction>(
+                                  value: WalletAction.createNew,
+                                  activeColor: notifier.getbluewhitecolor,
+                                  fillColor: MaterialStateColor.resolveWith(
+                                      (states) => notifier.getbluewhitecolor),
+                                  groupValue: action,
+                                  onChanged: (value) => {
+                                    setStateForDialog(
+                                      () {
+                                        action = value;
+                                      },
+                                    )
+                                  },
+                                ),
                               ),
                             ),
                             Text(
@@ -5564,9 +5569,7 @@ addSubWalletPopup(context) async {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: 15),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -5602,9 +5605,7 @@ addSubWalletPopup(context) async {
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: 15),
                           ],
                         ),
                         Padding(
@@ -5629,7 +5630,7 @@ addSubWalletPopup(context) async {
                 ),
               ),
               SizedBox(
-                height: height / 30,
+                height: 17,
               ),
               // Tag name
               CustomTextFormField.textField(
@@ -5658,7 +5659,7 @@ addSubWalletPopup(context) async {
                 helperText:
                     "${appState.userInfo!.username}_${newSubWalletKeyPair.tag}",
               ),
-              SizedBox(height: height / 50),
+              SizedBox(height: 15),
               CustomTextFormField.textField(
                 "description".tr(),
                 notifier.getbluecolor,
@@ -5679,7 +5680,7 @@ addSubWalletPopup(context) async {
                 validator: validateDescription,
               ),
               if (action == WalletAction.import) ...[
-                SizedBox(height: height / 50),
+                SizedBox(height: 15),
                 // Secret Key
                 CustomPasswordFormField(
                   "secretkey".tr(),
@@ -5889,7 +5890,7 @@ addSubWalletPopup(context) async {
                   });
                 },
               ),
-              SizedBox(height: height / 70),
+              SizedBox(height: 8),
               TextButton(
                 child: Text(
                   "cancel".tr(),
@@ -5911,7 +5912,7 @@ addSubWalletPopup(context) async {
                   ).pop(false);
                 },
               ),
-              SizedBox(height: height / 20),
+              SizedBox(height: 30),
             ],
           ),
         ),
@@ -5921,9 +5922,6 @@ addSubWalletPopup(context) async {
 
   Widget showWalletDetailsView(setStateForDialog) {
     return Column(children: [
-      SizedBox(
-        height: height / 50,
-      ),
       Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -5938,9 +5936,7 @@ addSubWalletPopup(context) async {
           ),
         ),
       ),
-      SizedBox(
-        height: height / 50,
-      ),
+      SizedBox(height: 15),
       Form(
         key: _formKey,
         child: Column(
@@ -5949,7 +5945,7 @@ addSubWalletPopup(context) async {
           ],
         ),
       ),
-      SizedBox(height: height / 50),
+      SizedBox(height: 15),
       CustomPasswordFormField(
         "password".tr(),
         notifier.getbluecolor,
@@ -5971,7 +5967,7 @@ addSubWalletPopup(context) async {
           newSubWalletKeyPair.secretKey = value!.trim().replaceAll(' ', '');
         },
       ),
-      SizedBox(height: height / 50),
+      SizedBox(height: 15),
       if (appState.biometricEnabled && password.isEmpty) ...[
         Button(
           "authorizewithbiometrics".tr(),
@@ -5989,7 +5985,7 @@ addSubWalletPopup(context) async {
           width: width / 1.5,
         ),
       ],
-      SizedBox(height: height / 70),
+      SizedBox(height: 8),
       TextButton(
           child: Text(
             "back".tr(),
@@ -6004,7 +6000,7 @@ addSubWalletPopup(context) async {
               walletView = WalletView.addSubWallet;
             });
           }),
-      SizedBox(height: height / 20),
+      SizedBox(height: 20),
     ]);
   }
 

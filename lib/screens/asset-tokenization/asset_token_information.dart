@@ -1791,7 +1791,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var newData = {...data as Map};
 
       newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
@@ -1832,7 +1831,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

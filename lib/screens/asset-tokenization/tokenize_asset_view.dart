@@ -326,7 +326,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeTokenizationWalletPublicKey!,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

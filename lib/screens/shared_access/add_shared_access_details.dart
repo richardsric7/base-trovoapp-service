@@ -700,7 +700,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                 BottomHomePageConfig,
                 WalletPreparationViewPageConfig,
               ]);
-              appState.setActiveTokenizationWalletPublicKey = null;
+              // appState.setActiveTokenizationWalletPublicKey = null;
               appState.viewData = {};
               appState.backupSecrets.clear();
               appState.returnView = null;

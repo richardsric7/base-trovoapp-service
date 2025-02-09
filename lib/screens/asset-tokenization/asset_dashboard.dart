@@ -469,57 +469,45 @@ class _AssetDashboardState extends State<AssetDashboard>
             ),
             infoTile(
               notifier,
-              'Asset Category',
+              'Sector',
               tokenizedAsset.assetSector ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Sub-Sector',
+              tokenizedAsset.assetSubSector ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Type',
+              tokenizedAsset.assetType ?? '',
             ),
             infoTile(notifier, 'Asset Country',
                 tokenizedAsset.assetCountryLocation ?? ''),
             infoTile(
               notifier,
-              'Asset Location Address',
+              'Address',
               tokenizedAsset.assetPhysicalAddress ?? '',
             ),
             infoTile(
               notifier,
-              'Asset Issuer',
+              'Issuer',
               tokenizedAsset.assetIssuer ?? '',
             ),
             infoTile(
               notifier,
-              'Asset Issuer Website',
+              'Issuer Website',
               'www.${tokenizedAsset.assetCode!.toLowerCase()}.com',
             ),
-            infoTile(notifier, 'Asset Token Total Supply',
-                '${tokenizedAsset.numberOfTokenToBeIssued.toString()} ${tokenizedAsset.assetCode}'),
             infoTile(
               notifier,
-              'Asset Tokens Quantity Purchased',
-              '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
-            ),
-            infoTile(
-              notifier,
-              'Total Subscribed Users',
-              '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
-            ),
-            infoTile(
-              notifier,
-              'Price Per Asset Token',
-              '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-            ),
-            infoTile(
-              notifier,
-              'Asset Token Purchase Method',
-              tokenizedAsset.assetQuoteCurrency ?? '',
-            ),
-            infoTile(
-              notifier,
-              'Asset Token Sales Window',
+              'Sales Window',
               '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
             ),
             infoTile(
               notifier,
-              'Token Sale Cap',
-              '${tokenizedAsset.capQuantity} ${tokenizedAsset.assetCode}',
+              'Cap Quantity',
+              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
             ),
             infoTile(
               notifier,
@@ -530,11 +518,6 @@ class _AssetDashboardState extends State<AssetDashboard>
               notifier,
               'Proceed Payout Cycle',
               tokenizedAsset.proceedCycle ?? '',
-            ),
-            infoTile(
-              notifier,
-              'Payout Method',
-              tokenizedAsset.proceedPayoutCurrency ?? '',
             ),
             infoTile(
               notifier,
@@ -560,7 +543,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Verified Proof of Existence',
+                            'Proof of Existence',
                             style: TextStyle(
                               fontSize: 13,
                               fontFamily: fontsemibold,
