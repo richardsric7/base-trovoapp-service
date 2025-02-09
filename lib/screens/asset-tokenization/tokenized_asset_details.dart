@@ -407,18 +407,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Issuer Website',
               'www.${tokenizedAsset.assetCode!.toLowerCase()}.com',
             ),
-            infoTile(notifier, 'Asset Token Total Supply',
-                '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
-            infoTile(
-              notifier,
-              'Asset Tokens Quantity Purchased',
-              '${getFiatValue(tokenizedAsset.amount ?? 0)}',
-            ),
-            infoTile(
-              notifier,
-              'Total Subscribed Users',
-              '2,000',
-            ),
             infoTile(
               notifier,
               'Sales Window',
@@ -648,14 +636,5 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         ),
       ),
     );
-  }
-
-  String getFiatValue(double amount) {
-    if (amount < 99000000000) {
-      return formatNumberShort(amount);
-    }
-    return formatHistoryNumber(amount, 99000000000)
-        .toString()
-        .replaceAll(',', '');
   }
 }

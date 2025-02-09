@@ -30,7 +30,6 @@ class _AssetInformation extends State<AssetInformation>
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late bool assetExisting;
   late String assetOwnership;
   late String thirdPartyOwnerType;
   late String assetDescription;
@@ -125,7 +124,6 @@ class _AssetInformation extends State<AssetInformation>
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     // inspect(data);
-    assetExisting = data!['assetAlreadyExists'] == 1;
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
             ? data['ownershipType']
@@ -257,86 +255,6 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Container(
-                width: width,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "selectwhatappliestoasset".tr(),
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: true,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          groupValue: assetExisting,
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "assetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: false,
-                          groupValue: assetExisting,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
-                          onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
-                          },
-                        ),
-                      ),
-                      Text(
-                        "assetnotyetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
               SizedBox(
                 height: height / 50,
@@ -2960,7 +2878,6 @@ class _AssetInformation extends State<AssetInformation>
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       if (!hasInsurance) {
         insuranceCompanyName = "";
         insurancePolicyNumber = "";
@@ -2985,7 +2902,6 @@ class _AssetInformation extends State<AssetInformation>
       }
       var newData = {...data as Map};
 
-      newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
       newData['ownershipType'] = assetOwnership;
       newData['ownershipKind'] = thirdPartyOwnerType;
       newData['assetName'] = assetName;
@@ -3059,7 +2975,7 @@ class _AssetInformation extends State<AssetInformation>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       print('responseData ${responseData['data']}');

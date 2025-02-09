@@ -288,7 +288,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeTokenizationWalletPublicKey!,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

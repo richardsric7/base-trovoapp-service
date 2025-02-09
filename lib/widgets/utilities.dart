@@ -977,6 +977,15 @@ Widget tokenizedAssetTile({
   );
 }
 
+String getFiatValue(double amount) {
+  if (amount < 99000000000) {
+    return formatNumberShort(amount);
+  }
+  return formatHistoryNumber(amount, 99000000000)
+      .toString()
+      .replaceAll(',', '');
+}
+
 Widget infoTile(ColorNotifier notifier, String key, String value) {
   return Card(
     elevation: notifier.isDark ? 0 : 3,

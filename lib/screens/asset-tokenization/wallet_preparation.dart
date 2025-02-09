@@ -11,7 +11,6 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -100,19 +99,19 @@ class _WalletPreparationState extends State<WalletPreparation>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
-                if (appState.activeTokenizationWalletPublicKey == null) {
-                  popup(context,
-                      title: 'Error',
-                      message: 'Please select your asset tokenization wallet');
-                  return;
-                }
+                // if (appState.activeTokenizationWalletPublicKey == null) {
+                //   popup(context,
+                //       title: 'Error',
+                //       message: 'Please select your asset tokenization wallet');
+                //   return;
+                // }
 
-                if (appState.activeDistributionWalletPublicKey == null) {
-                  popup(context,
-                      title: 'Error',
-                      message: 'Please select your asset distribution wallet');
-                  return;
-                }
+                // if (appState.activeDistributionWalletPublicKey == null) {
+                //   popup(context,
+                //       title: 'Error',
+                //       message: 'Please select your asset distribution wallet');
+                //   return;
+                // }
 
                 appState.viewData = {};
                 appState.currentAction = PageAction(
@@ -179,23 +178,23 @@ class _WalletPreparationState extends State<WalletPreparation>
           SizedBox(
             height: height / 70,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: dropdown(
-              (value) {
-                var wallet = value as Wallet;
-                appState.setActiveTokenizationWalletPublicKey =
-                    wallet.publicKey;
-                appState.setActiveDistributionWalletPublicKey =
-                    wallet.linkedWalletPublicKey;
-              },
-              getIssuingWallets,
-              null,
-              getHintTextForMintingWallet(),
-              context,
-              null,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          //   child: dropdown(
+          //     (value) {
+          //       var wallet = value as Wallet;
+          //       // appState.setActiveTokenizationWalletPublicKey =
+          //       //     wallet.publicKey;
+          //       // appState.setActiveDistributionWalletPublicKey =
+          //       //     wallet.linkedWalletPublicKey;
+          //     },
+          //     getIssuingWallets,
+          //     null,
+          //     getHintTextForMintingWallet(),
+          //     context,
+          //     null,
+          //   ),
+          // ),
           SizedBox(
             height: height / 70,
           ),
@@ -245,14 +244,14 @@ class _WalletPreparationState extends State<WalletPreparation>
     );
   }
 
-  String getHintTextForMintingWallet() {
-    var wallet = appState.userInfo!.getMintingWallets.where(
-        (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
+  // String getHintTextForMintingWallet() {
+  //   var wallet = appState.userInfo!.getMintingWallets.where(
+  //       (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
 
-    return wallet.length > 0
-        ? wallet.first.alias!
-        : 'Select tokenization wallet';
-  }
+  //   return wallet.length > 0
+  //       ? wallet.first.alias!
+  //       : 'Select tokenization wallet';
+  // }
 
   Widget CheckItem(
     String name,

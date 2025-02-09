@@ -992,13 +992,11 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   ) async {
     try {
       showLoader(context);
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
-
       Map responseData = await makePutRequestForMultipartDocumentUpload(
         uri: '/v1/tokenization/document',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
         file: file,
         tokenizedAssetId: appState.viewData!['id'],
         documentTitle: documentTitle.toLowerCase().replaceAll(' ', '-'),
@@ -1027,13 +1025,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   Future<void> deleteFile(String documentId) async {
     try {
       showLoader(context);
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       Map requestBody = {};
       Map responseData = await makeDeleteRequest(
         uri: '/v1/tokenization/document/$documentId',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: mintingWalletPublicKey,
+        publicKey: appState.primaryWallet.signer!,
         body: jsonEncode(requestBody),
       );
 

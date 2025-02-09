@@ -38,13 +38,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
+  bool assetExisting = false;
   String selectedAssetSectorId = '';
   String selectedAssetSubSectorId = '';
   String selectedAssetTypeId = '';
   String selectedAssetCustodian = '';
   String selectedAssetManager = '';
   String secApprovalId = '';
-  String tokenizationRequirementsUrl = '';
+  String tokenizationRequirementsUrl =
+      'https://tokenization-requirements-app-xu8c6.ondigitalocean.app';
   bool formHasError = false;
   bool isCountryPickerOpen = false;
   late dynamic data = {};
@@ -71,6 +73,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetSectorId = data!["assetSector"];
       selectedAssetSubSectorId = data!["assetSubSector"];
       selectedAssetTypeId = data!["assetType"];
+      assetExisting = data!['assetAlreadyExists'] == 1;
       offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
       secApprovalId = data!["secApprovalIdNumber"];
       hasSecApproval = data!["secApproval"] == 1;
@@ -79,9 +82,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetManager = data!["assetManagerId"].toString();
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
-      // hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
-      tokenizationRequirementsUrl =
-          'https://tokenization-requirements-app-xu8c6.ondigitalocean.app';
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
     }
@@ -252,6 +252,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     selectedAssetSectorId = value.toString();
                     assetSectors = getAssetSubsectorList(
                         tokenizationData, selectedAssetSectorId);
+                    selectedAssetSubSectorId = '';
                   });
                 },
                 assetSectors,
@@ -357,6 +358,96 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   return null;
                 },
               ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Container(
+              width: width,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Text(
+                  "selectwhatappliestoasset".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Transform.scale(
+                        scale: 1,
+                        child: Radio<bool>(
+                          value: true,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: MaterialStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor),
+                          groupValue: assetExisting,
+                          onChanged: (value) => {
+                            setState(
+                              () {
+                                assetExisting = value!;
+                              },
+                            )
+                          },
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "assetexisting".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 70),
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Transform.scale(
+                        scale: 1,
+                        child: Radio<bool>(
+                          value: false,
+                          groupValue: assetExisting,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: MaterialStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor),
+                          onChanged: (value) => {
+                            setState(
+                              () {
+                                assetExisting = value!;
+                              },
+                            )
+                          },
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "assetnotyetexisting".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             SizedBox(
               height: height / 30,
@@ -565,8 +656,20 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                onPressed: () =>
-                    appState.goToWebView(tokenizationRequirementsUrl),
+                onPressed: () {
+                  if (selectedAssetSectorId.isEmpty) {
+                    popup(context,
+                        title: "info".tr(),
+                        message:
+                            'You must select an asset sector before you can view the requirements.');
+                    return;
+                  }
+
+                  var url =
+                      '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
+                  print(url);
+                  appState.goToWebView(url);
+                },
                 child: Text(
                   "doyouhaverequiredmanagerdocs".tr(),
                   style: TextStyle(
@@ -744,20 +847,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     if (!form!.validate() || formHasError) return;
 
-    // if (!hasAllRequiredCustodianDocuments) {
-    //   message +=
-    //       "You need to acquire all the documents in the asset custodian's required documents list before you can proceed.\n\n";
-    // }
-
     if (!hasAllRequiredManagerDocuments) {
       message +=
           "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
     }
-
-    // if (!agreeTransferTitleToCustodian) {
-    //   message +=
-    //       "Tokenizing your asset requires transferring it to a licensed Asset Custodian.\n\n";
-    // }
 
     if (message.isNotEmpty) {
       popup(context, title: "info".tr(), message: message);
@@ -766,10 +859,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credential
-      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
-      var marketMakingWallet = appState.activeDistributionWalletPublicKey!;
       var newData = {...data as Map};
 
       Map map = {
@@ -784,7 +873,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             ? int.parse(selectedAssetManager)
             : 1,
         "agreeTransferTitleToCustodian": agreeTransferTitleToCustodian ? 1 : 0,
-        "marketMakingWallet": marketMakingWallet,
+        "assetAlreadyExists": assetExisting ? 1 : 0,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
         "assetCountryLocation": selectedCountry,
@@ -811,7 +900,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "investorAccreditationRequired":
             newData['investorAccreditationRequired'],
         "tokenizationFeeId": newData['tokenizationFeeId'],
-        "assetAlreadyExists": newData['assetAlreadyExists'],
         "ownershipType": newData['ownershipType'],
         "ownershipKind": newData['ownershipKind'],
         "assetDescription": newData['assetDescription'],
@@ -879,12 +967,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
-        uri: '/v1/tokenization',
-        body: requestBody,
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWalletPublicKey,
-      );
+          uri: '/v1/tokenization',
+          body: requestBody,
+          signer: appState.primaryWallet.signer!,
+          secretKey: appState.secretKeys[0], // the primary wallet secret key
+          publicKey: appState.primaryWallet.signer!);
       hideLoader(context);
 
       print('responseData ${responseData['data']}');
@@ -892,21 +979,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
-        // appState.viewData!["assetSector"] = selectedAssetSectorId;
-        // appState.viewData!["assetSubSector"] = selectedAssetSubSectorId;
-        // appState.viewData!["assetType"] = selectedAssetTypeId;
-        // appState.viewData!["offeringType"] =
-        //     offeringType == 1 ? 'private' : 'public';
-        // appState.viewData!["approvedAssetCustodianId"] =
-        //     selectedAssetCustodian.length > 0
-        //         ? int.parse(selectedAssetCustodian)
-        //         : 1;
-        // appState.viewData!["marketMakingWallet"] = marketMakingWallet;
-        // appState.viewData!["secApproval"] = hasSecApproval ? 1 : 0;
-        // appState.viewData!["secApprovalIdNumber"] = secApprovalId;
-        // appState.viewData!["assetCountryLocation"] = selectedCountry;
-        // appState.viewData!["assetCountryLocation"] = selectedCountry;
-        // appState.viewData!["assetCountryLocation"] = selectedCountry;
 
         appState.currentAction = PageAction(
             state: PageState.addPage, page: TokenizeAssetViewPageConfig);
@@ -1077,7 +1149,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeTokenizationWalletPublicKey!,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

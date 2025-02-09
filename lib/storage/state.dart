@@ -187,18 +187,6 @@ class DataProvider with ChangeNotifier {
 
   List<String> backupSecrets = [];
 
-  String? activeTokenizationWalletPublicKey;
-  set setActiveTokenizationWalletPublicKey(value) {
-    activeTokenizationWalletPublicKey = value;
-    notifyListeners();
-  }
-
-  String? activeDistributionWalletPublicKey;
-  set setActiveDistributionWalletPublicKey(value) {
-    activeDistributionWalletPublicKey = value;
-    notifyListeners();
-  }
-
   TokenizedAsset? tokenizedAsset = null;
   List<TokenizedAsset> tempTokenizedAssetList = [];
 

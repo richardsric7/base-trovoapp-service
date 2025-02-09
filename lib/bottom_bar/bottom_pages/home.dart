@@ -79,7 +79,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
-    primaryOffersListFuture = fetchTokenizationList(status: 2);
+    primaryOffersListFuture = fetchTokenizationList(status: 3);
     secondaryListItemsFuture = fetchTokenizationList(status: 6);
   }
 
@@ -441,7 +441,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             onPressed: () {
                               setState(() {
                                 primaryOffersListFuture =
-                                    fetchTokenizationList(status: 2);
+                                    fetchTokenizationList(status: 3);
                               });
                             },
                             style: ButtonStyle(

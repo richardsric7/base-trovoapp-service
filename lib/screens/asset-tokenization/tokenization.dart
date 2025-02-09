@@ -190,18 +190,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                           "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
                                   return;
                                 }
-                                List<String> excludedWallets = [];
-                                for (var asset in tokenizedAssets) {
-                                  excludedWallets
-                                      .add(asset['issuingWalletPublicKey']);
-                                }
-                                appState.viewData = {
-                                  'excludedWallets': excludedWallets,
-                                };
+
+                                appState.viewData = {};
+
                                 hasInitiatorAccess
                                     ? appState.currentAction = PageAction(
                                         state: PageState.addPage,
-                                        page: WalletPreparationViewPageConfig,
+                                        page: SetupAndComplianceViewPageConfig,
                                       )
                                     : showCreateTokenizationWalletPopup(
                                         context);
@@ -346,110 +341,49 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                               ),
                             ),
                             SizedBox(height: height / 90),
-                            Row(
+                            Column(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20),
-                                  child: Text(
-                                    'Sort by:',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
+                                for (var i = 0; i < records.length; i++) ...[
+                                  GestureDetector(
+                                    onTap: () async {
+                                      appState.viewData = tokenizedAssets[i];
+
+                                      if (records[i].tokenizationStatus == 0) {
+                                        appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page:
+                                              SetupAndComplianceViewPageConfig,
+                                        );
+
+                                        return;
+                                      }
+
+                                      if (records[i].tokenizationStatus == 1) {
+                                        appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page:
+                                              ConfirmTokenizationDetailsViewPageConfig,
+                                        );
+                                        return;
+                                      }
+
+                                      appState.tokenizedAsset = records[i];
+                                      appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: AssetDashboardViewPageConfig,
+                                      );
+                                    },
+                                    child: assetTile(
+                                      records[i].assetLogo ?? '',
+                                      '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
+                                      '${records[i].assetSubSector}',
+                                      getTokenizationStatus(
+                                          records[i].tokenizationStatus),
                                     ),
                                   ),
-                                ),
-                                Container(
-                                  width: 250,
-                                  child: dropdown(
-                                    (value) {
-                                      setState(() {
-                                        listMode =
-                                            value as TokenizedAssetListMode;
-                                      });
-                                    },
-                                    getItems,
-                                    null,
-                                    "all".tr(),
-                                    context,
-                                    null,
-                                  ),
-                                ),
-                                // Text(
-                                //   'All',
-                                //   style: TextStyle(
-                                //     fontSize: 13,
-                                //     fontFamily: fontsemibold,
-                                //     color: notifier.getbluewhitecolor,
-                                //   ),
-                                // ),
+                                ],
+                                SizedBox(height: height / 20),
                               ],
-                            ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
-                            Container(
-                              height: height / 1.96,
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    for (var i = 0;
-                                        i < records.length;
-                                        i++) ...[
-                                      GestureDetector(
-                                        onTap: () async {
-                                          appState.viewData =
-                                              tokenizedAssets[i];
-                                          appState.setActiveTokenizationWalletPublicKey =
-                                              appState.viewData![
-                                                  'issuingWalletPublicKey'];
-                                          appState.setActiveDistributionWalletPublicKey =
-                                              appState.viewData![
-                                                  'marketMakingWallet'];
-
-                                          if (records[i].tokenizationStatus ==
-                                              0) {
-                                            appState.currentAction = PageAction(
-                                              state: PageState.addPage,
-                                              page:
-                                                  SetupAndComplianceViewPageConfig,
-                                            );
-
-                                            return;
-                                          }
-
-                                          if (records[i].tokenizationStatus ==
-                                              2) {
-                                            appState.tokenizedAsset =
-                                                records[i];
-                                            appState.currentAction = PageAction(
-                                              state: PageState.addPage,
-                                              page:
-                                                  AssetDashboardViewPageConfig,
-                                            );
-                                            return;
-                                          }
-
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page:
-                                                ConfirmTokenizationDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: assetTile(
-                                          records[i].assetLogo ?? '',
-                                          '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
-                                          '${records[i].assetSubSector}',
-                                          getTokenizationStatus(
-                                              records[i].tokenizationStatus),
-                                        ),
-                                      ),
-                                    ],
-                                    SizedBox(height: height / 20),
-                                  ],
-                                ),
-                              ),
                             ),
                           ],
                         );
@@ -718,7 +652,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
-                    color: getStatusColor(status),
+                    color: notifier.getbluewhitecolor,
                     overflow: TextOverflow.visible,
                   ),
                 ),
@@ -787,22 +721,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       case 0:
         return 'Continue';
       case 1:
-        return 'Submitted';
-      case 2:
-        return 'Processing';
+        return 'Awaiting Fee';
+      case 5:
+        return 'Primary Sales';
+      case 6:
+        return 'Secondary Sales';
+      case 7:
+        return 'Liquidated';
       default:
-        return 'Rejected';
-    }
-  }
-
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'rejected':
-        return Colors.red;
-      case 'submitted':
-        return notifier.getgreencolor;
-      default: // pending
-        return notifier.getbluewhitecolor;
+        return 'Processing';
     }
   }
 }
