@@ -98,6 +98,7 @@ type TokenizedAsset struct {
 	PercentageValueOfInsurance                  float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances              int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
 	AssetAlreadyExists                          int                             `gorm:"default:1" json:"assetAlreadyExists"`
+	VettingStatus                               int                             `gorm:"default:0" json:"vettingStatus"`
 	AssetTokenizationDocuments                  []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
 	AssetCode                                   *string                         `json:"assetCode"`
@@ -254,6 +255,13 @@ type TokenizedAssetJSONInput struct {
 	PhysicalConditionNolease                    int          `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int          `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
+
+type VetTokenizedAssetJSONInput struct {
+	ApprovedAssetCustodianID uint64   `gorm:"not null" json:"approvedAssetCustodianId"`
+	AssetManagerID           uint64   `json:"assetManagerId"`
+	Messages                 []string `json:"messages"`
+}
+
 type TokenizedAssetJSON struct {
 	ID                                          string                          `json:"id"`
 	CreatedAt                                   time.Time                       `json:"createdAt"`
@@ -297,6 +305,7 @@ type TokenizedAssetJSON struct {
 	PercentageValueOfInsurance                  float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances              int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
 	AssetAlreadyExists                          int                             `gorm:"default:1" json:"assetAlreadyExists"`
+	VettingStatus                               int                             `gorm:"default:0" json:"vettingStatus"`
 	AssetTokenizationDocuments                  []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
 	AssetCode                                   string                          `json:"assetCode"`
@@ -566,6 +575,28 @@ type NonExistingAssetValidationAssetDocument struct {
 }
 type NonExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+
+type AssetTokenizationDocumentID uint64
+
+func (did AssetTokenizationDocumentID) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	//get document
+	var d AssetTokenizationDocument
+	e := gc.DB.Where("id = ?", uint64(did)).First(&d).Error
+	if e != nil {
+		log.Printf("[AssetTokenizationDocumentID::GetTokenization] Error getting tokenized asset for document ID %v, %v\n", uint64(did), e)
+		return
+	}
+
+	e = gc.DB.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("id = ?", string(d.TokenizedAssetID)).First(&t).Error
+	if e != nil {
+		log.Printf("[AssetTokenizationDocumentID::GetTokenization] Error getting tokenized asset for %v, %v\n", d.TokenizedAssetID, e)
+	}
+	return
+}
+
+func (i IssuingWalletPublicKey) GetTokenizationByDocumentID(did uint64, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	return AssetTokenizationDocumentID(did).GetTokenization(gc)
 }
 
 // GetTokenization gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
@@ -977,6 +1008,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.AssetManagerFeeValue = ti.AssetManagerFeeValue
 	t.CustodianFeePercent = ti.CustodianFeePercent
 	t.CustodianFeeValue = ti.CustodianFeeValue
+	t.VettingStatus = ti.VettingStatus
+
 	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
 
 	if ti.InitialOwnerPreferredWalletAddress != nil {

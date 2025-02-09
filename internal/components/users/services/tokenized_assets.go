@@ -143,6 +143,10 @@ func GetTokenizationCurrencies(db *gorm.DB) (currencies []userModels.Tokenizatio
 	return
 }
 
+func GetTokenizationByDocumentID(did uint64, gc *sharedconfig.GlobalConfig) (t userModels.TokenizedAsset) {
+	return userModels.AssetTokenizationDocumentID(did).GetTokenization(gc)
+}
+
 func GetTokenizationCurrencyByCode(code string, db *gorm.DB) (currency userModels.TokenizationCurrency) {
 	db.Where("asset_code = ?", strings.ToUpper(code)).First(&currency)
 
@@ -543,7 +547,9 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, err
-} //SubmitTokenizationAssetInfo used by trovoManager
+}
+
+// SubmitTokenizationAssetInfo used by trovoManager
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
 	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
@@ -708,6 +714,59 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		return
 	}
 
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, issuingWallet, nil
+}
+
+// VetTokenizationAssetInfo used by trovoManager
+func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.VetTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		// error tokenization is already in progress
+		log.Printf("[VetTokenizationAssetInfo] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+
+	//tokenization existing
+	if ato.AssetTokenizationStatus > 1 {
+		// error tokenization is already in progress
+		log.Printf("[VetTokenizationAssetInfo] Error tokenization information submission has passed vetting stage and cannot be modified: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization request has passed the vetting stage."}
+		return
+
+	}
+
+	// initialize message array
+	input.Messages = make([]string, 0)
+	// check asset manager ID
+	if input.AssetManagerID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
+	if am.ID == 0 {
+		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
+		return
+	}
+	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
+	ato.AssetManagerID = input.AssetManagerID
+	ato.VettingStatus = 1
+
+	ato.LastUpdatedBy = &initiator.Username
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
