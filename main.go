@@ -1018,7 +1018,7 @@ func ProcessOperation(o operations.Operation, gc *sharedconfig.GlobalConfig) {
 		invalidateCache(pmt.ID)
 		invalidateCache(pmt.SponsoredID)
 		invalidateCache(pmt.SourceAccount)
-	} else if o.GetType() == "set_options" {
+	} else if o.GetType() == "bump_sequence" {
 		//payment transaction.
 
 		pmt := interface{}(o).(operations.BumpSequence)
@@ -1051,7 +1051,7 @@ func ProcessOperation(o operations.Operation, gc *sharedconfig.GlobalConfig) {
 		invalidateCache(pmt.SourceAccount)
 	} else if o.GetType() == "claim_claimable_balance" {
 
-		pmt := interface{}(o).(operations.CreatePassiveSellOffer)
+		pmt := interface{}(o).(operations.ClaimClaimableBalance)
 		invalidateCache(pmt.ID)
 		// invalidateCache(pmt.)
 		invalidateCache(pmt.SourceAccount)
