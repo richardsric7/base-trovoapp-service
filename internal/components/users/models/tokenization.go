@@ -167,96 +167,91 @@ type TokenizedAsset struct {
 }
 
 type TokenizedAssetJSONInput struct {
-	AssetSector                          string       `json:"assetSector"`
-	AssetSubSector                       string       `json:"assetSubSector"`
-	AssetType                            string       `json:"assetType"`
-	AssetName                            string       `json:"assetName"`
-	ApprovedAssetCustodianID             uint64       `gorm:"not null" json:"approvedAssetCustodianId"`
-	OfferingType                         string       `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                        string       `gorm:"null" json:"closedGroupId"`
-	SecApproval                          int          `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                  string       `json:"secApprovalIdNumber"`
-	MarketMakingWallet                   string       `json:"marketMakingWallet"`
-	AssetDescription                     string       `json:"assetDescription"`
-	AssetCountryLocation                 string       `json:"assetCountryLocation"`
-	AssetPhysicalAddress                 string       `json:"assetPhysicalAddress"`
-	AssetLongitude                       string       `json:"assetLongitude"`
-	AssetLatitude                        string       `json:"assetLatitude"`
-	OwnershipType                        string       `json:"ownershipType"` //DIRECT,THIRD-PARTY
-	OwnershipKind                        string       `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
-	InitialOwnerPreferredWalletAddress   string       `json:"initialOwnerPreferredWalletAddress"`
-	AssetOwnerName                       string       `json:"assetOwnerName"`
-	AssetOwnerRetainedOrContributedValue float64      `json:"assetOwnerRetainedOrContributedValue"`
-	AssetOwnerAddress                    string       `json:"assetOwnerAddress"`
-	AssetManagerID                       uint64       `json:"assetManagerId"`
-	AssetManager                         AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetQuoteCurrency                   string       `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
-	AssetCurrentValue                    float64      `gorm:"default:0" json:"assetCurrentValue"`
-	AssetMscCostOutisdeOfValuation       float64      `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
-	// ValueOfTokenizedAsset                       float64      `gorm:"default:0" json:"valueOfTokenizedAsset"`
-	ProtectionMethods                           string    `json:"protectionMethods"` //csv format
-	InsuranceCompanyName                        string    `json:"insuranceCompanyName"`
-	InsurancePolicyNumber                       string    `json:"insurancePolicyNumber"`
-	InsurancePolicyHolder                       string    `json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance                  float64   `gorm:"default:0" json:"percentageValueOfInsurance"`
-	IsFreeFromLiensAndEncumbrances              int       `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
-	AssetAlreadyExists                          int       `gorm:"default:1" json:"assetAlreadyExists"`
-	AssetCode                                   string    `json:"assetCode"`
-	AssetLogo                                   string    `json:"assetLogo"`
-	NumberOfTokenToBeIssued                     float64   `json:"numberOfTokenToBeIssued"`
-	NumberOfTokenToBeSold                       float64   `json:"numberOfTokenToBeSold"`
-	TotalTokenHeldByManager                     float64   `json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale                string    `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
-	PricePerToken                               float64   `json:"pricePerToken"`
-	SalesStart                                  time.Time `json:"salesStart"`
-	SalesEnd                                    time.Time `json:"salesEnd"`
-	CapOnPurchase                               float64   `gorm:"default:0" json:"capOnPurchase"`
-	CapQuantity                                 float64   `gorm:"default:0" json:"capQuantity"`
-	CapDurationInDays                           int       `gorm:"default:0" json:"capDurationInDays"`
-	ProceedCycle                                string    `gorm:"size:50" json:"proceedCycle"`
-	TokenizationFeeID                           uint64    `json:"tokenizationFeeId"`
-	ProceedPayoutCurrency                       string    `json:"proceedPayoutCurrency"`
-	ProceedPayoutType                           int       `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0. FIAT requires fiat payment method.
-	ExemptedCountries                           string    `json:"exemptedCountries"`
-	HasAdditionalKYCRequirements                int       `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
-	AdditionalKYCRequirements                   string    `json:"additionalKYCRequirements"`
-	InvestorAccreditationRequired               int       `gorm:"default:0" json:"investorAccreditationRequired"`
-	Messages                                    []string  `json:"messages"`
-	AgreeTransferTitleToCustodian               int       `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
-	ContractualProtectionRevGuarantees          int       `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
-	ContractualProtectionPerfBond               int       `gorm:"default:0" json:"contractualProtectionPerfBond"`
-	ContractualProtectionSLA                    int       `gorm:"default:0" json:"contractualProtectionSLA"`
-	RiskSharingMechanismPPPs                    int       `gorm:"default:0" json:"riskSharingMechanismPPPs"`
-	RiskSharingMechanismHedgeInstruments        int       `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
-	RiskSharingMechanismCompletionGuarantees    int       `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
-	IndependentMonitoringList                   string    `gorm:"null" json:"independentMonitoringList"`
-	ESGSafeguardsSusCerts                       int       `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
-	ESGSafeguardsCommEngPlans                   int       `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
-	SecurityMeasuresAccessControl               int       `gorm:"default:0" json:"securityMeasuresAccessControl"`
-	SecurityMeasuresSurveilanceSystems          int       `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
-	SecurityMeasuresOnSiteSecurityPersonnel     int       `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
-	SecurityMeasuresPerimeterSecurity           int       `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
-	SecurityMeasuresCriticalInfraProtections    int       `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
-	OtherAssetProtection                        string    `gorm:"null" json:"otherAssetProtection"`
-	LegalAdvisor                                string    `gorm:"null" json:"legalAdvisor"`
-	FinancialAdvisor                            string    `gorm:"null" json:"financialAdvisor"`
-	UndertakingNoLien                           int       `gorm:"default:0" json:"undertakingNoLien"`
-	UndertakingNotCollateral                    int       `gorm:"default:0" json:"undertakingNotCollateral"`
-	UndertakingNoClaims                         int       `gorm:"default:0" json:"undertakingNoClaims"`
-	UndertakingNoForeclosure                    int       `gorm:"default:0" json:"undertakingNoForeclosure"`
-	ComplianceNoViolation                       int       `gorm:"default:0" json:"complianceNoViolation"`
-	ComplianceAllPermits                        int       `gorm:"default:0" json:"complianceAllPermits"`
-	OutstandingFinancialRespNoDebts             int       `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
-	OutstandingFinancialRespNoHiddenLiabilities int       `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
-	RiskManagementFullyInsured                  int       `gorm:"default:0" json:"riskManagementFullyInsured"`
-	RiskManagementDeclaredValue                 int       `gorm:"default:0" json:"riskManagementDeclaredValue"`
-	PhysicalConditionSound                      int       `gorm:"default:0" json:"physicalConditionSound"`
-	PhysicalConditionNolease                    int       `gorm:"default:0" json:"physicalConditionNolease"`
-	PhysicalConditionNoUndisclosedEasements     int       `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
-	Transaction                                 string    `json:"transaction"`
-	TransactionSignature                        string    `json:"transactionSignature"`
-	TransactionID                               string    `json:"transactionId"`
-	NetworkPassPhrase                           string    `json:"networkPassPhrase"`
+	AssetSector                                 string       `json:"assetSector"`
+	AssetSubSector                              string       `json:"assetSubSector"`
+	AssetType                                   string       `json:"assetType"`
+	AssetName                                   string       `json:"assetName"`
+	ApprovedAssetCustodianID                    uint64       `gorm:"not null" json:"approvedAssetCustodianId"`
+	OfferingType                                string       `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID                               string       `gorm:"null" json:"closedGroupId"`
+	SecApproval                                 int          `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber                         string       `json:"secApprovalIdNumber"`
+	MarketMakingWallet                          string       `json:"marketMakingWallet"`
+	AssetDescription                            string       `json:"assetDescription"`
+	AssetCountryLocation                        string       `json:"assetCountryLocation"`
+	AssetPhysicalAddress                        string       `json:"assetPhysicalAddress"`
+	AssetLongitude                              string       `json:"assetLongitude"`
+	AssetLatitude                               string       `json:"assetLatitude"`
+	OwnershipType                               string       `json:"ownershipType"` //DIRECT,THIRD-PARTY
+	OwnershipKind                               string       `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress          string       `json:"initialOwnerPreferredWalletAddress"`
+	AssetOwnerName                              string       `json:"assetOwnerName"`
+	AssetOwnerRetainedOrContributedValue        float64      `json:"assetOwnerRetainedOrContributedValue"`
+	AssetOwnerAddress                           string       `json:"assetOwnerAddress"`
+	AssetManagerID                              uint64       `json:"assetManagerId"`
+	AssetManager                                AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
+	AssetQuoteCurrency                          string       `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
+	AssetCurrentValue                           float64      `gorm:"default:0" json:"assetCurrentValue"`
+	AssetMscCostOutisdeOfValuation              float64      `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
+	ProtectionMethods                           string       `json:"protectionMethods"` //csv format
+	InsuranceCompanyName                        string       `json:"insuranceCompanyName"`
+	InsurancePolicyNumber                       string       `json:"insurancePolicyNumber"`
+	InsurancePolicyHolder                       string       `json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance                  float64      `gorm:"default:0" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances              int          `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
+	AssetAlreadyExists                          int          `gorm:"default:1" json:"assetAlreadyExists"`
+	AssetCode                                   string       `json:"assetCode"`
+	AssetLogo                                   string       `json:"assetLogo"`
+	NumberOfTokenToBeIssued                     float64      `json:"numberOfTokenToBeIssued"`
+	NumberOfTokenToBeSold                       float64      `json:"numberOfTokenToBeSold"`
+	TotalTokenHeldByManager                     float64      `json:"totalTokenHeldByManager"`
+	WalletToHoldAssetsNotForSale                string       `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
+	PricePerToken                               float64      `json:"pricePerToken"`
+	SalesStart                                  time.Time    `json:"salesStart"`
+	SalesEnd                                    time.Time    `json:"salesEnd"`
+	CapOnPurchase                               float64      `gorm:"default:0" json:"capOnPurchase"`
+	CapQuantity                                 float64      `gorm:"default:0" json:"capQuantity"`
+	CapDurationInDays                           int          `gorm:"default:0" json:"capDurationInDays"`
+	ProceedCycle                                string       `gorm:"size:50" json:"proceedCycle"`
+	TokenizationFeeID                           uint64       `json:"tokenizationFeeId"`
+	ProceedPayoutCurrency                       string       `json:"proceedPayoutCurrency"`
+	ProceedPayoutType                           int          `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0. FIAT requires fiat payment method.
+	ExemptedCountries                           string       `json:"exemptedCountries"`
+	HasAdditionalKYCRequirements                int          `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
+	AdditionalKYCRequirements                   string       `json:"additionalKYCRequirements"`
+	InvestorAccreditationRequired               int          `gorm:"default:0" json:"investorAccreditationRequired"`
+	Messages                                    []string     `json:"messages"`
+	AgreeTransferTitleToCustodian               int          `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
+	ContractualProtectionRevGuarantees          int          `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
+	ContractualProtectionPerfBond               int          `gorm:"default:0" json:"contractualProtectionPerfBond"`
+	ContractualProtectionSLA                    int          `gorm:"default:0" json:"contractualProtectionSLA"`
+	RiskSharingMechanismPPPs                    int          `gorm:"default:0" json:"riskSharingMechanismPPPs"`
+	RiskSharingMechanismHedgeInstruments        int          `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
+	RiskSharingMechanismCompletionGuarantees    int          `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
+	IndependentMonitoringList                   string       `gorm:"null" json:"independentMonitoringList"`
+	ESGSafeguardsSusCerts                       int          `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
+	ESGSafeguardsCommEngPlans                   int          `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
+	SecurityMeasuresAccessControl               int          `gorm:"default:0" json:"securityMeasuresAccessControl"`
+	SecurityMeasuresSurveilanceSystems          int          `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
+	SecurityMeasuresOnSiteSecurityPersonnel     int          `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
+	SecurityMeasuresPerimeterSecurity           int          `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
+	SecurityMeasuresCriticalInfraProtections    int          `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
+	OtherAssetProtection                        string       `gorm:"null" json:"otherAssetProtection"`
+	LegalAdvisor                                string       `gorm:"null" json:"legalAdvisor"`
+	FinancialAdvisor                            string       `gorm:"null" json:"financialAdvisor"`
+	UndertakingNoLien                           int          `gorm:"default:0" json:"undertakingNoLien"`
+	UndertakingNotCollateral                    int          `gorm:"default:0" json:"undertakingNotCollateral"`
+	UndertakingNoClaims                         int          `gorm:"default:0" json:"undertakingNoClaims"`
+	UndertakingNoForeclosure                    int          `gorm:"default:0" json:"undertakingNoForeclosure"`
+	ComplianceNoViolation                       int          `gorm:"default:0" json:"complianceNoViolation"`
+	ComplianceAllPermits                        int          `gorm:"default:0" json:"complianceAllPermits"`
+	OutstandingFinancialRespNoDebts             int          `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
+	OutstandingFinancialRespNoHiddenLiabilities int          `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
+	RiskManagementFullyInsured                  int          `gorm:"default:0" json:"riskManagementFullyInsured"`
+	RiskManagementDeclaredValue                 int          `gorm:"default:0" json:"riskManagementDeclaredValue"`
+	PhysicalConditionSound                      int          `gorm:"default:0" json:"physicalConditionSound"`
+	PhysicalConditionNolease                    int          `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements     int          `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
