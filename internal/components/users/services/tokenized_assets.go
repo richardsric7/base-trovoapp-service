@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -745,12 +746,23 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		return
 
 	}
+	if ato.AssetCountryLocation == nil {
+
+		if len(input.CountryCode) == 0 {
+			// error tokenization
+			log.Printf("[VetTokenizationAssetInfo] Error tokenization country information not set: %v\n", tokenizationID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-country-not-set", ErrMessage: "Tokenization country not set."}
+			return
+		}
+		ato.AssetCountryLocation = &input.CountryCode
+
+	}
 
 	// initialize message array
 	input.Messages = make([]string, 0)
 	// check asset manager ID
 	if input.AssetManagerID == 0 {
-		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
 		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
 		return
 	}
@@ -758,18 +770,26 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	// check asset manager ID
 	am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
 	if am.ID == 0 {
-		log.Printf("[SubmitTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
 		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
 		return
 	}
+	assetMgtConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetAssetMgtFee(input.AssetManagerID, gc)
+	assetCustodianConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetCustodyFee(input.ApprovedAssetCustodianID, gc)
+
 	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
+	ato.CustodianFeePercent = assetCustodianConfig.FeePercent
 	ato.AssetManagerID = input.AssetManagerID
+	ato.AssetManagerFeePercent = assetMgtConfig.FeePercent
 	ato.VettingStatus = 1
 
 	ato.LastUpdatedBy = &initiator.Username
+
+	ato.UpdateCalculation(gc)
+
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
+		log.Printf("[VetTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -779,8 +799,9 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 }
 
 // ConfirmTokenizationAssetInfo advance status to 1 and allow for vetting.
-func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
-
+func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID string, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+	taInput.NetworkPassPhrase = gc.BantuNetworkPassphrase
+	taInput.Messages = make([]string, 0)
 	//check if existing
 	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
 
@@ -816,19 +837,55 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 		return
 
 	}
+	//begin a database transaction here
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
 
-	// if ato.TokenizationTransaction == nil {
-	// 	log.Printf("[SubmitTokenizationAssetInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
-	// 	err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
-	// 	return
-	// }
-	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
+	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
+
+	//check for blockchain action
+	wallet, e := userModels.WalletAlias(initiator.Username).GetWallet(dbTX, gc)
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error getting primary wallet from database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+		return
+
+	}
+
+	xdrBase64, e := generateTokenizationFeeXdr(&wallet, taInput, gc)
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+		return
+
+	}
+
+	taInput.Transaction = xdrBase64
+
+	if len(taInput.TransactionSignature) > 0 {
+		//submit to network
+		txnHash, e := network.SubmitXdrWithSignature(gc.BantuExpansionClient, initiator.PrimarySigner, xdrBase64, taInput.TransactionSignature)
+		if e != nil {
+			err = e
+			return
+		}
+
+		dbTX.Commit()
+		taInput.TransactionID = txnHash
+		err = nil
+
+	}
+
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, err
 }
@@ -1416,5 +1473,66 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 
 	return ato, nil
+
+}
+
+func generateTokenizationFeeXdr(wallet *userModels.UserWallet, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	tfa := strings.Split(os.Getenv("TOKENIZATION_APPLICATION_FEE_ASSET"), ":") //CODE:ISSUER
+	feeAmount := decimal.RequireFromString(os.Getenv("TOKENIZATION_APPLICATION_FEE_AMOUNT"))
+	feeWallet := os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
+	feeWalletPK := keypair.MustParseFull(feeWallet)
+	assetIssuer := tfa[1]
+	assetCode := tfa[0]
+
+	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+
+	sourceAccountExists, _, _, assetAccountBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+
+	if !sourceAccountExists {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+
+	}
+	if assetAccountBalance.LessThan(feeAmount) {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", feeAmount.String(), tfa[0]), Code: http.StatusBadRequest}
+
+	}
+
+	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   feeWalletPK.Address(),
+		Amount:        feeAmount.String(),
+		Asset:         asset,
+		SourceAccount: wallet.ID,
+	})
+
+	taInput.Messages = append(taInput.Messages, fmt.Sprintf("Application fee of %v %x will be charged to your wallet with alias [%v].", feeAmount.String(), assetCode, wallet.Alias))
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+
+	tx, err = txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           ops,
+			BaseFee:              txnbuild.MinBaseFee,
+			Preconditions: txnbuild.Preconditions{
+				TimeBounds: txnbuild.NewInfiniteTimeout(),
+			},
+			Memo: txnbuild.MemoText("TApplicationFee"),
+		},
+	)
+
+	if err != nil {
+		log.Println("[generateTokenizationFeeXdr]error constructing transaction", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	xdrBase64, err := tx.Base64()
+
+	if err != nil {
+		return "", err
+	}
+
+	return xdrBase64, nil
 
 }

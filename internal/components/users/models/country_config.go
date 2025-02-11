@@ -1,9 +1,28 @@
 package users
 
+import "trovo-wallet-api/internal/sharedconfig"
+
 // Country holds country struct
 type Country struct {
-	CountryCode               string  `gorm:"size:3;primaryKey" json:"countryCode"`
-	SECTokenizationFeePercent float64 `gorm:"default:0" json:"SECTokenizationFeePercent"`
-	SECTradeFeePercent        float64 `gorm:"default:0" json:"SECTradeFeePercent"`
-	RegionName                string  `json:"regionName"`
+	CountryCode            string  `gorm:"size:3;primaryKey" json:"countryCode"`
+	SECTokenizationFee     float64 `gorm:"default:0" json:"SECTokenizationFee"`
+	SECTokenizationFeeType int     `gorm:"default:0" json:"SECTokenizationFeeType"` //0=percent,1 = fixed
+	SECTradeFee            float64 `gorm:"default:0" json:"SECTradeFeePercent"`
+	SECTradeFeeType        int     `gorm:"default:0" json:"SECTradeFeeType"` //0=percent,1 = fixed
+	RegionName             string  `json:"regionName"`
+}
+
+type CountryCode string
+
+func (c CountryCode) GetConfig(gc *sharedconfig.GlobalConfig) (cConfig Country) {
+	gc.DB.Where("country_code = ?", string(c)).First(&cConfig)
+	return
+}
+func (c CountryCode) GetCustodyFee(custodianID uint64, gc *sharedconfig.GlobalConfig) (cConfig ApprovedAssetCustodian) {
+	gc.DB.Where("id = ? AND Asset_Custodian_Country = ?", custodianID, string(c)).First(&cConfig)
+	return
+}
+func (c CountryCode) GetAssetMgtFee(assetManagerID uint64, gc *sharedconfig.GlobalConfig) (cConfig AssetManager) {
+	gc.DB.Where("id = ? AND Asset_Manager_Country = ?", assetManagerID, string(c)).First(&cConfig)
+	return
 }
