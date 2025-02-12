@@ -1058,17 +1058,17 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 
 		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-	}
 
-	// auto calculate, token to be held is less the fee. token not to be sold
-	t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
+		// auto calculate, token to be held is less the fee. token not to be sold
+		t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
 
-	{
-		//ensure correct the number of token to be sold.
-		maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
-		t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
-		t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+		{
+			//ensure correct the number of token to be sold.
+			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
+			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
+			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
 
+		}
 	}
 
 }
