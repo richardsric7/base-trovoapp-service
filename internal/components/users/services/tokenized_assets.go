@@ -1401,7 +1401,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 }
 
-// ClaimPendingAsset claim pending assets
+// MintRegulatedTokenizedAsset mint tokenized assets
 func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	ato, _, err = GetTokenizedAssetByID(tokenizationID, gc.DB)

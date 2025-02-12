@@ -102,6 +102,7 @@ type TokenizedAsset struct {
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
 	AssetCode                                   *string                         `json:"assetCode"`
 	AssetLogo                                   *string                         `json:"assetLogo"`
+	AssetWebsite                                *string                         `gorm:"default:'trovotech.io'" json:"assetWebsite"`
 	NumberOfTokenToBeIssued                     float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
 	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
 	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
@@ -171,6 +172,7 @@ type TokenizedAssetJSONInput struct {
 	AssetSubSector                              string       `json:"assetSubSector"`
 	AssetType                                   string       `json:"assetType"`
 	AssetName                                   string       `json:"assetName"`
+	AssetWebsite                                string       `json:"assetWebsite"`
 	ApprovedAssetCustodianID                    uint64       `gorm:"not null" json:"approvedAssetCustodianId"`
 	OfferingType                                string       `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                               string       `gorm:"null" json:"closedGroupId"`
@@ -278,6 +280,7 @@ type TokenizedAssetJSON struct {
 	AssetSubSector                              string                          `json:"assetSubSector"`
 	AssetType                                   string                          `json:"assetType"`
 	AssetName                                   string                          `json:"assetName"`
+	AssetWebsite                                string                          `json:"assetWebsite"`
 	ApprovedAssetCustodianID                    uint64                          `gorm:"not null" json:"approvedAssetCustodianId"`
 	ApprovedAssetCustodian                      ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
 	OfferingType                                string                          `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
@@ -703,6 +706,13 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *shared
 		t.AssetType = &ti.AssetType
 	}
 
+	if len(ti.AssetWebsite) > 0 {
+
+		t.AssetWebsite = &ti.AssetWebsite
+	} else {
+		t.AssetWebsite = nil
+	}
+
 	if len(ti.AssetName) > 0 {
 
 		t.AssetName = &ti.AssetName
@@ -1116,6 +1126,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 	if ti.AssetName != nil {
 		t.AssetName = *ti.AssetName
+
+	}
+	if ti.AssetWebsite != nil {
+		t.AssetWebsite = *ti.AssetWebsite
 
 	}
 

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	assetModels "trovo-wallet-api/internal/components/assets/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
@@ -212,6 +213,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var paymentInfo paymentModels.PaymentInfo
 	var marketOffer userModels.MarketOffer
 	var wdlInput userModels.WithdrawalRequestInput
+	var tkInput userModels.TokenMinting
 	var wdlRequest userModels.WithdrawalRequest
 	sendPushNotificationToApprover := true
 	// var swapInfo swapModels.SwapSendInfo
@@ -310,6 +312,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		e = json.Unmarshal(tbyte, &wdlInput)
 		if e != nil {
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+	} else if p.TransactionType == "TOKENIZE ASSET" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &tkInput)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for tokenized asset")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
@@ -417,11 +428,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				log.Println("[ApproveTransaction] error deleting access list:", e.Error())
 			}
 
-			if hasLinkedWallet{
-				linkedAccessList:=linkedWallet.Permissions
-				linkedWallet.SharedAccessEnabled=0
-				linkedWallet.NumberOfApprovalsNeeded=0
-				linkedWallet.Permissions=nil
+			if hasLinkedWallet {
+				linkedAccessList := linkedWallet.Permissions
+				linkedWallet.SharedAccessEnabled = 0
+				linkedWallet.NumberOfApprovalsNeeded = 0
+				linkedWallet.Permissions = nil
 				e = dbTX.Save(&linkedWallet).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error saving linked wallet state:", e.Error())
@@ -836,6 +847,34 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			return nil
 
+		} else if p.TransactionType == "TOKENIZE ASSET" {
+			//get tokenization obj
+			ta, _, e := GetTokenizedAssetByID(tkInput.TokenizedAssetID, dbTX)
+			if e != nil {
+				log.Println("[ApproveTransaction] error retrieving tokenized asset")
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+			//add the tokenized asset to curated asset
+			cAsset := assetModels.CuratedAsset{
+				AssetCode:    *ta.AssetCode,
+				AssetIssuer:  *ta.IssuingWalletPublicKey,
+				AssetName:    *ta.AssetName,
+				Description:  *ta.AssetDescription,
+				ImageURL:     ta.AssetLogo,
+				Website:      *ta.AssetWebsite,
+				Organization: "Trovotech Ltd.",
+				AssetClassID: 3,
+				Inactive:     0,
+				ClosedGroup:  ta.ClosedGroupID,
+				Priority:     1,
+			}
+
+			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
+			if e != nil {
+				log.Println("[ApproveTransaction]error creating curated asset:", e)
+				// return &tErrors.ErrorTemporaryServerError{}
+			}
+			dbTX.Commit()
 		} else {
 
 			dbTX.Commit()
