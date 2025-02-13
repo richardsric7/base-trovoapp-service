@@ -1139,7 +1139,8 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 	oD := "ASC"
 
 	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
-	subscriberUsername := strings.TrimSpace(strings.ToUpper(c.Query("subscriberUsername")))
+	subscriberUsername := strings.TrimSpace(c.Query("subscriberUsername"))
+	walletPublicKey := strings.TrimSpace(c.Query("walletPublicKey"))
 
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
 	limit := int(limitU)
@@ -1171,6 +1172,12 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 
 		query = query.Where("Subscriber_Username = lower(?)", user.Username)
 		countQuery = countQuery.Where("Subscriber_Username = lower(?)", user.Username)
+	}
+
+	if len(walletPublicKey) > 50 {
+
+		query = query.Where("wallet_Public_Key = ?", walletPublicKey)
+		countQuery = countQuery.Where("wallet_Public_Key = ?", walletPublicKey)
 	}
 
 	if onlySelf == "0" && len(subscriberUsername) > 0 {
