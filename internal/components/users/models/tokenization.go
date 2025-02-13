@@ -593,11 +593,11 @@ type ExpressionOfInterest struct {
 	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
 	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
 	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
-	WalletAlias        string         `gorm:"not null;size:100" json:"WalletAlias"`
-	WalletPublicKey    string         `gorm:"not null;size:100" json:"WalletPublicKey"`
+	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
+	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
 	Amount             float64        `json:"amount"`
 	Price              float64        `json:"price"`
-	SubscriberUsername string         `gorm:"not null;size:100" json:"SubscriberUsername"`
+	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 }
 
 type ExpressionOfInterestInput struct {
