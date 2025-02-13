@@ -488,20 +488,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	// initialize message array
 	input.Messages = make([]string, 0)
-	// check asset manager ID
-	// if input.AssetManagerID == 0 {
-	// 	log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
-	// 	err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager. None specified."}
-	// 	return
-	// }
 
-	// // check asset manager ID
-	// am := GetAssetManagerByID(input.AssetManagerID, gc.DB)
-	// if am.ID == 0 {
-	// 	log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error Invalid Asset Manager ID: %v\n", issuingWallet.ID)
-	// 	err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
-	// 	return
-	// }
 	//check if existing
 	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
 	// ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
@@ -515,7 +502,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 			return
 
 		}
-		ato = UpdateFromInput(&ato, input, gc)
+		ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 		ato.LastUpdatedBy = &initiator.Username
 
@@ -535,7 +522,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 			// IssuingWalletPublicKey: issuingWallet.ID,
 			// IssuingWalletAlias:     issuingWallet.Alias,
 		}
-		ato = UpdateFromInput(&ato, input, gc)
+		ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 	}
 
@@ -578,7 +565,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		return
 
 	}
-	ato = UpdateFromInput(&ato, input, gc)
+	ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 	ato.LastUpdatedBy = &initiator.Username
 	var NotIssuedByIssuer bool
@@ -1138,8 +1125,158 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	return records
 }
 
-func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) userModels.TokenizedAsset {
-	return t.UpdateFromInput(ti, gc)
+func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedExpressionOfInterest) {
+	var err error
+	var eiList []userModels.ExpressionOfInterest
+	records.Records = make([]userModels.ExpressionOfInterest, 0)
+	DB, _ := db.OpenDb()
+	DBC, _ := db.OpenDb()
+
+	onlySelf := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlySelf", "1")))
+
+	var query *gorm.DB
+	var countQuery *gorm.DB
+	oD := "ASC"
+
+	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
+	subscriberUsername := strings.TrimSpace(strings.ToUpper(c.Query("subscriberUsername")))
+
+	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
+	limit := int(limitU)
+	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
+	page := int(pageU)
+
+	createdBetween := strings.TrimSpace(c.Query("createdBetween"))
+	amountBetween := strings.TrimSpace(c.Query("amountBetween"))
+
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderDirection := c.DefaultQuery("order", "DESC")
+
+	query = DB.Preload(clause.Associations)
+	countQuery = DBC.Group("id")
+
+	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
+		oD = "DESC"
+	}
+	if len(orderBy) > 0 {
+		query = query.Order(orderBy + " " + oD)
+		countQuery = countQuery.Order(orderBy + " " + oD)
+
+	} else {
+		query = query.Order("created_at DESC")
+		countQuery = countQuery.Order("created_at DESC")
+	}
+
+	if onlySelf == "1" {
+
+		query = query.Where("Subscriber_Username = lower(?)", user.Username)
+		countQuery = countQuery.Where("Subscriber_Username = lower(?)", user.Username)
+	}
+
+	if onlySelf == "0" && len(subscriberUsername) > 0 {
+
+		query = query.Where("Subscriber_Username = lower(?)", subscriberUsername)
+		countQuery = countQuery.Where("Subscriber_Username = lower(?)", subscriberUsername)
+	}
+	if len(assetCode) > 0 {
+
+		query = query.Where("upper(asset_code) = ?", strings.TrimSpace(assetCode))
+		countQuery = countQuery.Where("upper(asset_code) = ?", strings.TrimSpace(assetCode))
+
+	}
+
+	if len(createdBetween) == 21 && strings.Contains(createdBetween, "|") {
+		// 2020-01-01|2020-02-31 full range date
+		dateRange := strings.Split(createdBetween, "|")
+		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+
+	}
+	if len(amountBetween) > 0 && strings.Contains(amountBetween, "|") {
+		amountRange := strings.Split(amountBetween, "|")
+		lAmount, e := decimal.NewFromString(amountRange[0])
+		if e != nil {
+			lAmount = decimal.Zero
+		}
+		hAmount, e := decimal.NewFromString(amountRange[1])
+		if e != nil {
+			hAmount = decimal.Zero
+		}
+		if lAmount.InexactFloat64() > 0 || hAmount.InexactFloat64() > 0 {
+			query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+			countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+
+		}
+
+	}
+
+	var countR int64
+
+	errCount := countQuery.Find(&[]userModels.ExpressionOfInterest{}).Count(&countR).Error
+	if errCount != nil {
+		log.Println("[GetExpressionOfInterestList]Count Error:", errCount)
+		return records
+	}
+
+	if limit > 0 {
+		query.Limit(limit)
+	}
+	count := int(countR)
+	pages := 1
+	if count > limit {
+		// fmt.Println("count / limit = ", count/limit, "count%limit = ", count%limit)
+		pages = count / limit
+		if count%limit > 0 {
+			pages = pages + 1
+		}
+	}
+	if page > pages {
+		page = pages
+	}
+	if page > 1 {
+		// fmt.Println("Offset = ", (page-1)*limit)
+		query.Offset(((page - 1) * limit))
+	}
+	if err = query.Find(&eiList).Error; err != nil {
+		log.Println("[GetExpressionOfInterestList] Query Error:", err)
+		return
+	}
+
+	tListJSON := make([]userModels.ExpressionOfInterest, 0)
+
+	for _, v := range eiList {
+		j := v
+		tListJSON = append(tListJSON, j)
+
+	}
+
+	records = userModels.PaginatedExpressionOfInterest{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: tListJSON}
+
+	return records
+}
+func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
+
+	if ta.AssetTokenizationStatus != 4 {
+
+		log.Printf("[ExpressInterest] Error interests cannot be expressed on tokenizations with this status: %v\n", ta.ID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-request", ErrMessage: "Only projects that are market ready can accept expression of interests."}
+		return
+
+	}
+	expressedInterest, _ = ta.GetExpressedInterestByWalletPublicKey(subscriberWallet.ID, gc)
+	expressedInterest.UpdateExpressionOfInterestFromInput(subscriber.Username, subscriberWallet, input, ta, gc)
+	e := gc.DB.Omit(clause.Associations).Save(&expressedInterest)
+	if e != nil {
+		log.Printf("[ExpressInterest] error saving expression of interest to database  [%+v] for %v: %v\n", expressedInterest, subscriber.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	return
+}
+
+func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) userModels.TokenizedAsset {
+	return t.UpdateTokenizedAssetFromInput(ti, gc)
 }
 
 func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {

@@ -3,6 +3,7 @@ package users
 import (
 	"log"
 	"time"
+	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -166,6 +167,8 @@ type TokenizedAsset struct {
 	PhysicalConditionNolease                    int                             `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 }
+
+type TokenizedAssetID string
 
 type TokenizedAssetJSONInput struct {
 	AssetSector                                 string       `json:"assetSector"`
@@ -582,6 +585,25 @@ type TokenMinting struct {
 	Messages             []string `json:"messages"`
 }
 
+type ExpressionOfInterest struct {
+	ID                 uint64         `gorm:"" json:"-" form:"-"`
+	CreatedAt          time.Time      `json:"createdAt"`
+	UpdatedAt          time.Time      `json:"updatedAt"`
+	TokenizedAssetID   string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
+	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
+	WalletAlias        string         `gorm:"not null;size:100" json:"WalletAlias"`
+	WalletPublicKey    string         `gorm:"not null;size:100" json:"WalletPublicKey"`
+	Amount             float64        `json:"amount"`
+	Price              float64        `json:"price"`
+	SubscriberUsername string         `gorm:"not null;size:100" json:"SubscriberUsername"`
+}
+
+type ExpressionOfInterestInput struct {
+	Amount float64 `json:"amount"`
+}
+
 type NonExistingAssetValidationAssetDocument struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
@@ -626,6 +648,13 @@ func (i IssuingWalletPublicKey) GetTokenizationByID(id string, gc *sharedconfig.
 	}
 	return
 }
+func (i TokenizedAssetID) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	e := gc.DB.Preload(clause.Associations).Where("id = ?", string(i)).First(&t).Error
+	if e != nil {
+		log.Printf("[TokenizedAssetID::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
+	}
+	return
+}
 
 func (i IssuingWalletPublicKey) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
 	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
@@ -633,34 +662,21 @@ func (i IssuingWalletPublicKey) GetTokenizationFeeByID(feeID uint64, gc *sharedc
 	return
 }
 
-/**
-*****DocumentType and codes****
-ProofOfAssetExistence = 1
-ProofOfAssetOwnership = 2
-ProofOfAssetStatusVerification = 3
-AssetCustodianAgreement = 4
-ProofOfAssetManager = 5
-AssetProtectionDocument = 6
-AssetValuationCertificate = 7
-AssetOwnerGovernmentID = 8
-ProofOfAssetCondtion = 9
-ThirdPartyTokenizationAgreement = 10
-ThirdPartyAssetOwnerBusinessRegistration = 11
-ThirdPartyAssetOwnerProofOfAddress = 12
-SEC Registration/Tokenization Approval = 13
-Compliance With Local Laws/regulation = 14
-Compliance With Environmental Standard = 15
-Environmental Impact Assessment Report = 16
-Proof Of Legal/Financial Counsel = 17
-Legal/Financial Advisor's Contract = 18
-Proof of existing mortgages or liens n asset = 19
-Proof of outstanding loans on asset = 20
-Proof of legal dispute or encumbrances on asset = 21
-
-**/
-
 func (t *TokenizedAsset) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
 	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
+
+	return
+}
+func (t *TokenizedAsset) GetExpressedInterestByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (exp ExpressionOfInterest, err error) {
+	if t == nil {
+		log.Printf("[TokenizedAsset::GetExpressedInterestByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
+		err = &errors.ErrorTemporaryServerError{}
+		return
+	}
+
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Wallet_Public_Key = ?", t.ID, subscriberWalletPublicKey).First(&exp).Error
+
+	// log.Printf("[TokenizedAsset::GetExpressedInterestByWalletPublicKey] Error getting expressedInterest for %v, %v\n", subscriberWalletPublicKey, e)
 
 	return
 }
@@ -679,7 +695,7 @@ func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfi
 	return
 }
 
-func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
+func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
 	//TODO: set the SEC fee, Custody fee, Asset manager fee and recover feeInFiat from total asset value
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
@@ -1319,4 +1335,31 @@ type PaginatedTokenizedAssets struct {
 	TotalRecords int                  `json:"totalRecords"`
 	Limit        int                  `json:"limit"`
 	Records      []TokenizedAssetJSON `json:"records"`
+}
+
+type PaginatedExpressionOfInterest struct {
+	Pages        int                    `json:"pages"`
+	CurrentPage  int                    `json:"currentPage"`
+	TotalRecords int                    `json:"totalRecords"`
+	Limit        int                    `json:"limit"`
+	Records      []ExpressionOfInterest `json:"records"`
+}
+
+func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUsername string, subscriberWallet *UserWallet, input *ExpressionOfInterestInput, ta *TokenizedAsset, gc *sharedconfig.GlobalConfig) (ei ExpressionOfInterest) {
+	if e == nil {
+		return
+	}
+
+	if ta.AssetTokenizationStatus < 4 {
+		return
+	}
+	e.TokenizedAssetID = ta.ID
+	e.AssetCode = *ta.AssetCode
+	e.AssetIssuer = *ta.IssuingWalletPublicKey
+	e.WalletAlias = subscriberWallet.Alias
+	e.WalletPublicKey = subscriberWallet.ID
+	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
+	e.Price = ta.PricePerToken
+	e.SubscriberUsername = subscriberUsername
+	return *e
 }
