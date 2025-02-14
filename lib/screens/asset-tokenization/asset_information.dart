@@ -42,11 +42,13 @@ class _AssetInformation extends State<AssetInformation>
   late double currentValueOfAsset;
   late double assetMiscCost;
   late double valueOfTokenizedAsset;
+  late double assetOwnerRetainedOrContributedValue;
   late List<String> assetProtectionInPlace;
   late String insuranceCompanyName;
   late String insurancePolicyNumber;
   late String insurancePolicyHolder;
   late double percentageValueOfInsurance;
+  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
@@ -90,6 +92,8 @@ class _AssetInformation extends State<AssetInformation>
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
+  final assetOwnerRetainedOrContributedValueController =
+      TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
@@ -133,6 +137,7 @@ class _AssetInformation extends State<AssetInformation>
             ? data['ownershipKind']
             : 'INDIVIDUAL';
     assetName = data['assetName'] ?? "";
+    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
     assetDescription = data['assetDescription'] ?? "";
     assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
     latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
@@ -141,6 +146,9 @@ class _AssetInformation extends State<AssetInformation>
     addressOfOwner = data['assetOwnerAddress'] ?? "";
     currentValueOfAsset =
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
+    assetOwnerRetainedOrContributedValue = double.tryParse(
+            data['assetOwnerRetainedOrContributedValue'].toString()) ??
+        0;
     assetMiscCost =
         double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
     valueOfTokenizedAsset =
@@ -160,6 +168,10 @@ class _AssetInformation extends State<AssetInformation>
         : formatNumberForInput(currentValueOfAsset);
     miscCostOfAssetController.text =
         assetMiscCost == 0 ? '' : formatNumberForInput(assetMiscCost);
+    assetOwnerRetainedOrContributedValueController.text =
+        assetOwnerRetainedOrContributedValue == 0
+            ? ''
+            : formatNumberForInput(assetOwnerRetainedOrContributedValue);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
@@ -836,7 +848,9 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "assetcurrentvalue".tr(),
+                      assetAlreadyExists
+                          ? "assetcurrentvalue".tr()
+                          : "howmuchwishtoraise".tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -854,7 +868,9 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "currentvalueofasset".tr(),
+                      assetAlreadyExists
+                          ? "currentvalueofasset".tr()
+                          : "howmuch".tr(),
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -894,19 +910,85 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              if (assetAlreadyExists) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "assetmisccost".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "misccost".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.toString().isEmpty) {
+                              assetMiscCost = 0;
+                              return;
+                            }
+
+                            assetMiscCost = double.parse(
+                                value!.toString().replaceAll(',', ''));
+                            valueOfTokenizedAsset =
+                                (assetMiscCost + currentValueOfAsset);
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          assetMiscCost = double.parse(value!.toString());
+                        },
+                        autoFormatNumber: true,
+                        controller: miscCostOfAssetController,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "assetmisccost".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    child: SizedBox(
+                      width: width - 60,
+                      child: Text(
+                        assetAlreadyExists
+                            ? "howmuchtoretain"
+                            : "sponsorcontribution".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
                   ),
@@ -920,7 +1002,7 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "misccost".tr(),
+                      "howmuch".tr(),
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -932,14 +1014,12 @@ class _AssetInformation extends State<AssetInformation>
                       onChanged: (value) {
                         setState(() {
                           if (value.toString().isEmpty) {
-                            assetMiscCost = 0;
+                            assetOwnerRetainedOrContributedValue = 0;
                             return;
                           }
 
-                          assetMiscCost = double.parse(
+                          assetOwnerRetainedOrContributedValue = double.parse(
                               value!.toString().replaceAll(',', ''));
-                          valueOfTokenizedAsset =
-                              (assetMiscCost + currentValueOfAsset);
                         });
                       },
                       validator: (value) {
@@ -949,18 +1029,17 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        assetMiscCost = double.parse(value!.toString());
+                        assetOwnerRetainedOrContributedValue =
+                            double.parse(value!.toString());
                       },
                       autoFormatNumber: true,
-                      controller: miscCostOfAssetController,
+                      controller:
+                          assetOwnerRetainedOrContributedValueController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
-              ),
-              SizedBox(
-                height: height / 90,
               ),
               Row(
                 children: [
@@ -2913,6 +2992,8 @@ class _AssetInformation extends State<AssetInformation>
       newData['assetOwnerAddress'] = addressOfOwner;
       newData['assetCurrentValue'] = currentValueOfAsset;
       newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
+      newData['assetOwnerRetainedOrContributedValue'] =
+          assetOwnerRetainedOrContributedValue;
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;

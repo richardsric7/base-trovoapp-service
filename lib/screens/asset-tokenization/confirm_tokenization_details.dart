@@ -3,22 +3,27 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
 
 class ConfirmTokenizationDetails extends StatefulWidget {
   const ConfirmTokenizationDetails({Key? key}) : super(key: key);
@@ -34,6 +39,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   late DataProvider appState;
   final formKey = GlobalKey<FormState>();
   late TokenizedAsset tokenizedAsset;
+  String password = '';
+  final Authenticator _authenticator = Authenticator();
 
   @override
   void initState() {
@@ -99,14 +106,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       item("assetcode".tr(), '${tokenizedAsset.assetCode}'),
                       SizedBox(height: height / 90),
-                      item("currentvalueofasset".tr(),
-                          '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
-                      item("assetmanager".tr(),
-                          '${tokenizedAsset.assetManagerInfo?.assetManagerName}'),
-                      SizedBox(height: height / 90),
-                      item("assetcustodian".tr(),
-                          '${tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName}'),
+                      if (tokenizedAsset.assetAlreadyExists == 1) ...[
+                        item("originalassetvalue".tr(),
+                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                      ] else ...[
+                        item("originaltotalprojectcost".tr(),
+                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                      ],
                       SizedBox(height: height / 90),
                     ],
                   ),
@@ -141,18 +147,18 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("totaltokenstobeissued".tr(),
+                      item("proposedtotaltokenstobeissued".tr(),
                           '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
                       SizedBox(height: height / 90),
-                      item("totaltokenstobesold".tr(),
+                      item("totalamounttoberaised".tr(),
                           '${formatNumber(tokenizedAsset.numberOfTokenToBeSold!)} ${tokenizedAsset.assetCode}'),
                       SizedBox(height: height / 90),
-                      item("pricepertoken".tr(),
-                          '${(formatNumber(tokenizedAsset.pricePerToken!))} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
-                      item("totalamounttoberaised".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
+                      // item("pricepertoken".tr(),
+                      //     '${(formatNumber(tokenizedAsset.pricePerToken!))} ${tokenizedAsset.assetQuoteCurrency}'),
+                      // SizedBox(height: height / 90),
+                      // item("totalamounttoberaised".tr(),
+                      //     '${formatNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                      // SizedBox(height: height / 90),
                     ],
                   ),
                 ),
@@ -184,12 +190,12 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("startdate".tr(),
+                      item("proposedstartdate".tr(),
                           '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
                       SizedBox(
                         height: height / 90,
                       ),
-                      item("enddate".tr(),
+                      item("proposedenddate".tr(),
                           '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
                       SizedBox(height: height / 90),
                     ],
@@ -223,7 +229,12 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
+                      item("applicationfee".tr(), '500 TROV'),
+                      SizedBox(height: height / 90),
                       item("tokenizationfee".tr(),
+                          getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                      SizedBox(height: height / 90),
+                      item("otherstatutoryfees".tr(),
                           getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
                       SizedBox(height: height / 90),
                     ],
@@ -231,7 +242,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 ),
               ),
               SizedBox(
-                height: height / 20,
+                height: height / 30,
               ),
               if (isAlreadySubmitted) ...[
                 Button(
@@ -256,12 +267,68 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   },
                 ),
               ] else ...[
-                Button(
-                  "submitapplication".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () => submitForm(),
+                Form(
+                  key: formKey,
+                  child: CustomPasswordFormField(
+                    "password".tr(),
+                    notifier.getbluewhitecolor,
+                    Icons.lock,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    70.sp,
+                    300.sp,
+                    validator: (String? value) {
+                      if (value!.isEmpty) return 'Enter your password';
+
+                      if (value.length < 6)
+                        return 'Use 6 characters or more for your password';
+
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        password = value!.trim().replaceAll(' ', '');
+                      });
+                    },
+                  ),
                 ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (appState.biometricEnabled && password.isEmpty) ...[
+                  Button(
+                    "authorizewithbiometrics".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: toggleSwitch,
+                  ),
+                ] else ...[
+                  Button(
+                    "authorize".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: () {
+                      if (!formKey.currentState!.validate()) {
+                        return;
+                      }
+
+                      if (password == appState.password!) {
+                        submitForm();
+                      } else {
+                        popup(context,
+                            title: "oops".tr(),
+                            message: "invalidpassword".tr());
+                      }
+                    },
+                  ),
+                ],
+                // Button(
+                //   "submitapplication".tr(),
+                //   notifier.getbluecolor,
+                //   wihitecolor,
+                //   onTap: () => submitForm(),
+                // ),
               ],
               SizedBox(
                 height: height / 20,
@@ -276,16 +343,43 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     );
   }
 
-  void submitForm() async {
+  void toggleSwitch() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        submitForm();
+        // aparently we need the code below to make the
+        // screen updata to show loader
+        // after authorizing with biometrics
+        setState(() {});
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  Future<void> submitForm({Map? transactionData}) async {
     try {
       showLoader(context);
+      String requestBody = "{}";
 
-      String requestBody = jsonEncode(appState.viewData);
-      print('requestBody  =======> $requestBody');
+      if (transactionData != null && transactionData['transaction'] != null) {
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          transactionData['transaction'],
+          transactionData['networkPassPhrase'],
+        );
+        transactionData['transactionSignature'] = signature;
+        requestBody = jsonEncode(transactionData);
+        print('requestBody  =======> $requestBody');
+      }
 
       Map responseData = await makePutRequest(
         uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
-        body: "",
+        body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
@@ -293,23 +387,75 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
 
       hideLoader(context);
 
-      print('responseData token information  ${responseData['data']}');
+      print('responseData token information  ${responseData}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
-        Navigator.of(context).pop();
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        await postProcessData(
+            messageShown, messageLength, responseData['data']);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  postProcessData(messageShown, messageLength, data) async {
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                postProcessData(messageShown, messageLength, data),
+              });
+
+      messageShown++;
+      return;
+    }
+
+    sendFullDataToServer(transactionData: data);
+  }
+
+  Future<void> sendFullDataToServer({required Map transactionData}) async {
+    try {
+      showLoader(context);
+      var signature = TrovoWalletSDK().signBase64Txn(
+        appState.secretKeys[0], // the primary wallet secret key,
+        transactionData['transaction'],
+        transactionData['networkPassPhrase'],
+      );
+      transactionData['transactionSignature'] = signature;
+      var requestBody = jsonEncode(transactionData);
+      print('requestBody  =======> $requestBody');
+
+      Map responseData = await makePutRequest(
+        uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': '',
-          'buttonText': 'Proceed to Pay',
-          'useOnDone': true,
-          'onDone': () {
-            appState.currentAction = PageAction(
-              state: PageState.replace,
-              page: TokenizationFeePaymentViewPageConfig,
-            );
-          },
           'message':
-              'Your asset tokenization request has been submitted successfully. Please complete the payment to proceed. We will begin processing your application once the payment is received.',
+              'Your Asset Tokenization application has been submitted successfully, please wait for vetting to be done, you will be notified once it is vetted so that you can proceed to pay the asset tokenization fee and other statutory fees',
         };
         appState.currentAction =
             PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
@@ -345,7 +491,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         children: [
           Container(
             constraints: BoxConstraints(
-              maxWidth: width / 2.8,
+              maxWidth: width / 2.1,
             ),
             child: Text(
               key,

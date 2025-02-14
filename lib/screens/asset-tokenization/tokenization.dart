@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +31,9 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   late TabController tabController;
   late Future<Map> listOfTokenizations;
+  bool canCreateNewTokenization = true;
   TokenizedAssetListMode listMode = TokenizedAssetListMode.All;
-  bool hasInitiatorAccess = false;
+  // bool hasInitiatorAccess = false;
   late var tokenizedAssets;
   late RefreshController _refreshController;
   getdarkmodepreviousstate() async {
@@ -97,7 +97,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     appState = Provider.of<DataProvider>(context, listen: false);
     _refreshController = RefreshController(initialRefresh: false);
     listOfTokenizations = fetchTokenizationList();
-    hasInitiatorAccess = checkHasInitiatorAccess();
+    // hasInitiatorAccess = checkHasInitiatorAccess();
   }
 
   void refreshData() async {
@@ -191,15 +191,20 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   return;
                                 }
 
+                                if (!canCreateNewTokenization) {
+                                  popup(context,
+                                      title: "error".tr(),
+                                      message:
+                                          "You must complete the active tokenization process before starting a new one.");
+                                  return;
+                                }
+
                                 appState.viewData = {};
 
-                                hasInitiatorAccess
-                                    ? appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: SetupAndComplianceViewPageConfig,
-                                      )
-                                    : showCreateTokenizationWalletPopup(
-                                        context);
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: SetupAndComplianceViewPageConfig,
+                                );
                               },
                               style: ButtonStyle(
                                 overlayColor: MaterialStateProperty.all<Color>(
@@ -318,6 +323,52 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     } else if (snapshot.hasData) {
                       var records = snapshot.data!['records'];
                       if (records.length > 0) {
+                        var assets = <Widget>[];
+
+                        for (var i = 0; i < records.length; i++) {
+                          if (records[i].tokenizationStatus <= 2) {
+                            canCreateNewTokenization = false;
+                            print(
+                                'Can create new tokenization: $canCreateNewTokenization');
+                          }
+                          assets.add(GestureDetector(
+                            onTap: () async {
+                              appState.viewData = tokenizedAssets[i];
+
+                              if (records[i].tokenizationStatus == 0) {
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: SetupAndComplianceViewPageConfig,
+                                );
+
+                                return;
+                              }
+
+                              if (records[i].tokenizationStatus == 1) {
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page:
+                                      ConfirmTokenizationDetailsViewPageConfig,
+                                );
+                                return;
+                              }
+
+                              appState.tokenizedAsset = records[i];
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: AssetDashboardViewPageConfig,
+                              );
+                            },
+                            child: assetTile(
+                              records[i].assetLogo ?? '',
+                              '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
+                              '${records[i].assetSubSector}',
+                              getTokenizationStatus(
+                                  records[i].tokenizationStatus),
+                            ),
+                          ));
+                        }
+
                         return Column(
                           children: [
                             SizedBox(
@@ -343,45 +394,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             SizedBox(height: height / 90),
                             Column(
                               children: [
-                                for (var i = 0; i < records.length; i++) ...[
-                                  GestureDetector(
-                                    onTap: () async {
-                                      appState.viewData = tokenizedAssets[i];
-
-                                      if (records[i].tokenizationStatus == 0) {
-                                        appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page:
-                                              SetupAndComplianceViewPageConfig,
-                                        );
-
-                                        return;
-                                      }
-
-                                      if (records[i].tokenizationStatus == 1) {
-                                        appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page:
-                                              ConfirmTokenizationDetailsViewPageConfig,
-                                        );
-                                        return;
-                                      }
-
-                                      appState.tokenizedAsset = records[i];
-                                      appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: AssetDashboardViewPageConfig,
-                                      );
-                                    },
-                                    child: assetTile(
-                                      records[i].assetLogo ?? '',
-                                      '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
-                                      '${records[i].assetSubSector}',
-                                      getTokenizationStatus(
-                                          records[i].tokenizationStatus),
-                                    ),
-                                  ),
-                                ],
+                                ...assets,
                                 SizedBox(height: height / 20),
                               ],
                             ),
@@ -493,19 +506,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        List<String> excludedWallets = [];
-                        for (var asset in tokenizedAssets) {
-                          excludedWallets.add(asset['issuingWalletPublicKey']);
-                        }
-                        appState.viewData = {
-                          'excludedWallets': excludedWallets,
-                        };
-                        hasInitiatorAccess
-                            ? appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: WalletPreparationViewPageConfig,
-                              )
-                            : showCreateTokenizationWalletPopup(context);
+                        appState.viewData = {};
+
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: SetupAndComplianceViewPageConfig,
+                        );
                       },
                       style: ButtonStyle(
                         overlayColor: MaterialStateProperty.all<Color>(
@@ -585,8 +591,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   width: 35,
                 ),
               ] else ...[
-                Image.memory(
-                  base64Decode(imageUrl),
+                Image.network(
+                  imageUrl,
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {

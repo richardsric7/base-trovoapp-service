@@ -151,7 +151,7 @@ class _WalletDetailsState extends State<WalletDetails>
         tabLength = 1;
       }
     } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
-      tabLength = 2;
+      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -341,11 +341,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "Primary Listing".tr(),
-                    ),
-                    Tab(
-                      height: 20,
-                      text: "Secondary Listing".tr(),
+                      text: "assettokens".tr().toUpperCase(),
                     ),
                   ],
                 ),
@@ -364,50 +360,6 @@ class _WalletDetailsState extends State<WalletDetails>
       child: TabBarView(
         controller: _tabController,
         children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                if (listOfAssets.isNotEmpty) ...[
-                  for (var i = 0; i < listOfAssets.length; i++) ...[
-                    GestureDetector(
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: TokenizedAssetDetailViewPageConfig,
-                        );
-                      },
-                      child: tokenizedAssetTile(
-                          listOfAssets[i]['imageUrl'] ?? '',
-                          listOfAssets[i]['assetName'] ?? '',
-                          'Property',
-                          i % 2 == 0),
-                    ),
-                  ],
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      height: height / 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "nothingtoshowhere2".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-                SizedBox(height: height / 20),
-              ],
-            ),
-          ),
           SingleChildScrollView(
             child: Column(
               children: [

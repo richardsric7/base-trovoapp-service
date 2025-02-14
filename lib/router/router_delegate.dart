@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
@@ -194,9 +193,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.QrScanner:
           _addPageData(QrScanner(), QrScannerPageConfig);
-          break;
-        case Pages.SearchView:
-          _addPageData(SearchView(), SearchViewPageConfig);
           break;
         case Pages.NotificationsView:
           _addPageData(AnnouncementsView(), NotificationsViewPageConfig);
@@ -550,9 +546,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.QrScanner:
         QrScannerPageConfig.currentPageAction = action;
-        break;
-      case Pages.SearchView:
-        SearchViewPageConfig.currentPageAction = action;
         break;
       case Pages.NotificationsView:
         NotificationsViewPageConfig.currentPageAction = action;

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +17,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -41,10 +41,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   bool hasAdditionalKYCRequirements = false;
   late String proceedPayoutCurrency;
   late int proceedPayoutType;
-  late int numberOfTokenToBeSold;
+  // late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
-  late int totalTokenHeldByManager;
-  late double pricePerToken;
+  // late int totalTokenHeldByManager;
+  // late double pricePerToken;
   late String assetCode;
   late String assetName;
   late DateTime? salesStart;
@@ -61,7 +61,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late int tokenizationFeeId;
   late dynamic data = {};
   final numberOfTokenToBeIssuedController = TextEditingController();
-  final numberOfTokenToBeSoldController = TextEditingController();
+  // final numberOfTokenToBeSoldController = TextEditingController();
   final capQuantityController = TextEditingController();
   final capAmountController = TextEditingController();
   final capDurationInDaysController = TextEditingController();
@@ -193,14 +193,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
     tokenizationFeeId =
         data["tokenizationFeeId"] == 0 ? 1 : data["tokenizationFeeId"];
-    numberOfTokenToBeSold = data['numberOfTokenToBeSold'];
+    // numberOfTokenToBeSold = data['numberOfTokenToBeSold'];
     numberOfTokenToBeIssued = data['numberOfTokenToBeIssued'];
     walletToHoldAssetsNotForSale =
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
             ? ''
             : data['walletToHoldAssetsNotForSale'].toString();
-    totalTokenHeldByManager = data['totalTokenHeldByManager'];
-    pricePerToken = double.parse(data['pricePerToken'].toString());
+    // totalTokenHeldByManager = data['totalTokenHeldByManager'];
+    // pricePerToken = double.parse(data['pricePerToken'].toString());
     assetCode = data['assetCode'];
     assetName = data['assetName'];
     var parsedSalesStart = DateTime.parse(data['salesStart']);
@@ -228,12 +228,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? ''
         : formatNumberForInput(
             double.parse(numberOfTokenToBeIssued.toString()));
-    numberOfTokenToBeSoldController.text = numberOfTokenToBeSold == 0
-        ? ''
-        : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
+    // numberOfTokenToBeSoldController.text = numberOfTokenToBeSold == 0
+    //     ? ''
+    //     : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
     capQuantityController.text = capQuantity == 0 ? '' : capQuantity.toString();
-    capAmountController.text =
-        capQuantity == 0 ? '' : (capQuantity * pricePerToken).toString();
+    // capAmountController.text =
+    //     capQuantity == 0 ? '' : (capQuantity * pricePerToken).toString();
     capDurationInDaysController.text =
         capDurationInDays == 0 ? '' : capDurationInDays.toString();
     super.initState();
@@ -389,7 +389,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 children: [
                   GestureDetector(
                     onTap: () {
-                      getImage();
+                      getFile();
                     },
                     child: Column(
                       children: [
@@ -460,12 +460,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               if (assetLogo != null && assetLogo!.isNotEmpty) ...[
                 GestureDetector(
                   onTap: () {
-                    getImage();
+                    getFile();
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(15.0),
-                    child: Image.memory(
-                      base64Decode(assetLogo!),
+                    child: Image.network(
+                      assetLogo!,
                       width: width / 1.3,
                       height: height / 6,
                     ),
@@ -519,12 +519,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           var val = value.toString().replaceAll('.', '');
                           numberOfTokenToBeIssued =
                               val.isNotEmpty ? int.parse(val) : 0;
-                          totalTokenHeldByManager =
-                              numberOfTokenToBeIssued - numberOfTokenToBeSold;
+                          // totalTokenHeldByManager =
+                          //     numberOfTokenToBeIssued - numberOfTokenToBeSold;
 
-                          pricePerToken = (double.parse(
-                                  data['assetCurrentValue'].toString()) /
-                              numberOfTokenToBeIssued);
+                          // pricePerToken = (double.parse(
+                          //         data['assetCurrentValue'].toString()) /
+                          //     numberOfTokenToBeIssued);
                           numberOfTokenToBeIssuedController.text =
                               val.isNotEmpty
                                   ? formatNumberForInput(double.parse(val))
@@ -549,127 +549,127 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "notobesold".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "notobesold".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      controller: numberOfTokenToBeSoldController,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          var val = value.toString().replaceAll('.', '');
-                          numberOfTokenToBeSold =
-                              val.isNotEmpty ? int.parse(val) : 0;
-                          totalTokenHeldByManager =
-                              numberOfTokenToBeIssued - numberOfTokenToBeSold;
-                          numberOfTokenToBeSoldController.text = val.isNotEmpty
-                              ? formatNumberForInput(double.parse(val))
-                              : val;
-                        });
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          numberOfTokenToBeSold = int.parse(value!);
-                        });
-                      },
-                      autoFormatNumber: true,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
-                      ],
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "totaltobeheldbymanager".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: 300.sp,
-                      height: 55.sp,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              formatNumberForInput(double.parse(
-                                  totalTokenHeldByManager.toString())),
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "notobesold".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "notobesold".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         85,
+              //         300.sp,
+              //         controller: numberOfTokenToBeSoldController,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onChanged: (value) {
+              //           setState(() {
+              //             var val = value.toString().replaceAll('.', '');
+              //             numberOfTokenToBeSold =
+              //                 val.isNotEmpty ? int.parse(val) : 0;
+              //             totalTokenHeldByManager =
+              //                 numberOfTokenToBeIssued - numberOfTokenToBeSold;
+              //             numberOfTokenToBeSoldController.text = val.isNotEmpty
+              //                 ? formatNumberForInput(double.parse(val))
+              //                 : val;
+              //           });
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             numberOfTokenToBeSold = int.parse(value!);
+              //           });
+              //         },
+              //         autoFormatNumber: true,
+              //         inputFormatters: [
+              //           FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+              //         ],
+              //         keyboardtype:
+              //             TextInputType.numberWithOptions(decimal: true),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "totaltobeheldbymanager".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20),
+              //       child: Container(
+              //         width: 300.sp,
+              //         height: 55.sp,
+              //         decoration: BoxDecoration(
+              //           borderRadius:
+              //               const BorderRadius.all(Radius.circular(15.0)),
+              //           color: notifier.getaddsubwalletgrey,
+              //         ),
+              //         child: Column(
+              //           mainAxisAlignment: MainAxisAlignment.center,
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Padding(
+              //               padding: const EdgeInsets.symmetric(horizontal: 10),
+              //               child: Text(
+              //                 formatNumberForInput(double.parse(
+              //                     totalTokenHeldByManager.toString())),
+              //                 style: TextStyle(fontSize: 15),
+              //               ),
+              //             ),
+              //             const SizedBox(height: 2),
+              //           ],
+              //         ),
+              //       ),
+              //     )
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
               Row(
                 children: [
                   Padding(
@@ -819,56 +819,56 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "pricepertoken".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: 300.sp,
-                      height: 55.sp,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              (pricePerToken == 0 || pricePerToken.isNaN)
-                                  ? ''
-                                  : formatNumberForInput(pricePerToken),
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "pricepertoken".tr(),
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20),
+              //       child: Container(
+              //         width: 300.sp,
+              //         height: 55.sp,
+              //         decoration: BoxDecoration(
+              //           borderRadius:
+              //               const BorderRadius.all(Radius.circular(15.0)),
+              //           color: notifier.getaddsubwalletgrey,
+              //         ),
+              //         child: Column(
+              //           mainAxisAlignment: MainAxisAlignment.center,
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Padding(
+              //               padding: const EdgeInsets.symmetric(horizontal: 10),
+              //               child: Text(
+              //                 (pricePerToken == 0 || pricePerToken.isNaN)
+              //                     ? ''
+              //                     : formatNumberForInput(pricePerToken),
+              //                 style: TextStyle(fontSize: 15),
+              //               ),
+              //             ),
+              //             const SizedBox(height: 2),
+              //           ],
+              //         ),
+              //       ),
+              //     )
+              //   ],
+              // ),
               Row(
                 children: [
                   Padding(
@@ -1207,7 +1207,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         controller: capAmountController,
                         onChanged: (value) {
                           setState(() {
-                            capQuantity = int.parse(value!) / pricePerToken;
+                            capQuantity = value!;
                             capQuantityController.text = capQuantity.toString();
                           });
                         },
@@ -1793,11 +1793,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       // following credential
       var newData = {...data as Map};
 
-      newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
+      // newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
       newData['numberOfTokenToBeIssued'] = numberOfTokenToBeIssued;
-      newData['totalTokenHeldByManager'] =
-          numberOfTokenToBeIssued - numberOfTokenToBeSold;
-      newData['pricePerToken'] = pricePerToken;
+      // newData['totalTokenHeldByManager'] =
+      //     numberOfTokenToBeIssued - numberOfTokenToBeSold;
+      // newData['pricePerToken'] = pricePerToken;
       newData['assetCode'] = assetCode;
       newData['assetName'] = assetName;
       newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
@@ -1871,6 +1871,41 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       }
     } catch (e) {
       return Future.error('Error! ${e}');
+    }
+  }
+
+  Future<void> uploadAssetLogo(PlatformFile file) async {
+    try {
+      showLoader(context);
+      Map responseData = await makePutRequestForMultipartDocumentUpload(
+        uri: '/v1/tokenization/logo',
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: appState.primaryWallet.signer!,
+        file: file,
+        tokenizedAssetId: appState.viewData!['id'],
+        documentTitle: "",
+        documentType: "",
+      );
+
+      if (responseData['statusCode'] == 200) {
+        setState(() {
+          assetLogo = responseData['data'].toString().replaceAll('\"', '');
+        });
+        hideLoader(context);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+        hideLoader(context);
+      }
+    } catch (e) {
+      print(e);
+      hideLoader(context);
+      popup(
+        context,
+        title: "error".tr(),
+        message: "Sorry, something went wrong. Please try again.",
+      );
     }
   }
 
@@ -1988,15 +2023,32 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).";
   }
 
-  Future<void> getImage() async {
-    var image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      var imageBase64Uncompressed = await getBase64Image(image);
-      await StoreData().storeInsertData('image', imageBase64Uncompressed);
-      setState(() {
-        assetLogo = imageBase64Uncompressed;
-      });
+  // Future<void> getImage() async {
+  //   var image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   if (image != null) {
+  //     var imageBase64Uncompressed = await getBase64Image(image);
+  //     await StoreData().storeInsertData('image', imageBase64Uncompressed);
+  //     setState(() {
+  //       assetLogo = imageBase64Uncompressed;
+  //     });
+  //   }
+  // }
+
+  Future<void> getFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
+      withData: true,
+    );
+
+    if (result == null) {
+      print('User canceled the picker');
+      return null;
     }
+
+    PlatformFile file = result.files.single;
+
+    uploadAssetLogo(file);
   }
 
   Future<dynamic> getBase64Image(XFile image) async {

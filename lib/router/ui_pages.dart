@@ -15,7 +15,6 @@ const String BottomHomePath = '/home';
 const String WebViewPath = '/webview';
 const String PdfViewPath = '/pdfview';
 const String QrScannerPath = '/qrScanner';
-const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
 const String CreateSubWalletSuccessViewPath = '/createSubWalletSuccessView';
 const String WalletDetailsViewPath = '/WalletDetailsView';
@@ -129,7 +128,6 @@ enum Pages {
   WebView,
   PdfView,
   QrScanner,
-  SearchView,
   NotificationsView,
   CreateSubWalletSuccessView,
   WalletDetailsView,
@@ -314,11 +312,6 @@ PageConfiguration QrScannerPageConfig = PageConfiguration(
     key: 'QrScanner',
     path: QrScannerPath,
     uiPage: Pages.QrScanner,
-    currentPageAction: null);
-PageConfiguration SearchViewPageConfig = PageConfiguration(
-    key: 'SearchView',
-    path: SearchViewPath,
-    uiPage: Pages.SearchView,
     currentPageAction: null);
 PageConfiguration NotificationsViewPageConfig = PageConfiguration(
     key: 'NotificationsView',

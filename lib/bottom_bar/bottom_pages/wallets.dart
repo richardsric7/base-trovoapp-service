@@ -435,7 +435,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "nosharedwallets".tr(),
+                        "nowalletshere".tr(),
                         style: TextStyle(
                           fontFamily: fontsemibold,
                           color: notifier.getbluewhitecolor,

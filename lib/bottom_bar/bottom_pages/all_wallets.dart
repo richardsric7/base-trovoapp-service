@@ -1148,7 +1148,7 @@ class _AllWalletsView extends State<AllWalletsView>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "nosharedwallets".tr(),
+                "nowalletshere".tr(),
                 style: TextStyle(
                   fontFamily: fontsemibold,
                   color: notifier.getbluewhitecolor,

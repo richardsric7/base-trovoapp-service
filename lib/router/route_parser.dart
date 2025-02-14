@@ -37,8 +37,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return PdfViewPageConfig;
       case QrScannerPath:
         return QrScannerPageConfig;
-      case SearchViewPath:
-        return SearchViewPageConfig;
       case NotificationsViewPath:
         return NotificationsViewPageConfig;
       case CreateSubWalletSuccessViewPath:
@@ -241,8 +239,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(PdfViewPath));
       case Pages.QrScanner:
         return RouteInformation(uri: Uri.parse(QrScannerPath));
-      case Pages.SearchView:
-        return RouteInformation(uri: Uri.parse(SearchViewPath));
       case Pages.NotificationsView:
         return RouteInformation(uri: Uri.parse(NotificationsViewPath));
       case Pages.CreateSubWalletSuccessView:

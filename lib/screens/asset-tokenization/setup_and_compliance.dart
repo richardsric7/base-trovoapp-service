@@ -860,6 +860,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     try {
       showLoader(context);
       var newData = {...data as Map};
+      inspect(data);
 
       Map map = {
         "assetSector": selectedAssetSectorId,
@@ -959,6 +960,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "riskManagementDeclaredValue": newData['riskManagementDeclaredValue'],
         "physicalConditionSound": newData['physicalConditionSound'],
         "physicalConditionNolease": newData['physicalConditionNolease'],
+        "physicalConditionNoUndisclosedEasements":
+            newData['physicalConditionNoUndisclosedEasements'],
         "assetMscCostOutisdeOfValuation":
             newData['assetMscCostOutisdeOfValuation'],
       };

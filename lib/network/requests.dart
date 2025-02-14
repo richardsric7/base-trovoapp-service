@@ -457,7 +457,7 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
       "documentType": documentType.toString(),
       "documentTitle": documentTitle,
     };
-    print('mappppppppppp $map');
+    // print('mappppppppppp $map');
     request.headers.addAll(headers);
     request.fields.addAll(map);
     final mimeType = lookupMimeType(file.path!);
@@ -469,8 +469,8 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
     ));
     var response = await request.send();
     var responseString = await response.stream.bytesToString();
-    print("The statucode is: ${response.statusCode}");
-    print("The Response Body is: ${responseString}");
+    // print("The statucode is: ${response.statusCode}");
+    // print("The Response Body is: ${responseString}");
 
     return {
       'statusCode': response.statusCode,
