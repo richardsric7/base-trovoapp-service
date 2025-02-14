@@ -1140,7 +1140,13 @@ func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.G
 	DBC, _ := db.OpenDb()
 
 	onlySelf := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlySelf", "1")))
-
+	//get all wallets where user has access
+	sharedWallets := make([]string, 0)
+	if onlySelf == "1" {
+		for _, w := range user.WalletsSharedWithUser {
+			sharedWallets = append(sharedWallets, w.WalletPublicKey)
+		}
+	}
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
@@ -1176,9 +1182,9 @@ func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.G
 	}
 
 	if onlySelf == "1" {
-
-		query = query.Where("Subscriber_Username = lower(?)", user.Username)
-		countQuery = countQuery.Where("Subscriber_Username = lower(?)", user.Username)
+		// (wallet_public_key IN (?))
+		query = query.Where("(Subscriber_Username = lower(?) OR wallet_public_key IN (?))", user.Username, sharedWallets)
+		countQuery = countQuery.Where("(Subscriber_Username = lower(?) OR wallet_public_key IN (?))", user.Username, sharedWallets)
 	}
 
 	if len(walletPublicKey) > 50 {

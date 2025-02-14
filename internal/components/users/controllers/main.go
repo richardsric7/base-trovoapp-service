@@ -25,6 +25,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 )
 
@@ -3800,7 +3801,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusOK, wdlInput)
 			}
 
-			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID != "PENDING_AUTH" {
+			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID == "PENDING_AUTH" {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = ""
 				accountSignerUser.SendPushMessage(fmt.Sprintf("%v %v withdrawal request on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v]. All approvers have been notified.", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
@@ -4594,6 +4595,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			c.JSON(http.StatusOK, interest)
 
+			if user.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "expressionOfInterest"
+				user.SendPushMessage(fmt.Sprintf("You have successfully expressed interest on %v", tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully expressed interest to purchase %v %v on the wallet with alias [%v].", interest.Amount, tokenizedAsset.AssetCode, user.Username), "", dataPayload, gc)
+			}
+
 		})
 
 		router.POST("/v1/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -4698,6 +4705,185 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			c.JSON(http.StatusOK, sub)
 
+			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "assetSubscription"
+				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v on the wallet with alias [%v].", sub.Amount, tokenizedAsset.AssetCode, user.Username), "", dataPayload, gc)
+			}
+			user.InvalidateUserCache(gc)
+
+		})
+
+		router.POST("/v1/shared-access/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			tokenizedAssetID := c.Param("tokenizedAssetID")
+			accountSignerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			//get the wallet you are sending payment from
+			subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-temporary-wallet",
+					ErrMessage: "Only normal/standard wallets are allowed for this request.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			var tInput userModels.TokenizedAssetSubscriptionInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			//check if shared wallet, then check if user has access
+			if subscriptionWallet.SharedAccessEnabled == 1 && subscriptionWallet.NumberOfApprovalsNeeded > 0 {
+				//check if signer has access
+				hasInitiatorAccess := false
+				// check if user has initiator access to wallet.
+				for _, p := range accountSignerUser.WalletsSharedWithUser {
+					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+						hasInitiatorAccess = true
+					}
+				}
+				if !hasInitiatorAccess {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+					return
+				}
+			}
+
+			if subscriptionWallet.HasViewOnlyAccess(gc) {
+				if subscriptionWallet.UserID != accountSignerUser.ID {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+					return
+				}
+			}
+
+			sub, err := userServices.SubscribeToTokenizedAsset(&accountSignerUser, &subscriptionWallet, &tokenizedAsset, &tInput, gc)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if tInput.TransactionID != "PENDING_AUTH" {
+				c.JSON(http.StatusAccepted, sub)
+				return
+			} else {
+				c.JSON(http.StatusOK, sub)
+			}
+
+			if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				accountSignerUser.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v on %v!", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("You have successfully submitted a purchase request for %v using %v %v on the wallet with alias [%v]. All approvers have been notified.", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), "", dataPayload, gc)
+
+			}
+			{
+				//start push notificationMessage
+
+				permissionList := subscriptionWallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingApproval"
+					if tInput.TransactionID == "PENDING_AUTH" {
+						u.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v submitted on %v!", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
+					}
+
+				}
+			}
+			walletOwner.InvalidateUserCache(gc)
+
 		})
 
 		router.GET("/v1/tokenization/expressed-interests", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -4740,7 +4926,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 			if err != nil {
 				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4763,8 +4949,36 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(statusCode, response)
 				return
 			}
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
 
-			subList := userServices.GetTokenizedAssetSubscriptionList(&user, gc, c)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			permitted := false
+
+			for _, k := range signerUser.WalletsSharedWithUser {
+				if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
+					permitted = true
+				}
+			}
+			if walletOwner.Username == signerUser.Username {
+				permitted = true
+			}
+			if !permitted {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
+				return
+			}
+
+			subList := userServices.GetTokenizedAssetSubscriptionList(&signerUser, gc, c)
 
 			c.JSON(http.StatusOK, subList)
 

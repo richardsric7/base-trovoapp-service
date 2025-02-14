@@ -596,7 +596,7 @@ type TokenizedAssetSubscription struct {
 	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
 	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
 	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
-	Price              float64        `json:"price"`  // in tokenized asset qupte currency
+	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 }
 type ExpressionOfInterest struct {
