@@ -585,6 +585,20 @@ type TokenMinting struct {
 	Messages             []string `json:"messages"`
 }
 
+type TokenizedAssetSubscription struct {
+	ID                 string         `gorm:"" json:"-" form:"-"`
+	CreatedAt          time.Time      `json:"createdAt"`
+	UpdatedAt          time.Time      `json:"updatedAt"`
+	TokenizedAssetID   string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
+	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
+	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
+	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
+	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
+	Price              float64        `json:"price"`  // in tokenized asset qupte currency
+	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
+}
 type ExpressionOfInterest struct {
 	ID                 uint64         `gorm:"" json:"-" form:"-"`
 	CreatedAt          time.Time      `json:"createdAt"`
@@ -595,13 +609,32 @@ type ExpressionOfInterest struct {
 	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
 	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
 	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
-	Amount             float64        `json:"amount"`
+	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
 	Price              float64        `json:"price"`
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 }
 
+type TokenizedAssetSubscriptionInput struct {
+	TokenizedAssetID     string   `json:"tokenizedAssetId"`
+	SubscriberUsername   string   `json:"subscriberUsername"`
+	WalletPublicKey      string   `json:"walletPublicKey"`
+	Amount               float64  `json:"amount"` //fiat Amount in tokenized asset quote currency
+	SwappedEstimate      string   `json:"swappedEstimate"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+	Memo                 string   `json:"memo"`
+	Multiparty           int      `json:"-"`
+	TransactionSource    string   `json:"-"`
+	SignatureRequired    int      `json:"signatureRequired"`
+	Commit               int      `json:"commit"`
+	ReturnedDescription  string   `json:"-"`
+}
+
 type ExpressionOfInterestInput struct {
-	Amount float64 `json:"amount"`
+	Amount float64 `json:"amount"` //fiat Amount in tokenized asset quote currency
 }
 
 type NonExistingAssetValidationAssetDocument struct {
@@ -677,6 +710,17 @@ func (t *TokenizedAsset) GetExpressedInterestByWalletPublicKey(subscriberWalletP
 	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Wallet_Public_Key = ?", t.ID, subscriberWalletPublicKey).First(&exp).Error
 
 	// log.Printf("[TokenizedAsset::GetExpressedInterestByWalletPublicKey] Error getting expressedInterest for %v, %v\n", subscriberWalletPublicKey, e)
+
+	return
+}
+func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
+	if t == nil {
+		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
+		err = &errors.ErrorTemporaryServerError{}
+		return
+	}
+
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Wallet_Public_Key = ?", t.ID, subscriberWalletPublicKey).First(&sub).Error
 
 	return
 }
@@ -1337,12 +1381,38 @@ type PaginatedTokenizedAssets struct {
 	Records      []TokenizedAssetJSON `json:"records"`
 }
 
+type PaginatedTokenizedAssetSubscription struct {
+	Pages        int                          `json:"pages"`
+	CurrentPage  int                          `json:"currentPage"`
+	TotalRecords int                          `json:"totalRecords"`
+	Limit        int                          `json:"limit"`
+	Records      []TokenizedAssetSubscription `json:"records"`
+}
 type PaginatedExpressionOfInterest struct {
 	Pages        int                    `json:"pages"`
 	CurrentPage  int                    `json:"currentPage"`
 	TotalRecords int                    `json:"totalRecords"`
 	Limit        int                    `json:"limit"`
 	Records      []ExpressionOfInterest `json:"records"`
+}
+
+func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput(subscriberUsername string, subscriberWallet *UserWallet, input *TokenizedAssetSubscriptionInput, ta *TokenizedAsset, gc *sharedconfig.GlobalConfig) (ts TokenizedAssetSubscription) {
+	if tas == nil {
+		return
+	}
+
+	if ta.AssetTokenizationStatus < 4 {
+		return
+	}
+	tas.TokenizedAssetID = ta.ID
+	tas.AssetCode = *ta.AssetCode
+	tas.AssetIssuer = *ta.IssuingWalletPublicKey
+	tas.WalletAlias = subscriberWallet.Alias
+	tas.WalletPublicKey = subscriberWallet.ID
+	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(2).InexactFloat64()
+	tas.Price = ta.PricePerToken
+	tas.SubscriberUsername = subscriberUsername
+	return *tas
 }
 
 func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUsername string, subscriberWallet *UserWallet, input *ExpressionOfInterestInput, ta *TokenizedAsset, gc *sharedconfig.GlobalConfig) (ei ExpressionOfInterest) {

@@ -55,7 +55,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	}
 
 	if len(swapInfo.TransactionSignature) == 0 {
-		xdrBase64, err := generateSwapSendXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+		xdrBase64, err := generateSwapSendXdr(wallet, swapInfo, gc)
 		if err != nil {
 			return err
 		}
@@ -70,9 +70,6 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return nil
 	}
 	//no need to check this since offer can change, therefore changing the transaction
-	// if swapInfo.SHash != algofuncs.SHash(swapInfo.Transaction) {
-	// 	return &swapErrors.ErrorTransactionMismatch{}
-	// }
 
 	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
 		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, swapInfo.Transaction, swapInfo.TransactionSignature)
@@ -186,7 +183,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	}
 
 	if len(swapInfo.TransactionSignature) == 0 {
-		xdrBase64, _, err := generateSwapReceiveXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+		xdrBase64, _, err := generateSwapReceiveXdr(wallet, swapInfo, gc)
 		if err != nil {
 			return err
 		}
@@ -288,7 +285,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	return err
 }
 
-func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
@@ -539,7 +536,7 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 }
 
 // generateSwapReceiveXdr generates xdr for strict receive operation. Returns the base64 xdr transaction string, the operation object, and error
-func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
+func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	client := gc.BantuExpansionClient

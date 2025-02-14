@@ -10,6 +10,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
+	swapModels "trovo-wallet-api/internal/components/swaps/models"
+	swapServices "trovo-wallet-api/internal/components/swaps/services"
+
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -17,10 +21,13 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ecnepsnai/discord"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
@@ -1125,6 +1132,143 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	return records
 }
 
+func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedTokenizedAssetSubscription) {
+	var err error
+	var eiList []userModels.TokenizedAssetSubscription
+	records.Records = make([]userModels.TokenizedAssetSubscription, 0)
+	DB, _ := db.OpenDb()
+	DBC, _ := db.OpenDb()
+
+	onlySelf := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlySelf", "1")))
+
+	var query *gorm.DB
+	var countQuery *gorm.DB
+	oD := "ASC"
+
+	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
+	subscriberUsername := strings.TrimSpace(c.Query("subscriberUsername"))
+	walletPublicKey := strings.TrimSpace(c.Query("walletPublicKey"))
+
+	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
+	limit := int(limitU)
+	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
+	page := int(pageU)
+
+	createdBetween := strings.TrimSpace(c.Query("createdBetween"))
+	amountBetween := strings.TrimSpace(c.Query("amountBetween"))
+
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderDirection := c.DefaultQuery("order", "DESC")
+
+	query = DB.Preload(clause.Associations)
+	countQuery = DBC.Group("id")
+
+	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
+		oD = "DESC"
+	}
+	if len(orderBy) > 0 {
+		query = query.Order(orderBy + " " + oD)
+		countQuery = countQuery.Order(orderBy + " " + oD)
+
+	} else {
+		query = query.Order("created_at DESC")
+		countQuery = countQuery.Order("created_at DESC")
+	}
+
+	if onlySelf == "1" {
+
+		query = query.Where("Subscriber_Username = lower(?)", user.Username)
+		countQuery = countQuery.Where("Subscriber_Username = lower(?)", user.Username)
+	}
+
+	if len(walletPublicKey) > 50 {
+
+		query = query.Where("wallet_Public_Key = ?", walletPublicKey)
+		countQuery = countQuery.Where("wallet_Public_Key = ?", walletPublicKey)
+	}
+
+	if onlySelf == "0" && len(subscriberUsername) > 0 {
+
+		query = query.Where("Subscriber_Username = lower(?)", subscriberUsername)
+		countQuery = countQuery.Where("Subscriber_Username = lower(?)", subscriberUsername)
+	}
+	if len(assetCode) > 0 {
+
+		query = query.Where("upper(asset_code) = ?", strings.TrimSpace(assetCode))
+		countQuery = countQuery.Where("upper(asset_code) = ?", strings.TrimSpace(assetCode))
+
+	}
+
+	if len(createdBetween) == 21 && strings.Contains(createdBetween, "|") {
+		// 2020-01-01|2020-02-31 full range date
+		dateRange := strings.Split(createdBetween, "|")
+		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+
+	}
+	if len(amountBetween) > 0 && strings.Contains(amountBetween, "|") {
+		amountRange := strings.Split(amountBetween, "|")
+		lAmount, e := decimal.NewFromString(amountRange[0])
+		if e != nil {
+			lAmount = decimal.Zero
+		}
+		hAmount, e := decimal.NewFromString(amountRange[1])
+		if e != nil {
+			hAmount = decimal.Zero
+		}
+		if lAmount.InexactFloat64() > 0 || hAmount.InexactFloat64() > 0 {
+			query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+			countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+
+		}
+
+	}
+
+	var countR int64
+
+	errCount := countQuery.Find(&[]userModels.TokenizedAssetSubscription{}).Count(&countR).Error
+	if errCount != nil {
+		log.Println("[GetTokenizedAssetSubscriptionList]Count Error:", errCount)
+		return records
+	}
+
+	if limit > 0 {
+		query.Limit(limit)
+	}
+	count := int(countR)
+	pages := 1
+	if count > limit {
+		// fmt.Println("count / limit = ", count/limit, "count%limit = ", count%limit)
+		pages = count / limit
+		if count%limit > 0 {
+			pages = pages + 1
+		}
+	}
+	if page > pages {
+		page = pages
+	}
+	if page > 1 {
+		// fmt.Println("Offset = ", (page-1)*limit)
+		query.Offset(((page - 1) * limit))
+	}
+	if err = query.Find(&eiList).Error; err != nil {
+		log.Println("[GetTokenizedAssetSubscriptionList] Query Error:", err)
+		return
+	}
+
+	tListJSON := make([]userModels.TokenizedAssetSubscription, 0)
+
+	for _, v := range eiList {
+		j := v
+		tListJSON = append(tListJSON, j)
+
+	}
+
+	records = userModels.PaginatedTokenizedAssetSubscription{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: tListJSON}
+
+	return records
+}
+
 func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedExpressionOfInterest) {
 	var err error
 	var eiList []userModels.ExpressionOfInterest
@@ -1260,6 +1404,569 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 	records = userModels.PaginatedExpressionOfInterest{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: tListJSON}
 
 	return records
+}
+
+func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetSubscriptionInput, gc *sharedconfig.GlobalConfig) (taSubscription userModels.TokenizedAssetSubscription, err error) {
+	input.TokenizedAssetID = ta.ID
+	input.WalletPublicKey = subscriberWallet.ID
+	input.SubscriberUsername = subscriber.Username
+	var swapInfo swapModels.SwapSendInfo
+	swapInfo.Messages = make([]string, 0)
+	// get wallet owner
+	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
+	if e != nil {
+
+		log.Printf("[SubscribeToTokenizedAsset] Error Unable to verify wallet owner for subscribing wallet %v\n", subscriberWallet.Alias)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
+		return
+
+	}
+	if walletOwner.KYCVerified == 0 {
+
+		log.Printf("[SubscribeToTokenizedAsset] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, ta.AssetCode)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to purchase this tokenized asset %v.", walletOwner.Username, ta.AssetCode)}
+		return
+
+	}
+	if ta.AssetTokenizationStatus != 5 && ta.AssetTokenizationStatus != 6 {
+
+		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset not in sales yet: %v\n", ta.ID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-request", ErrMessage: "Only projects that are in sales can accept purchase."}
+		return
+
+	}
+	if subscriberWallet.SharedAccessEnabled == 1 && subscriberWallet.NumberOfApprovalsNeeded > 0 {
+		input.Multiparty = 1
+		swapInfo.Multiparty = 1
+	}
+
+	if subscriberWallet.HasViewOnlyAccess(gc) {
+		input.SignatureRequired = 1
+		swapInfo.SignatureRequired = 1
+	}
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+
+	//always save subscriptions afresh
+	taSubscription.UpdateTokenizedAssetSubscriptionFromInput(subscriber.Username, subscriberWallet, input, ta, gc)
+	if input.Multiparty == 0 {
+		e := dbTX.Omit(clause.Associations).Save(&taSubscription).Error
+		if e != nil {
+			log.Printf("[SubscribeToTokenizedAsset] error saving tokenized asset subscription  to database  [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
+
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
+	}
+
+	//begin transaction xdr
+
+	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).String()
+	swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
+	swapInfo.SwapAmount = swapAmount.String()
+
+	client := gc.BantuExpansionClient
+	//transform codes and issuer
+	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
+	swapInfo.DestinationAssetIssuer = strings.ToUpper(*ta.IssuingWalletPublicKey)
+	swapInfo.SourceAssetCode = strings.ToUpper(*ta.AssetQuoteCurrency)
+	// get currency
+	quoteCurrency := GetTokenizationCurrencyByCode(*ta.AssetQuoteCurrency, dbTX)
+	swapInfo.SourceAssetIssuer = strings.ToUpper(quoteCurrency.AssetIssuer)
+	if e := swapServices.ValidateSwapSendInfo(&swapInfo); e != nil {
+		err = e
+		return
+	}
+
+	if len(input.TransactionSignature) == 0 {
+		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, &swapInfo, gc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		swapInfo.Transaction = xdrBase64
+		input.Transaction = xdrBase64
+		input.Messages = swapInfo.Messages
+		input.SwappedEstimate = swapInfo.SwappedEstimate
+		input.TransactionSource = swapInfo.TransactionSource
+		input.Memo = swapInfo.Memo
+
+	}
+
+	input.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+
+	if len(input.TransactionSignature) == 0 && input.Commit == 0 {
+		err = nil
+		return
+	}
+	//no need to check this since offer can change, therefore changing the transaction
+
+	if len(input.TransactionSignature) > 0 && input.Commit == 0 {
+		txnHash, e := network.SubmitXdrWithSignature(client, subscriber.PrimarySigner, input.Transaction, input.TransactionSignature)
+		if e != nil {
+			err = e
+			logDiscordFailedTokenizedAssetSubscription(fmt.Sprintf("Error submitting asset subscription [%+v] transaction: %s", input, err.Error()))
+			if strings.Contains(err.Error(), "liquid") {
+				destAsset := os.Getenv("NATIVE_ASSET_CODE")
+				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+				if len(swapInfo.SourceAssetCode) > 0 {
+					sourceAsset = swapInfo.SourceAssetCode
+				}
+				if len(swapInfo.DestinationAssetCode) > 0 {
+					destAsset = swapInfo.DestinationAssetCode
+				}
+				err = &tErrors.CustomError{
+					Param:      "destinationAssetCode",
+					Err:        "error-low-liquidity",
+					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+				}
+				return
+			}
+		}
+		input.TransactionID = txnHash
+		dbTX.Commit()
+		subscriberWallet.InvalidateUserCache(gc)
+		return
+
+	}
+	//multi Party
+	if input.Multiparty == 1 {
+		input.TransactionID = "PENDING_AUTH"
+
+		id := uuid.NewString()
+
+		description := fmt.Sprintf("Buying Tokenized asset [%v]\n Amount:%v,\n Getting Apprx:%v %v", *ta.AssetName, fmt.Sprintf("%v %v", input.Amount, *ta.AssetQuoteCurrency), input.SwappedEstimate, ta.AssetCode)
+		if len(swapInfo.Memo) > 0 {
+			description = fmt.Sprintf("%v\nMemo: %v", description, input.Memo)
+
+		}
+		if len(input.Messages) > 0 {
+			var msgs string
+			for i, m := range input.Messages {
+				msgs = m
+				if i < len(input.Messages)-1 {
+					msgs = fmt.Sprintf("%s\n", msgs)
+				}
+			}
+			description = fmt.Sprintf("%v\nMessages: %v", description, msgs)
+
+		}
+		input.ReturnedDescription = description
+		transactionByte, _ := json.Marshal(*input)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                subscriber.Username,
+			InitiatorSignerPublicKey: subscriber.PrimarySigner,
+			WalletPublicKey:          subscriberWallet.ID,
+			TransactionType:          "ASSET SUBSCRIPTION",
+			Description:              description,
+			TransactionSource:        input.TransactionSource,
+			ApprovalsNeeded:          subscriberWallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           input.Transaction,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := dbTX.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[SubscribeToTokenizedAsset] Error saving asset subscription txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+
+		}
+
+		dbTX.Commit()
+
+		return
+	}
+	log.Println("[SubscribeToTokenizedAsset]UNKNOWN OPTION FOR ACTION")
+	err = &tErrors.ErrorTemporaryServerError{}
+	return
+
+}
+
+func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+	baseReserve := network.GetBlockchainBaseReserve()
+	swapDestMin := network.GetBlockchainSwapDestinationMin()
+	client := gc.BantuExpansionClient
+	messages := make([]string, 0)
+	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+	var err error
+	var amountToSwap decimal.Decimal
+
+	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
+		return "", &swapErrors.ErrorInvalidSwapAmount{}
+	}
+	newAmountToSwap := amountToSwap.Truncate(7).String()
+
+	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
+
+	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
+
+		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+	}
+	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
+
+		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+	}
+
+	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
+	appliedCharge := decimal.NewFromFloat(0)
+	swapInfo.Messages = messages
+	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+
+	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
+	var sourceAccountTrustsDestinationAsset bool
+	if !destinationAsset.IsNative() {
+		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
+
+	}
+
+	if sourceAccountErr != nil {
+		return "", sourceAccountErr
+	}
+
+	if !sourceAccountExists {
+		return "", &tErrors.ErrorUnderfundedAccount{}
+	}
+
+	if !destinationAsset.IsNative() {
+
+		if !sourceAccountTrustsDestinationAsset {
+			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
+			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing will activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
+			messages = append(messages, message)
+
+			//establish trustline
+			ops = append(ops, &txnbuild.ChangeTrust{
+				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
+				Limit:         "900000000000",
+				SourceAccount: wallet.ID,
+			})
+			// allow trust from issuer to distribution wallet
+			ops = append(ops, &txnbuild.SetTrustLineFlags{
+				Trustor:       wallet.ID,
+				Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+				SourceAccount: swapInfo.DestinationAssetIssuer,
+			})
+
+		}
+	}
+
+	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
+
+	amountToSwapDec := amountToSwap
+
+	if sourceAsset.IsNative() {
+		if !sourceAccountTrustsDestinationAsset {
+			if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
+		} else {
+			if sourceAccountNativeBalance.LessThan(amountToSwapDec) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
+		}
+
+	} else {
+
+		if !sourceAccountTrustsDestinationAsset {
+			if sourceAccountNativeBalance.LessThan(appliedCharge) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
+		}
+		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
+			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
+		}
+
+	}
+
+	//get sendPath
+	//using DestinationAccount will get paths to all assets in the destination account.
+	//using destinationAssets gets path to only the asset
+	destAsset := ""
+	if !destinationAsset.IsNative() {
+		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+	}
+	pathInput := swapModels.SwapSendPathInput{
+		DestinationAssets: destAsset,
+		SourceAssetCode:   swapInfo.SourceAssetCode,
+		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
+		SourceAmount:      newAmountToSwap,
+	}
+	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
+	if err != nil {
+		log.Println("[generateAssetSubscriptionXdr]error fetching valid swap Path ", err)
+		return "", err
+	}
+
+	//native asset
+	ops = append(ops, &txnbuild.PathPaymentStrictSend{
+		SendAsset:     sourceAsset,
+		SendAmount:    swapInfo.SwapAmount,
+		Destination:   wallet.ID,
+		DestAsset:     destinationAsset,
+		DestMin:       swapDestMin.String(),
+		Path:          path,
+		SourceAccount: wallet.ID,
+	})
+
+	// Construct the transaction that holds the operations to execute on the network
+	var memoSAC, memoDAC string
+	memoSAC = swapInfo.SourceAssetCode
+	memoDAC = swapInfo.DestinationAssetCode
+	if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
+		memoSAC = os.Getenv("NATIVE_ASSET_CODE")
+	}
+	if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
+		memoDAC = os.Getenv("NATIVE_ASSET_CODE")
+	}
+
+	memo := fmt.Sprintf("%v>%v", memoSAC, memoDAC)
+	log.Println("[generateAssetSubscriptionXdr] Memo:", memo)
+	swapInfo.Memo = memo
+
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if swapInfo.Multiparty == 1 {
+		swapInfo.TransactionSource = chanSourceAccount.AccountID
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(memo),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(memo),
+			},
+		)
+	}
+
+	if err != nil {
+		log.Println("[generateAssetSubscriptionXdr] error constructing transaction ", err)
+		return "", err
+	}
+
+	if swapInfo.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateAssetSubscriptionXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	if !sourceAccountTrustsDestinationAsset {
+		log.Printf("[generateAssetSubscriptionXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", destinationAsset)
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateAssetSubscriptionXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	var xdrBase64 string
+
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		log.Println("[generateAssetSubscriptionXdr] error getting txn base64", err)
+		return "", err
+	}
+	swapInfo.Memo = memo
+	swapInfo.Messages = messages
+	swapInfo.SwappedEstimate = swappedEstimate
+	return xdrBase64, nil
+}
+
+// GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	var swapPaths horizon.PathsPage
+	paths = make([]txnbuild.Asset, 0)
+	var sourceAssetType horizonclient.AssetType
+	if len(pathInput.SourceAssetIssuer) == 0 {
+		sourceAssetType = horizonclient.AssetTypeNative
+		pathInput.SourceAssetCode = ""
+		pathInput.SourceAssetIssuer = ""
+	} else if len(pathInput.SourceAssetCode) < 5 && len(pathInput.SourceAssetIssuer) == 56 {
+		sourceAssetType = horizonclient.AssetType4
+	} else if len(pathInput.SourceAssetCode) > 4 && len(pathInput.SourceAssetCode) <= 12 && len(pathInput.SourceAssetIssuer) == 56 {
+		sourceAssetType = horizonclient.AssetType12
+	}
+	if pathInput.DestinationAccount != "" {
+		pathInput.DestinationAssets = ""
+	}
+
+	if pathInput.DestinationAssets == "" && pathInput.DestinationAccount == "" {
+		pathInput.DestinationAssets = "native"
+	}
+	if pathInput.DestinationAssets == "native" {
+		pathInput.DestinationAccount = ""
+	}
+
+	if pathInput.DestinationAssets != "" {
+		pathInput.DestinationAccount = ""
+	}
+	sspr := horizonclient.StrictSendPathsRequest{
+		DestinationAccount: pathInput.DestinationAccount,
+		DestinationAssets:  pathInput.DestinationAssets,
+		SourceAssetType:    sourceAssetType,
+		SourceAssetCode:    pathInput.SourceAssetCode,
+		SourceAssetIssuer:  pathInput.SourceAssetIssuer,
+		SourceAmount:       pathInput.SourceAmount,
+	}
+
+	swapPaths, err = client.StrictSendPaths(sspr)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+			log.Println("#######################@@@@@@@@@@@@@@@@[client.StrictSendPathsErr] expansion connection problem:", err)
+			discord.Say(fmt.Sprintf("[getStrictSendPaths] error connecting to expansion service: %v\nSwapPathRequest: %+v", err, sspr))
+
+			return paths, "", &tErrors.ErrorTemporaryServerError{}
+		}
+		if strings.Contains(err.Error(), "liquid") {
+			destAsset := os.Getenv("NATIVE_ASSET_CODE")
+			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+			if len(pathInput.SourceAssetCode) > 0 {
+				sourceAsset = pathInput.SourceAssetCode
+			}
+			if pathInput.DestinationAssets != "native" {
+				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+			}
+			return paths, "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+			}
+		}
+		horizonException, ok := err.(*horizonclient.Error)
+
+		if ok {
+
+			extraErrors := horizonException.Problem.Extras
+
+			for key, val := range extraErrors {
+				log.Printf("Extras: %v is %v\n", key, val)
+			}
+
+			resultCodes, e := horizonException.ResultCodes()
+			if e != nil {
+				log.Println("[client.StrictSendPathsErr] Error getting result codes:", e)
+
+				destAsset := os.Getenv("NATIVE_ASSET_CODE")
+				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+				if len(pathInput.SourceAssetCode) > 0 {
+					sourceAsset = pathInput.SourceAssetCode
+				}
+				if pathInput.DestinationAssets != "native" {
+					destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+				}
+				return paths, "", &tErrors.CustomError{
+					Param:      "destinationAssetCode",
+					Err:        "error-low-liquidity",
+					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+				}
+
+			}
+
+			for key, val := range resultCodes.OperationCodes {
+				log.Printf("Result code: %v is %v\n", key, val)
+			}
+			discord.Say(fmt.Sprintf("[getStrictSendPaths] error submitting: %v\nSwapPathRequest: %+v\nResultCodes: %+v", err, sspr, resultCodes))
+
+		}
+		log.Println("[client.StrictSendPathsErr] Error submitting:", err)
+		if strings.Contains(err.Error(), "liquid") {
+			destAsset := os.Getenv("NATIVE_ASSET_CODE")
+			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+			if len(pathInput.SourceAssetCode) > 0 {
+				sourceAsset = pathInput.SourceAssetCode
+			}
+			if pathInput.DestinationAssets != "native" {
+				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+			}
+			return paths, "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+			}
+		}
+		return paths, "", &tErrors.ErrorTemporaryServerError{}
+
+	}
+	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
+	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
+	if len(swapPaths.Embedded.Records) == 0 {
+		destAsset := os.Getenv("NATIVE_ASSET_CODE")
+		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+		if len(pathInput.SourceAssetCode) > 0 {
+			sourceAsset = pathInput.SourceAssetCode
+		}
+		if pathInput.DestinationAssets != "native" {
+			destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+		}
+		return paths, "", &tErrors.CustomError{
+			Param:      "destinationAssetCode",
+			Err:        "error-low-liquidity",
+			ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+		}
+	}
+	destAmountDec, _ := decimal.NewFromString(swapPaths.Embedded.Records[0].DestinationAmount)
+	if destAmountDec.LessThan(network.GetBlockchainSwapDestinationMin()) {
+		return paths, "", &swapErrors.ErrorSwapAmountTooSmall{}
+	}
+
+	bestPath := swapPaths.Embedded.Records[0]
+	//build assets
+	swappedEstimate = bestPath.DestinationAmount
+
+	for _, v := range bestPath.Path {
+		if len(v.Issuer) == 0 {
+			paths = append(paths, txnbuild.NativeAsset{})
+		} else {
+			paths = append(paths, txnbuild.CreditAsset{Code: v.Code, Issuer: v.Issuer})
+		}
+
+	}
+
+	return paths, swappedEstimate, nil
 }
 func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
 
@@ -1441,7 +2148,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
-	// allow trust from issuer to distribution wallet
+	// allow trust from issuer to fee wallet
 	ops = append(ops, &txnbuild.SetTrustLineFlags{
 		Trustor:       feeWallet.Address(),
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
@@ -1679,4 +2386,11 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, taInput *userMode
 
 	return xdrBase64, nil
 
+}
+func logDiscordFailedTokenizedAssetSubscription(msg string) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+	if len(os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")
+	}
+	discord.Say(msg)
 }

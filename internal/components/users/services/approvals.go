@@ -214,6 +214,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var marketOffer userModels.MarketOffer
 	var wdlInput userModels.WithdrawalRequestInput
 	var tkInput userModels.TokenMinting
+	var assetSubscription userModels.TokenizedAssetSubscriptionInput
 	var wdlRequest userModels.WithdrawalRequest
 	sendPushNotificationToApprover := true
 	// var swapInfo swapModels.SwapSendInfo
@@ -321,6 +322,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		e = json.Unmarshal(tbyte, &tkInput)
 		if e != nil {
 			log.Println("[ApproveTransaction] error decoding json for tokenized asset")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+	} else if p.TransactionType == "ASSET SUBSCRIPTION" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &assetSubscription)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for asset subscription")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
@@ -872,9 +882,94 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
 			if e != nil {
 				log.Println("[ApproveTransaction]error creating curated asset:", e)
-				// return &tErrors.ErrorTemporaryServerError{}
 			}
+
 			dbTX.Commit()
+
+			accessList := wallet.GetPermissionList(gc.DB)
+			notificationList := make(map[string]string)
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingApproval"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+				if v.TargetUsername == signerUser.Username {
+					sendPushNotificationToApprover = false
+				}
+				if u.PushNotificationToken != nil {
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+					u.InvalidateUserCache(gc)
+				}
+				if sendPushNotificationToApprover {
+
+					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					signerUser.InvalidateUserCache(gc)
+				}
+			}
+			return nil
+
+		} else if p.TransactionType == "ASSET SUBSCRIPTION" {
+			//get tokenization obj
+			ta, _, e := GetTokenizedAssetByID(assetSubscription.TokenizedAssetID, dbTX)
+			if e != nil {
+				log.Println("[ApproveTransaction] error retrieving tokenized asset")
+			}
+			subscriber, e := userModels.Username(assetSubscription.SubscriberUsername).GetSimpleUser(dbTX, gc)
+			if e != nil {
+				log.Println("[ApproveTransaction] error retrieving subscriber info", assetSubscription.SubscriberUsername)
+			}
+			subscriberWallet, e := userModels.UserWalletID(assetSubscription.WalletPublicKey).GetWallet(dbTX, gc)
+			if e != nil {
+				log.Println("[ApproveTransaction] error retrieving subscriberWallet info", assetSubscription.WalletPublicKey)
+			}
+
+			var taSubscription userModels.TokenizedAssetSubscription
+			taSubscription.UpdateTokenizedAssetSubscriptionFromInput(subscriber.Username, &subscriberWallet, &assetSubscription, &ta, gc)
+
+			e = dbTX.Omit(clause.Associations).Save(&taSubscription).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] Error creating asset subscription record:", e)
+			}
+
+			dbTX.Commit()
+			accessList := wallet.GetPermissionList(gc.DB)
+			notificationList := make(map[string]string)
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingApproval"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+				if v.TargetUsername == signerUser.Username {
+					sendPushNotificationToApprover = false
+				}
+				if u.PushNotificationToken != nil {
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+					u.InvalidateUserCache(gc)
+				}
+				if sendPushNotificationToApprover {
+
+					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					signerUser.InvalidateUserCache(gc)
+				}
+			}
+			return nil
+
 		} else {
 
 			dbTX.Commit()
