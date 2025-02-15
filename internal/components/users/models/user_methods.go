@@ -2170,6 +2170,23 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 	return false
 }
 
+// func (u *User) IsTokenizedAsset(code, issuer string, gc *sharedconfig.GlobalConfig) bool {
+
+// 	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+
+// 	return e == nil
+// }
+
+func (u *User) HasPassedKYC() bool {
+
+	return u.KYCVerified > 0
+}
+
+func (u *User) GetKYCLevel() int {
+
+	return u.KYCVerified
+}
+
 func (u *User) GetKycData(gc *sharedconfig.GlobalConfig) (kycData UserKyc, err error) {
 
 	e := gc.DB.Preload(clause.Associations).Where("user_id = ?", u.ID).First(&kycData).Error

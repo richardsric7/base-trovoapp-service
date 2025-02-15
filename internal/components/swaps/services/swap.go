@@ -53,7 +53,26 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if e := ValidateSwapSendInfo(swapInfo); e != nil {
 		return e
 	}
+	if gc.IsValidTokenizedAsset(swapInfo.DestinationAssetCode) {
+		//check if user has done KYC
+		if walletOwner.KYCVerified == 0 {
+			return &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-no-kyc",
+				ErrMessage: fmt.Sprintf("%v does not meet KYC requirement to receive the asset %v", walletOwner.Username, swapInfo.DestinationAssetCode),
+			}
+		}
 
+		//Check if it is still in primary sales
+		if gc.IsTokenizedAssetInPrimarySales(swapInfo.DestinationAssetCode) {
+			return &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-primary-sales-active",
+				ErrMessage: fmt.Sprintf("%v is still in primary sales. Please go to the tokenized asset market place to purchase from there.", swapInfo.DestinationAssetCode),
+			}
+		}
+
+	}
 	if len(swapInfo.TransactionSignature) == 0 {
 		xdrBase64, err := generateSwapSendXdr(wallet, swapInfo, gc)
 		if err != nil {

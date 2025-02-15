@@ -212,6 +212,15 @@ func (i BantuAsset) CanWithdraw(gc *sharedconfig.GlobalConfig) bool {
 	return false
 }
 
+func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+
+	code, issuer := i.AssetCode, i.AssetIssuer
+
+	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+
+	return e == nil
+}
+
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
 	client := network.GetBlockchainClient()
 	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)

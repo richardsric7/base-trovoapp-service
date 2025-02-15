@@ -225,23 +225,23 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 	return
 }
 
-// GetTokenizedAssetByIssuingWallet gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
-func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
-	// var ta userModels.TokenizedAsset
-	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
+// // GetTokenizedAssetByIssuingWallet gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
+// func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
+// 	// var ta userModels.TokenizedAsset
+// 	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
 
-	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			//critical database error occured
-			log.Printf("[GetTokenizedAssetByIssuingWallet]error fetching existing tokenization with issuing wallet %v from database  [%v]", issuingWalletPublicKey, err)
-			return
+// 	if err != nil {
+// 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+// 			//critical database error occured
+// 			log.Printf("[GetTokenizedAssetByIssuingWallet]error fetching existing tokenization with issuing wallet %v from database  [%v]", issuingWalletPublicKey, err)
+// 			return
 
-		}
-		NotFound = true
-	}
+// 		}
+// 		NotFound = true
+// 	}
 
-	return
-}
+// 	return
+// }
 
 func UploadTokenizationDocument(user *userModels.User, file multipart.File, fileNameWithExt string, input *userModels.AssetTokenizationInputDocument, gc *sharedconfig.GlobalConfig) (string, error) {
 
@@ -1427,6 +1427,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		return
 
 	}
+
 	if walletOwner.KYCVerified == 0 {
 
 		log.Printf("[SubscribeToTokenizedAsset] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, ta.AssetCode)

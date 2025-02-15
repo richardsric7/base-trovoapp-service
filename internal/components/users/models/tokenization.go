@@ -2,6 +2,7 @@ package users
 
 import (
 	"log"
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -101,7 +102,7 @@ type TokenizedAsset struct {
 	VettingStatus                               int                             `gorm:"default:0" json:"vettingStatus"`
 	AssetTokenizationDocuments                  []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
-	AssetCode                                   *string                         `json:"assetCode"`
+	AssetCode                                   *string                         `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
 	AssetLogo                                   *string                         `json:"assetLogo"`
 	AssetWebsite                                *string                         `gorm:"default:'trovotech.io'" json:"assetWebsite"`
 	NumberOfTokenToBeIssued                     float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
@@ -644,6 +645,7 @@ type NonExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
 
+type TokenizedAssetCode string
 type AssetTokenizationDocumentID uint64
 
 func (did AssetTokenizationDocumentID) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
@@ -667,8 +669,8 @@ func (i IssuingWalletPublicKey) GetTokenizationByDocumentID(did uint64, gc *shar
 }
 
 // GetTokenization gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
-func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
+func (i IssuingWalletPublicKey) GetTokenizationByAssetCode(assetCode string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	e := gc.DB.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ? AND asset_code = upper(?)", string(i), assetCode).First(&t).Error
 	if e != nil {
 		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
@@ -681,12 +683,25 @@ func (i IssuingWalletPublicKey) GetTokenizationByID(id string, gc *sharedconfig.
 	}
 	return
 }
+
 func (i TokenizedAssetID) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
 	e := gc.DB.Preload(clause.Associations).Where("id = ?", string(i)).First(&t).Error
 	if e != nil {
 		log.Printf("[TokenizedAssetID::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
 	return
+}
+
+func (t TokenizedAssetCode) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+	strt := strings.Split(string(t), ":")
+	if len(strt) != 2 {
+		return false
+	}
+	code, issuer := strt[0], strt[1]
+
+	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+
+	return e == nil
 }
 
 func (i IssuingWalletPublicKey) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
