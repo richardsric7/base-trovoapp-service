@@ -994,7 +994,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Order(orderBy + " " + oD)
 
 	} else {
-		query = query.Order("updated_at desc, asset_tokenization_ttatus asc, asset_country_location asc")
+		query = query.Order("updated_at desc, asset_tokenization_status asc, asset_country_location asc")
 		countQuery = countQuery.Order("updated_at desc, asset_tokenization_status asc, asset_country_location asc")
 	}
 
