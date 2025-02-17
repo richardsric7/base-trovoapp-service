@@ -87,7 +87,7 @@ type TokenizedAsset struct {
 	AssetOwnerAddress                           *string                         `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetQuoteCurrency                          *string                         `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
+	AssetQuoteCurrency                          *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                           float64                         `gorm:"default:0" json:"assetCurrentValue"`
 	AssetOwnerRetainedOrContributedValue        float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
 	AssetMscCostOutisdeOfValuation              float64                         `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
@@ -196,7 +196,7 @@ type TokenizedAssetJSONInput struct {
 	AssetOwnerAddress                           string       `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64       `json:"assetManagerId"`
 	AssetManager                                AssetManager `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetQuoteCurrency                          string       `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
+	AssetQuoteCurrency                          string       `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                           float64      `gorm:"default:0" json:"assetCurrentValue"`
 	AssetMscCostOutisdeOfValuation              float64      `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
 	ProtectionMethods                           string       `json:"protectionMethods"` //csv format
@@ -272,6 +272,8 @@ type VetTokenizedAssetJSONInput struct {
 	ApprovedAssetCustodianID uint64   `gorm:"not null" json:"approvedAssetCustodianId"`
 	AssetManagerID           uint64   `json:"assetManagerId"`
 	CountryCode              string   `json:"CountryCode"`
+	ProceedPayoutCurrency    string   `json:"proceedPayoutCurrency"`
+	AssetQuoteCurrency       string   `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	Messages                 []string `json:"messages"`
 }
 

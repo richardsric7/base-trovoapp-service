@@ -775,6 +775,12 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	ato.CustodianFeePercent = assetCustodianConfig.FeePercent
 	ato.AssetManagerID = input.AssetManagerID
 	ato.AssetManagerFeePercent = assetMgtConfig.FeePercent
+	if len(input.AssetQuoteCurrency) > 0 {
+		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
+	}
+	if len(input.ProceedPayoutCurrency) > 0 {
+		ato.ProceedPayoutCurrency = &input.ProceedPayoutCurrency
+	}
 	ato.VettingStatus = 1
 
 	ato.LastUpdatedBy = &initiator.Username
