@@ -2005,7 +2005,7 @@ func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.U
 	}
 	expressedInterest, _ = ta.GetExpressedInterestByWalletPublicKey(subscriberWallet.ID, gc)
 	expressedInterest.UpdateExpressionOfInterestFromInput(subscriber.Username, subscriberWallet, input, ta, gc)
-	e := gc.DB.Omit(clause.Associations).Save(&expressedInterest)
+	e := gc.DB.Omit(clause.Associations).Save(&expressedInterest).Error
 	if e != nil {
 		log.Printf("[ExpressInterest] error saving expression of interest to database  [%+v] for %v: %v\n", expressedInterest, subscriber.Username, e)
 
