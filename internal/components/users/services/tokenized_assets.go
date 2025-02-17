@@ -980,7 +980,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 
 	createdBetween := strings.TrimSpace(c.Query("createdBetween"))
 
-	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderBy := strings.TrimSpace(c.Query("orderby"))
 	orderDirection := c.DefaultQuery("order", "DESC")
 
 	query = DB.Preload(clause.Associations)
@@ -994,17 +994,15 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Order(orderBy + " " + oD)
 
 	} else {
-		query = query.Order("updated_at desc, ownershipType asc, asset_country_location asc")
-		// query = query.Order("created_at DESC")
-		// countQuery = countQuery.Order("created_at DESC")
-		countQuery = countQuery.Order("updated_at desc, ownershipType asc, asset_country_location asc")
+		query = query.Order("updated_at desc, asset_tokenization_ttatus asc, asset_country_location asc")
+		countQuery = countQuery.Order("updated_at desc, asset_tokenization_status asc, asset_country_location asc")
 	}
 
 	if onlyWithUserPermission == "1" {
 		// query = query.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
 		// countQuery = countQuery.Where("(issuing_wallet_public_key IN (?))", sharedWallets)
-		query = query.Where("lower(initiator_username) = ?", user.Username)
-		countQuery = countQuery.Where("lower(initiator_username) = ?", user.Username)
+		query = query.Where("lower(initiator_username) = lower(?)", user.Username)
+		countQuery = countQuery.Where("lower(initiator_username) = lower(?)", user.Username)
 	}
 
 	if len(initiatorUsername) > 2 {
@@ -1012,17 +1010,38 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Where("lower(initiator_username) = ?", initiatorUsername)
 
 	}
+
 	if len(tokenizationStatus) > 0 && onlyWithUserPermission == "1" {
-		ts, _ := strconv.ParseUint(strings.TrimSpace(tokenizationStatus), 10, 64)
-		tsInt := int(ts)
+		//status is specified for permission viewing
+		ts, e := decimal.NewFromString(strings.TrimSpace(tokenizationStatus))
+		if e != nil {
+			ts = decimal.Zero
+		}
+		tsInt := int(ts.IntPart())
 		query = query.Where("asset_tokenization_status = ?", tsInt)
 		countQuery = countQuery.Where("asset_tokenization_status = ?", tsInt)
 
 	}
 
-	//get only market ready list
-	if onlyWithUserPermission == "0" {
+	if len(tokenizationStatus) > 0 && onlyWithUserPermission == "0" {
+		//status is specified for open viewing
+		ts, e := decimal.NewFromString(strings.TrimSpace(tokenizationStatus))
+		if e != nil {
+			ts = decimal.Zero
+		}
+		tsInt := int(ts.IntPart())
+		if tsInt > 3 {
+			//market ready status for open list
+			query = query.Where("asset_tokenization_status = ?", tsInt)
+			countQuery = countQuery.Where("asset_tokenization_status = ?", tsInt)
 
+		}
+
+	}
+
+	//get only market ready list
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 {
+		//status is not specified for open viewing
 		query = query.Where("asset_tokenization_status > ?", 3)
 		countQuery = countQuery.Where("asset_tokenization_status > ?", 3)
 
