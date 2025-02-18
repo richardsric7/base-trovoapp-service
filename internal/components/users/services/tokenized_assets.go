@@ -225,24 +225,6 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 	return
 }
 
-// // GetTokenizedAssetByIssuingWallet gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
-// func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
-// 	// var ta userModels.TokenizedAsset
-// 	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
-
-// 	if err != nil {
-// 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-// 			//critical database error occured
-// 			log.Printf("[GetTokenizedAssetByIssuingWallet]error fetching existing tokenization with issuing wallet %v from database  [%v]", issuingWalletPublicKey, err)
-// 			return
-
-// 		}
-// 		NotFound = true
-// 	}
-
-// 	return
-// }
-
 func UploadTokenizationDocument(user *userModels.User, file multipart.File, fileNameWithExt string, input *userModels.AssetTokenizationInputDocument, gc *sharedconfig.GlobalConfig) (string, error) {
 
 	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
@@ -968,7 +950,8 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
-	tokenizationStatus := strings.ToUpper(strings.TrimSpace(c.Query("assetTokenizationStatus")))
+	tokenizationStatus := strings.TrimSpace(c.Query("assetTokenizationStatus"))
+	salesList := strings.TrimSpace(c.Query("salesList")) //0=primary+awaiting minting,1=secondary sales
 	assetDescription := strings.TrimSpace(strings.ToLower(c.Query("assetDescription")))
 	assetType := strings.TrimSpace(strings.ToLower(c.Query("assetType")))
 	assetName := strings.TrimSpace(strings.ToUpper(c.Query("assetName")))
@@ -1052,6 +1035,23 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 		countQuery = countQuery.Where("asset_tokenization_status > ?", 3)
 
 	}
+
+	//get only market ready list
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "0" {
+		//status is not specified for open viewing
+		query = query.Where("asset_tokenization_status > ? AND asset_tokenization_status < 6", 3)
+		countQuery = countQuery.Where("asset_tokenization_status > ? AND asset_tokenization_status < 6", 3)
+
+	}
+
+	//get only market ready list
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "1" {
+		//status is not specified for open viewing
+		query = query.Where("asset_tokenization_status = ", 6)
+		countQuery = countQuery.Where("asset_tokenization_status = ?", 6)
+
+	}
+
 	if len(hasSecApproval) > 0 {
 		ts, _ := strconv.ParseUint(strings.TrimSpace(hasSecApproval), 10, 64)
 		tsInt := int(ts)
@@ -2000,6 +2000,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 
 	return paths, swappedEstimate, nil
 }
+
 func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
 
 	if ta.AssetTokenizationStatus != 4 {
@@ -2419,6 +2420,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, taInput *userMode
 	return xdrBase64, nil
 
 }
+
 func logDiscordFailedTokenizedAssetSubscription(msg string) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
 	if len(os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")) > 50 {
