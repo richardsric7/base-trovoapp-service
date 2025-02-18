@@ -4520,35 +4520,35 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(statusCode, response)
 				return
 			}
-			//get the wallet you are sending payment from
-			subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			// //get the wallet you are sending payment from
+			// subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if getWalletError != nil {
+			// if getWalletError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			// 	var ex tErrors.GenericError
+			// 	var ok bool
 
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
+			// 	ex, ok = getWalletError.(tErrors.GenericError)
+			// 	if ok {
+			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
+			// 	} else {
+			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			// 	}
+			// 	return
+			// }
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-temporary-wallet",
-					ErrMessage: "Only normal/standard wallets are allowed for this request.",
-					Code:       http.StatusForbidden,
-				}
+			// if temp {
+			// 	errAccountIsTemp := &tErrors.CustomError{
+			// 		Param:      "Username",
+			// 		Err:        "error-account-not-temporary-wallet",
+			// 		ErrMessage: "Only normal/standard wallets are allowed for this request.",
+			// 		Code:       http.StatusForbidden,
+			// 	}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			// 	return
 
-			}
+			// }
 
 			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
 			if err != nil {
@@ -4578,7 +4578,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			interest, err := userServices.ExpressInterest(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+			interest, err := userServices.ExpressInterest(&user, &tokenizedAsset, &tInput, gc)
 			if err != nil {
 
 				var ex tErrors.GenericError

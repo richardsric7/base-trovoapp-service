@@ -611,8 +611,6 @@ type ExpressionOfInterest struct {
 	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
 	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
 	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
-	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
-	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
 	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
 	Price              float64        `json:"price"`
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
@@ -778,16 +776,14 @@ func (t *TokenizedAsset) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.G
 
 	return
 }
-func (t *TokenizedAsset) GetExpressedInterestByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (exp ExpressionOfInterest, err error) {
+func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *sharedconfig.GlobalConfig) (exp ExpressionOfInterest, err error) {
 	if t == nil {
-		log.Printf("[TokenizedAsset::GetExpressedInterestByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
+		log.Println("[TokenizedAsset::GetExpressedInterestByUsername] Error tokenized asset is nil")
 		err = &errors.ErrorTemporaryServerError{}
 		return
 	}
 
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Wallet_Public_Key = ?", t.ID, subscriberWalletPublicKey).First(&exp).Error
-
-	// log.Printf("[TokenizedAsset::GetExpressedInterestByWalletPublicKey] Error getting expressedInterest for %v, %v\n", subscriberWalletPublicKey, e)
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Subscriber_Username = ?", t.ID, subscriber).First(&exp).Error
 
 	return
 }
@@ -1493,7 +1489,7 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	return *tas
 }
 
-func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUsername string, subscriberWallet *UserWallet, input *ExpressionOfInterestInput, ta *TokenizedAsset, gc *sharedconfig.GlobalConfig) (ei ExpressionOfInterest) {
+func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUsername string, input *ExpressionOfInterestInput, ta *TokenizedAsset, gc *sharedconfig.GlobalConfig) (ei ExpressionOfInterest) {
 	if e == nil {
 		return
 	}
@@ -1504,8 +1500,6 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 	e.TokenizedAssetID = ta.ID
 	e.AssetCode = *ta.AssetCode
 	e.AssetIssuer = *ta.IssuingWalletPublicKey
-	e.WalletAlias = subscriberWallet.Alias
-	e.WalletPublicKey = subscriberWallet.ID
 	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername

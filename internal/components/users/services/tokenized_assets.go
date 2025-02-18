@@ -1315,7 +1315,6 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 
 	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
 	subscriberUsername := strings.TrimSpace(c.Query("subscriberUsername"))
-	walletPublicKey := strings.TrimSpace(c.Query("walletPublicKey"))
 
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
 	limit := int(limitU)
@@ -1347,12 +1346,6 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 
 		query = query.Where("Subscriber_Username = lower(?)", user.Username)
 		countQuery = countQuery.Where("Subscriber_Username = lower(?)", user.Username)
-	}
-
-	if len(walletPublicKey) > 50 {
-
-		query = query.Where("wallet_Public_Key = ?", walletPublicKey)
-		countQuery = countQuery.Where("wallet_Public_Key = ?", walletPublicKey)
 	}
 
 	if onlySelf == "0" && len(subscriberUsername) > 0 {
@@ -2001,7 +1994,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 	return paths, swappedEstimate, nil
 }
 
-func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
+func ExpressInterest(subscriber *userModels.User, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
 
 	if ta.AssetTokenizationStatus != 4 {
 
@@ -2010,8 +2003,8 @@ func ExpressInterest(subscriber *userModels.User, subscriberWallet *userModels.U
 		return
 
 	}
-	expressedInterest, _ = ta.GetExpressedInterestByWalletPublicKey(subscriberWallet.ID, gc)
-	expressedInterest.UpdateExpressionOfInterestFromInput(subscriber.Username, subscriberWallet, input, ta, gc)
+	expressedInterest, _ = ta.GetExpressedInterestByUsername(subscriber.Username, gc)
+	expressedInterest.UpdateExpressionOfInterestFromInput(subscriber.Username, input, ta, gc)
 	e := gc.DB.Omit(clause.Associations).Save(&expressedInterest).Error
 	if e != nil {
 		log.Printf("[ExpressInterest] error saving expression of interest to database  [%+v] for %v: %v\n", expressedInterest, subscriber.Username, e)
