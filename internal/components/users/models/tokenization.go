@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -645,6 +646,66 @@ type NonExistingAssetValidationAssetDocument struct {
 }
 type NonExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
+}
+
+type ProceedPayout struct {
+	ID                          uint64         `gorm:"" json:"-" form:"-"`
+	CreatedAt                   time.Time      `json:"createdAt"`
+	UpdatedAt                   time.Time      `json:"updatedAt"`
+	TokenizedAssetID            string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAsset              TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	Batch                       string         `gorm:"not null;size:100;index:,unique" json:"batch"` //asset code + payout cycle + month + year
+	DepositedProceedAmount      float64        `json:"DepositedProceedAmount"`                       //fiat Amount in tokenized asset quote currency
+	PlatformFee                 float64        `json:"PlatformFee"`                                  //fiat Amount in tokenized asset quote currency
+	ProceedPayoutAmount         float64        `json:"proceedPayoutAmount"`                          //fiat Amount in tokenized asset quote currency
+	AmountPerTokenizedAssetHeld float64        `json:"amountPerTokenizedAssetHeld"`                  //Amount of proceed for each tokenized asset in quote currency
+	PaymentScheduleReady        int            `gorm:"default:0" json:"paymentScheduleReady"`        //tracks if payment schedule is ready
+	PayoutCompleted             int            `gorm:"default:0" json:"PayoutCompleted"`             //tracks if payment is completed
+
+}
+
+type TokenizedAssetPayoutSchedule struct {
+	ID                             string         `gorm:"" json:"-" form:"-"`
+	CreatedAt                      time.Time      `json:"createdAt"`
+	TokenizedAssetID               string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAsset                 TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` //asset code + payout cycle + month + year
+	PayoutAssetCode                string         `gorm:"not null;size:12" json:"payoutAssetCode"`
+	PayoutAssetIssuer              string         `gorm:"not null;size:100" json:"payoutAssetIssuer"`
+	BeneficiaryPublicKey           string         `gorm:"not null;size:100" json:"beneficiaryPublicKey"`
+	ConfirmedTokenizedAssetBalance float64        `json:"confirmedTokenizedAssetBalance"` //asset balance at the time of preparing schedule
+	AmountToReceive                float64        `json:"amountToReceive"`
+	CannotReceiveAsset             int            `gorm:"default:0" json:"CannotReceiveAsset"` //checks if the beneficiary can receive the asset or not.
+}
+
+type TokenizedAssetPayoutEngineTask struct {
+	ID                             uint64    `gorm:"" json:"-" form:"-"`
+	TokenizedAssetPayoutScheduleID string    `gorm:"size:100;index:,unique" json:"tokenizedAssetPayoutScheduleID"`
+	CreatedAt                      time.Time `json:"createdAt"`
+	MemoFromBatch                  string    `gorm:"not null;size:28;index:," json:"batch"` //asset code + payout cycle + month + year
+	PayoutAssetCode                string    `gorm:"not null;size:12" json:"payoutAssetCode"`
+	PayoutAssetIssuer              string    `gorm:"not null;size:100" json:"payoutAssetIssuer"`
+	BeneficiaryPublicKey           string    `gorm:"not null;size:100" json:"beneficiaryPublicKey"`
+	AmountToReceive                string    `json:"amountToReceive"`
+	Paid                           int       `gorm:"default:0" json:"paid"`
+}
+
+func (p *ProceedPayout) CreateBatch() error {
+	if len(p.TokenizedAssetID) == 0 {
+		return &errors.CustomError{Err: "error invalid tokenizedAssetId", ErrMessage: "tokenized asset identification is invalid"}
+	}
+	if p.TokenizedAsset.ProceedCycle == nil {
+		return &errors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
+
+	}
+	if *p.TokenizedAsset.ProceedCycle != "None" {
+		return &errors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
+
+	}
+	//asset code + payout cycle + month + year
+	t := time.Now()
+	p.Batch = fmt.Sprintf("%v%v%v%v", p.TokenizedAsset.AssetCode, *p.TokenizedAsset.ProceedCycle, t.Month().String(), t.Year())
+	return nil
 }
 
 type TokenizedAssetCode string

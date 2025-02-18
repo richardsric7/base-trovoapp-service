@@ -176,6 +176,22 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ExpressionOfInterest: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ProceedPayout{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ProceedPayout: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetPayoutSchedule{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutSchedule: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetPayoutEngineTask{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
