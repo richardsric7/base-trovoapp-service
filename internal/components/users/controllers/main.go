@@ -3190,6 +3190,114 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	//get specific  wallet balance
+	router.GET("/v1/trovo-manager/wallet-balances/:walletPublicKey", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+		walletPublicKey := c.Param("walletPublicKey")
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/trovo-manager/wallet-balances/%v", walletPublicKey), gc.DB)
+
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		signerUser, err := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(walletPublicKey, gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		assetBalances, err := wallet.GetWalletAssetBalances(gc)
+		if err != nil {
+			log.Printf("[GET Wallet Balances] error for signer:%v, publicKey: %v, error: %v", signerUser.Username, walletPublicKey, err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		// nfts, err := wallet.GetNFTs(false, gc)
+		// if err != nil {
+		// 	log.Println("[GET Wallet Balances] error for signer:", signerUser.Username, "error: ", err)
+
+		// 	var ex tErrors.GenericError
+		// 	var ok bool
+
+		// 	ex, ok = err.(tErrors.GenericError)
+		// 	var statusCode int = 0
+		// 	var response interface{}
+
+		// 	if ok {
+		// 		statusCode = ex.HTTPCode()
+		// 		response = ex.JSONError()
+		// 	} else {
+		// 		statusCode = http.StatusBadRequest
+		// 		response = gin.H{"error": err.Error(), "message": err.Error()}
+		// 	}
+
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
+
+		c.JSON(http.StatusOK, assetBalances)
+
+	})
+
 	// market making
 	{
 		router.POST("/v1/users/trades", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
