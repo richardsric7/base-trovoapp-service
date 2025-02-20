@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
-	"sync"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -34,7 +32,7 @@ func main() {
 
 	// Create a map to track accounts holding KGM
 	accountsWithKGM := make(map[string]bool)
-	var mutex sync.Mutex
+	// var mutex sync.Mutex
 
 	// Initialize with accounts from initial fetch
 	for _, accountID := range initialAccounts {
@@ -42,39 +40,14 @@ func main() {
 	}
 
 	// Create a channel to receive streaming events
-	events := make(chan horizon.Account)
+	// events := make(chan horizon.Account)
 
 	// // Start streaming account updates for these accounts
 	// ctx, cancel := context.WithCancel(context.Background())
 	// defer cancel()
 
-	// File to save results
-	file, err := os.Create("accounts_with_kgm.txt")
-	if err != nil {
-		log.Fatalf("Failed to create output file: %v", err)
-	}
-	defer file.Close()
-
-	// Process events and periodically save
-	lastSave := time.Now()
-	for account := range events {
-		if ok, _ := hasPositiveBalance(account, assetCode, assetIssuer); ok {
-			accountID := account.AccountID
-			mutex.Lock()
-			accountsWithKGM[accountID] = true // Update or add account
-			mutex.Unlock()
-
-			// Periodically save to file
-			if time.Since(lastSave) >= saveInterval {
-				saveAccountsToFile(accountsWithKGM, file, &mutex)
-				lastSave = time.Now()
-			}
-		}
-	}
-
 	// Final save before exiting
-	saveAccountsToFile(accountsWithKGM, file, &mutex)
-	fmt.Printf("Streaming completed. Total unique accounts holding KGM: %d\n", len(accountsWithKGM))
+	// fmt.Printf("Streaming completed. Total unique accounts holding KGM: %d\n", len(accountsWithKGM))
 }
 
 type BasicBalance struct {
@@ -128,33 +101,6 @@ func hasPositiveBalance(account horizon.Account, assetCode, assetIssuer string) 
 		}
 	}
 	return false, "0"
-}
-
-// saveAccountsToFile saves the current set of accounts to a file
-func saveAccountsToFile(accounts map[string]bool, file *os.File, mutex *sync.Mutex) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	var accountKeys []string
-	for key := range accounts {
-		accountKeys = append(accountKeys, key)
-	}
-
-	for i := 0; i < len(accountKeys); i += batchSize {
-		end := i + batchSize
-		if end > len(accountKeys) {
-			end = len(accountKeys)
-		}
-
-		batch := accountKeys[i:end]
-		for _, accountID := range batch {
-			if _, err := file.WriteString(accountID + "\n"); err != nil {
-				log.Printf("Error writing to file: %v", err)
-			}
-		}
-	}
-
-	log.Printf("Saved %d accounts to file", len(accounts))
 }
 
 // parseBalance converts a balance string to float64
