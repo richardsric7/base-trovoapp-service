@@ -337,14 +337,14 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		//if a minting wallet do not create trustline
 		if subWalletInfo.WalletType != 1 {
 			//enable dollar asset if not minting wallet
-
-			ops = append(ops, &txnbuild.ChangeTrust{
-				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
-				Limit:         "900000000000",
-				SourceAccount: subWalletInfo.PublicKey,
-			})
-
-			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
+			if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+					Limit:         "900000000000",
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
 				//enable NAIRA asset if not minting wallet
 				ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 				nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
@@ -352,6 +352,19 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				if !ntrusted {
 					ops = append(ops, &txnbuild.ChangeTrust{
 						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: nairaAsset},
+						Limit:         "900000000000",
+						SourceAccount: subWalletInfo.PublicKey,
+					})
+				}
+			}
+			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
+
+				issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
+				trovAsset := txnbuild.CreditAsset{Code: "TROV", Issuer: issuer}
+				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, trovAsset)
+				if !ntrusted {
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: trovAsset},
 						Limit:         "900000000000",
 						SourceAccount: subWalletInfo.PublicKey,
 					})
@@ -440,17 +453,18 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			})
 		}
 		if subWalletInfo.WalletType != 1 {
-			//enable dollar asset if not minting wallet
-			_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, dollarAsset)
-			if !trusted {
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
-					Limit:         "900000000000",
-					SourceAccount: subWalletInfo.PublicKey,
-				})
+			if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
+				//enable dollar asset if not minting wallet
+				_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, dollarAsset)
+				if !trusted {
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+						Limit:         "900000000000",
+						SourceAccount: subWalletInfo.PublicKey,
+					})
+				}
 			}
-
-			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
+			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
 				//enable NAIRA asset if not minting wallet
 				ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 				nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
@@ -458,6 +472,19 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				if !ntrusted {
 					ops = append(ops, &txnbuild.ChangeTrust{
 						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: nairaAsset},
+						Limit:         "900000000000",
+						SourceAccount: subWalletInfo.PublicKey,
+					})
+				}
+			}
+			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
+
+				issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
+				trovAsset := txnbuild.CreditAsset{Code: "TROV", Issuer: issuer}
+				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, trovAsset)
+				if !ntrusted {
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: trovAsset},
 						Limit:         "900000000000",
 						SourceAccount: subWalletInfo.PublicKey,
 					})
@@ -599,14 +626,14 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				})
 
 				//enable default assets
-
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
-					Limit:         "900000000000",
-					SourceAccount: linkedWallet.ID,
-				})
-
-				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
+				if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+						Limit:         "900000000000",
+						SourceAccount: linkedWallet.ID,
+					})
+				}
+				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
 					//enable NAIRA asset if not minting wallet
 					ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 					nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
@@ -614,6 +641,20 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 					if !ntrusted {
 						ops = append(ops, &txnbuild.ChangeTrust{
 							Line:          txnbuild.ChangeTrustAssetWrapper{Asset: nairaAsset},
+							Limit:         "900000000000",
+							SourceAccount: linkedWallet.ID,
+						})
+					}
+				}
+
+				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
+
+					issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
+					trovAsset := txnbuild.CreditAsset{Code: "TROV", Issuer: issuer}
+					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
+					if !ntrusted {
+						ops = append(ops, &txnbuild.ChangeTrust{
+							Line:          txnbuild.ChangeTrustAssetWrapper{Asset: trovAsset},
 							Limit:         "900000000000",
 							SourceAccount: linkedWallet.ID,
 						})
@@ -642,18 +683,18 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 						SourceAccount: accountOwner.PublicKey,
 					})
 				}
-
-				//enable default assets
-				_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, dollarAsset)
-				if !trusted {
-					ops = append(ops, &txnbuild.ChangeTrust{
-						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
-						Limit:         "900000000000",
-						SourceAccount: linkedWallet.ID,
-					})
+				if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
+					//enable default assets
+					_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, dollarAsset)
+					if !trusted {
+						ops = append(ops, &txnbuild.ChangeTrust{
+							Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+							Limit:         "900000000000",
+							SourceAccount: linkedWallet.ID,
+						})
+					}
 				}
-
-				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
+				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
 					//enable NAIRA asset if not minting wallet
 					ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 					nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
@@ -661,6 +702,20 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 					if !ntrusted {
 						ops = append(ops, &txnbuild.ChangeTrust{
 							Line:          txnbuild.ChangeTrustAssetWrapper{Asset: nairaAsset},
+							Limit:         "900000000000",
+							SourceAccount: linkedWallet.ID,
+						})
+					}
+				}
+
+				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
+
+					issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
+					trovAsset := txnbuild.CreditAsset{Code: "TROV", Issuer: issuer}
+					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
+					if !ntrusted {
+						ops = append(ops, &txnbuild.ChangeTrust{
+							Line:          txnbuild.ChangeTrustAssetWrapper{Asset: trovAsset},
 							Limit:         "900000000000",
 							SourceAccount: linkedWallet.ID,
 						})
