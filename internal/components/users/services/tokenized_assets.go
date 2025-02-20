@@ -1047,7 +1047,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	//get only market ready list
 	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "1" {
 		//status is not specified for open viewing
-		query = query.Where("asset_tokenization_status = ", 6)
+		query = query.Where("asset_tokenization_status = ?", 6)
 		countQuery = countQuery.Where("asset_tokenization_status = ?", 6)
 
 	}
