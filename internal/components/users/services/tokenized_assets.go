@@ -55,6 +55,13 @@ func GetTokenizedAssetTypes(db *gorm.DB) (assetTypes []userModels.TokenizedAsset
 	return
 }
 
+func GetCountryConfigs(db *gorm.DB) (countries []userModels.Country) {
+	countries = make([]userModels.Country, 0)
+	db.Preload(clause.Associations).Find(&countries)
+
+	return
+}
+
 func GetAssetProceedCycle(db *gorm.DB) (apo []userModels.ProceedCycle) {
 	apo = make([]userModels.ProceedCycle, 0)
 	db.Preload(clause.Associations).Find(&apo)
