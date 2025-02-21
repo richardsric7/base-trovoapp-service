@@ -1,6 +1,8 @@
 package users
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"strings"
@@ -168,6 +170,8 @@ type TokenizedAsset struct {
 	PhysicalConditionSound                      int                             `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int                             `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	MintingInitators                            *string                         `gorm:"null" json:"mintingInitators"` //CSV of approvers
+	MintingApprovers                            *string                         `gorm:"null" json:"mintingApprovers"` //csv of initators
 }
 
 type TokenizedAssetID string
@@ -259,6 +263,8 @@ type TokenizedAssetJSONInput struct {
 	PhysicalConditionSound                      int          `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int          `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int          `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	MintingInitators                            string       `gorm:"null" json:"mintingInitators"` //CSV of approvers
+	MintingApprovers                            string       `gorm:"null" json:"mintingApprovers"` //csv of initators
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -388,6 +394,8 @@ type TokenizedAssetJSON struct {
 	PhysicalConditionSound                      int                             `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int                             `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	MintingInitators                            string                          `gorm:"null" json:"mintingInitators"` //CSV of approvers
+	MintingApprovers                            string                          `gorm:"null" json:"mintingApprovers"` //csv of initators
 }
 
 type TokenizedAssetSector struct {
@@ -847,6 +855,24 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.AssetWebsite = nil
 	}
 
+	if len(ti.MintingApprovers) > 0 {
+		ti.MintingApprovers = strings.ReplaceAll(ti.MintingApprovers, " ", "")
+		t.MintingApprovers = &ti.MintingApprovers
+	} else {
+		//set default
+		csvStr := t.GetMintingApproversInCSV(gc)
+		t.MintingApprovers = &csvStr
+	}
+
+	if len(ti.MintingInitators) > 0 {
+		ti.MintingInitators = strings.ReplaceAll(ti.MintingInitators, " ", "")
+		t.MintingInitators = &ti.MintingInitators
+	} else {
+		//set default
+		csvStr := t.GetMintingInitiatorsInCSV(gc)
+		t.MintingInitators = &csvStr
+	}
+
 	if len(ti.AssetName) > 0 {
 
 		t.AssetName = &ti.AssetName
@@ -1217,6 +1243,37 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 }
 
+func (ti *TokenizedAsset) GetMintingInitiators(gc *sharedconfig.GlobalConfig) (us []TokenizationMintingInitiator) {
+	us = make([]TokenizationMintingInitiator, 0)
+
+	gc.DB.Find(&us)
+	return
+}
+
+func (ti *TokenizedAsset) GetMintingInitiatorsInCSV(gc *sharedconfig.GlobalConfig) (csvStr string) {
+	us := make([]TokenizationMintingInitiator, 0)
+
+	gc.DB.Find(&us)
+	csvStr = TokenizationMintingInitiators(us).ToCSV()
+	return
+}
+
+func (ti *TokenizedAsset) GetMintingApprovers(gc *sharedconfig.GlobalConfig) (us []TokenizationMintingApprover) {
+	us = make([]TokenizationMintingApprover, 0)
+
+	gc.DB.Find(&us)
+
+	return
+}
+
+func (ti *TokenizedAsset) GetMintingApproversInCSV(gc *sharedconfig.GlobalConfig) (csvStr string) {
+	us := make([]TokenizationMintingApprover, 0)
+
+	gc.DB.Find(&us)
+	csvStr = TokenizationMintingApprovers(us).ToCSV()
+	return
+}
+
 func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAssetJSON) {
 
 	t.ID = ti.ID
@@ -1254,6 +1311,23 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 
 		t.AssetSubSector = *ti.AssetSubSector
 	}
+
+	if ti.MintingApprovers != nil {
+
+		t.MintingApprovers = *ti.MintingApprovers
+	} else {
+		//get default minting approvers.
+		t.MintingApprovers = ti.GetMintingApproversInCSV(gc)
+	}
+
+	if ti.MintingInitators != nil {
+
+		t.MintingInitators = *ti.MintingApprovers
+	} else {
+		//get default minting approvers.
+		t.MintingInitators = ti.GetMintingInitiatorsInCSV(gc)
+	}
+
 	if ti.AssetType != nil {
 
 		t.AssetType = *ti.AssetType
@@ -1504,4 +1578,72 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername
 	return *e
+}
+
+// TokenizationMintingApprovers is a custom type wrapping a slice of TokenizationMintingApprover
+type TokenizationMintingApprovers []TokenizationMintingApprover
+
+// TokenizationMintingInitiators is a custom type wrapping a slice of TokenizationMintingInitiator
+type TokenizationMintingInitiators []TokenizationMintingInitiator
+
+// ToCSV converts the TokenizationMintingApprovers receiver to a CSV string of Approver values
+func (tma TokenizationMintingApprovers) ToCSV() string {
+	if len(tma) == 0 {
+		return "" // Return empty string for empty slice
+	}
+
+	// Prepare a slice of approvers values
+	a := make([]string, 0, len(tma)) // Pre-allocate capacity for efficiency
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	for _, v := range tma {
+		a = append(a, v.Approver)
+	}
+
+	// Write the approvers values as a single CSV row
+	err := writer.Write(a)
+	if err != nil {
+		return "" // Return empty string on error
+	}
+
+	// Flush the writer to ensure all data is written to the buffer
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return "" // Return empty string on flush error
+	}
+
+	// Return the CSV string
+	return buf.String()
+}
+
+// ToCSV converts the TokenizationMintinginitiators receiver to a CSV string of initator values
+func (tma TokenizationMintingInitiators) ToCSV() string {
+	if len(tma) == 0 {
+		return "" // Return empty string for empty slice
+	}
+
+	// Prepare a slice of initiators values
+	a := make([]string, 0, len(tma)) // Pre-allocate capacity for efficiency
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	for _, v := range tma {
+		a = append(a, v.Initiator)
+	}
+
+	// Write the initiator values as a single CSV row
+	err := writer.Write(a)
+	if err != nil {
+		return "" // Return empty string on error
+	}
+
+	// Flush the writer to ensure all data is written to the buffer
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return "" // Return empty string on flush error
+	}
+
+	// Return the CSV string
+	return buf.String()
 }

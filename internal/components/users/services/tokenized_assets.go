@@ -89,6 +89,20 @@ func IsTokenizationMintingInitiator(username string, db *gorm.DB) (access bool) 
 
 }
 
+func GetMintingInitiators(db *gorm.DB) (us []userModels.TokenizationMintingInitiator) {
+	us = make([]userModels.TokenizationMintingInitiator, 0)
+
+	db.Find(&us)
+	return
+}
+
+func GetMintingApprovers(db *gorm.DB) (us []userModels.TokenizationMintingApprover) {
+	us = make([]userModels.TokenizationMintingApprover, 0)
+
+	db.Find(&us)
+	return
+}
+
 func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAssetCustodian) {
 	custodians = make([]userModels.ApprovedAssetCustodian, 0)
 	db.Order("asset_custodian_name").Find(&custodians)
@@ -561,6 +575,33 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		return
 
 	}
+
+	//validate submitted initiators/approvers
+	{
+		if len(input.MintingInitators) > 0 {
+			input.MintingInitators = strings.ReplaceAll(input.MintingInitators, " ", "")
+			us := strings.Split(input.MintingInitators, ",")
+			for _, v := range us {
+				_, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					err = &tErrors.CustomError{Param: "mintingInitiators", Err: "error-invalid-minting-initiator", ErrMessage: fmt.Sprintf("%v is an invalid username for minting initiator")}
+					return
+				}
+			}
+		}
+		if len(input.MintingApprovers) > 0 {
+			input.MintingApprovers = strings.ReplaceAll(input.MintingApprovers, " ", "")
+			us := strings.Split(input.MintingApprovers, ",")
+			for _, v := range us {
+				_, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					err = &tErrors.CustomError{Param: "mintingApprovers", Err: "error-invalid-minting-approver", ErrMessage: fmt.Sprintf("%v is an invalid username for minting Approver")}
+					return
+				}
+			}
+		}
+	}
+
 	ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 	ato.LastUpdatedBy = &initiator.Username
@@ -2064,16 +2105,37 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		return "", "", messages, issuingWallet, err
 	}
 
-	var aps []userModels.TokenizationMintingApprover
-	var inits []userModels.TokenizationMintingInitiator
-	gc.DB.Find(&aps)
-	gc.DB.Find(&inits)
+	if t.MintingApprovers == nil {
+		// set default
+		u := t.GetMintingApproversInCSV(gc)
+		t.MintingApprovers = &u
+	}
+
+	if t.MintingInitators == nil {
+		//set default
+		u := t.GetMintingInitiatorsInCSV(gc)
+		t.MintingInitators = &u
+	}
+	var aps []string
+	var inits []string
+	aps = strings.Split(*t.MintingApprovers, ",")
+	inits = strings.Split(*t.MintingInitators, ",")
 
 	if len(aps) == 0 || len(inits) == 0 {
 		err = &tErrors.CustomError{
 			Param:      "numberOfApprovers",
 			Err:        "error-no-approver-or-initiator-specified",
 			ErrMessage: "No approvers /initiators specified",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+
+	if len(aps) < 4 {
+		err = &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-approvers-less-than-4",
+			ErrMessage: fmt.Sprintf("%v approvers specified. Requires minimum of 4", len(aps)),
 			Code:       404,
 		}
 		return "", "", messages, issuingWallet, err
@@ -2099,14 +2161,14 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	for _, v := range aps {
 		permInfo = append(permInfo, userModels.WalletPermissionInfo{
-			TargetUsername: v.Approver,
+			TargetUsername: v,
 			Permission:     "APPROVER",
 		})
 	}
 
 	for _, v := range inits {
 		permInfo = append(permInfo, userModels.WalletPermissionInfo{
-			TargetUsername: v.Initiator,
+			TargetUsername: v,
 			Permission:     "INITIATOR",
 		})
 	}
@@ -2114,7 +2176,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	p = userModels.UserWalletSharedAccessInfo{
 		WalletPublicKey:         *t.IssuingWalletPublicKey,
-		NumberOfApprovalsNeeded: 2,
+		NumberOfApprovalsNeeded: len(aps) - 2,
 		Permissions:             permInfo,
 	}
 
