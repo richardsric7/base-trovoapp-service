@@ -172,6 +172,10 @@ type TokenizedAsset struct {
 	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 	MintingInitators                            *string                         `gorm:"null" json:"mintingInitators"` //CSV of approvers
 	MintingApprovers                            *string                         `gorm:"null" json:"mintingApprovers"` //csv of initators
+	BankID                                      *uint64                         `gorm:"null" json:"bankId"`
+	Bank                                        Bank                            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	AccountNumber                               *string                         `gorm:"null" json:"accountNumber"`
+	BeneficiaryName                             *string                         `gorm:"null" json:"beneficiaryName"`
 }
 
 type TokenizedAssetID string
@@ -265,6 +269,9 @@ type TokenizedAssetJSONInput struct {
 	PhysicalConditionNoUndisclosedEasements     int          `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 	MintingInitators                            string       `gorm:"null" json:"mintingInitators"` //CSV of approvers
 	MintingApprovers                            string       `gorm:"null" json:"mintingApprovers"` //csv of initators
+	BankID                                      uint64       `gorm:"null" json:"bankId"`
+	AccountNumber                               string       `gorm:"null" json:"accountNumber"`
+	BeneficiaryName                             string       `gorm:"null" json:"beneficiaryName"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -396,6 +403,10 @@ type TokenizedAssetJSON struct {
 	PhysicalConditionNoUndisclosedEasements     int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
 	MintingInitators                            string                          `gorm:"null" json:"mintingInitators"` //CSV of approvers
 	MintingApprovers                            string                          `gorm:"null" json:"mintingApprovers"` //csv of initators
+	BankID                                      uint64                          `gorm:"null" json:"bankId"`
+	Bank                                        Bank                            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	AccountNumber                               string                          `gorm:"null" json:"accountNumber"`
+	BeneficiaryName                             string                          `gorm:"null" json:"beneficiaryName"`
 }
 
 type TokenizedAssetSector struct {
@@ -821,6 +832,23 @@ func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfi
 	return
 }
 
+func (t *TokenizedAsset) UpdateBank(gc *sharedconfig.GlobalConfig) (bank Bank) {
+	if t.BankID == nil {
+		return
+	}
+	if *t.BankID == 0 {
+		return
+	}
+
+	gc.DB.Preload(clause.Associations).Where("id = ?", *t.BankID).First(&bank)
+
+	if bank.ID > 0 {
+		t.Bank = bank
+
+	}
+	return
+}
+
 func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
 	//TODO: set the SEC fee, Custody fee, Asset manager fee and recover feeInFiat from total asset value
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
@@ -1160,6 +1188,23 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.FinancialAdvisor = &ti.FinancialAdvisor
 	} else {
 		t.FinancialAdvisor = nil
+	}
+
+	if ti.BankID > 0 {
+
+		t.BankID = &ti.BankID
+		t.UpdateBank(gc)
+
+	}
+
+	if len(ti.BeneficiaryName) > 0 {
+		t.BeneficiaryName = &ti.BeneficiaryName
+
+	}
+
+	if len(ti.AccountNumber) > 0 {
+		t.AccountNumber = &ti.AccountNumber
+
 	}
 
 	t.UndertakingNoLien = ti.UndertakingNoLien
@@ -1502,6 +1547,18 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.FinancialAdvisor != nil {
 
 		t.FinancialAdvisor = *ti.FinancialAdvisor
+	}
+	if ti.BankID != nil {
+
+		t.BankID = *ti.BankID
+		t.Bank = ti.UpdateBank(gc)
+	}
+
+	if ti.BeneficiaryName != nil {
+		t.BeneficiaryName = *ti.BeneficiaryName
+	}
+	if ti.AccountNumber != nil {
+		t.AccountNumber = *ti.AccountNumber
 	}
 
 	t.UndertakingNoLien = ti.UndertakingNoLien
