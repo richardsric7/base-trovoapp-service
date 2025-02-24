@@ -3,7 +3,7 @@ import 'dart:developer';
 class TokenizedAsset {
   String? id;
   String? shadowId;
-  double? amount;
+  // double? amount;
   double? usdPrice;
   String? assetIssuer;
   String? assetCode;
@@ -51,7 +51,10 @@ class TokenizedAsset {
   int? capDurationInDays;
   String? proceedCycle;
   String? assetLogo;
+  bool? expressedInterest;
+  double? expressedInterestAmount;
   bool? isSubscribed;
+  double? subscriptionAmount;
   String? exemptedCountries;
   int? hasAdditionalKYCRequirements;
   String? proceedPayoutCurrency;
@@ -105,7 +108,7 @@ class TokenizedAsset {
   TokenizedAsset({
     this.id,
     this.shadowId,
-    this.amount,
+    // this.amount,
     this.usdPrice,
     this.assetIssuer,
     this.assetCode,
@@ -169,6 +172,9 @@ class TokenizedAsset {
     this.tokenizationStatus,
     this.assetQuoteCurrency,
     this.isSubscribed,
+    this.subscriptionAmount,
+    this.expressedInterest,
+    this.expressedInterestAmount,
     this.proofOfPaymentDocuments,
     this.agreeTransferTitleToCustodian,
     this.contractualProtectionRevGuarantees,
@@ -209,7 +215,7 @@ class TokenizedAsset {
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],
-      amount: m["amount"],
+      // amount: m["amount"],
       usdPrice: m["usdPrice"],
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
@@ -278,7 +284,6 @@ class TokenizedAsset {
       assetTokenizationDocuments:
           deserializeDocuments(m["AssetTokenizationDocuments"]),
       tokenizationStatus: m["assetTokenizationStatus"],
-      isSubscribed: m["isSubscribed"],
       agreeTransferTitleToCustodian: m["agreeTransferTitleToCustodian"],
       contractualProtectionRevGuarantees:
           m["contractualProtectionRevGuarantees"],

@@ -755,8 +755,8 @@ Widget tokenizedAssetTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (asset.assetLogo != null) ...[
-                  Image.memory(
-                    base64Decode(asset.assetLogo!),
+                  Image.network(
+                    asset.assetLogo!,
                     height: 35,
                     width: 35,
                     errorBuilder: (context, error, stackTrace) {
@@ -814,14 +814,14 @@ Widget tokenizedAssetTile({
               ],
             ),
             if (onSubscribe != null) ...[
-              if (asset.salesEnd!.difference(DateTime.now()).inDays <= 0) ...[
+              if (asset.tokenizationStatus == 4) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Countdown(startDate: asset.salesStart!),
                     ElevatedButton(
                       onPressed: () async {
-                        asset.isSubscribed ?? false ? null : onSubscribe();
+                        onSubscribe();
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all(
@@ -830,7 +830,7 @@ Widget tokenizedAssetTile({
                         overlayColor: MaterialStateProperty.all<Color>(
                             notifier.getsplashgrey),
                         backgroundColor: MaterialStateProperty.all<Color>(
-                          asset.isSubscribed ?? false
+                          asset.expressedInterest ?? false
                               ? notifier.getbluewhitecolor
                               : notifier.getwihitecolor,
                         ),
@@ -853,13 +853,13 @@ Widget tokenizedAssetTile({
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              if (asset.isSubscribed ?? false) ...[
+                              if (asset.expressedInterest ?? false) ...[
                                 Text(
                                   'Interest Expressed',
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
                                     fontSize: 12,
-                                    color: asset.isSubscribed ?? false
+                                    color: asset.expressedInterest ?? false
                                         ? notifier.getwihitecolor
                                         : notifier.getbluewhitecolor,
                                   ),
@@ -867,7 +867,7 @@ Widget tokenizedAssetTile({
                                 Icon(
                                   Icons.check_circle_rounded,
                                   size: 20,
-                                  color: asset.isSubscribed ?? false
+                                  color: asset.expressedInterest ?? false
                                       ? notifier.getwihitecolor
                                       : notifier.getbluewhitecolor,
                                 ),
@@ -877,7 +877,7 @@ Widget tokenizedAssetTile({
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
                                     fontSize: 12,
-                                    color: asset.isSubscribed ?? false
+                                    color: asset.expressedInterest ?? false
                                         ? notifier.getwihitecolor
                                         : notifier.getbluewhitecolor,
                                   ),
@@ -885,7 +885,7 @@ Widget tokenizedAssetTile({
                                 Icon(
                                   Icons.add_circle_rounded,
                                   size: 20,
-                                  color: asset.isSubscribed ?? false
+                                  color: asset.expressedInterest ?? false
                                       ? notifier.getwihitecolor
                                       : notifier.getbluewhitecolor,
                                 ),
@@ -895,9 +895,8 @@ Widget tokenizedAssetTile({
                     ),
                   ],
                 ),
-              ] else ...[
+              ] else if (asset.tokenizationStatus == 5) ...[
                 Container(
-                  width: 270,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

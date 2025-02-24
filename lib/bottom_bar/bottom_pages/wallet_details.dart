@@ -16,7 +16,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -462,62 +461,6 @@ class _WalletDetailsState extends State<WalletDetails>
                 ],
               ),
             ],
-          ),
-          trailing: ElevatedButton(
-            onPressed: () async {
-              isSubscribed
-                  ? showUnSubscribePopup(
-                      context,
-                      assetCode: 'asset.assetCode!',
-                      onDone: (walletPublicKey) {},
-                      dropdownItems: getStandardWallets,
-                    )
-                  : showSubscribePopup(
-                      context,
-                      assetCode: 'tokenizedAsset.assetCode!',
-                      onDone: (walletPublicKey) {},
-                    );
-            },
-            style: ButtonStyle(
-              overlayColor:
-                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
-              side: MaterialStateProperty.all(
-                BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                    style: BorderStyle.solid),
-              ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            child: Container(
-              width: width / 4,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isSubscribed ? 'Subscribed' : 'Subscribe',
-                    style: TextStyle(
-                        fontFamily: fontsemibold,
-                        fontSize: 11,
-                        color: notifier.getwihitecolor),
-                  ),
-                  Icon(
-                      isSubscribed
-                          ? Icons.check_circle
-                          : Icons.add_circle_rounded,
-                      size: 18,
-                      color: notifier.getwihitecolor),
-                ],
-              ),
-            ),
           ),
         ),
       ),

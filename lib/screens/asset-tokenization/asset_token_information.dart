@@ -67,7 +67,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   final capDurationInDaysController = TextEditingController();
   bool formIsValid = true;
 
-  List<String> assetQuoteCurrencies = [];
+  List<Map> assetQuoteCurrencies = [];
   List<Map> assetPayoutTypes = [
     {'text': 'Crypto', 'value': 0},
     {'text': 'Fiat', 'value': 1}
@@ -89,10 +89,23 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     assetQuoteCurrencies.forEach((item) {
       options.add(DropdownMenuItem(
           child: Text(
-            item,
+            item["assetCode"].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: item));
+          value: item["assetCode"].toString()));
+    });
+    return options;
+  }
+
+  List<DropdownMenuItem<String>> get getPayoutCurrencies {
+    List<DropdownMenuItem<String>> options = [];
+    assetQuoteCurrencies.forEach((item) {
+      options.add(DropdownMenuItem(
+          child: Text(
+            item["label"].toString(),
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: item["label"].toString()));
     });
     return options;
   }
@@ -181,7 +194,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         i < appState.tokenizationData["tokenizationCurrencies"].length;
         i++) {
       assetQuoteCurrencies
-          .add(appState.tokenizationData["tokenizationCurrencies"][i]["label"]);
+          .add(appState.tokenizationData["tokenizationCurrencies"][i]);
     }
 
     for (var i = 0;
@@ -297,22 +310,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       85,
                       300.sp,
                       initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
+                      readOnly: true,
                     ),
                   ),
                 ],
@@ -549,127 +547,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "notobesold".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "notobesold".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         85,
-              //         300.sp,
-              //         controller: numberOfTokenToBeSoldController,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onChanged: (value) {
-              //           setState(() {
-              //             var val = value.toString().replaceAll('.', '');
-              //             numberOfTokenToBeSold =
-              //                 val.isNotEmpty ? int.parse(val) : 0;
-              //             totalTokenHeldByManager =
-              //                 numberOfTokenToBeIssued - numberOfTokenToBeSold;
-              //             numberOfTokenToBeSoldController.text = val.isNotEmpty
-              //                 ? formatNumberForInput(double.parse(val))
-              //                 : val;
-              //           });
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             numberOfTokenToBeSold = int.parse(value!);
-              //           });
-              //         },
-              //         autoFormatNumber: true,
-              //         inputFormatters: [
-              //           FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
-              //         ],
-              //         keyboardtype:
-              //             TextInputType.numberWithOptions(decimal: true),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "totaltobeheldbymanager".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20),
-              //       child: Container(
-              //         width: 300.sp,
-              //         height: 55.sp,
-              //         decoration: BoxDecoration(
-              //           borderRadius:
-              //               const BorderRadius.all(Radius.circular(15.0)),
-              //           color: notifier.getaddsubwalletgrey,
-              //         ),
-              //         child: Column(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Padding(
-              //               padding: const EdgeInsets.symmetric(horizontal: 10),
-              //               child: Text(
-              //                 formatNumberForInput(double.parse(
-              //                     totalTokenHeldByManager.toString())),
-              //                 style: TextStyle(fontSize: 15),
-              //               ),
-              //             ),
-              //             const SizedBox(height: 2),
-              //           ],
-              //         ),
-              //       ),
-              //     )
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
               Row(
                 children: [
                   Padding(
@@ -806,78 +683,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "assetsalesandpricing".tr(),
+                      "assettokensale".tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "pricepertoken".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20),
-              //       child: Container(
-              //         width: 300.sp,
-              //         height: 55.sp,
-              //         decoration: BoxDecoration(
-              //           borderRadius:
-              //               const BorderRadius.all(Radius.circular(15.0)),
-              //           color: notifier.getaddsubwalletgrey,
-              //         ),
-              //         child: Column(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Padding(
-              //               padding: const EdgeInsets.symmetric(horizontal: 10),
-              //               child: Text(
-              //                 (pricePerToken == 0 || pricePerToken.isNaN)
-              //                     ? ''
-              //                     : formatNumberForInput(pricePerToken),
-              //                 style: TextStyle(fontSize: 15),
-              //               ),
-              //             ),
-              //             const SizedBox(height: 2),
-              //           ],
-              //         ),
-              //       ),
-              //     )
-              //   ],
-              // ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "calculatedassetvalue".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
@@ -1169,9 +978,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
                 Row(
                   children: [
                     Padding(
@@ -1217,9 +1023,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       ),
                     ),
                   ],
-                ),
-                SizedBox(
-                  height: height / 50,
                 ),
                 Row(
                   children: [
@@ -1272,10 +1075,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 30,
-                ),
               ],
+              SizedBox(
+                height: height / 70,
+              ),
               Row(
                 children: [
                   Padding(
@@ -1292,7 +1095,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ],
               ),
               SizedBox(
-                height: height / 30,
+                height: height / 50,
               ),
               Row(
                 children: [
@@ -1362,7 +1165,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       proceedPayoutCurrency = value.toString();
                     });
                   },
-                  getAssetQuoteCurrencies,
+                  getPayoutCurrencies,
                   proceedPayoutCurrency.isEmpty ? null : proceedPayoutCurrency,
                   'Select payout currency',
                   context,
@@ -1376,6 +1179,39 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ),
               ),
               SizedBox(
+                height: height / 30,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Text(
+                      "assetsaleproceeds".tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    "provideaccountdetails".tr(),
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
                 height: height / 50,
               ),
               Row(
@@ -1383,7 +1219,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "proceedpayouttype".tr(),
+                      "selectbank".tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -1401,12 +1237,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      proceedPayoutType = int.parse(value.toString());
+                      proceedPayoutCurrency = value.toString();
                     });
                   },
-                  getAssetPayoutType,
-                  proceedPayoutType,
-                  'Select payout type',
+                  getPayoutCurrencies,
+                  proceedPayoutCurrency.isEmpty ? null : proceedPayoutCurrency,
+                  'pleaseselectbank'.tr(),
                   context,
                   null,
                   validator: (value) {
@@ -1418,7 +1254,116 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ),
               ),
               SizedBox(
-                height: height / 30,
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "accountnumber".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "accountnumber".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "beneficiaryname".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "beneficiaryname".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
               ),
               Row(
                 children: [

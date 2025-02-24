@@ -193,9 +193,9 @@ class _AssetTokenDetailsState extends State<AssetTokenDetails>
                 isSharedWallet: wallet.isSharedWallet,
                 walletType: wallet.walletType!,
                 totalBalance:
-                    '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
+                    '${formatNumber(asset!.subscriptionAmount!)} ${getAssetCode(asset!.assetCode)}',
                 fiatBalance:
-                    '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                    '${calculateFiatValue(asset!.subscriptionAmount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 initialHiddenState: appState.hideBalances,
               ),
               SizedBox(

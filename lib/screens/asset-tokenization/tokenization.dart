@@ -7,11 +7,13 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/tokenizedAsset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
@@ -32,7 +34,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   late TabController tabController;
   late Future<Map> listOfTokenizations;
   bool canCreateNewTokenization = true;
+  bool showFilter = false;
+  late List<Wallet> wallets;
+  String selectedWallet = '';
+  TokenizationFilterMode filterType = TokenizationFilterMode.All;
   TokenizedAssetListMode listMode = TokenizedAssetListMode.All;
+  ScrollController scrollController = new ScrollController();
   // bool hasInitiatorAccess = false;
   late var tokenizedAssets;
   late RefreshController _refreshController;
@@ -83,11 +90,64 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
 
   Map<String, TokenizedAssetListMode> listModes = {
     'All': TokenizedAssetListMode.All,
-    'Submitted': TokenizedAssetListMode.Submitted,
-    'Rejected': TokenizedAssetListMode.Rejected,
-    'Pending': TokenizedAssetListMode.Pending,
-    'Processing': TokenizedAssetListMode.Processing,
+    'Awaiting Fee Payment': TokenizedAssetListMode.AwaitingFeePayment,
+    'Awaiting Fee Payment Confirmation':
+        TokenizedAssetListMode.AwaitingFeePaymentConfirmation,
+    'Awaiting DD': TokenizedAssetListMode.AwaitingDD,
+    'Awaiting Approval/Minting': TokenizedAssetListMode.AwaitingMinting,
+    'Primary Sales': TokenizedAssetListMode.PrimarySales,
+    'Secondary Sales': TokenizedAssetListMode.SecondarySales,
+    'Liquidated': TokenizedAssetListMode.Liquidated,
+    'Refunded': TokenizedAssetListMode.Refunded,
   };
+
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+
+    wallets.forEach((wallet) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints: isSelected
+                    ? BoxConstraints(maxWidth: width / 4)
+                    : BoxConstraints(maxWidth: width / 2.5),
+                child: Text(
+                  wallet.alias!,
+                  overflow:
+                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+                ),
+              ),
+              if (wallet.isSharedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluewhitecolor,
+                )
+              ],
+              if (!isSelected && wallet.publicKey == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: wallet.publicKey,
+        ),
+      );
+    });
+
+    return walletsList;
+  }
 
   @override
   void initState() {
@@ -98,6 +158,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     _refreshController = RefreshController(initialRefresh: false);
     listOfTokenizations = fetchTokenizationList();
     // hasInitiatorAccess = checkHasInitiatorAccess();
+    wallets = appState.userInfo!.allWallets;
   }
 
   void refreshData() async {
@@ -136,7 +197,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 titlecolor: notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
-              // SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Card(
@@ -191,11 +251,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   return;
                                 }
 
+                                // if (!canCreateNewTokenization) {
+                                //   popup(context,
+                                //       title: "error".tr(),
+                                //       message:
+                                //           "You must complete the active tokenization process before starting a new one.");
+                                //   return;
+                                // }
+
                                 if (!canCreateNewTokenization) {
                                   popup(context,
                                       title: "error".tr(),
                                       message:
-                                          "You must complete the active tokenization process before starting a new one.");
+                                          "You must have at least \$500 worth of TROV on any of your wallets to begin a new tokenization process.");
                                   return;
                                 }
 
@@ -264,6 +332,105 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   ),
                 ),
               ),
+              if (showFilter) ...[
+                Container(
+                  width: width,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: width / 50,
+                      ),
+                      // hide the dropdown when we view this page from shared
+                      // wallet
+                      Expanded(
+                        flex: 2,
+                        child: dropdown(
+                          (newValue) async {
+                            appState.filterAsset = "*|*";
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            hideLoader(context);
+
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          },
+                          walletDropdownItems(false),
+                          null,
+                          null,
+                          context,
+                          (context) {
+                            return walletDropdownItems(true);
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: dropdown(
+                          (newValue) async {
+                            appState.filterAsset = "*|*";
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            hideLoader(context);
+
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          },
+                          walletDropdownItems(false),
+                          null,
+                          null,
+                          context,
+                          (context) {
+                            return walletDropdownItems(true);
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: width / 50,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: height / 50),
+                Container(
+                  width: width,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: width / 50,
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: dropdown(
+                          (newValue) async {
+                            setState(() {
+                              listMode = newValue as TokenizedAssetListMode;
+                            });
+                          },
+                          getItems,
+                          null,
+                          'All',
+                          context,
+                          null,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: getContent(filterType),
+                      ),
+                      SizedBox(
+                        width: width / 50,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: height / 35),
+              ],
               FutureBuilder<Map>(
                 future: listOfTokenizations,
                 builder: (context, snapshot) {
@@ -326,7 +493,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         var assets = <Widget>[];
 
                         for (var i = 0; i < records.length; i++) {
-                          if (records[i].tokenizationStatus <= 2) {
+                          var asset = records[i] as TokenizedAsset;
+                          print(
+                              'Can create new tokenization: ${asset.assetCode} ${asset.tokenizationStatus} ');
+                          if (asset.tokenizationStatus! <= 2) {
                             canCreateNewTokenization = false;
                             print(
                                 'Can create new tokenization: $canCreateNewTokenization');
@@ -361,7 +531,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             },
                             child: assetTile(
                               records[i].assetLogo ?? '',
-                              '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} (${records[i].assetCode.length == 0 ? 'Nill' : records[i].assetCode})',
+                              '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} ${records[i].assetCode.length == 0 ? '' : '(${records[i].assetCode})'}',
                               '${records[i].assetSubSector}',
                               getTokenizationStatus(
                                   records[i].tokenizationStatus),
@@ -422,6 +592,11 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         ),
       ),
     );
+  }
+
+  adjustScrollPosition() {
+    if (scrollController.hasClients)
+      scrollController.jumpTo(scrollController.position.minScrollExtent);
   }
 
   Widget ReadyToTokenizeView() {
@@ -728,22 +903,431 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         return 'Continue';
       case 1:
         return 'Awaiting Fee';
+      case 4:
+        return 'Approved';
       case 5:
         return 'Primary Sales';
       case 6:
         return 'Secondary Sales';
       case 7:
         return 'Liquidated';
+      case 8:
+        return 'Refunded';
       default:
         return 'Processing';
+    }
+  }
+
+  Widget getContent(TokenizationFilterMode type) {
+    switch (type) {
+      case TokenizationFilterMode.AssetDescription:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // textFieldPopup(context, rel: HistoryFilterType.Username,
+                //     onDone: (value) async {
+                //   appState.setFilterUsername = value;
+                //   if (value != null && value.isNotEmpty) {
+                //     appState.setFilterQuery = "&name=${value}";
+                //     await appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //   }
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      appState.filterUsername == null
+                          ? "enterusername2".tr()
+                          : appState.filterUsername!,
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterUsername != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case TokenizationFilterMode.AssetName:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // textFieldPopup(context, rel: HistoryFilterType.Memo,
+                //     onDone: (value) async {
+                //   appState.setFilterMemo = value;
+                //   if (value != null && value.isNotEmpty) {
+                //     appState.setFilterQuery = "&memo=${value}";
+                //     await appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //   }
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      appState.filterMemo == null
+                          ? "entermemo".tr()
+                          : truncate(appState.filterMemo!, length: 30),
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterMemo != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case TokenizationFilterMode.AssetCode:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // textFieldPopup(context, rel: TokenizationFilterMode.AssetType,
+                //     onDone: (value) async {
+                //   if (value != null && value.toString().isNotEmpty) {
+                //     appState.setFilterFromPublicKey = value;
+                //     appState.setFilterQuery = "&fromPublicKey=$value";
+                //     await appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //   }
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      'getTruncatedPublicKey(appState.filterFromPublicKey)',
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize:
+                              appState.filterFromPublicKey != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case TokenizationFilterMode.AssetType:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // textFieldPopup(context, rel: HistoryFilterType.ToPublicKey,
+                //     onDone: (value) async {
+                //   if (value != null && value.toString().isNotEmpty) {
+                //     appState.setFilterToPublicKey = value;
+                //     appState.setFilterQuery = "&toPublicKey=$value";
+                //     await appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //   }
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      'getTruncatedPublicKey(appState.filterToPublicKey)',
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize:
+                              appState.filterToPublicKey != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case TokenizationFilterMode.AmountRange:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // amountRangePopup(context, onDone: () async {
+                //   if (appState.filterMinAmount != null &&
+                //       appState.filterMaxAmount != null) {
+                //     appState.setFilterQuery =
+                //         "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+                //     await appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //   }
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      'truncate(getAmountRangeValue(), length: 30)',
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterMinAmount != null &&
+                                  appState.filterMaxAmount != null
+                              ? 12
+                              : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case TokenizationFilterMode.DateRange:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // customDateRangePopup(context, onDone: () async {
+                //   appState.setFilterQuery =
+                //       "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                //   await appState.getHistory(
+                //     context,
+                //     selectedWallet,
+                //     onDone: () => adjustScrollPosition(),
+                //   );
+                // });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'getDateRangeValue()',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterStartDate != null &&
+                                appState.filterEndDate != null
+                            ? 13
+                            : 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      // HistoryFilterType.TransactionDirection
+      default:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                // transactionTypePopup(
+                //   context,
+                //   onAllSelected: () {
+                //     appState.setFilterQuery = "";
+                //     appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //     Navigator.of(context).pop(); // dismiss dialog,
+                //   },
+                //   onPaymentSelected: () {
+                //     appState.setFilterQuery = "&transactionType=payment";
+                //     appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //     Navigator.of(context).pop(); // dismiss dialog,
+                //   },
+                //   onSwapSelected: () {
+                //     appState.setFilterQuery = "&transactionType=swap";
+                //     appState.getHistory(
+                //       context,
+                //       selectedWallet,
+                //       onDone: () => adjustScrollPosition(),
+                //     );
+                //     Navigator.of(context).pop(); // dismiss dialog,
+                //   },
+                // );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'getTransactionDirectionValue()',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterStartDate != null &&
+                                appState.filterEndDate != null
+                            ? 13
+                            : 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
     }
   }
 }
 
 enum TokenizedAssetListMode {
+  Open,
+  AwaitingFeePayment,
+  AwaitingFeePaymentConfirmation,
+  AwaitingDD,
+  AwaitingMinting,
+  PrimarySales,
+  SecondarySales,
+  Liquidated,
+  Refunded,
+  DateRange,
+  AmountRange,
   All,
-  Submitted,
-  Rejected,
-  Pending,
-  Processing,
+}
+
+enum TokenizationFilterMode {
+  All,
+  DateRange,
+  AmountRange,
+  AssetDescription,
+  AssetType,
+  AssetName,
+  AssetCode,
+  AssetSector,
+  AssetSubSector,
+  InitiatorUsername,
+  OfferingType,
+  HasSecApproval,
+  CreatedBetween,
+  AssetTokenizationStatus,
 }

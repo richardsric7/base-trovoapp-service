@@ -1,13 +1,18 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/wallet.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/countdown.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
@@ -35,15 +40,15 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     }
   }
 
-  List<DropdownMenuItem<String>> get getStandardWallets {
-    List<DropdownMenuItem<String>> wallets = [];
+  List<DropdownMenuItem<Wallet>> get getStandardWallets {
+    List<DropdownMenuItem<Wallet>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
             overflow: TextOverflow.ellipsis,
           ),
-          value: wallet.publicKey));
+          value: wallet));
     });
     return wallets;
   }
@@ -61,8 +66,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     var tokenizedAsset = appState.tokenizedAsset!;
-    var countdown =
-        tokenizedAsset.salesStart!.difference(DateTime.now()).inDays;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -125,16 +129,45 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Countdown(
-                  startDate: tokenizedAsset.salesStart!,
-                  isColumn: true,
-                ),
+                if (tokenizedAsset.tokenizationStatus == 4) ...[
+                  Countdown(
+                    startDate: tokenizedAsset.salesStart!,
+                    isColumn: true,
+                  ),
+                ] else if (tokenizedAsset.tokenizationStatus == 5) ...[
+                  Card(
+                    margin: EdgeInsets.zero,
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        side: BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                        )),
+                    color: notifier.isDark
+                        ? notifier.getbluecolor90
+                        : notifier.getaddsubwalletgrey,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Text(
+                        'Available',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
-            if (countdown < 0) ...[
+            if (tokenizedAsset.tokenizationStatus == 5) ...[
+              SizedBox(
+                height: height / 50,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -142,8 +175,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     onPressed: () {
                       showBuyTokenPopup(context,
                           assetCode: tokenizedAsset.assetCode!,
-                          onDone: (publicKey) {
-                        var wallet = appState.userInfo!.getWallet(publicKey);
+                          onDone: (wallet) {
                         appState.setActiveWallet = wallet;
                         appState.tokenizedAsset = tokenizedAsset;
                         appState.currentAction = PageAction(
@@ -154,7 +186,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     },
                     style: ButtonStyle(
                       padding: MaterialStateProperty.all(
-                        EdgeInsets.symmetric(vertical: 10, horizontal: 95),
+                        EdgeInsets.symmetric(vertical: 10, horizontal: 85),
                       ),
                       overlayColor: MaterialStateProperty.all<Color>(
                           notifier.getbluecolor90),
@@ -192,25 +224,31 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   ),
                 ],
               ),
-            ] else ...[
+            ] else if (tokenizedAsset.tokenizationStatus == 4) ...[
+              SizedBox(
+                height: height / 50,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: tokenizedAsset.isSubscribed ?? false
-                        ? null
-                        : () {
-                            showSubscribePopup(
-                              context,
-                              assetCode: tokenizedAsset.assetCode!,
-                              onDone: (amount) async {
-                                setState(() {
-                                  print(amount);
-                                  tokenizedAsset.isSubscribed = true;
-                                });
-                              },
-                            );
-                          },
+                    onPressed: () {
+                      showSubscribePopup(
+                        context,
+                        assetCode: tokenizedAsset.assetCode!,
+                        onDone: (amount) async {
+                          await subscribeTokenizedAsset(
+                            amount: double.parse(amount),
+                            tokenizedAssetID: tokenizedAsset.id!,
+                          );
+                          setState(() {
+                            tokenizedAsset.expressedInterest = true;
+                            tokenizedAsset.expressedInterestAmount =
+                                double.parse(amount);
+                          });
+                        },
+                      );
+                    },
                     style: ButtonStyle(
                       padding: MaterialStateProperty.all(
                         EdgeInsets.symmetric(vertical: 10, horizontal: 50),
@@ -218,13 +256,13 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       overlayColor: MaterialStateProperty.all<Color>(
                           notifier.getsplashgrey),
                       backgroundColor: MaterialStateProperty.all<Color>(
-                        tokenizedAsset.isSubscribed ?? false
+                        tokenizedAsset.expressedInterest ?? false
                             ? notifier.getaddsubwalletgrey
                             : notifier.getwihitecolor,
                       ),
                       side: MaterialStateProperty.all(
                         BorderSide(
-                            color: tokenizedAsset.isSubscribed ?? false
+                            color: tokenizedAsset.expressedInterest ?? false
                                 ? notifier.getaddsubwalletgrey
                                 : notifier.getbluewhitecolor,
                             width: 1,
@@ -242,7 +280,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            if (tokenizedAsset.isSubscribed ?? false) ...[
+                            if (tokenizedAsset.expressedInterest ?? false) ...[
                               Icon(
                                 Icons.check_circle_rounded,
                                 size: 20,
@@ -261,7 +299,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               Icon(
                                 Icons.add_circle_rounded,
                                 size: 20,
-                                color: tokenizedAsset.isSubscribed ?? false
+                                color: tokenizedAsset.expressedInterest ?? false
                                     ? notifier.getwihitecolor
                                     : notifier.getbluewhitecolor,
                               ),
@@ -271,9 +309,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                   fontSize: 12,
-                                  color: tokenizedAsset.isSubscribed ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
+                                  color:
+                                      tokenizedAsset.expressedInterest ?? false
+                                          ? notifier.getwihitecolor
+                                          : notifier.getbluewhitecolor,
                                 ),
                               ),
                             ]
@@ -282,8 +321,67 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   ),
                 ],
               ),
+            ] else if (tokenizedAsset.tokenizationStatus == 6) ...[
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      showBuyTokenPopup(context,
+                          assetCode: tokenizedAsset.assetCode!,
+                          onDone: (wallet) {
+                        appState.setActiveWallet = wallet;
+                        appState.tokenizedAsset = tokenizedAsset;
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: BuyTokensViewPageConfig,
+                        );
+                      }, dropdownItems: getStandardWallets);
+                    },
+                    style: ButtonStyle(
+                      padding: MaterialStateProperty.all(
+                        EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                      ),
+                      overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor90),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluewhitecolor),
+                      side: MaterialStateProperty.all(
+                        BorderSide(
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                            style: BorderStyle.solid),
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset('assets/images/money.png'),
+                          SizedBox(width: 10),
+                          Text(
+                            'Buy on TrovoP2P',
+                            style: TextStyle(
+                              fontFamily: fontsemibold,
+                              fontSize: 12,
+                              color: notifier.getwihitecolor,
+                            ),
+                          ),
+                        ]),
+                  ),
+                ],
+              ),
             ],
-            SizedBox(height: height / 90),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
@@ -348,6 +446,26 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
                 infoCard(
                   label: 'Price Per Token',
+                  value:
+                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}',
+                  extraValue: '\$0.12',
+                ),
+              ],
+            ),
+            SizedBox(height: height / 70),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  label: 'Total Quantity Bought',
+                  value: '15',
+                  extraValue: '',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
+                  label: 'Total Amount Bought',
                   value:
                       '${getFiatValue(tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}',
                   extraValue: '\$0.12',
@@ -566,7 +684,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   Widget infoCard(
       {required String label, required String value, String? extraValue}) {
     return Container(
-      width: width / 2.3,
+      width: width / 2.2,
       // height: height / 5.5,
       child: Card(
         shadowColor: Colors.black,
@@ -636,5 +754,43 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         ),
       ),
     );
+  }
+
+  subscribeTokenizedAsset(
+      {required double amount, required String tokenizedAssetID}) async {
+    try {
+      showLoader(context);
+
+      String requestBody = jsonEncode({
+        'amount': amount,
+      });
+
+      print(requestBody);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      if (responseData['statusCode'] == 200) {
+        hideLoader(context);
+      } else {
+        hideLoader(context);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'].toString().isEmpty
+              ? responseData['data']['error']
+              : responseData['data']['message'],
+        );
+      }
+    } catch (e) {
+      // print(e);
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 }

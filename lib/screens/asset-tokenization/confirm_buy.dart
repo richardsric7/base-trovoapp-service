@@ -1,7 +1,8 @@
 import 'dart:convert';
+import 'dart:developer';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -9,9 +10,13 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -25,6 +30,9 @@ class ConfirmBuy extends StatefulWidget {
 class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  double amount = 0;
+  double quantity = 0;
+  late TokenizedAsset tokenizedAsset;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,9 +56,9 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    var tokenizedAsset = appState.tokenizedAsset!;
-    var amount = appState.viewData!['amount'];
-    var quantity = appState.viewData!['quantity'];
+    tokenizedAsset = appState.tokenizedAsset!;
+    amount = appState.viewData!['amount'];
+    quantity = appState.viewData!['quantity'];
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -97,7 +105,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '${quantity} ${tokenizedAsset.assetCode} Tokens',
+                        '${formatNumberShort(quantity)} Tokens',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -136,7 +144,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '${amount} ${tokenizedAsset.assetQuoteCurrency}',
+                        '${formatNumberShort(amount)} ${tokenizedAsset.assetQuoteCurrency}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -177,21 +185,6 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.memory(
-                            base64Decode(tokenizedAsset.assetLogo!),
-                            height: 35,
-                            width: 35,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/trovo.png',
-                                height: 35,
-                                width: 35,
-                              );
-                            },
-                          ),
-                          SizedBox(
-                            width: width / 30,
-                          ),
                           Text(
                             '${appState.activeWallet!.alias}',
                             textAlign: TextAlign.center,
@@ -220,23 +213,14 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
               notifier.getbluecolor,
               wihitecolor,
               onTap: () async {
-                tokenizedAsset.amount = amount;
-                var wallet = appState.activeWallet!;
-                if (wallet.tokenizedAssets == null) {
-                  wallet.tokenizedAssets = [];
-                }
-
-                wallet.tokenizedAssets!.add(tokenizedAsset);
-                showLoader(context);
-                await Future.delayed(Duration(seconds: 5));
-                hideLoader(context);
-                appState.viewData![SuccessViewPageConfig.key] = {
-                  'title': 'Purchase Successful',
-                  'message':
-                      'Your purchase of [${tokenizedAsset.assetName} (${tokenizedAsset.assetCode})] tokens was successful.',
+                await buyTokenizedAsset();
+                appState.viewData = {
+                  'amount': amount,
+                  'quantity': quantity,
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.replace, page: SuccessViewPageConfig);
+                    state: PageState.replace,
+                    page: BuyTokensSuccessViewPageConfig);
               },
             ),
             SizedBox(
@@ -248,82 +232,52 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     );
   }
 
-  Widget confirmLiensAndEncumbrance() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Transform.scale(
-          scale: 1.sp,
-          child: Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
-            ),
-            activeColor: notifier.isDark
-                ? notifier.getbluecolor50
-                : notifier.getbluecolor90,
-            side: BorderSide(
-              color: notifier.isDark
-                  ? notifier.getbluecolor50
-                  : notifier.getbluecolor90,
-            ),
-            value: true,
-            onChanged: (bool? value) {
-              setState(() {});
-            },
-          ),
-        ),
-        Container(
-          width: width / 1.2,
-          child: Text(
-            'I confirm that this asset is completely free of all liens and encumbrance',
-            overflow: TextOverflow.visible,
-            style: TextStyle(
-                fontSize: 15,
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody),
-          ),
-        ),
-      ],
-    );
-  }
-}
+  buyTokenizedAsset() async {
+    try {
+      showLoader(context);
 
-Widget CheckItem(
-  String name,
-  void Function()? onClick, {
-  required Color backColor,
-  required Color foreColor,
-  required Color borderColor,
-  double? fontSize = 15,
-}) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 1),
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              softWrap: true,
-              style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
-            ),
-            SizedBox(
-              width: width / 70,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
+      String requestBody = jsonEncode({
+        'amount': amount,
+      });
+
+      print(requestBody);
+
+      Map responseData = await makePostRequest(
+        uri: appState.activeWallet!.isSharedWallet
+            ? '/v1/shared-access/tokenization/subscriptions/${tokenizedAsset.id}'
+            : '/v1/tokenization/subscriptions/${tokenizedAsset.id}',
+        body: requestBody,
+        signer: appState.activeWallet!.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeWallet!.publicKey!,
+      );
+
+      print('==============>response: $responseData');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        appState.viewData![SuccessViewPageConfig.key] = {
+          'title': 'Purchase Successful',
+          'message':
+              'Your purchase of [${tokenizedAsset.assetName} (${tokenizedAsset.assetCode})] tokens was successful.',
+        };
+        appState.currentAction =
+            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        hideLoader(context);
+      } else {
+        hideLoader(context);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'].toString().isEmpty
+              ? responseData['data']['error']
+              : responseData['data']['message'],
+        );
+      }
+    } catch (e) {
+      // print(e);
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
 }

@@ -18,6 +18,8 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens_receipt.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_wallet/screens/delete_account/delete_account.dart';
 import 'package:trovo_wallet/screens/delete_account/delete_account_prerequisites.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/asset_token_details.dart';
@@ -494,6 +496,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               SeeAllTokenizedAssets(), SeeAllTokenizedAssetsViewPageConfig);
           break;
+        case Pages.BuyTokensSuccessView:
+          _addPageData(BuyTokensSuccess(), BuyTokensSuccessViewPageConfig);
+          break;
+        case Pages.BuyTokensReceiptView:
+          _addPageData(BuyTokensReceipt(), BuyTokensReceiptViewPageConfig);
+          break;
         default:
           break;
       }
@@ -811,6 +819,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ConfirmBuyXBNWithFiatView:
         ConfirmBuyXBNWithFiatViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyTokensSuccessView:
+        BuyTokensSuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyTokensReceiptView:
+        BuyTokensReceiptViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

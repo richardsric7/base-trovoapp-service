@@ -31,10 +31,6 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
 
   double amount = 0;
   double quantity = 0;
-  List<String> currencies = [
-    'NGN',
-    'USD',
-  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,19 +40,6 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
     } else {
       notifier.setIsDark = previusstate;
     }
-  }
-
-  List<DropdownMenuItem<String>> get getCurrencyOptions {
-    List<DropdownMenuItem<String>> options = [];
-    currencies.forEach((item) {
-      options.add(DropdownMenuItem(
-          child: Text(
-            item,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: item));
-    });
-    return options;
   }
 
   @override
@@ -72,7 +55,6 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     var tokenizedAsset = appState.tokenizedAsset!;
-    var selectedCurrency = 'NGN';
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -96,7 +78,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      'Select Currency',
+                      'Currency',
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -109,20 +91,35 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
               SizedBox(
                 height: height / 50,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      selectedCurrency = value.toString();
-                    });
-                  },
-                  getCurrencyOptions,
-                  selectedCurrency,
-                  'Select currency',
-                  context,
-                  null,
-                ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: 300.sp,
+                      height: 55.sp,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              tokenizedAsset.assetQuoteCurrency!,
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
               ),
               SizedBox(
                 height: height / 50,
@@ -174,7 +171,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                           if (a != null) {
                             var pricePerToken = tokenizedAsset.pricePerToken!;
                             amountController.text =
-                                ((a * pricePerToken)).toString();
+                                formatNumberShort(a * pricePerToken).toString();
                           }
                         });
                       },
@@ -227,7 +224,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                           if (a != null) {
                             var pricePerToken = tokenizedAsset.pricePerToken!;
                             quantityController.text =
-                                ((a / pricePerToken)).toString();
+                                formatNumberShort(a / pricePerToken).toString();
                           }
                         });
                       },

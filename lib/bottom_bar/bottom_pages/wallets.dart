@@ -676,7 +676,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               children: [
                 Text(
                   getBalance(
-                      formatHistoryNumber(asset.amount ?? 0, 99000000000),
+                      formatHistoryNumber(
+                          asset.subscriptionAmount ?? 0, 99000000000),
                       indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,
@@ -688,7 +689,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
                     getBalance(
-                        '${calculateFiatValue(asset.amount == null ? '0' : asset.amount.toString(), asset.usdPrice == null ? '1.45' : asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        '${calculateFiatValue(asset.subscriptionAmount == null ? '0' : asset.subscriptionAmount.toString(), asset.usdPrice == null ? '1.45' : asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,

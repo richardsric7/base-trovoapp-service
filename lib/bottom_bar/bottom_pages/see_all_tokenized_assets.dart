@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -28,15 +30,16 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
   late ColorNotifier notifier;
   late List<Wallet> wallets;
   late DataProvider appState;
-  late Future<List<TokenizedAsset>> listOfTokenizations;
-  var viewData;
+  Map expressedInterests = {};
+  Map subscriptions = {};
+  late Future<List<TokenizedAsset>> tokenizedAssetListFuture;
+  List<TokenizedAsset> tokenizedAssets = [];
 
   @override
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    viewData = appState.viewData!;
-    listOfTokenizations = fetchTokenizationList();
+    tokenizedAssetListFuture = fetchTokenizationList(status: 0);
   }
 
   @override
@@ -87,7 +90,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
       child: Column(
         children: [
           FutureBuilder<List<TokenizedAsset>>(
-            future: listOfTokenizations,
+            future: tokenizedAssetListFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return SizedBox(
@@ -122,7 +125,8 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                           ElevatedButton(
                             onPressed: () {
                               setState(() {
-                                listOfTokenizations = fetchTokenizationList();
+                                tokenizedAssetListFuture =
+                                    fetchTokenizationList(status: 0);
                               });
                             },
                             style: ButtonStyle(
@@ -141,11 +145,11 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                     ),
                   );
                 } else if (snapshot.hasData) {
-                  var records = snapshot.data!;
+                  tokenizedAssets = snapshot.data!;
                   return Column(
                     children: [
-                      if (records.isNotEmpty) ...[
-                        for (var item in records) ...[
+                      if (tokenizedAssets.isNotEmpty) ...[
+                        for (var item in tokenizedAssets) ...[
                           GestureDetector(
                             onTap: () {
                               appState.tokenizedAsset = item;
@@ -161,12 +165,12 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                                 showSubscribePopup(
                                   context,
                                   assetCode: item.assetCode!,
-                                  onDone: (walletPublicKey) async {
+                                  onDone: (wallet) async {
                                     setState(() {
                                       var wallet = wallets
                                           .where((wallet) =>
                                               wallet.publicKey ==
-                                              walletPublicKey)
+                                              wallet.publicKey)
                                           .first;
                                       wallet.tokenizedAssets != null
                                           ? wallet.tokenizedAssets!.add(item)
@@ -221,42 +225,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
     );
   }
 
-  Future<List<TokenizedAsset>> fetchTokenizationList() async {
-    try {
-      var uri = '/v1/tokenization/list?assetTokenizationStatus=2';
-      Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
-      );
-      print('===============> response ${responseData}');
-      if (responseData['statusCode'] == 200) {
-        List<TokenizedAsset> tokenizedAssets = [];
-        var assets = responseData['data']['records'];
-        await inspect(assets);
-        if (assets != null) {
-          for (int i = 0; i < assets.length; i++) {
-            inspect(assets[i]);
-            var a = TokenizedAsset().deserializeJson(assets[i]);
-            a.usdPrice = 1.47;
-            a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-            a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-                a.numberOfTokenToBeIssued!);
-            tokenizedAssets.add(a);
-          }
-        }
-        return tokenizedAssets;
-      } else {
-        return Future.error('Error! Something went wrong.');
-      }
-    } catch (e) {
-      print('error');
-      print(e);
-      return Future.error('Error! ${e}');
-    }
-  }
-
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
@@ -289,5 +257,148 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
           value: wallet.publicKey));
     });
     return wallets;
+  }
+
+  Future<List<TokenizedAsset>> fetchTokenizationList(
+      {required int status}) async {
+    try {
+      await fetchExpressedInterests();
+      await fetchSubscriptions();
+      var uri =
+          '/v1/tokenization/list?onlyWithUserPermission=0&salesList=$status';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        List<TokenizedAsset> tokenizedAssets = [];
+        var assets = responseData['data']['records'];
+        if (assets != null) {
+          for (int i = 0; i < assets.length; i++) {
+            var a = TokenizedAsset().deserializeJson(assets[i]);
+            a.usdPrice = 1.47;
+            if (expressedInterests[a.id] != null) {
+              a.expressedInterest = expressedInterests[a.id] != null;
+              a.expressedInterestAmount =
+                  double.parse(expressedInterests[a.id]['amount'].toString());
+            }
+
+            if (subscriptions[a.id] != null) {
+              a.isSubscribed = subscriptions[a.id] != null;
+              a.subscriptionAmount =
+                  double.parse(subscriptions[a.id]['amount'].toString());
+            }
+            tokenizedAssets.add(a);
+          }
+        }
+        return tokenizedAssets;
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  Future<void> fetchExpressedInterests() async {
+    try {
+      var uri = '/v1/tokenization/expressed-interests';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        setState(() {
+          expressedInterests = {};
+          var records = responseData['data']['records'];
+          for (var i = 0; i < records.length; i++) {
+            expressedInterests[records[i]['tokenizedAssetId']] = records[i];
+          }
+        });
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  Future<void> fetchSubscriptions() async {
+    try {
+      var uri = '/v1/tokenization/subscriptions';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        subscriptions = {};
+        setState(() {
+          var records = responseData['data']['records'];
+          for (var i = 0; i < records.length; i++) {
+            subscriptions[records[i]['tokenizedAssetId']] = records[i];
+          }
+        });
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  subscribeTokenizedAsset(
+      {required double amount, required String tokenizedAssetID}) async {
+    try {
+      showLoader(context);
+
+      String requestBody = jsonEncode({
+        'amount': amount,
+      });
+
+      print(requestBody);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      print('==============>response: $responseData');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        hideLoader(context);
+      } else {
+        hideLoader(context);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'].toString().isEmpty
+              ? responseData['data']['error']
+              : responseData['data']['message'],
+        );
+      }
+    } catch (e) {
+      // print(e);
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 }

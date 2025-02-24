@@ -17,6 +17,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/deposit_withdrawal_history.dart';
@@ -4482,13 +4483,13 @@ showUnSubscribePopup(
 }
 
 showBuyTokenPopup(context,
-    {required void Function(String walletPublicKey) onDone,
+    {required void Function(Wallet wallet) onDone,
     required String assetCode,
-    required List<DropdownMenuItem<String>> dropdownItems}) async {
+    required List<DropdownMenuItem<Wallet>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
-  String selectedWalletPublicKey = '';
+  Wallet? selectedWallet = null;
   bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
@@ -4535,7 +4536,7 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
                         (value) {
-                          selectedWalletPublicKey = value.toString();
+                          selectedWallet = value as Wallet;
                         },
                         dropdownItems,
                         null,
@@ -4568,7 +4569,7 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          if (selectedWalletPublicKey.isEmpty) {
+                          if (selectedWallet == null) {
                             setStateForDialog(() {
                               showNoSelectedWalletError = true;
                             });
@@ -4576,7 +4577,7 @@ showBuyTokenPopup(context,
                           }
 
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedWalletPublicKey);
+                          onDone(selectedWallet!);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(

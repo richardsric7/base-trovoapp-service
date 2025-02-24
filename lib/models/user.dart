@@ -184,6 +184,7 @@ class UserInfo {
   }
 
   Wallet getWallet(String publicKey) {
+    print('dsadasffdasd dfad ${publicKey}');
     var combinedList = [...wallets!, ...sharedWallets!];
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }

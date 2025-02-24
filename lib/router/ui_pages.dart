@@ -111,6 +111,8 @@ const String DeleteAccountViewPath = '/DeleteAccountView';
 const String BuyXBNWithFiatViewPath = '/BuyXBNWithFiatView';
 const String ConfirmBuyXBNWithFiatViewPath = '/ConfirmBuyXBNWithFiatView';
 const String SeeAllTokenizedAssetsViewPath = '/SeeAllTokenizedAssetsView';
+const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
+const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
 
 enum Pages {
   Splash,
@@ -223,6 +225,8 @@ enum Pages {
   BuyXBNWithFiatView,
   ConfirmBuyXBNWithFiatView,
   SeeAllTokenizedAssetsView,
+  BuyTokensSuccessView,
+  BuyTokensReceiptView,
 }
 
 class PageConfiguration {
@@ -759,4 +763,14 @@ PageConfiguration SeeAllTokenizedAssetsViewPageConfig = PageConfiguration(
     key: 'SeeAllTokenizedAssetsView',
     path: SeeAllTokenizedAssetsViewPath,
     uiPage: Pages.SeeAllTokenizedAssetsView,
+    currentPageAction: null);
+PageConfiguration BuyTokensSuccessViewPageConfig = PageConfiguration(
+    key: 'BuyTokensSuccessView',
+    path: BuyTokensSuccessViewPath,
+    uiPage: Pages.BuyTokensSuccessView,
+    currentPageAction: null);
+PageConfiguration BuyTokensReceiptViewPageConfig = PageConfiguration(
+    key: 'BuyTokensReceiptView',
+    path: BuyTokensReceiptViewPath,
+    uiPage: Pages.BuyTokensReceiptView,
     currentPageAction: null);
