@@ -1247,7 +1247,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	var custodyFee, assetMgtFee float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-
+		if cConfig.MinTokenizationFee > t.FeeInFiat {
+			t.FeeInFiat = cConfig.MinTokenizationFee
+		}
 	}
 	var secFee float64
 	if cConfig.SECTokenizationFeeType == 1 {
