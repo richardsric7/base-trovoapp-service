@@ -981,7 +981,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
 	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
-
+	log.Printf("AssetOwnerRetainedOrContributedValue:= %v\n", ti.AssetOwnerRetainedOrContributedValue)
 	t.AssetManagerID = ti.AssetManagerID
 
 	if len(ti.AssetQuoteCurrency) > 0 {

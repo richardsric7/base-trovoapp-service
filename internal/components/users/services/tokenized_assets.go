@@ -13,9 +13,10 @@ import (
 	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	swapServices "trovo-wallet-api/internal/components/swaps/services"
+	db "trovo-wallet-api/internal/db"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
-	db "trovo-wallet-api/internal/db"
+	// db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/network"
@@ -982,8 +983,10 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	var err error
 	var tokenizedAssetList []userModels.TokenizedAsset
 	records.Records = make([]userModels.TokenizedAssetJSON, 0)
-	DB, _ := db.OpenDb()
-	DBC, _ := db.OpenDb()
+	// DB, _ := db.OpenDb()
+	// DBC, _ := db.OpenDb()
+	DB := gc.DB
+	DBC := gc.DB
 
 	onlyWithUserPermission := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlyWithUserPermission", "1")))
 
@@ -1209,8 +1212,10 @@ func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.G
 	var err error
 	var eiList []userModels.TokenizedAssetSubscription
 	records.Records = make([]userModels.TokenizedAssetSubscription, 0)
-	DB, _ := db.OpenDb()
-	DBC, _ := db.OpenDb()
+	// DB, _ := db.OpenDb()
+	// DBC, _ := db.OpenDb()
+	DB := gc.DB
+	DBC := gc.DB
 
 	onlySelf := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlySelf", "1")))
 	//get all wallets where user has access

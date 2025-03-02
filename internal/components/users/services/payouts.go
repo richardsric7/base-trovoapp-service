@@ -5,10 +5,18 @@ import (
 	"log"
 	"net/url"
 	"time"
+	userModels "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/sharedconfig"
 
+	// db "trovo-wallet-api/internal/db"
+
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
+	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -22,22 +30,22 @@ const (
 
 func main() {
 	// Initialize Horizon client for Mainnet
-	client := horizonclient.DefaultPublicNetClient
+	// client := horizonclient.DefaultPublicNetClient
 
 	// First, fetch all current accounts holding KGM using batch request
-	initialAccounts, err := fetchInitialAccounts(client)
-	if err != nil {
-		log.Fatalf("Failed to fetch initial accounts: %v", err)
-	}
+	// initialAccounts, err := fetchInitialAccounts(client)
+	// if err != nil {
+	// 	log.Fatalf("Failed to fetch initial accounts: %v", err)
+	// }
 
 	// Create a map to track accounts holding KGM
-	accountsWithKGM := make(map[string]bool)
+	// accountsWithKGM := make(map[string]bool)
 	// var mutex sync.Mutex
 
 	// Initialize with accounts from initial fetch
-	for _, accountID := range initialAccounts {
-		accountsWithKGM[accountID.PublicKey] = true
-	}
+	// for _, accountID := range initialAccounts {
+	// 	accountsWithKGM[accountID.PublicKey] = true
+	// }
 
 	// Create a channel to receive streaming events
 	// events := make(chan horizon.Account)
@@ -56,7 +64,7 @@ type BasicBalance struct {
 }
 
 // fetchInitialAccounts fetches all current accounts holding the KGM asset
-func fetchInitialAccounts(client *horizonclient.Client) ([]BasicBalance, error) {
+func fetchInitialAccounts(gc *sharedconfig.GlobalConfig) ([]BasicBalance, error) {
 	var allAccounts []BasicBalance
 	var cursor string
 
@@ -67,13 +75,16 @@ func fetchInitialAccounts(client *horizonclient.Client) ([]BasicBalance, error) 
 			Cursor: cursor,
 		}
 
-		accounts, err := client.Accounts(request)
+		accounts, err := gc.BantuExpansionClient.Accounts(request)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching accounts: %v", err)
 		}
 
 		for _, account := range accounts.Embedded.Records {
 			if ok, bal := hasPositiveBalance(account, assetCode, assetIssuer); ok {
+
+				// process data
+
 				allAccounts = append(allAccounts, BasicBalance{
 					PublicKey: account.AccountID,
 					Balance:   decimal.RequireFromString(bal).InexactFloat64(),
@@ -115,12 +126,35 @@ func parseBalance(balanceStr string) float64 {
 	return balDec.Truncate(7).InexactFloat64()
 }
 
-// // contains checks if a slice contains a string
-// func contains(slice []string, item string) bool {
-// 	for _, s := range slice {
-// 		if s == item {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc *sharedconfig.GlobalConfig) {
+	var scheduleItem userModels.TokenizedAssetPayoutSchedule
+
+	// var payout userModels.ProceedPayout
+	bal := decimal.RequireFromString(balance).InexactFloat64()
+	amountToReceive := decimal.NewFromFloat(payout.AmountPerTokenizedAssetHeld * bal).Truncate(2)
+	if amountToReceive.IsZero() {
+		return
+	}
+	ca, _ := userModels.Currency(*payout.TokenizedAsset.ProceedPayoutCurrency).GetCurratedAsset(gc)
+
+	payoutAsset := txnbuild.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
+
+	_, trustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, publicKey, payoutAsset)
+
+	var canReceiveAsset int
+	if trustsAsset {
+		canReceiveAsset = 1
+	}
+	scheduleItem = userModels.TokenizedAssetPayoutSchedule{
+		ID:                             uuid.NewString(),
+		TokenizedAssetID:               payout.TokenizedAssetID,
+		Batch:                          payout.Batch,
+		PayoutAssetCode:                *payout.TokenizedAsset.AssetCode,
+		PayoutAssetIssuer:              *payout.TokenizedAsset.IssuingWalletPublicKey,
+		BeneficiaryPublicKey:           publicKey,
+		ConfirmedTokenizedAssetBalance: bal,
+		AmountToReceive:                amountToReceive.InexactFloat64(),
+		CannotReceiveAsset:             canReceiveAsset,
+	}
+	gc.DB.Omit(clause.Associations).Create(&scheduleItem)
+}

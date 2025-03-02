@@ -13,7 +13,6 @@ import (
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
-	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -31,8 +30,10 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 	var err error
 	var authList []userModels.PendingAuth
 	records.Records = make([]userModels.AuthJSON, 0)
-	DB, _ := db.OpenDb()
-	DBC, _ := db.OpenDb()
+	// DB, _ := db.OpenDb()
+	// DBC, _ := db.OpenDb()
+	DB := gc.DB
+	DBC := gc.DB
 
 	if len(publicKeysSharedWithUser) == 0 {
 		return

@@ -18,8 +18,10 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	var err error
 	var paymentHistories []paymentModels.PaymentHistory
 	records.Records = make([]paymentModels.PaymentHistoryJSON, 0)
-	DB, _ := db.OpenDb()
-	DBC, _ := db.OpenDb()
+	// DB, _ := db.OpenDb()
+	// DBC, _ := db.OpenDb()
+	DB := gc.DB
+	DBC := gc.DB
 
 	// if err != nil {
 	// 	log.Fatalf("[main]Error opening DB %s", err)
@@ -189,8 +191,11 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	var depositHistory []userModels.CryptoDeposit
 	records.Records = make([]userModels.CryptoDepositJSON, 0)
 	recs := make([]userModels.CryptoDepositJSON, 0)
-	DB, _ := db.OpenDb()
-	DBC, _ := db.OpenDb()
+	// DB, _ := db.OpenDb()
+	// DBC, _ := db.OpenDb()
+
+	DB := gc.DB
+	DBC := gc.DB
 
 	var query *gorm.DB
 	var countQuery *gorm.DB
