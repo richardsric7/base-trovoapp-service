@@ -10,6 +10,7 @@ type Country struct {
 	SECTradeFee            float64 `gorm:"default:0" json:"SECTradeFeePercent"`
 	SECTradeFeeType        int     `gorm:"default:0" json:"SECTradeFeeType"` //0=percent,1 = fixed
 	RegionName             string  `json:"regionName"`
+	MinTokenizationFee     float64 `gorm:"default:0" json:"minTokenizationFee"`
 }
 
 type CountryCode string

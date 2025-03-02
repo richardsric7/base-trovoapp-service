@@ -356,6 +356,7 @@ type TokenizedAssetJSON struct {
 	ProceedCycle                                string                          `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           uint64                          `json:"tokenizationFeeId"`
 	TokenizationFee                             TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	CountryConfig                               Country                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"countryConfig"`
 	SECTokenizationFeePercent                   float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
 	SECTokenizationFeeValue                     float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
 	CustodianFeePercent                         float64                         `gorm:"default:0" json:"custodianFeePercent"`
@@ -1426,7 +1427,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 	if ti.AssetCountryLocation != nil {
 		t.AssetCountryLocation = *ti.AssetCountryLocation
+		t.CountryConfig = CountryCode(t.AssetCountryLocation).GetConfig(gc)
 	}
+
 	if ti.AssetPhysicalAddress != nil {
 		t.AssetPhysicalAddress = *ti.AssetPhysicalAddress
 	}
