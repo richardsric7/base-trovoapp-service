@@ -981,7 +981,6 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
 	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
-	log.Printf("AssetOwnerRetainedOrContributedValue:= %v\n", ti.AssetOwnerRetainedOrContributedValue)
 	t.AssetManagerID = ti.AssetManagerID
 
 	if len(ti.AssetQuoteCurrency) > 0 {
@@ -1336,6 +1335,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.VettingStatus = ti.VettingStatus
 
 	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
+	log.Printf("[TokenizedAsset:ToJSON]AssetOwnerRetainedOrContributedValue:= %v\n", ti.AssetOwnerRetainedOrContributedValue)
 
 	if ti.InitialOwnerPreferredWalletAddress != nil {
 
