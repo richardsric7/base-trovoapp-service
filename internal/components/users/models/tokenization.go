@@ -438,10 +438,11 @@ type TokenizationStatus struct {
 type TokenizationFee struct {
 	ID                 uint64  `gorm:"" json:"id"`
 	FeeFiatPercentage  float64 `json:"feeFiatPercentage"`
-	FeeFiatCap         float64 `json:"feeFiatCap"`
+	FeeFiatCap         float64 `json:"feeFiatCap"` //Minimum fee
 	FeeAssetPercentage float64 `json:"feeAssetPercentage"`
-	// FeeAssetCap        float64 `json:"feeAssetCap"`
+	// FeeAssetCap        float64 `json:"feeAssetCap"` //Minimum fee
 	FeeDescription string `json:"feeDescription"`
+	CountryCode    string `gorm:"size:2;default:'NG'" json:"countryCode"`
 	Inactive       int    `gorm:"default:0" json:"-"`
 }
 
@@ -1052,16 +1053,16 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(2).InexactFloat64()
-
+		if feeCompo.FeeFiatCap > t.FeeInFiat {
+			t.FeeInFiat = feeCompo.FeeFiatCap
+		}
 	}
 	// get SEC tokenization fee.
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-		if cConfig.MinTokenizationFee > t.FeeInFiat {
-			t.FeeInFiat = cConfig.MinTokenizationFee
-		}
+
 	}
 	var secFee float64
 	if cConfig.SECTokenizationFeeType == 1 {
@@ -1240,16 +1241,16 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(2).InexactFloat64()
-
+		if feeCompo.FeeFiatCap > t.FeeInFiat {
+			t.FeeInFiat = feeCompo.FeeFiatCap
+		}
 	}
 	// get SEC tokenization fee.
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-		if cConfig.MinTokenizationFee > t.FeeInFiat {
-			t.FeeInFiat = cConfig.MinTokenizationFee
-		}
+
 	}
 	var secFee float64
 	if cConfig.SECTokenizationFeeType == 1 {

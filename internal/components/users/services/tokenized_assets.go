@@ -133,7 +133,7 @@ func GetAssetManagerByID(id uint64, db *gorm.DB) (assetManager userModels.AssetM
 func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	fees = make([]userModels.TokenizationFee, 0)
 	// db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
-	db.Where("inactive != ?", 1).Find(&fees)
+	db.Order("id ASC, country_code ASC").Where("inactive != ?", 1).Find(&fees)
 
 	return
 }
