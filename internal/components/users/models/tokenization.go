@@ -103,6 +103,8 @@ type TokenizedAsset struct {
 	IsFreeFromLiensAndEncumbrances              int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
 	AssetAlreadyExists                          int                             `gorm:"default:1" json:"assetAlreadyExists"`
 	VettingStatus                               int                             `gorm:"default:0" json:"vettingStatus"`
+	DueDiligenceFail                            int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
+	DueDiligenceFailureReason                   *string                         `json:"dueDiligenceFailureReason"`
 	AssetTokenizationDocuments                  []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
 	AssetCode                                   *string                         `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
@@ -336,6 +338,8 @@ type TokenizedAssetJSON struct {
 	IsFreeFromLiensAndEncumbrances              int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
 	AssetAlreadyExists                          int                             `gorm:"default:1" json:"assetAlreadyExists"`
 	VettingStatus                               int                             `gorm:"default:0" json:"vettingStatus"`
+	DueDiligenceFail                            int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
+	DueDiligenceFailureReason                   string                          `json:"dueDiligenceFailureReason"`
 	AssetTokenizationDocuments                  []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
 	ProofOfPaymentDocuments                     []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
 	AssetCode                                   string                          `json:"assetCode"`
@@ -523,6 +527,10 @@ type AssetTokenizationInputDocument struct {
 	DocumentTitle    string    `json:"documentTitle" form:"documentTitle"`
 	// DocumentFile     *multipart.File `form:"documentFile"`
 	// DocumentFile     string `json:"-"`// this is not included in struct for input. already extracted by c.FormFile
+}
+
+type FailDueDiligence struct {
+	Reason string `json:"reason" form:"reason"`
 }
 
 type AssetTokenizationDocumentType struct {
@@ -863,6 +871,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.HasAdditionalKYCRequirements = 0
 	}
 
+	//clear any DD failure flags
+	t.DueDiligenceFail = 0
+	t.DueDiligenceFailureReason = nil
+	
 	if len(ti.AssetSector) > 0 {
 
 		t.AssetSector = &ti.AssetSector
@@ -1339,6 +1351,13 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.CustodianFeePercent = ti.CustodianFeePercent
 	t.CustodianFeeValue = ti.CustodianFeeValue
 	t.VettingStatus = ti.VettingStatus
+	t.DueDiligenceFail = ti.DueDiligenceFail
+
+	if ti.DueDiligenceFailureReason != nil {
+
+		t.DueDiligenceFailureReason = *ti.DueDiligenceFailureReason
+
+	}
 
 	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
 	log.Printf("[TokenizedAsset:ToJSON]AssetOwnerRetainedOrContributedValue[%v]:= %v\n", t.ID, decimal.NewFromFloat(ti.AssetOwnerRetainedOrContributedValue).String())
@@ -1348,6 +1367,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.InitialOwnerPreferredWalletAddress = *ti.InitialOwnerPreferredWalletAddress
 
 	}
+
 	if ti.AdditionalKYCRequirements != nil {
 
 		t.AdditionalKYCRequirements = *ti.AdditionalKYCRequirements

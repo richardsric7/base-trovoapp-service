@@ -752,7 +752,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 }
 
 // VetTokenizationAssetInfo used by trovoManager
-func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.VetTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.VetTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if errorGetTokenizationByID != nil {
@@ -826,7 +826,84 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
-	return ato, issuingWallet, nil
+	return ato, nil
+}
+
+// AcknowledgeTokenizationFeePayment used by trovoManager
+func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		// error tokenization is already in progress
+		log.Printf("[AcknowledgeTokenizationFeePayment] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+
+	//tokenization existing
+	if ato.AssetTokenizationStatus != 2 {
+		// error tokenization is already in progress
+		log.Printf("[AcknowledgeTokenizationFeePayment] Error tokenization application is not awaiting payment confirmation and cannot be modified: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization request is not awaiting payment confirmation."}
+		return
+
+	}
+
+	ato.AssetTokenizationStatus = 3
+
+	ato.LastUpdatedBy = &initiator.Username
+
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[AcknowledgeTokenizationFeePayment] error saving tokenization to database [%v] %v\n", initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, nil
+}
+
+// FailTokenizationDueDiligence used by trovoManager
+func FailTokenizationDueDiligence(tokenizationID string, initiator *userModels.User, reasonForFailure string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		// error tokenization is already in progress
+		log.Printf("[FailTokenizationDueDiligence] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+
+	//tokenization existing
+	if len(reasonForFailure) < 5 {
+		// error no reason given
+		log.Printf("[FailTokenizationDueDiligence] Error No reason given for due diligence failure %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-no-reason-given", ErrMessage: "Valid reason for failure of due diligence must be provided."}
+		return
+
+	}
+
+	// reset status to 0
+	ato.AssetTokenizationStatus = 0
+	ato.VettingStatus = 0
+
+	ato.DueDiligenceFail = 1
+	ato.DueDiligenceFailureReason = &reasonForFailure
+
+	ato.LastUpdatedBy = &initiator.Username
+
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[FailTokenizationDueDiligence] error saving tokenization to database [%v]  %v\n", initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, nil
 }
 
 // ConfirmTokenizationAssetInfo advance status to 1 and allow for vetting.
@@ -921,6 +998,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 	return ato, err
 }
 
+// ConfirmTokenizationAssetPaymentInfo is used to confirm payment by initiator. After successful call, it moves the tokenized asset status to trovo manager awaiting payment acknowledgement.
 func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing

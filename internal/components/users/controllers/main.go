@@ -5196,7 +5196,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
-		router.PUT("/v1/trovo-manager/tokenization/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+		router.PUT("/v1/trovo-manager/tokenization/update/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 			var err error
 			au, err := middleware.ExtractTokenMetadata(c.Request)
 
@@ -5331,7 +5331,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			//perform request action
-			ta, _, err := userServices.VetTokenizationAssetInfo(tid, &initiator, &tInput, gc)
+			ta, err := userServices.VetTokenizationAssetInfo(tid, &initiator, &tInput, gc)
 
 			if err != nil {
 
@@ -5359,7 +5359,177 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
-		router.POST("/v1/trovo-manager/tokenization/confirm/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+		router.POST("/v1/trovo-manager/tokenization/faildd/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+			var err error
+			au, err := middleware.ExtractTokenMetadata(c.Request)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+			if getUserError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			tid := c.Param("tid")
+			if strings.EqualFold(tid, "null") {
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			var tInput userModels.FailDueDiligence
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			//perform request action
+			ta, err := userServices.FailTokenizationDueDiligence(tid, &initiator, tInput.Reason, gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta.ToJSON(gc))
+			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+			if err == nil {
+				if originalOwner.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = ""
+					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request failed Due Diligence!", fmt.Sprintf("Your tokenization request for %v[%v] has failed due diligience check. Please proceed to next stage to rectify any issues.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				}
+			}
+
+		})
+
+		router.POST("/v1/trovo-manager/tokenization/fee/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+			var err error
+			au, err := middleware.ExtractTokenMetadata(c.Request)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+			if getUserError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			tid := c.Param("tid")
+			if strings.EqualFold(tid, "null") {
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			// var tInput userModels.FailDueDiligence
+
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tInput)
+
+			// var invalidJSON tErrors.ErrorInvalidJSON
+
+			// if err != nil {
+			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			// 	return
+			// }
+
+			//perform request action
+			ta, err := userServices.AcknowledgeTokenizationFeePayment(tid, &initiator, gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta.ToJSON(gc))
+			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+			if err == nil {
+				if originalOwner.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = ""
+					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request fee payment acknowledged!", fmt.Sprintf("Your tokenization request fee payment for %v[%v] has been acknowledged. Application will now go through Due Diligence.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				}
+			}
+
+		})
+
+		router.POST("/v1/trovo-manager/tokenization/mint/:tid", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 			var err error
 			au, err := middleware.ExtractTokenMetadata(c.Request)
 
