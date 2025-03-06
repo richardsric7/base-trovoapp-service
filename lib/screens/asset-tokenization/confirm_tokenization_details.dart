@@ -55,6 +55,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     var isAlreadySubmitted = tokenizedAsset.tokenizationStatus == 1;
+    var isVetted = tokenizedAsset.vettingStatus == 1;
     inspect(appState.viewData);
 
     return ScreenUtilInit(
@@ -64,8 +65,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         appBar: CustomAppBar(
                 context,
                 notifier.getwihitecolor,
-                isAlreadySubmitted
-                    ? tokenizedAsset.assetName!
+                isAlreadySubmitted && isVetted
+                    ? 'Vetted Summary'
                     : "confirmyourinformation".tr(),
                 notifier.getblck,
                 height: height / 15)
@@ -73,9 +74,29 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 40,
-              ),
+              if (isAlreadySubmitted && isVetted) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: width / 1.2,
+                        child: Text(
+                          'Your application has been vetted, please confirm the information below and proceed to pay for tokenization'
+                              .tr(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -108,10 +129,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       if (tokenizedAsset.assetAlreadyExists == 1) ...[
                         item("originalassetvalue".tr(),
-                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${appState.defaultCurrency}'),
                       ] else ...[
                         item("originaltotalprojectcost".tr(),
-                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
+                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${appState.defaultCurrency}'),
                       ],
                       SizedBox(height: height / 90),
                     ],
@@ -147,18 +168,36 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("proposedtotaltokenstobeissued".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
-                      SizedBox(height: height / 90),
-                      item("totalamounttoberaised".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeSold!)} ${tokenizedAsset.assetCode}'),
-                      SizedBox(height: height / 90),
-                      // item("pricepertoken".tr(),
-                      //     '${(formatNumber(tokenizedAsset.pricePerToken!))} ${tokenizedAsset.assetQuoteCurrency}'),
-                      // SizedBox(height: height / 90),
-                      // item("totalamounttoberaised".tr(),
-                      //     '${formatNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}'),
-                      // SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        item("Total tokens".tr(),
+                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item("Value of total tokens".tr(),
+                            '${(truncateNumber(tokenizedAsset.valueOfTokenizedAsset!))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("pricepertoken".tr(),
+                            '${(formatNumber(tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Tokens not for sale".tr(),
+                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item(
+                            tokenizedAsset.assetAlreadyExists == 1
+                                ? "Amount retained".tr()
+                                : "Amount contributed".tr(),
+                            '${(truncateNumber(tokenizedAsset.assetOwnerRetainedOrContributedValue!))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Tokens for sale".tr(),
+                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item("totalamounttoberaised".tr(),
+                            '${truncateNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("proposedtotaltokenstobeissued".tr(),
+                            '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                      ],
                     ],
                   ),
                 ),
@@ -190,14 +229,25 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("proposedstartdate".tr(),
-                          '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      item("proposedenddate".tr(),
-                          '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
-                      SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        item("startdate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        item("enddate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("proposedstartdate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        item("proposedenddate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
+                        SizedBox(height: height / 90),
+                      ],
                     ],
                   ),
                 ),
@@ -229,44 +279,108 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("applicationfee".tr(), '500 TROV'),
-                      SizedBox(height: height / 90),
-                      item("tokenizationfee".tr(),
-                          getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
-                      SizedBox(height: height / 90),
-                      item("otherstatutoryfees".tr(),
-                          getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
-                      SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        item("Asset tokenization fee".tr(),
+                            getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        SizedBox(height: height / 90),
+                        item("SEC Regulatory Fee".tr(),
+                            tokenizedAsset.SECTokenizationFeeValue.toString()),
+                        SizedBox(height: height / 90),
+                        item("Asset Custody Fee".tr(),
+                            tokenizedAsset.custodianFeeValue.toString()),
+                        SizedBox(height: height / 90),
+                        item("Asset Management Fee".tr(),
+                            tokenizedAsset.assetManagerFeeValue.toString()),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("applicationfee".tr(),
+                            '500 TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
+                        SizedBox(height: height / 90),
+                        item("tokenizationfee".tr(),
+                            getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        SizedBox(height: height / 90),
+                        // item("otherstatutoryfees".tr(), ''),
+                        // SizedBox(height: height / 90),
+                      ]
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
               if (isAlreadySubmitted) ...[
-                Button(
-                  "viewpaymentdetails".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: TokenizationFeePaymentViewPageConfig,
-                    );
-                  },
-                ),
-                SizedBox(height: height / 70),
-                ButtonOutlined(
-                  'back'.tr(),
-                  notifier.getwihitecolor,
-                  notifier.getbluewhitecolor,
-                  borderColor: notifier.getbluewhitecolor,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
+                if (tokenizedAsset.vettingStatus == 1) ...[
+                  SizedBox(
+                    height: height / 30,
+                  ),
+                  Button(
+                    "Proceed to Pay".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizationFeePaymentViewPageConfig,
+                      );
+                    },
+                  ),
+                  SizedBox(height: height / 70),
+                ] else ...[
+                  notifyAdditionalInfo(
+                      "Please note that other statutory fees will be added after vetting"
+                          .tr()),
+                  SizedBox(height: 20),
+                  ButtonOutlined(
+                    'back'.tr(),
+                    notifier.getwihitecolor,
+                    notifier.getbluewhitecolor,
+                    borderColor: notifier.getbluewhitecolor,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
               ] else ...[
+                SizedBox(height: 10),
+                notifyAdditionalInfo(
+                    "Please note that other statutory fees will be added after vetting"
+                        .tr()),
+                SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5.0, vertical: 10),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 300,
+                              child: Text(
+                                "Please authorize the deduction of application fee to submit application."
+                                    .tr(),
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
                 Form(
                   key: formKey,
                   child: CustomPasswordFormField(
@@ -337,6 +451,74 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget notifyAdditionalInfo(String info) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        child: Card(
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0),
+              side: BorderSide(
+                color: notifier.getbluewhitecolor,
+                width: 1,
+              )),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  child: Card(
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                        side: BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                        )),
+                    color: notifier.getaddsubwalletgrey,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "i".tr(),
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 300,
+                  child: Text(
+                    info,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -480,7 +662,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     var tokenFee =
         (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
     var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
-    return "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
+    return "\$${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
   }
 
   Widget item(String key, String value) {
@@ -491,7 +673,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         children: [
           Container(
             constraints: BoxConstraints(
-              maxWidth: width / 2.1,
+              maxWidth: width / 2.36,
             ),
             child: Text(
               key,
@@ -505,9 +687,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
             ),
           ),
           Container(
-            constraints: BoxConstraints(
-              maxWidth: width / 2.4,
-            ),
+            width: width / 2.56,
             child: Text(
               value,
               textAlign: TextAlign.end,

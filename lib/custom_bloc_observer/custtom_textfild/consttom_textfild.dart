@@ -92,7 +92,7 @@ class CustomTextFormField {
               }
 
               if (newVal.isNotEmpty) {
-                controller!.text = formatNumberForInput(double.parse(
+                controller!.text = truncateNumber(double.parse(
                     newVal.toString().replaceAll(',', '').replaceAll('-', '')));
 
                 if (!newVal.endsWith('.')) {

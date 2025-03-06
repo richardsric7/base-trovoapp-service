@@ -6724,3 +6724,673 @@ uploadTokenizationFeePopup(
         });
       });
 }
+
+tokenizationFilterTextFieldPopup(context,
+    {required String label,
+    String? placeholder,
+    required void Function(String?) onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String? textValue;
+  var textController = TextEditingController();
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: CustomTextFormField.textFieldWithoutIcon(
+                            placeholder,
+                            notifier.getbluecolor,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            55.sp,
+                            300.sp,
+                            onChanged: (value) {
+                              if (value != null &&
+                                  value.toString().isNotEmpty) {
+                                textValue = value;
+                              }
+                            },
+                            controller: textController,
+                            keyboardtype: TextInputType.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (textValue != null) {
+                            onDone(textValue);
+                          }
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "done".tr(),
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+tokenizationStatusPopup(
+  context, {
+  required void Function(String statusCode) onSelected,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "selecttokenizationstatus".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                quickDateRange(context, text: "all".tr(),
+                                    onPressed: () {
+                                  onSelected('0');
+                                }),
+                                quickDateRange(context,
+                                    text: "Awaiting Fee".tr(), onPressed: () {
+                                  onSelected('1');
+                                }),
+                                quickDateRange(context, text: "Processing".tr(),
+                                    onPressed: () {
+                                  onSelected('2');
+                                }),
+                                quickDateRange(context,
+                                    text: "Primary Sales".tr(), onPressed: () {
+                                  onSelected('5');
+                                }),
+                                quickDateRange(context,
+                                    text: "Secondary Market".tr(),
+                                    onPressed: () {
+                                  onSelected('6');
+                                }),
+                                quickDateRange(context, text: "Liquidated".tr(),
+                                    onPressed: () {
+                                  onSelected('7');
+                                }),
+                                quickDateRange(context, text: "Refunded".tr(),
+                                    onPressed: () {
+                                  onSelected('8');
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+tokenizationOfferingTypePopup(
+  context, {
+  required void Function(String statusCode) onSelected,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "offeringtype".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                quickDateRange(context, text: "public".tr(),
+                                    onPressed: () {
+                                  onSelected('0');
+                                }),
+                                quickDateRange(context, text: "private".tr(),
+                                    onPressed: () {
+                                  onSelected('1');
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+tokenizationCustomDateRangePopup(context,
+    {DateTime? initialStartDate,
+    DateTime? initialEndDate,
+    required void Function(DateTime startDate, DateTime endDate)
+        onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var initialDate = DateTime.now();
+          DateTime? startDate =
+              initialStartDate ?? DateTime.now().subtract(Duration(days: 1));
+          DateTime? endDate = initialEndDate ?? DateTime.now();
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "enterdaterange".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: "pastweek".tr(),
+                                    onPressed: () {
+                                  startDate = DateTime.now()
+                                      .subtract(Duration(days: 7));
+                                  endDate = DateTime.now();
+                                }),
+                                quickDateRange(context, text: "pastmonth".tr(),
+                                    onPressed: () {
+                                  var date = DateTime.now();
+                                  endDate = date;
+                                  startDate = DateTime(
+                                      date.year, date.month - 1, date.day);
+                                }),
+                                quickDateRange(context, text: "past3month".tr(),
+                                    onPressed: () {
+                                  var date = DateTime.now();
+                                  endDate = date;
+                                  startDate = DateTime(
+                                      date.year, date.month - 3, date.day);
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 5.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "startdate".tr(),
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15,
+                                        fontFamily: fontbody),
+                                  ),
+                                  SizedBox(
+                                    height: height / 70,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10.0)),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        startDate = await showDatePicker(
+                                              context: context,
+                                              initialDate: initialDate,
+                                              firstDate: DateTime
+                                                  .fromMicrosecondsSinceEpoch(
+                                                      1000),
+                                              lastDate: DateTime.now(),
+                                            ) ??
+                                            startDate;
+                                      },
+                                      child: Wrap(children: [
+                                        Text(
+                                          DateFormat('MMMM dd, yyyy')
+                                              .format(startDate ?? initialDate),
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                              color: notifier.getbluewhitecolor,
+                                              fontSize: 15,
+                                              fontFamily: fontsemibold),
+                                        ),
+                                        SizedBox(
+                                          width: width / 50,
+                                        ),
+                                        Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ]),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 5.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "enddate".tr(),
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15,
+                                        fontFamily: fontbody),
+                                  ),
+                                  SizedBox(
+                                    height: height / 70,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10.0)),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        endDate = await showDatePicker(
+                                              context: context,
+                                              initialDate:
+                                                  endDate ?? initialDate,
+                                              firstDate: DateTime
+                                                  .fromMicrosecondsSinceEpoch(
+                                                      1000),
+                                              lastDate: DateTime.now(),
+                                            ) ??
+                                            endDate;
+                                      },
+                                      child: Wrap(
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Text(
+                                            DateFormat('MMMM dd, yyyy').format(
+                                                endDate ?? DateTime.now()),
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                                fontSize: 15,
+                                                fontFamily: fontsemibold),
+                                          ),
+                                          SizedBox(
+                                            width: width / 50,
+                                          ),
+                                          Icon(
+                                            Icons.edit,
+                                            size: 16,
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          if (startDate != null && endDate != null) {
+                            onDone(startDate!, endDate!);
+                          }
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "done".tr(),
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+tokenizationAmountRangePopup(
+  context, {
+  required double minAmount,
+  required double maxAmount,
+  required void Function(double minAmount, double maxAmount) onDone,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  var minAmountTextController = TextEditingController();
+  var maxAmountTextController = TextEditingController();
+  minAmountTextController.text = minAmount.toString();
+  maxAmountTextController.text = maxAmount.toString();
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "enteramountrange".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomTextFormField.textFieldWithoutIcon(
+                                "minimumamount".tr(),
+                                notifier.getbluecolor,
+                                notifier.getgrey,
+                                notifier.getprefixicon,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                55.sp, 300.sp,
+                                onChanged: (value) {
+                                  if (value != null &&
+                                      value.toString().isNotEmpty) {
+                                    minAmount =
+                                        double.tryParse(value.toString()) ?? 0;
+                                  }
+                                },
+                                controller: minAmountTextController,
+                                keyboardtype: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                              ),
+                              SizedBox(
+                                height: height / 30,
+                              ),
+                              CustomTextFormField.textFieldWithoutIcon(
+                                "maximumamount".tr(),
+                                notifier.getbluecolor,
+                                notifier.getgrey,
+                                notifier.getprefixicon,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                55.sp, 300.sp,
+                                onChanged: (value) {
+                                  if (value != null &&
+                                      value.toString().isNotEmpty) {
+                                    maxAmount =
+                                        double.tryParse(value.toString()) ?? 0;
+                                  }
+                                },
+                                controller: maxAmountTextController,
+                                keyboardtype: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onDone(minAmount, maxAmount);
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "done".tr(),
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}

@@ -41,10 +41,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   bool hasAdditionalKYCRequirements = false;
   late String proceedPayoutCurrency;
   late int proceedPayoutType;
-  // late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
-  // late int totalTokenHeldByManager;
-  // late double pricePerToken;
   late String assetCode;
   late String assetName;
   late DateTime? salesStart;
@@ -58,10 +55,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late bool investorAccreditationRequired;
   late bool capOnPurchase;
   late String walletToHoldAssetsNotForSale;
+  late String bankId;
+  late String accountNumber;
+  late String beneficiaryName;
   late int tokenizationFeeId;
   late dynamic data = {};
   final numberOfTokenToBeIssuedController = TextEditingController();
-  // final numberOfTokenToBeSoldController = TextEditingController();
   final capQuantityController = TextEditingController();
   final capAmountController = TextEditingController();
   final capDurationInDaysController = TextEditingController();
@@ -148,10 +147,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       var tokenFee = (numberOfTokenToBeIssued * assetPercentage) / 100;
       var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
 
-      if (i == 4) {
+      if (i == 0) {
         items.add(DropdownMenuItem(
             child: Text(
-              "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber((data['assetCurrentValue'] * 0.5) / 100)}",
+              "Select fee",
               overflow:
                   isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
             ),
@@ -161,8 +160,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
       items.add(DropdownMenuItem(
           child: Text(
-            "Option ${i + 1} - ${assetQuoteCurrency}${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
-            // "${item['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).",
+            "Option ${i} - ${assetQuoteCurrency}${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
             overflow: isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
           ),
           value: item['id']));
@@ -206,16 +204,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
     tokenizationFeeId =
         data["tokenizationFeeId"] == 0 ? 1 : data["tokenizationFeeId"];
-    // numberOfTokenToBeSold = data['numberOfTokenToBeSold'];
     numberOfTokenToBeIssued = data['numberOfTokenToBeIssued'];
     walletToHoldAssetsNotForSale =
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
             ? ''
             : data['walletToHoldAssetsNotForSale'].toString();
-    // totalTokenHeldByManager = data['totalTokenHeldByManager'];
-    // pricePerToken = double.parse(data['pricePerToken'].toString());
     assetCode = data['assetCode'];
     assetName = data['assetName'];
+    accountNumber = data['accountNumber'];
+    beneficiaryName = data['beneficiaryName'];
+    bankId = data['bankId'].toString();
     var parsedSalesStart = DateTime.parse(data['salesStart']);
     salesStart =
         parsedSalesStart.year == DateTime(0001).year ? null : parsedSalesStart;
@@ -1237,7 +1235,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      proceedPayoutCurrency = value.toString();
+                      bankId = 0.toString();
+                      // bankId = value.toString();
                     });
                   },
                   getPayoutCurrencies,
@@ -1288,10 +1287,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: accountNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          accountNumber = value;
                         });
                       },
                       validator: (value) {
@@ -1302,7 +1301,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          accountNumber = value!;
                         });
                       },
                     ),
@@ -1341,10 +1340,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: beneficiaryName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          beneficiaryName = value;
                         });
                       },
                       validator: (value) {
@@ -1355,7 +1354,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          beneficiaryName = value!;
                         });
                       },
                     ),
@@ -1737,14 +1736,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       // make initial request to the server using the
       // following credential
       var newData = {...data as Map};
-
-      // newData['numberOfTokenToBeSold'] = numberOfTokenToBeSold;
       newData['numberOfTokenToBeIssued'] = numberOfTokenToBeIssued;
-      // newData['totalTokenHeldByManager'] =
-      //     numberOfTokenToBeIssued - numberOfTokenToBeSold;
-      // newData['pricePerToken'] = pricePerToken;
       newData['assetCode'] = assetCode;
       newData['assetName'] = assetName;
+      newData['accountNumber'] = accountNumber;
+      newData['beneficiaryName'] = beneficiaryName;
+      newData['bankId'] = int.tryParse(bankId) ?? 0;
       newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
           .format(salesStart!.toUtc());
       newData['salesEnd'] =

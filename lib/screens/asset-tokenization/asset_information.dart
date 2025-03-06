@@ -871,7 +871,7 @@ class _AssetInformation extends State<AssetInformation>
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
                       assetAlreadyExists
-                          ? "assetcurrentvalue".tr()
+                          ? "assetcurrentvalue".tr(args: ['NGN'])
                           : "totalcostofproject".tr(),
                       style: TextStyle(
                         fontSize: 12,

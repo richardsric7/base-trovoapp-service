@@ -14,6 +14,7 @@ class UserInfo {
   String? mobile;
   int? mobileVerified;
   String? countryCode;
+  String? currency;
   String? referrer;
   String? referralLink;
   String? referralQRCode;
@@ -41,6 +42,7 @@ class UserInfo {
     this.publicKey,
     this.mobileVerified,
     this.countryCode,
+    this.currency,
     this.referrer,
     this.referralLink,
     this.referralQRCode,
