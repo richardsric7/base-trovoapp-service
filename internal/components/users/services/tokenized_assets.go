@@ -495,6 +495,7 @@ func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint
 	return document, nil
 }
 
+// SubmitTokenizationAssetInfoByInitiator for tokenization application request by initiator
 func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	// initialize message array
@@ -906,8 +907,8 @@ func FailTokenizationDueDiligence(tokenizationID string, initiator *userModels.U
 	return ato, nil
 }
 
-// ConfirmTokenizationAssetInfo advance status to 1 and allow for vetting.
-func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID string, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+// ConfirmTokenizationAssetInfoByInititator used by original owner/initiator to advance status to 1 and allow for vetting.
+func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokenizationID string, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 	taInput.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	taInput.Messages = make([]string, 0)
 	//check if existing
@@ -917,7 +918,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 		//tokenization existing
 		if ato.AssetTokenizationStatus > 0 {
 			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", tokenizationID)
+			log.Printf("[ConfirmTokenizationAssetInfoByInititator] Error tokenization procesing is in progress and cannot be modified: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is already in progress, this action cannot be performed."}
 			return
 
@@ -934,13 +935,13 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing tokenization from database ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
+			log.Printf("[ConfirmTokenizationAssetInfoByInititator]error fetching existing tokenization from database ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
 		}
 
-		log.Printf("[SubmitTokenizationAssetInfo] Tokenization does not exist: %v\n", tokenizationID)
+		log.Printf("[ConfirmTokenizationAssetInfoByInititator] Tokenization does not exist: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
 		return
 
@@ -951,7 +952,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 
 	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -960,7 +961,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 	//check for blockchain action
 	wallet, e := userModels.WalletAlias(initiator.Username).GetWallet(dbTX, gc)
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo] error getting primary wallet from database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error getting primary wallet from database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -970,7 +971,7 @@ func ConfirmTokenizationAssetInfo(initiator *userModels.User, tokenizationID str
 
 	xdrBase64, e := generateTokenizationFeeXdr(&wallet, taInput, gc)
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -1141,6 +1142,13 @@ func GetTokenizationList(user *userModels.User, adminList bool, gc *sharedconfig
 		tsInt := int(ts.IntPart())
 		query = query.Where("asset_tokenization_status = ?", tsInt)
 		countQuery = countQuery.Where("asset_tokenization_status = ?", tsInt)
+
+	}
+
+	if adminList {
+
+		query = query.Where("asset_tokenization_status >= ?", int(1))
+		countQuery = countQuery.Where("asset_tokenization_status >= ?", int(1))
 
 	}
 

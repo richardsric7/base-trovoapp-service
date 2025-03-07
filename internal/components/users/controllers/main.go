@@ -5646,7 +5646,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			//confirm request
-			_, err = userServices.ConfirmTokenizationAssetInfo(&initiator, c.Param("tokenizationID"), &tInput, gc)
+			_, err = userServices.ConfirmTokenizationAssetInfoByInititator(&initiator, c.Param("tokenizationID"), &tInput, gc)
 
 			if err != nil {
 
