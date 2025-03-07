@@ -4550,7 +4550,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			tokenizationList := userServices.GetTokenizationList(&user, gc, c)
+			tokenizationList := userServices.GetTokenizationList(&user, false, gc, c)
 
 			c.JSON(http.StatusOK, tokenizationList)
 
@@ -4597,7 +4597,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			tokenizationList := userServices.GetTokenizationList(&user, gc, c)
+			tokenizationList := userServices.GetTokenizationList(&user, true, gc, c)
 
 			c.JSON(http.StatusOK, tokenizationList)
 

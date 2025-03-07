@@ -1057,7 +1057,7 @@ func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizatio
 	return ato, err
 }
 
-func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedTokenizedAssets) {
+func GetTokenizationList(user *userModels.User, adminList bool, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedTokenizedAssets) {
 	var err error
 	var tokenizedAssetList []userModels.TokenizedAsset
 	records.Records = make([]userModels.TokenizedAssetJSON, 0)
@@ -1067,6 +1067,9 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	DBC := gc.DB
 
 	onlyWithUserPermission := strings.TrimSpace(strings.ToUpper(c.DefaultQuery("onlyWithUserPermission", "1")))
+	if adminList {
+		onlyWithUserPermission = "0"
+	}
 
 	//get all wallets where user has access
 	// sharedWallets := make([]string, 0)
@@ -1158,7 +1161,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	}
 
 	//get only market ready list
-	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && len(salesList) == 0 {
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && len(salesList) == 0 && !adminList {
 		//status is not specified for open viewing
 		query = query.Where("asset_tokenization_status > ?", 3)
 		countQuery = countQuery.Where("asset_tokenization_status > ?", 3)
@@ -1166,7 +1169,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	}
 
 	//get only market ready list
-	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "0" {
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "0" && !adminList {
 		//status is not specified for open viewing
 		query = query.Where("asset_tokenization_status > ? AND asset_tokenization_status < 6", 3)
 		countQuery = countQuery.Where("asset_tokenization_status > ? AND asset_tokenization_status < 6", 3)
@@ -1174,7 +1177,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	}
 
 	//get only market ready list
-	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "1" {
+	if onlyWithUserPermission == "0" && len(tokenizationStatus) == 0 && salesList == "1" && !adminList {
 		//status is not specified for open viewing
 		query = query.Where("asset_tokenization_status = ?", 6)
 		countQuery = countQuery.Where("asset_tokenization_status = ?", 6)
