@@ -10,9 +10,11 @@ import (
 	"strings"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 )
@@ -297,4 +299,27 @@ func (c Currency) GetCurratedAsset(gc *sharedconfig.GlobalConfig) (ca assetModel
 	err = errors.New(currency + " is an invalid withdrawable currency")
 	return
 
+}
+
+// GetBlockchainAssetProperty fetches the blockchain asset information using bantu asset
+func (u *BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat horizon.AssetStat, err error) {
+
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.AssetIssuer, ForAssetCode: u.AssetCode, Limit: 1}
+	assetsPage, err := gc.BantuExpansionClient.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssetProperty]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssetProperty Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetStat, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	assetStat = assetsPage.Embedded.Records[0]
+	return assetStat, nil
 }

@@ -341,6 +341,33 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			}
 
 			if !destinationAccountTrustsAsset {
+
+				bantuAsset := userModels.BantuAsset{
+					AssetCode:   asset.GetCode(),
+					AssetIssuer: asset.GetIssuer(),
+				}
+				bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
+				if e != nil {
+					err = &tErrors.ErrorTemporaryServerError{}
+					return "", nil, err
+
+				}
+				if len(bcAsset.Code) == 0 {
+					err = &tErrors.ErrorTemporaryServerError{}
+					return "", nil, err
+
+				}
+
+				if bcAsset.Flags.AuthRequired {
+
+					err = &tErrors.CustomError{
+						Param:      "destination",
+						Err:        "error-destination-forbidden-to-receive-asset",
+						ErrMessage: fmt.Sprintf("%v is a regulated asset. %v has not yet opted to receive this asset. Let the reciepient first add the asset to their trusted assets, successfully.", asset.GetCode(), destinationWallet.Alias),
+					}
+					return "", nil, err
+				}
+
 				message := fmt.Sprintf("%v has not yet opted in to receive the asset (%v) you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, nativeAssetCode, destinationWallet.Alias, paymentInfo.AssetCode)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
