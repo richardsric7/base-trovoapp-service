@@ -339,7 +339,17 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
 
 			}
+			if gc.IsValidTokenizedAsset(asset.GetCode()) {
+				//check if destination has done KYC
+				if destinationInfo.KYCVerified == 0 {
+					return "", nil, &tErrors.CustomError{
+						Param:      "destination",
+						Err:        "error-no-kyc",
+						ErrMessage: fmt.Sprintf("%v does not meet KYC requirement to receive the asset %v", destinationWallet.Alias, asset.GetCode()),
+					}
+				}
 
+			}
 			if !destinationAccountTrustsAsset {
 
 				bantuAsset := userModels.BantuAsset{
