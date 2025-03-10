@@ -361,6 +361,33 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
+
+			bantuAsset := userModels.BantuAsset{
+				AssetCode:   destinationAsset.GetCode(),
+				AssetIssuer: destinationAsset.GetIssuer(),
+			}
+			bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
+			if e != nil {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return "", err
+
+			}
+			if len(bcAsset.Code) == 0 {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return "", err
+
+			}
+
+			if bcAsset.Flags.AuthRequired {
+
+				err = &tErrors.CustomError{
+					Param:      "destination",
+					Err:        "error-destination-forbidden-to-receive-asset",
+					ErrMessage: fmt.Sprintf("%v is a regulated asset. You have not yet opted to receive this asset. Please first add the asset to your trusted assets, successfully.", destinationAsset.GetCode()),
+				}
+				return "", err
+			}
+
 			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
 			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing will activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
 			messages = append(messages, message)
