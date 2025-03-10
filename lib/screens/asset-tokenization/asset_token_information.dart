@@ -1016,6 +1016,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           });
                         },
                         autoFormatNumber: true,
+                        isFiat: true,
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
                       ),

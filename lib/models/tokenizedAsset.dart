@@ -104,7 +104,7 @@ class TokenizedAsset {
   int? riskManagementDeclaredValue;
   int? physicalConditionSound;
   int? physicalConditionNolease;
-  int? assetMscCostOutisdeOfValuation;
+  double? assetMscCostOutisdeOfValuation;
   double? SECTokenizationFeePercent;
   double? SECTokenizationFeeValue;
   double? custodianFeeValue;
@@ -342,7 +342,8 @@ class TokenizedAsset {
       riskManagementDeclaredValue: m["riskManagementDeclaredValue"],
       physicalConditionSound: m["physicalConditionSound"],
       physicalConditionNolease: m["physicalConditionNolease"],
-      assetMscCostOutisdeOfValuation: m["assetMscCostOutisdeOfValuation"],
+      assetMscCostOutisdeOfValuation:
+          double.tryParse(m["assetMscCostOutisdeOfValuation"].toString()),
       SECTokenizationFeePercent:
           double.tryParse(m["SECTokenizationFeePercent"].toString()),
       SECTokenizationFeeValue:

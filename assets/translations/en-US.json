@@ -284,7 +284,7 @@
     "proceedpayouttype":"Proceed Payout Type",
     "proceedpayoutcycle":"Proceed Payout Cycle",
     "capquantity":"Cap Quantity (Quantity to be bought)",
-    "capamount":"Cap Amount (Amount to be bought)",
+    "capamount":"Cap Amount (Amount to be bought in CNGN)",
     "exemptedcountries":"Exempted Countries",
     "start": "Start",
     "tokenizeasset": "Tokenize Asset",

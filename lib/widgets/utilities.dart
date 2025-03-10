@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expandable/expandable.dart';
@@ -116,10 +115,31 @@ getAssetIssuer(assetIssuer) {
       : assetIssuer.toString();
 }
 
-truncateNumber(double number, {int decimalPlaces = 7}) {
-  var result =
-      ((number * pow(10, decimalPlaces)).truncate() / pow(10, decimalPlaces));
-  return NumberFormat("#,##0.#######", "en_US").format(result);
+String truncateToDecimalPlaces(double number, {int decimalPlaces = 7}) {
+  // Convert number to string with high precision to avoid initial rounding
+  String numStr = number.toString();
+
+  // Split into integer and fractional parts
+  List<String> parts = numStr.split('.');
+  if (parts.length < 2 || decimalPlaces <= 0) {
+    return NumberFormat(
+            decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
+        .format(number
+            .truncateToDouble()); // No decimal part or no decimals requested
+  }
+
+  String integerPart = parts[0];
+  String fractionalPart = parts[1];
+
+  // Truncate the fractional part to the desired length
+  if (fractionalPart.length > decimalPlaces) {
+    fractionalPart = fractionalPart.substring(0, decimalPlaces);
+  }
+  // Combine and parse back to double
+  String truncatedStr = '$integerPart.$fractionalPart';
+  return NumberFormat(
+          decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
+      .format(double.parse(truncatedStr));
 }
 
 formatNumber(double number) {

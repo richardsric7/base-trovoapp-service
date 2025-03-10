@@ -832,7 +832,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      // print('===============> response ${responseData}');
+      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         await fetchTokenizationData();
         List<TokenizedAsset> assets = [];
@@ -840,6 +840,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         if (tokenizedAssets != null) {
           for (int i = 0; i < tokenizedAssets.length; i++) {
             var a = TokenizedAsset().deserializeJson(tokenizedAssets[i]);
+            print('sadkfjals done deserializing');
             a.usdPrice = 1.47;
             a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
             a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
@@ -853,7 +854,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       }
     } catch (e) {
       // print('error');
-      // print(e);
+      print(e);
       return Future.error('Error! ${e}');
     }
   }

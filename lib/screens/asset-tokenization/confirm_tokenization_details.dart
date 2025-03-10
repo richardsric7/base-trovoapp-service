@@ -129,10 +129,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       if (tokenizedAsset.assetAlreadyExists == 1) ...[
                         item("originalassetvalue".tr(),
-                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
                       ] else ...[
                         item("originaltotalprojectcost".tr(),
-                            '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
                       ],
                       SizedBox(height: height / 90),
                     ],
@@ -170,28 +170,28 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       ),
                       if (isVetted) ...[
                         item("Total tokens".tr(),
-                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item("Value of total tokens".tr(),
-                            '${(truncateNumber(tokenizedAsset.valueOfTokenizedAsset!))} ${appState.defaultCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
                         SizedBox(height: height / 90),
                         item("pricepertoken".tr(),
-                            '${(formatNumber(tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
                         SizedBox(height: height / 90),
                         item("Tokens not for sale".tr(),
-                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item(
                             tokenizedAsset.assetAlreadyExists == 1
                                 ? "Amount retained".tr()
                                 : "Amount contributed".tr(),
-                            '${(truncateNumber(tokenizedAsset.assetOwnerRetainedOrContributedValue!))} ${appState.defaultCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
                         SizedBox(height: height / 90),
                         item("Tokens for sale".tr(),
-                            '${(truncateNumber(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item("totalamounttoberaised".tr(),
-                            '${truncateNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("proposedtotaltokenstobeissued".tr(),
@@ -280,24 +280,30 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Asset tokenization fee".tr(),
-                            getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        // item("Asset tokenization fee".tr(),
+                        //     getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
                         SizedBox(height: height / 90),
-                        item("SEC Regulatory Fee".tr(),
-                            tokenizedAsset.SECTokenizationFeeValue.toString()),
+                        item(
+                            "SEC Regulatory Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.SECTokenizationFeeValue!)),
                         SizedBox(height: height / 90),
-                        item("Asset Custody Fee".tr(),
-                            tokenizedAsset.custodianFeeValue.toString()),
+                        item(
+                            "Asset Custody Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.custodianFeeValue!)),
                         SizedBox(height: height / 90),
-                        item("Asset Management Fee".tr(),
-                            tokenizedAsset.assetManagerFeeValue.toString()),
+                        item(
+                            "Asset Management Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.assetManagerFeeValue!)),
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("applicationfee".tr(),
                             '500 TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
                         SizedBox(height: height / 90),
-                        item("tokenizationfee".tr(),
-                            getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        // item("tokenizationfee".tr(),
+                        //     getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
                         SizedBox(height: height / 90),
                         // item("otherstatutoryfees".tr(), ''),
                         // SizedBox(height: height / 90),
@@ -651,19 +657,19 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     }
   }
 
-  String getFeeInfo(int index) {
-    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeFiatPercentage'];
-    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeAssetPercentage'];
-    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
-            [index]['feeFiatCap']
-        .toString());
-    var tokenFee =
-        (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
-    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
-    return "\$${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
-  }
+  // String getFeeInfo(int index) {
+  //   var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+  //       ['feeFiatPercentage'];
+  //   var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+  //       ['feeAssetPercentage'];
+  //   var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+  //           [index]['feeFiatCap']
+  //       .toString());
+  //   var tokenFee =
+  //       (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
+  //   var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
+  //   return "\$${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
+  // }
 
   Widget item(String key, String value) {
     return Padding(

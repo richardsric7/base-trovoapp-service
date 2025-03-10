@@ -229,6 +229,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         });
                       },
                       autoFormatNumber: true,
+                      isFiat: true,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {

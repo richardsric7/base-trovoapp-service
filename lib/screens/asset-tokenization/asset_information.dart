@@ -925,6 +925,7 @@ class _AssetInformation extends State<AssetInformation>
                         currentValueOfAsset = double.parse(value!.toString());
                       },
                       autoFormatNumber: true,
+                      isFiat: true,
                       controller: valueOfAssetController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
@@ -988,6 +989,7 @@ class _AssetInformation extends State<AssetInformation>
                           assetMiscCost = double.parse(value!.toString());
                         },
                         autoFormatNumber: true,
+                        isFiat: true,
                         controller: miscCostOfAssetController,
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
@@ -1055,6 +1057,7 @@ class _AssetInformation extends State<AssetInformation>
                             double.parse(value!.toString());
                       },
                       autoFormatNumber: true,
+                      isFiat: true,
                       controller:
                           assetOwnerRetainedOrContributedValueController,
                       keyboardtype:

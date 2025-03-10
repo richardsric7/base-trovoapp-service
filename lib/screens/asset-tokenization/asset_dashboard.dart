@@ -77,7 +77,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               ),
             ),
             SizedBox(height: height / 50),
-            if (tokenizedAsset.tokenizationStatus == 3) ...[
+            if (tokenizedAsset.tokenizationStatus == 5) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

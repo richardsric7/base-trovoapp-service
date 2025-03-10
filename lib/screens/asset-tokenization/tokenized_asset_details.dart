@@ -418,7 +418,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 infoCard(
                   label: 'Asset Value',
                   value:
-                      '${tokenizedAsset.assetQuoteCurrency}${getFiatValue(tokenizedAsset.assetCurrentValue!)}',
+                      '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}',
                   extraValue: '\$4,390.23',
                 ),
                 SizedBox(
@@ -427,8 +427,29 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 infoCard(
                   label: 'Total Supply',
                   value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold!)} ${tokenizedAsset.assetCode}',
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
                   extraValue: '',
+                ),
+              ],
+            ),
+            SizedBox(height: height / 70),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  label: 'Amount to be Raised',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                  extraValue: '',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
+                  label: 'Tokens for Sale',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
+                  extraValue: '\$0.12',
                 ),
               ],
             ),
@@ -447,7 +468,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 infoCard(
                   label: 'Price Per Token',
                   value:
-                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}',
+                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
                   extraValue: '\$0.12',
                 ),
               ],
@@ -467,7 +488,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 infoCard(
                   label: 'Total Amount Bought',
                   value:
-                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}',
+                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode}',
                   extraValue: '\$0.12',
                 ),
               ],
@@ -515,20 +536,28 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Address',
               tokenizedAsset.assetPhysicalAddress ?? '',
             ),
-            infoTile(
-              notifier,
-              'Issuer',
-              tokenizedAsset.assetIssuer ?? '',
-            ),
-            infoTile(
-              notifier,
-              'Issuer Website',
-              'www.${tokenizedAsset.assetCode!.toLowerCase()}.com',
-            ),
+            if (tokenizedAsset.assetAlreadyExists == 1) ...[
+              infoTile(
+                notifier,
+                'Original Asset Owner',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+            ] else ...[
+              infoTile(
+                notifier,
+                'Project Sponsor',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+            ],
             infoTile(
               notifier,
               'Sales Window',
               '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
+            ),
+            infoTile(
+              notifier,
+              'Cap Amount',
+              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
             ),
             infoTile(
               notifier,
@@ -550,6 +579,71 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Exempted Countries',
               '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
             ),
+            infoTile(
+              notifier,
+              'Free from Liens, Mortgages and Encumbrances',
+              '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Free from Debt',
+              '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Free from Third Party Claims',
+              '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Free of Foreclosures or Legal Disputes',
+              '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Environmentally Compliant',
+              '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Has all Necessary Permits and Approvals',
+              '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Has Unpaid Bills',
+              '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Has Undisclosed Liabilities',
+              '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Fully Insured',
+              '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Reflects Current Value',
+              '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Has Undisclosed Easements',
+              '${'?????'}',
+            ),
+            infoTile(
+              notifier,
+              'Under Contracts or Leases',
+              '${tokenizedAsset.physicalConditionNolease}',
+            ),
+            infoTile(
+              notifier,
+              'Structurally Sound',
+              '${tokenizedAsset.physicalConditionSound}',
+            ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
               shadowColor: Colors.black,
@@ -564,7 +658,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Proof of Existence',
+                            'Asset Verification Documents',
                             style: TextStyle(
                               fontSize: 13,
                               fontFamily: fontsemibold,
