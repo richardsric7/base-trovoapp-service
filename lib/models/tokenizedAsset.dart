@@ -3,7 +3,7 @@ import 'dart:developer';
 class TokenizedAsset {
   String? id;
   String? shadowId;
-  double? amount;
+  // double? amount;
   double? usdPrice;
   String? assetIssuer;
   String? assetCode;
@@ -39,6 +39,7 @@ class TokenizedAsset {
   double? percentageValueOfInsurance;
   int? isFreeFromLiensAndEncumbrances;
   int? tokenizationFeeId;
+  int? vettingStatus;
   double? numberOfTokenToBeSold;
   double? numberOfTokenToBeIssued;
   String? walletToHoldAssetsNotForSale;
@@ -51,7 +52,10 @@ class TokenizedAsset {
   int? capDurationInDays;
   String? proceedCycle;
   String? assetLogo;
+  bool? expressedInterest;
+  double? expressedInterestAmount;
   bool? isSubscribed;
+  double? subscriptionAmount;
   String? exemptedCountries;
   int? hasAdditionalKYCRequirements;
   String? proceedPayoutCurrency;
@@ -100,12 +104,19 @@ class TokenizedAsset {
   int? riskManagementDeclaredValue;
   int? physicalConditionSound;
   int? physicalConditionNolease;
-  int? assetMscCostOutisdeOfValuation;
+  double? assetMscCostOutisdeOfValuation;
+  double? SECTokenizationFeePercent;
+  double? SECTokenizationFeeValue;
+  double? custodianFeeValue;
+  double? custodianFeePercent;
+  double? assetManagerFeeValue;
+  double? assetManagerFeePercent;
+  double? assetOwnerRetainedOrContributedValue;
 
   TokenizedAsset({
     this.id,
     this.shadowId,
-    this.amount,
+    // this.amount,
     this.usdPrice,
     this.assetIssuer,
     this.assetCode,
@@ -152,6 +163,7 @@ class TokenizedAsset {
     this.capQuantity,
     this.capDurationInDays,
     this.proceedCycle,
+    this.vettingStatus,
     this.assetLogo,
     this.exemptedCountries,
     this.hasAdditionalKYCRequirements,
@@ -169,6 +181,9 @@ class TokenizedAsset {
     this.tokenizationStatus,
     this.assetQuoteCurrency,
     this.isSubscribed,
+    this.subscriptionAmount,
+    this.expressedInterest,
+    this.expressedInterestAmount,
     this.proofOfPaymentDocuments,
     this.agreeTransferTitleToCustodian,
     this.contractualProtectionRevGuarantees,
@@ -201,6 +216,13 @@ class TokenizedAsset {
     this.physicalConditionSound,
     this.physicalConditionNolease,
     this.assetMscCostOutisdeOfValuation,
+    this.SECTokenizationFeePercent,
+    this.SECTokenizationFeeValue,
+    this.custodianFeeValue,
+    this.custodianFeePercent,
+    this.assetManagerFeeValue,
+    this.assetManagerFeePercent,
+    this.assetOwnerRetainedOrContributedValue,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -209,7 +231,7 @@ class TokenizedAsset {
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],
-      amount: m["amount"],
+      // amount: m["amount"],
       usdPrice: m["usdPrice"],
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
@@ -234,9 +256,12 @@ class TokenizedAsset {
       assetLongitude: m["assetLongitude"],
       assetOwnerName: m["assetOwnerName"],
       assetOwnerAddress: m["assetOwnerAddress"],
+      vettingStatus: m["vettingStatus"],
       assetManagerInfo: ManagerInfo().deserializeJson(m),
       assetQuoteCurrency: m["assetQuoteCurrency"],
       assetCurrentValue: double.parse(m["assetCurrentValue"].toString()),
+      assetOwnerRetainedOrContributedValue:
+          double.parse(m["assetOwnerRetainedOrContributedValue"].toString()),
       valueOfTokenizedAsset:
           double.parse(m["valueOfTokenizedAsset"].toString()),
       protectionMethods: m["protectionMethods"],
@@ -278,7 +303,6 @@ class TokenizedAsset {
       assetTokenizationDocuments:
           deserializeDocuments(m["AssetTokenizationDocuments"]),
       tokenizationStatus: m["assetTokenizationStatus"],
-      isSubscribed: m["isSubscribed"],
       agreeTransferTitleToCustodian: m["agreeTransferTitleToCustodian"],
       contractualProtectionRevGuarantees:
           m["contractualProtectionRevGuarantees"],
@@ -318,7 +342,18 @@ class TokenizedAsset {
       riskManagementDeclaredValue: m["riskManagementDeclaredValue"],
       physicalConditionSound: m["physicalConditionSound"],
       physicalConditionNolease: m["physicalConditionNolease"],
-      assetMscCostOutisdeOfValuation: m["assetMscCostOutisdeOfValuation"],
+      assetMscCostOutisdeOfValuation:
+          double.tryParse(m["assetMscCostOutisdeOfValuation"].toString()),
+      SECTokenizationFeePercent:
+          double.tryParse(m["SECTokenizationFeePercent"].toString()),
+      SECTokenizationFeeValue:
+          double.tryParse(m["SECTokenizationFeeValue"].toString()),
+      custodianFeeValue: double.tryParse(m["custodianFeeValue"].toString()),
+      custodianFeePercent: double.tryParse(m["custodianFeePercent"].toString()),
+      assetManagerFeeValue:
+          double.tryParse(m["assetManagerFeeValue"].toString()),
+      assetManagerFeePercent:
+          double.tryParse(m["assetManagerFeePercent"].toString()),
     );
   }
 

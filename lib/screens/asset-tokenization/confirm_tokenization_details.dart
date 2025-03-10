@@ -3,22 +3,27 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
 
 class ConfirmTokenizationDetails extends StatefulWidget {
   const ConfirmTokenizationDetails({Key? key}) : super(key: key);
@@ -34,6 +39,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   late DataProvider appState;
   final formKey = GlobalKey<FormState>();
   late TokenizedAsset tokenizedAsset;
+  String password = '';
+  final Authenticator _authenticator = Authenticator();
 
   @override
   void initState() {
@@ -48,6 +55,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     var isAlreadySubmitted = tokenizedAsset.tokenizationStatus == 1;
+    var isVetted = tokenizedAsset.vettingStatus == 1;
     inspect(appState.viewData);
 
     return ScreenUtilInit(
@@ -57,8 +65,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         appBar: CustomAppBar(
                 context,
                 notifier.getwihitecolor,
-                isAlreadySubmitted
-                    ? tokenizedAsset.assetName!
+                isAlreadySubmitted && isVetted
+                    ? 'Vetted Summary'
                     : "confirmyourinformation".tr(),
                 notifier.getblck,
                 height: height / 15)
@@ -66,9 +74,29 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 40,
-              ),
+              if (isAlreadySubmitted && isVetted) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: width / 1.2,
+                        child: Text(
+                          'Your application has been vetted, please confirm the information below and proceed to pay for tokenization'
+                              .tr(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -99,14 +127,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       item("assetcode".tr(), '${tokenizedAsset.assetCode}'),
                       SizedBox(height: height / 90),
-                      item("currentvalueofasset".tr(),
-                          '${formatNumber(tokenizedAsset.assetCurrentValue!)} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
-                      item("assetmanager".tr(),
-                          '${tokenizedAsset.assetManagerInfo?.assetManagerName}'),
-                      SizedBox(height: height / 90),
-                      item("assetcustodian".tr(),
-                          '${tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName}'),
+                      if (tokenizedAsset.assetAlreadyExists == 1) ...[
+                        item("originalassetvalue".tr(),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                      ] else ...[
+                        item("originaltotalprojectcost".tr(),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                      ],
                       SizedBox(height: height / 90),
                     ],
                   ),
@@ -141,18 +168,36 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("totaltokenstobeissued".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
-                      SizedBox(height: height / 90),
-                      item("totaltokenstobesold".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeSold!)} ${tokenizedAsset.assetCode}'),
-                      SizedBox(height: height / 90),
-                      item("pricepertoken".tr(),
-                          '${(formatNumber(tokenizedAsset.pricePerToken!))} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
-                      item("totalamounttoberaised".tr(),
-                          '${formatNumber(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${tokenizedAsset.assetQuoteCurrency}'),
-                      SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        item("Total tokens".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item("Value of total tokens".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("pricepertoken".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Tokens not for sale".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item(
+                            tokenizedAsset.assetAlreadyExists == 1
+                                ? "Amount retained".tr()
+                                : "Amount contributed".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Tokens for sale".tr(),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                        item("totalamounttoberaised".tr(),
+                            '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("proposedtotaltokenstobeissued".tr(),
+                            '${formatNumber(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}'),
+                        SizedBox(height: height / 90),
+                      ],
                     ],
                   ),
                 ),
@@ -184,14 +229,25 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("startdate".tr(),
-                          '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      item("enddate".tr(),
-                          '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
-                      SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        item("startdate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        item("enddate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("proposedstartdate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)}'),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        item("proposedenddate".tr(),
+                            '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}'),
+                        SizedBox(height: height / 90),
+                      ],
                     ],
                   ),
                 ),
@@ -223,45 +279,176 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                       ),
-                      item("tokenizationfee".tr(),
-                          getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
-                      SizedBox(height: height / 90),
+                      if (isVetted) ...[
+                        // item("Asset tokenization fee".tr(),
+                        //     getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        SizedBox(height: height / 90),
+                        item(
+                            "SEC Regulatory Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.SECTokenizationFeeValue!)),
+                        SizedBox(height: height / 90),
+                        item(
+                            "Asset Custody Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.custodianFeeValue!)),
+                        SizedBox(height: height / 90),
+                        item(
+                            "Asset Management Fee".tr(),
+                            formatNumberShort(
+                                tokenizedAsset.assetManagerFeeValue!)),
+                        SizedBox(height: height / 90),
+                      ] else ...[
+                        item("applicationfee".tr(),
+                            '500 TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
+                        SizedBox(height: height / 90),
+                        // item("tokenizationfee".tr(),
+                        //     getFeeInfo(tokenizedAsset.tokenizationFeeId!)),
+                        SizedBox(height: height / 90),
+                        // item("otherstatutoryfees".tr(), ''),
+                        // SizedBox(height: height / 90),
+                      ]
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
               if (isAlreadySubmitted) ...[
-                Button(
-                  "viewpaymentdetails".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: TokenizationFeePaymentViewPageConfig,
-                    );
-                  },
-                ),
-                SizedBox(height: height / 70),
-                ButtonOutlined(
-                  'back'.tr(),
-                  notifier.getwihitecolor,
-                  notifier.getbluewhitecolor,
-                  borderColor: notifier.getbluewhitecolor,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
+                if (tokenizedAsset.vettingStatus == 1) ...[
+                  SizedBox(
+                    height: height / 30,
+                  ),
+                  Button(
+                    "Proceed to Pay".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizationFeePaymentViewPageConfig,
+                      );
+                    },
+                  ),
+                  SizedBox(height: height / 70),
+                ] else ...[
+                  notifyAdditionalInfo(
+                      "Please note that other statutory fees will be added after vetting"
+                          .tr()),
+                  SizedBox(height: 20),
+                  ButtonOutlined(
+                    'back'.tr(),
+                    notifier.getwihitecolor,
+                    notifier.getbluewhitecolor,
+                    borderColor: notifier.getbluewhitecolor,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
               ] else ...[
-                Button(
-                  "submitapplication".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () => submitForm(),
+                SizedBox(height: 10),
+                notifyAdditionalInfo(
+                    "Please note that other statutory fees will be added after vetting"
+                        .tr()),
+                SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5.0, vertical: 10),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 300,
+                              child: Text(
+                                "Please authorize the deduction of application fee to submit application."
+                                    .tr(),
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
+                SizedBox(height: 10),
+                Form(
+                  key: formKey,
+                  child: CustomPasswordFormField(
+                    "password".tr(),
+                    notifier.getbluewhitecolor,
+                    Icons.lock,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    70.sp,
+                    300.sp,
+                    validator: (String? value) {
+                      if (value!.isEmpty) return 'Enter your password';
+
+                      if (value.length < 6)
+                        return 'Use 6 characters or more for your password';
+
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        password = value!.trim().replaceAll(' ', '');
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (appState.biometricEnabled && password.isEmpty) ...[
+                  Button(
+                    "authorizewithbiometrics".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: toggleSwitch,
+                  ),
+                ] else ...[
+                  Button(
+                    "authorize".tr(),
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: () {
+                      if (!formKey.currentState!.validate()) {
+                        return;
+                      }
+
+                      if (password == appState.password!) {
+                        submitForm();
+                      } else {
+                        popup(context,
+                            title: "oops".tr(),
+                            message: "invalidpassword".tr());
+                      }
+                    },
+                  ),
+                ],
+                // Button(
+                //   "submitapplication".tr(),
+                //   notifier.getbluecolor,
+                //   wihitecolor,
+                //   onTap: () => submitForm(),
+                // ),
               ],
               SizedBox(
                 height: height / 20,
@@ -276,16 +463,111 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     );
   }
 
-  void submitForm() async {
+  Widget notifyAdditionalInfo(String info) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        child: Card(
+          shadowColor: Colors.black,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5.0),
+              side: BorderSide(
+                color: notifier.getbluewhitecolor,
+                width: 1,
+              )),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  child: Card(
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                        side: BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                        )),
+                    color: notifier.getaddsubwalletgrey,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "i".tr(),
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 300,
+                  child: Text(
+                    info,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void toggleSwitch() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        submitForm();
+        // aparently we need the code below to make the
+        // screen updata to show loader
+        // after authorizing with biometrics
+        setState(() {});
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  Future<void> submitForm({Map? transactionData}) async {
     try {
       showLoader(context);
+      String requestBody = "{}";
 
-      String requestBody = jsonEncode(appState.viewData);
-      print('requestBody  =======> $requestBody');
+      if (transactionData != null && transactionData['transaction'] != null) {
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          transactionData['transaction'],
+          transactionData['networkPassPhrase'],
+        );
+        transactionData['transactionSignature'] = signature;
+        requestBody = jsonEncode(transactionData);
+        print('requestBody  =======> $requestBody');
+      }
 
       Map responseData = await makePutRequest(
         uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
-        body: "",
+        body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
@@ -293,23 +575,75 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
 
       hideLoader(context);
 
-      print('responseData token information  ${responseData['data']}');
+      print('responseData token information  ${responseData}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
-        Navigator.of(context).pop();
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        await postProcessData(
+            messageShown, messageLength, responseData['data']);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  postProcessData(messageShown, messageLength, data) async {
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                postProcessData(messageShown, messageLength, data),
+              });
+
+      messageShown++;
+      return;
+    }
+
+    sendFullDataToServer(transactionData: data);
+  }
+
+  Future<void> sendFullDataToServer({required Map transactionData}) async {
+    try {
+      showLoader(context);
+      var signature = TrovoWalletSDK().signBase64Txn(
+        appState.secretKeys[0], // the primary wallet secret key,
+        transactionData['transaction'],
+        transactionData['networkPassPhrase'],
+      );
+      transactionData['transactionSignature'] = signature;
+      var requestBody = jsonEncode(transactionData);
+      print('requestBody  =======> $requestBody');
+
+      Map responseData = await makePutRequest(
+        uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': '',
-          'buttonText': 'Proceed to Pay',
-          'useOnDone': true,
-          'onDone': () {
-            appState.currentAction = PageAction(
-              state: PageState.replace,
-              page: TokenizationFeePaymentViewPageConfig,
-            );
-          },
           'message':
-              'Your asset tokenization request has been submitted successfully. Please complete the payment to proceed. We will begin processing your application once the payment is received.',
+              'Your Asset Tokenization application has been submitted successfully, please wait for vetting to be done, you will be notified once it is vetted so that you can proceed to pay the asset tokenization fee and other statutory fees',
         };
         appState.currentAction =
             PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
@@ -323,19 +657,19 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     }
   }
 
-  String getFeeInfo(int index) {
-    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeFiatPercentage'];
-    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeAssetPercentage'];
-    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
-            [index]['feeFiatCap']
-        .toString());
-    var tokenFee =
-        (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
-    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
-    return "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
-  }
+  // String getFeeInfo(int index) {
+  //   var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+  //       ['feeFiatPercentage'];
+  //   var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+  //       ['feeAssetPercentage'];
+  //   var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+  //           [index]['feeFiatCap']
+  //       .toString());
+  //   var tokenFee =
+  //       (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
+  //   var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
+  //   return "\$${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
+  // }
 
   Widget item(String key, String value) {
     return Padding(
@@ -345,7 +679,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         children: [
           Container(
             constraints: BoxConstraints(
-              maxWidth: width / 2.8,
+              maxWidth: width / 2.36,
             ),
             child: Text(
               key,
@@ -359,9 +693,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
             ),
           ),
           Container(
-            constraints: BoxConstraints(
-              maxWidth: width / 2.4,
-            ),
+            width: width / 2.56,
             child: Text(
               value,
               textAlign: TextAlign.end,

@@ -42,11 +42,13 @@ class _AssetInformation extends State<AssetInformation>
   late double currentValueOfAsset;
   late double assetMiscCost;
   late double valueOfTokenizedAsset;
+  late double assetOwnerRetainedOrContributedValue;
   late List<String> assetProtectionInPlace;
   late String insuranceCompanyName;
   late String insurancePolicyNumber;
   late String insurancePolicyHolder;
   late double percentageValueOfInsurance;
+  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
@@ -90,6 +92,8 @@ class _AssetInformation extends State<AssetInformation>
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
+  final assetOwnerRetainedOrContributedValueController =
+      TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
@@ -133,6 +137,7 @@ class _AssetInformation extends State<AssetInformation>
             ? data['ownershipKind']
             : 'INDIVIDUAL';
     assetName = data['assetName'] ?? "";
+    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
     assetDescription = data['assetDescription'] ?? "";
     assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
     latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
@@ -141,6 +146,9 @@ class _AssetInformation extends State<AssetInformation>
     addressOfOwner = data['assetOwnerAddress'] ?? "";
     currentValueOfAsset =
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
+    assetOwnerRetainedOrContributedValue = double.tryParse(
+            data['assetOwnerRetainedOrContributedValue'].toString()) ??
+        0;
     assetMiscCost =
         double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
     valueOfTokenizedAsset =
@@ -160,6 +168,10 @@ class _AssetInformation extends State<AssetInformation>
         : formatNumberForInput(currentValueOfAsset);
     miscCostOfAssetController.text =
         assetMiscCost == 0 ? '' : formatNumberForInput(assetMiscCost);
+    assetOwnerRetainedOrContributedValueController.text =
+        assetOwnerRetainedOrContributedValue == 0
+            ? ''
+            : formatNumberForInput(assetOwnerRetainedOrContributedValue);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
@@ -246,7 +258,7 @@ class _AssetInformation extends State<AssetInformation>
                 child: Row(
                   children: [
                     Text(
-                      "assetstatus".tr(),
+                      "basicinformation".tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontFamily: fontsemibold,
@@ -258,6 +270,59 @@ class _AssetInformation extends State<AssetInformation>
               ),
               SizedBox(
                 height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "enterassetname".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "enterassetname".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
               Row(
                 children: [
@@ -440,37 +505,6 @@ class _AssetInformation extends State<AssetInformation>
               ),
               SizedBox(
                 height: height / 70,
-              ),
-              Container(
-                width: width,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: TextButton(
-                        onPressed: () => findCoordinatesPopup(context),
-                        style: ButtonStyle(
-                          padding: MaterialStateProperty.all(EdgeInsets.zero),
-                          minimumSize: MaterialStateProperty.all(Size.zero),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          "howtofindcoordinates".tr(),
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            fontSize: 13,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
               ),
               Row(
                 children: [
@@ -836,7 +870,9 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "assetcurrentvalue".tr(),
+                      assetAlreadyExists
+                          ? "assetcurrentvalue".tr(args: ['NGN'])
+                          : "totalcostofproject".tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -854,7 +890,9 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "currentvalueofasset".tr(),
+                      assetAlreadyExists
+                          ? "currentvalueofasset".tr()
+                          : "howmuch".tr(),
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -887,6 +925,7 @@ class _AssetInformation extends State<AssetInformation>
                         currentValueOfAsset = double.parse(value!.toString());
                       },
                       autoFormatNumber: true,
+                      isFiat: true,
                       controller: valueOfAssetController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
@@ -894,19 +933,86 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              if (assetAlreadyExists) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "assetmisccost".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "misccost".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.toString().isEmpty) {
+                              assetMiscCost = 0;
+                              return;
+                            }
+
+                            assetMiscCost = double.parse(
+                                value!.toString().replaceAll(',', ''));
+                            valueOfTokenizedAsset =
+                                (assetMiscCost + currentValueOfAsset);
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          assetMiscCost = double.parse(value!.toString());
+                        },
+                        autoFormatNumber: true,
+                        isFiat: true,
+                        controller: miscCostOfAssetController,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "assetmisccost".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    child: SizedBox(
+                      width: width - 60,
+                      child: Text(
+                        assetAlreadyExists
+                            ? "howmuchtoretain".tr()
+                            : "sponsorcontribution".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
                   ),
@@ -920,7 +1026,7 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "misccost".tr(),
+                      "howmuch".tr(),
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -932,14 +1038,12 @@ class _AssetInformation extends State<AssetInformation>
                       onChanged: (value) {
                         setState(() {
                           if (value.toString().isEmpty) {
-                            assetMiscCost = 0;
+                            assetOwnerRetainedOrContributedValue = 0;
                             return;
                           }
 
-                          assetMiscCost = double.parse(
+                          assetOwnerRetainedOrContributedValue = double.parse(
                               value!.toString().replaceAll(',', ''));
-                          valueOfTokenizedAsset =
-                              (assetMiscCost + currentValueOfAsset);
                         });
                       },
                       validator: (value) {
@@ -949,65 +1053,17 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        assetMiscCost = double.parse(value!.toString());
+                        assetOwnerRetainedOrContributedValue =
+                            double.parse(value!.toString());
                       },
                       autoFormatNumber: true,
-                      controller: miscCostOfAssetController,
+                      isFiat: true,
+                      controller:
+                          assetOwnerRetainedOrContributedValueController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
-                ],
-              ),
-              SizedBox(
-                height: height / 90,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "valueoftokenizedasset".tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      height: 55.sp,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              formatNumberForInput(valueOfTokenizedAsset),
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                        ],
-                      ),
-                    ),
-                  )
                 ],
               ),
               SizedBox(
@@ -1028,302 +1084,6 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "assetprotectioninplace2".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 70,
-              // ),
-              // Row(
-              //   children: [
-              //     Container(
-              //       width: width,
-              //       child: Padding(
-              //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //         child: Text(
-              //           "selectprotectionoption".tr(),
-              //           style: TextStyle(
-              //             fontSize: 13,
-              //             fontFamily: fontbody,
-              //             color: notifier.getbluewhitecolor,
-              //           ),
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              //   child: dropdown(
-              //     (value) {
-              //       setState(() {
-              //         if (!assetProtectionInPlace.contains(value.toString())) {
-              //           assetProtectionInPlace.add(value.toString());
-              //         }
-              //       });
-              //     },
-              //     getAssetProtectionOptions,
-              //     null,
-              //     'Select asset protection',
-              //     context,
-              //     null,
-              //     validator: (value) {
-              //       if (assetProtectionInPlace.isEmpty) {
-              //         return "fieldcannotbeempty".tr();
-              //       }
-              //       return null;
-              //     },
-              //   ),
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              //   child: Container(
-              //     width: width,
-              //     child: Wrap(
-              //       alignment: WrapAlignment.start,
-              //       children: [
-              //         for (var item in assetProtectionInPlace) ...[
-              //           userItem(
-              //             item,
-              //             () {
-              //               setState(() {
-              //                 assetProtectionInPlace
-              //                     .removeWhere((element) => element == item);
-              //               });
-              //             },
-              //             foreColor: notifier.getwihitecolor,
-              //             backColor: notifier.getbluewhitecolor,
-              //           ),
-              //         ],
-              //       ],
-              //     ),
-              //   ),
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "insurancecompanyname".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "companyname".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         width / 1.12,
-              //         initialValue: insuranceCompanyName,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             insuranceCompanyName = value!;
-              //           });
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "insurancypolicynumber".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "insurancypolicynumber".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         width / 1.12,
-              //         initialValue: insurancePolicyNumber,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             insurancePolicyNumber = value!;
-              //           });
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "insurancypolicyholder".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "insurancypolicyholder".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         width / 1.12,
-              //         initialValue: insurancePolicyHolder,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             insurancePolicyHolder = value!;
-              //           });
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "percentagevalueofinsurance".tr(),
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // SizedBox(
-              //   height: height / 50,
-              // ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "percentagevalueofinsurance".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         width / 1.12,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "enterassetdescription".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             percentageValueOfInsurance = double.parse(value);
-              //           });
-              //         },
-              //         autoFormatNumber: true,
-              //         controller: percentValueOfInsuranceController,
-              //         keyboardtype:
-              //             TextInputType.numberWithOptions(decimal: true),
-              //       ),
-              //     ),
-              //   ],
-              // ),
               SizedBox(
                 height: height / 50,
               ),
@@ -1400,7 +1160,7 @@ class _AssetInformation extends State<AssetInformation>
                                         ],
                                       ),
                                       SizedBox(
-                                        height: height / 50,
+                                        height: height / 70,
                                       ),
                                       Row(
                                         children: [
@@ -1437,7 +1197,7 @@ class _AssetInformation extends State<AssetInformation>
                                         ],
                                       ),
                                       SizedBox(
-                                        height: height / 50,
+                                        height: height / 70,
                                       ),
                                       Row(
                                         children: [
@@ -1662,21 +1422,23 @@ class _AssetInformation extends State<AssetInformation>
                             SizedBox(
                               height: 10,
                             ),
+                            if (!assetAlreadyExists) ...[
+                              CheckboxItem(
+                                value: contractualProtectionPerfBond,
+                                label: "performancebond".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    contractualProtectionPerfBond = value!;
+                                  });
+                                },
+                              ),
+                            ],
                             CheckboxItem(
                               value: contractualProtectionRevGuarantees,
                               label: "revenueguarantees".tr(),
                               onChanged: (value) {
                                 setState(() {
                                   contractualProtectionRevGuarantees = value!;
-                                });
-                              },
-                            ),
-                            CheckboxItem(
-                              value: contractualProtectionPerfBond,
-                              label: "performancebond".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  contractualProtectionPerfBond = value!;
                                 });
                               },
                             ),
@@ -1699,273 +1461,279 @@ class _AssetInformation extends State<AssetInformation>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "risksharingmechanisms".tr(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: riskSharingMechanismPPPs,
-                              label: "ppps".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  riskSharingMechanismPPPs = value!;
-                                });
-                              },
-                            ),
-                            CheckboxItem(
-                              value: riskSharingMechanismHedgeInstruments,
-                              label: "hedginginstruments".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  riskSharingMechanismHedgeInstruments = value!;
-                                });
-                              },
-                            ),
-                            CheckboxItem(
-                              value: riskSharingMechanismCompletionGuarantees,
-                              label: "completionguarantees".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  riskSharingMechanismCompletionGuarantees =
-                                      value!;
-                                });
-                              },
-                            ),
-                          ],
+              if (!assetAlreadyExists) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        width: width / 1.12,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
+                          color: notifier.getaddsubwalletgrey,
                         ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "governanceandoversight".tr(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: hasIndependentMonitoring,
-                              label: "independentmonitoring".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  hasIndependentMonitoring = value!;
-                                });
-                              },
-                            ),
-                            if (hasIndependentMonitoring) ...[
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Row(
                                 children: [
-                                  SizedBox(
-                                    width: 15,
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child: Container(
-                                              width: 260,
-                                              child: Text(
-                                                "listmonitoringoperators".tr(),
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: fontsemibold,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
-                                              "eg John Doe, Anna Harry",
-                                              notifier.getbluecolor,
-                                              null,
-                                              notifier.getgrey,
-                                              null,
-                                              notifier.getblck,
-                                              notifier.getgrey,
-                                              85,
-                                              267,
-                                              initialValue:
-                                                  independentMonitoringList,
-                                              validator: (value) {
-                                                if (hasIndependentMonitoring &&
-                                                    value.isEmpty) {
-                                                  return "fieldcannotbeempty"
-                                                      .tr();
-                                                }
-                                                return null;
-                                              },
-                                              onSaved: (value) {
-                                                setState(() {
-                                                  independentMonitoringList =
-                                                      value!;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ]
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: width / 1.3,
-                                  child: Text(
-                                    "esgs".tr(),
+                                  Text(
+                                    "risksharingmechanisms".tr(),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontFamily: fontsemibold,
                                       color: notifier.getbluewhitecolor,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: eSGSafeguardsSusCerts,
-                              label: "sustainabilitycertifications".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  eSGSafeguardsSusCerts = value!;
-                                });
-                              },
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: eSGSafeguardsCommEngPlans,
-                              label: "communityengagementplans".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  eSGSafeguardsCommEngPlans = value!;
-                                });
-                              },
-                            ),
-                          ],
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: riskSharingMechanismPPPs,
+                                label: "ppps".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    riskSharingMechanismPPPs = value!;
+                                  });
+                                },
+                              ),
+                              CheckboxItem(
+                                value: riskSharingMechanismHedgeInstruments,
+                                label: "hedginginstruments".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    riskSharingMechanismHedgeInstruments =
+                                        value!;
+                                  });
+                                },
+                              ),
+                              CheckboxItem(
+                                value: riskSharingMechanismCompletionGuarantees,
+                                label: "completionguarantees".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    riskSharingMechanismCompletionGuarantees =
+                                        value!;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        width: width / 1.12,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
+                          color: notifier.getaddsubwalletgrey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "governanceandoversight".tr(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: hasIndependentMonitoring,
+                                label: "independentmonitoring".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    hasIndependentMonitoring = value!;
+                                  });
+                                },
+                              ),
+                              if (hasIndependentMonitoring) ...[
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 15,
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20.0),
+                                              child: Container(
+                                                width: 260,
+                                                child: Text(
+                                                  "listmonitoringoperators"
+                                                      .tr(),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontFamily: fontsemibold,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: height / 50,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20.0),
+                                              child:
+                                                  CustomTextFormField.textField(
+                                                "eg John Doe, Anna Harry",
+                                                notifier.getbluecolor,
+                                                null,
+                                                notifier.getgrey,
+                                                null,
+                                                notifier.getblck,
+                                                notifier.getgrey,
+                                                85,
+                                                267,
+                                                initialValue:
+                                                    independentMonitoringList,
+                                                validator: (value) {
+                                                  if (hasIndependentMonitoring &&
+                                                      value.isEmpty) {
+                                                    return "fieldcannotbeempty"
+                                                        .tr();
+                                                  }
+                                                  return null;
+                                                },
+                                                onSaved: (value) {
+                                                  setState(() {
+                                                    independentMonitoringList =
+                                                        value!;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ]
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        width: width / 1.12,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
+                          color: notifier.getaddsubwalletgrey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: width / 1.3,
+                                    child: Text(
+                                      "esgs".tr(),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontsemibold,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: eSGSafeguardsSusCerts,
+                                label: "sustainabilitycertifications".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    eSGSafeguardsSusCerts = value!;
+                                  });
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: eSGSafeguardsCommEngPlans,
+                                label: "communityengagementplans".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    eSGSafeguardsCommEngPlans = value!;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+              ],
               Row(
                 children: [
                   Padding(
@@ -2450,62 +2218,64 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: undertakingNoLien,
-                              label: "confirmfreeofloans".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  undertakingNoLien = value!;
-                                });
-                              },
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: undertakingNotCollateral,
-                              label: "confirmfreeofcolateral".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  undertakingNotCollateral = value!;
-                                });
-                              },
-                              validator: (value) {
-                                if (!undertakingNotCollateral) {
+                            if (assetAlreadyExists) ...[
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: undertakingNoLien,
+                                label: "confirmfreeofloans".tr(),
+                                onChanged: (value) {
                                   setState(() {
-                                    formHasError = true;
+                                    undertakingNoLien = value!;
                                   });
-                                  return '';
-                                }
-
-                                return null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: undertakingNoClaims,
-                              label: "confirmfreeofthirdparties".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  undertakingNoClaims = value!;
-                                });
-                              },
-                              validator: (value) {
-                                if (!undertakingNoClaims) {
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: undertakingNotCollateral,
+                                label: "confirmfreeofcolateral".tr(),
+                                onChanged: (value) {
                                   setState(() {
-                                    formHasError = true;
+                                    undertakingNotCollateral = value!;
                                   });
-                                  return '';
-                                }
+                                },
+                                validator: (value) {
+                                  if (!undertakingNotCollateral) {
+                                    setState(() {
+                                      formHasError = true;
+                                    });
+                                    return '';
+                                  }
 
-                                return null;
-                              },
-                            ),
+                                  return null;
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: undertakingNoClaims,
+                                label: "confirmfreeofthirdparties".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    undertakingNoClaims = value!;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (!undertakingNoClaims) {
+                                    setState(() {
+                                      formHasError = true;
+                                    });
+                                    return '';
+                                  }
+
+                                  return null;
+                                },
+                              ),
+                            ],
                             SizedBox(
                               height: 10,
                             ),
@@ -2652,18 +2422,20 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: outstandingFinancialRespNoDebts,
-                              label: "confirmnooutstandingpayments".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  outstandingFinancialRespNoDebts = value!;
-                                });
-                              },
-                            ),
+                            if (assetAlreadyExists) ...[
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: outstandingFinancialRespNoDebts,
+                                label: "confirmnooutstandingpayments".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    outstandingFinancialRespNoDebts = value!;
+                                  });
+                                },
+                              ),
+                            ],
                             SizedBox(
                               height: 10,
                             ),
@@ -2730,18 +2502,20 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: riskManagementDeclaredValue,
-                              label: "confirmvalueiscurrent".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  riskManagementDeclaredValue = value!;
-                                });
-                              },
-                            ),
+                            if (assetAlreadyExists) ...[
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: riskManagementDeclaredValue,
+                                label: "confirmvalueiscurrent".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    riskManagementDeclaredValue = value!;
+                                  });
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -2786,18 +2560,6 @@ class _AssetInformation extends State<AssetInformation>
                               height: 10,
                             ),
                             CheckboxItem(
-                              value: physicalConditionSound,
-                              label: "confirmassetstructuralysound".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  physicalConditionSound = value!;
-                                });
-                              },
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
                               value: physicalConditionNoUndisclosedEasements,
                               label: "confirmnoundisclosedeasements".tr(),
                               onChanged: (value) {
@@ -2817,28 +2579,42 @@ class _AssetInformation extends State<AssetInformation>
                                 return null;
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CheckboxItem(
-                              value: physicalConditionNolease,
-                              label: "confirmnoexistingleaseagreements".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  physicalConditionNolease = value!;
-                                });
-                              },
-                              validator: (value) {
-                                if (!physicalConditionNolease) {
+                            if (assetAlreadyExists) ...[
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: physicalConditionSound,
+                                label: "confirmassetstructuralysound".tr(),
+                                onChanged: (value) {
                                   setState(() {
-                                    formHasError = true;
+                                    physicalConditionSound = value!;
                                   });
-                                  return '';
-                                }
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CheckboxItem(
+                                value: physicalConditionNolease,
+                                label: "confirmnoexistingleaseagreements".tr(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    physicalConditionNolease = value!;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (!physicalConditionNolease) {
+                                    setState(() {
+                                      formHasError = true;
+                                    });
+                                    return '';
+                                  }
 
-                                return null;
-                              },
-                            ),
+                                  return null;
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -2913,6 +2689,8 @@ class _AssetInformation extends State<AssetInformation>
       newData['assetOwnerAddress'] = addressOfOwner;
       newData['assetCurrentValue'] = currentValueOfAsset;
       newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
+      newData['assetOwnerRetainedOrContributedValue'] =
+          assetOwnerRetainedOrContributedValue;
       newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
       newData['protectionMethods'] = assetProtectionInPlace.join(',');
       newData['insuranceCompanyName'] = insuranceCompanyName;

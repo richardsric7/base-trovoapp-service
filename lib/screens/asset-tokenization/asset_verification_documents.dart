@@ -207,8 +207,22 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
           'selectedFileOption': '',
         },
         "proofofLegalDisputesOnAsset": {
-          'name': 'Proof of  Legal Disputes or Encumbrances on Asset',
+          'name': 'Proof of Legal Disputes on Asset',
           'documentType': '21',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "approvedProjectBudget": {
+          'name': 'Approved Project Budget',
+          'documentType': '22',
+          'options': <String>[],
+          'files': <String, dynamic>{},
+          'selectedFileOption': '',
+        },
+        "proofOfContributionFromSponsor": {
+          'name': 'Proof of Contribution from Sponsor',
+          'documentType': '23',
           'options': <String>[],
           'files': <String, dynamic>{},
           'selectedFileOption': '',
@@ -936,6 +950,46 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
           break;
         case '21':
           var val = documentTypeAndCodes['proofofLegalDisputesOnAsset'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
+          break;
+        case '22':
+          var val = documentTypeAndCodes['approvedProjectBudget'];
+          val?['files'][item['documentTitle'].toString()] = item;
+
+          selectedDocuments[item['documentType']] = proofDocumentItem(
+            onDone: (String selectedOption, PlatformFile file) {
+              uploadFile(
+                file,
+                val['documentType'],
+                selectedOption.isEmpty ? val['name'] : selectedOption,
+              );
+            },
+            label: val!['name'],
+            selectedOption: val['selectedFileOption'],
+            uploadedFiles: val['files'],
+            documentOptions: getDocumentOptions(
+              val['options'],
+            ),
+          );
+          break;
+        case '23':
+          var val = documentTypeAndCodes['proofOfContributionFromSponsor'];
           val?['files'][item['documentTitle'].toString()] = item;
 
           selectedDocuments[item['documentType']] = proofDocumentItem(

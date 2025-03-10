@@ -360,25 +360,40 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               ),
             ),
             SizedBox(
-              height: height / 70,
+              height: height / 50,
             ),
-            Container(
-              width: width,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "assetstatus".tr(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
                 child: Text(
                   "selectwhatappliestoasset".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
+                    fontSize: 15,
+                    fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
               ),
             ),
             SizedBox(
-              height: height / 70,
+              height: height / 50,
             ),
             Column(
               children: [
@@ -860,6 +875,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     try {
       showLoader(context);
       var newData = {...data as Map};
+      inspect(data);
 
       Map map = {
         "assetSector": selectedAssetSectorId,
@@ -959,6 +975,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "riskManagementDeclaredValue": newData['riskManagementDeclaredValue'],
         "physicalConditionSound": newData['physicalConditionSound'],
         "physicalConditionNolease": newData['physicalConditionNolease'],
+        "physicalConditionNoUndisclosedEasements":
+            newData['physicalConditionNoUndisclosedEasements'],
         "assetMscCostOutisdeOfValuation":
             newData['assetMscCostOutisdeOfValuation'],
       };

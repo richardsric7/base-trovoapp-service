@@ -50,6 +50,7 @@ class CustomTextFormField {
     h,
     w, {
     initialValue,
+    isFiat = false,
     onChanged,
     maxLength,
     validator,
@@ -92,8 +93,12 @@ class CustomTextFormField {
               }
 
               if (newVal.isNotEmpty) {
-                controller!.text = formatNumberForInput(double.parse(
-                    newVal.toString().replaceAll(',', '').replaceAll('-', '')));
+                controller!.text = truncateToDecimalPlaces(
+                    double.parse(newVal
+                        .toString()
+                        .replaceAll(',', '')
+                        .replaceAll('-', '')),
+                    decimalPlaces: isFiat ? 2 : 7);
 
                 if (!newVal.endsWith('.')) {
                   controller.selection =

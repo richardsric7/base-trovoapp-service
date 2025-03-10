@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +25,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -54,18 +55,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
   var noXbnBalance = false;
+  Map expressedInterests = {};
+  Map subscriptions = {};
   late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   late Future<List<TokenizedAsset>> primaryOffersListFuture;
   late Future<List<TokenizedAsset>> secondaryListItemsFuture;
+  List<TokenizedAsset> tokenizedAssets = [];
 
   Map<String, DashboardAssetListMode> listModes = {
     'Asset Tokens': DashboardAssetListMode.TokenizedAssets,
     'Other Tokens': DashboardAssetListMode.OtherAssets,
   };
   final Authenticator _authenticator = Authenticator();
-  Map<String, String?> countdown = {};
 
   @override
   void initState() {
@@ -79,8 +82,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
-    primaryOffersListFuture = fetchTokenizationList(status: 3);
-    secondaryListItemsFuture = fetchTokenizationList(status: 6);
+    primaryOffersListFuture = fetchTokenizationList(status: 0);
+    secondaryListItemsFuture = fetchTokenizationList(status: 1);
   }
 
   void tabListener() {
@@ -441,7 +444,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             onPressed: () {
                               setState(() {
                                 primaryOffersListFuture =
-                                    fetchTokenizationList(status: 3);
+                                    fetchTokenizationList(status: 0);
                               });
                             },
                             style: ButtonStyle(
@@ -460,10 +463,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   );
                 } else if (snapshot.hasData) {
-                  var records = snapshot.data!;
+                  tokenizedAssets = snapshot.data!;
                   return Column(
                     children: [
-                      if (records.isNotEmpty) ...[
+                      if (tokenizedAssets.isNotEmpty) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,7 +510,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        for (var item in records) ...[
+                        for (var item in tokenizedAssets) ...[
                           GestureDetector(
                             onTap: () {
                               appState.tokenizedAsset = item;
@@ -524,9 +527,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   context,
                                   assetCode: item.assetCode!,
                                   onDone: (amount) async {
+                                    await subscribeTokenizedAsset(
+                                      amount: double.parse(amount),
+                                      tokenizedAssetID: item.id!,
+                                    );
                                     setState(() {
-                                      print(amount);
-                                      item.isSubscribed = true;
+                                      item.expressedInterest = true;
+                                      item.expressedInterestAmount =
+                                          double.parse(amount);
                                     });
                                   },
                                 );
@@ -534,9 +542,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               onBuyToken: () {
                                 showBuyTokenPopup(context,
                                     assetCode: item.assetCode!,
-                                    onDone: (publicKey) {
-                                  var wallet =
-                                      appState.userInfo!.getWallet(publicKey);
+                                    onDone: (wallet) {
                                   appState.setActiveWallet = wallet;
                                   appState.tokenizedAsset = item;
                                   appState.currentAction = PageAction(
@@ -618,93 +624,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   ),
                 );
               } else if (snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.hasError) {
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              "SECONDARY LISTING",
-                              textScaleFactor: 1.0,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: notifier.getbluewhitecolor,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: fontsemibold,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: SeeAllTokenizedAssetsViewPageConfig,
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding:
-                                  EdgeInsets.zero, // removes default padding
-                              minimumSize: Size(
-                                  0, 0), // removes minimum size constraints
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // adjusts tap target size
-                            ),
-                            child: Text(
-                              "View all",
-                              textScaleFactor: 1.0,
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 12.0),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          height: height / 6,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "somethingwentwrong".tr(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    secondaryListItemsFuture =
-                                        fetchTokenizationList(status: 6);
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          notifier.getbluecolor!),
-                                ),
-                                child: Text(
-                                  "retry".tr(),
-                                  style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                } else if (snapshot.hasData) {
+                if (snapshot.hasData) {
                   var records = snapshot.data!;
                   return Column(
                     children: [
@@ -987,15 +907,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  List<DropdownMenuItem<String>> get getStandardWallets {
-    List<DropdownMenuItem<String>> wallets = [];
+  List<DropdownMenuItem<Wallet>> get getStandardWallets {
+    List<DropdownMenuItem<Wallet>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
             overflow: TextOverflow.ellipsis,
           ),
-          value: wallet.publicKey));
+          value: wallet));
     });
     return wallets;
   }
@@ -1033,10 +953,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   void refreshData() async {
     try {
-      await appState.refreshData();
-      await appState.getApprovals();
-      _refreshController.refreshCompleted();
-      appState.updateListeners();
+      // primaryOffersListFuture = fetchTokenizationList(status: 0);
+      secondaryListItemsFuture = fetchTokenizationList(status: 1);
+      // await appState.refreshData();
+      // await appState.getApprovals();
+      // _refreshController.refreshCompleted();
+      // appState.updateListeners();
     } catch (e) {
       _refreshController.refreshFailed();
     }
@@ -1297,7 +1219,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   Future<List<TokenizedAsset>> fetchTokenizationList(
       {required int status}) async {
     try {
-      var uri = '/v1/tokenization/list?assetTokenizationStatus=$status';
+      await fetchExpressedInterests();
+      await fetchSubscriptions();
+      var uri =
+          '/v1/tokenization/list?onlyWithUserPermission=0&salesList=$status';
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
@@ -1308,15 +1233,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       if (responseData['statusCode'] == 200) {
         List<TokenizedAsset> tokenizedAssets = [];
         var assets = responseData['data']['records'];
-        await inspect(assets);
         if (assets != null) {
           for (int i = 0; i < assets.length; i++) {
-            inspect(assets[i]);
             var a = TokenizedAsset().deserializeJson(assets[i]);
             a.usdPrice = 1.47;
-            a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-            a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-                a.numberOfTokenToBeIssued!);
+            if (expressedInterests[a.id] != null) {
+              a.expressedInterest = expressedInterests[a.id] != null;
+              a.expressedInterestAmount =
+                  double.parse(expressedInterests[a.id]['amount'].toString());
+            }
+
+            if (subscriptions[a.id] != null) {
+              a.isSubscribed = subscriptions[a.id] != null;
+              a.subscriptionAmount =
+                  double.parse(subscriptions[a.id]['amount'].toString());
+            }
             tokenizedAssets.add(a);
           }
         }
@@ -1328,6 +1259,103 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       print('error');
       print(e);
       return Future.error('Error! ${e}');
+    }
+  }
+
+  Future<void> fetchExpressedInterests() async {
+    try {
+      var uri = '/v1/tokenization/expressed-interests';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        setState(() {
+          expressedInterests = {};
+          var records = responseData['data']['records'];
+          for (var i = 0; i < records.length; i++) {
+            expressedInterests[records[i]['tokenizedAssetId']] = records[i];
+          }
+        });
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  Future<void> fetchSubscriptions() async {
+    try {
+      var uri = '/v1/tokenization/subscriptions';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        subscriptions = {};
+        setState(() {
+          var records = responseData['data']['records'];
+          for (var i = 0; i < records.length; i++) {
+            subscriptions[records[i]['tokenizedAssetId']] = records[i];
+          }
+        });
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  subscribeTokenizedAsset(
+      {required double amount, required String tokenizedAssetID}) async {
+    try {
+      showLoader(context);
+
+      String requestBody = jsonEncode({
+        'amount': amount,
+      });
+
+      print(requestBody);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      print('==============>response: $responseData');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200) {
+        hideLoader(context);
+      } else {
+        hideLoader(context);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'].toString().isEmpty
+              ? responseData['data']['error']
+              : responseData['data']['message'],
+        );
+      }
+    } catch (e) {
+      // print(e);
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 }

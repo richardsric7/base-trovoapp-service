@@ -77,7 +77,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               ),
             ),
             SizedBox(height: height / 50),
-            if (tokenizedAsset.tokenizationStatus == 3) ...[
+            if (tokenizedAsset.tokenizationStatus == 5) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -189,7 +189,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                               height: height / 70,
                             ),
                             Text(
-                              '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
+                              '${tokenizedAsset.subscriptionAmount ?? 0} ${tokenizedAsset.assetCode}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
@@ -201,7 +201,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                               height: height / 70,
                             ),
                             Text(
-                              '${tokenizedAsset.pricePerToken! * (tokenizedAsset.amount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                              '${tokenizedAsset.pricePerToken! * (tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,

@@ -39,6 +39,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   late double fiatFeeCap;
   late double tokenFee;
   late double fiatFee;
+  late String tokenizationFee;
   PlatformFile? recieptFile;
   String errorMsg = '';
   String transactionReference = '';
@@ -76,17 +77,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
     print('deserialized tokenized asset');
     inspect(tokenizedAsset);
-    var fiatPercentage = appState.tokenizationData["tokenizationFees"]
-        [tokenizedAsset.tokenizationFeeId]['feeFiatPercentage'];
-    var assetPercentage = appState.tokenizationData["tokenizationFees"]
-        [tokenizedAsset.tokenizationFeeId]['feeAssetPercentage'];
-    fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
-            [tokenizedAsset.tokenizationFeeId]['feeFiatCap']
-        .toString());
-    tokenFee = tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage;
-    fiatFee = tokenizedAsset.assetCurrentValue! * fiatPercentage;
     hasMadePayment =
         tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ?? false;
+    tokenizationFee =
+        formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!));
   }
 
   @override
@@ -144,7 +138,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   "payto".tr(args: [
-                    "${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} ${preferredPaymentMethod == 'STABLE COIN' ? preferredPaymentMethod : tokenizedAsset.proceedPayoutCurrency}"
+                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? 'CNGN' : tokenizedAsset.proceedPayoutCurrency}"
                   ]),
                   style: TextStyle(
                     fontSize: 18,
@@ -256,7 +250,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                     fontFamily: fontbody),
                               ),
                               Text(
-                                "Trovo Tokenizer",
+                                "Trovotech Limited",
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -280,7 +274,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    "0123908438",
+                                    "0088066577",
                                     style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
@@ -291,8 +285,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                     onPressed: () {
                                       Clipboard.setData(
                                         ClipboardData(
-                                          text: tokenizedAsset
-                                              .walletToHoldAssetsNotForSale!,
+                                          text: '0088066577',
                                         ),
                                       );
                                       showSnackBar(
@@ -317,7 +310,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                     fontFamily: fontbody),
                               ),
                               Text(
-                                "First Bank",
+                                "Sterling Bank",
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -337,7 +330,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 height: height / 50,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                padding: const EdgeInsets.fromLTRB(15, 10, 15, 3),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
@@ -346,7 +339,8 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         : notifier.getaddsubwalletgrey,
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(15.0),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15.0, horizontal: 5),
                     child: Column(
                       children: [
                         Text(
@@ -357,37 +351,32 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                               color: Colors.red,
                               fontFamily: fontbody),
                         ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
+                        SizedBox(height: height / 70),
                         Text(
-                          "yourtokenizationfeeis".tr(),
+                          'Your outstanding fee details is as follows:',
+                          textAlign: TextAlign.start,
                           style: TextStyle(
-                              fontSize: 15,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                            fontWeight: FontWeight.w500,
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 13.sp,
+                            fontFamily: fontbody,
+                          ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
-                        Text(
-                          "\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(tokenFee)} ${tokenizedAsset.assetCode}",
-                          style: TextStyle(
-                              fontSize: 15,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "pleasepayasap".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 15,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
-                        ),
+                        SizedBox(height: height / 70),
+                        item("Asset tokenization fee".tr(),
+                            '${tokenizationFee} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("SEC regulatory fee".tr(),
+                            '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Asset custody fee".tr(),
+                            '${(formatNumberShort(tokenizedAsset.custodianFeeValue!))} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Asset management fee".tr(),
+                            '${(formatNumber(tokenizedAsset.custodianFeeValue!))} ${appState.defaultCurrency}'),
+                        item("Total fee".tr(),
+                            '${getTotalFee()} ${appState.defaultCurrency}'),
+                        SizedBox(height: height / 90),
                       ],
                     ),
                   ),
@@ -507,6 +496,45 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget item(String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: width / 2.36,
+            ),
+            child: Text(
+              key,
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: notifier.getbluewhitecolor,
+                fontSize: 13.sp,
+                fontFamily: fontbody,
+              ),
+            ),
+          ),
+          Container(
+            width: width / 2.56,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: notifier.getbluewhitecolor,
+                fontSize: 13.sp,
+                fontFamily: fontsemibold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -744,6 +772,29 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     //     ),
     //   ),
     // );
+  }
+
+  String getTotalFee() {
+    var total = tokenizedAsset.SECTokenizationFeeValue! +
+        tokenizedAsset.custodianFeeValue! +
+        tokenizedAsset.assetManagerFeeValue! +
+        getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+
+    return "${formatNumber(total)}";
+  }
+
+  double getFeeInfo(int index) {
+    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
+        ['feeFiatPercentage'];
+    // var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
+    //     ['feeAssetPercentage'];
+    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
+            [index]['feeFiatCap']
+        .toString());
+    // var tokenFee =
+    //     (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
+    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
+    return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }
 
   Future<void> uploadFile(

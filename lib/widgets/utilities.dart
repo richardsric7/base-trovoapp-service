@@ -115,6 +115,33 @@ getAssetIssuer(assetIssuer) {
       : assetIssuer.toString();
 }
 
+String truncateToDecimalPlaces(double number, {int decimalPlaces = 7}) {
+  // Convert number to string with high precision to avoid initial rounding
+  String numStr = number.toString();
+
+  // Split into integer and fractional parts
+  List<String> parts = numStr.split('.');
+  if (parts.length < 2 || decimalPlaces <= 0) {
+    return NumberFormat(
+            decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
+        .format(number
+            .truncateToDouble()); // No decimal part or no decimals requested
+  }
+
+  String integerPart = parts[0];
+  String fractionalPart = parts[1];
+
+  // Truncate the fractional part to the desired length
+  if (fractionalPart.length > decimalPlaces) {
+    fractionalPart = fractionalPart.substring(0, decimalPlaces);
+  }
+  // Combine and parse back to double
+  String truncatedStr = '$integerPart.$fractionalPart';
+  return NumberFormat(
+          decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
+      .format(double.parse(truncatedStr));
+}
+
 formatNumber(double number) {
   var formattedString = NumberFormat("#,##0.#######", "en_US").format(number);
   // var splitFormattedString = formattedString.split('.');
@@ -147,6 +174,40 @@ formatHistoryNumber(double number, double trimNum, {bool isShort = false}) {
   }
 
   return isShort ? formatNumberShort(number) : formatNumber(number);
+}
+
+extension on double {
+  // Like [toStringAsFixed] but truncates (toward zero) to the specified
+  // number of fractional digits instead of rounding.
+  String toStringAsTruncated(int fractionDigits) {
+    // Require same limits as [toStringAsFixed].
+    assert(fractionDigits >= 0);
+    assert(fractionDigits <= 20);
+
+    if (fractionDigits == 0) {
+      return truncateToDouble().toString();
+    }
+
+    // [toString] will represent very small numbers in exponential form.
+    // Instead use [toStringAsFixed] with the maximum number of fractional
+    // digits.
+    var s = toStringAsFixed(20);
+
+    // [toStringAsFixed] will still represent very large numbers in
+    // exponential form.
+    if (s.contains('e')) {
+      // Ignore values in exponential form.
+      return s;
+    }
+
+    // Ignore unrecognized values (e.g. NaN, +infinity, -infinity).
+    var i = s.indexOf('.');
+    if (i == -1) {
+      return s;
+    }
+
+    return s.substring(0, i + fractionDigits + 1);
+  }
 }
 
 truncatePublicKey(String? publicKey) {
@@ -755,8 +816,8 @@ Widget tokenizedAssetTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (asset.assetLogo != null) ...[
-                  Image.memory(
-                    base64Decode(asset.assetLogo!),
+                  Image.network(
+                    asset.assetLogo!,
                     height: 35,
                     width: 35,
                     errorBuilder: (context, error, stackTrace) {
@@ -814,14 +875,14 @@ Widget tokenizedAssetTile({
               ],
             ),
             if (onSubscribe != null) ...[
-              if (asset.salesEnd!.difference(DateTime.now()).inDays <= 0) ...[
+              if (asset.tokenizationStatus == 4) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Countdown(startDate: asset.salesStart!),
                     ElevatedButton(
                       onPressed: () async {
-                        asset.isSubscribed ?? false ? null : onSubscribe();
+                        onSubscribe();
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all(
@@ -830,7 +891,7 @@ Widget tokenizedAssetTile({
                         overlayColor: MaterialStateProperty.all<Color>(
                             notifier.getsplashgrey),
                         backgroundColor: MaterialStateProperty.all<Color>(
-                          asset.isSubscribed ?? false
+                          asset.expressedInterest ?? false
                               ? notifier.getbluewhitecolor
                               : notifier.getwihitecolor,
                         ),
@@ -853,13 +914,13 @@ Widget tokenizedAssetTile({
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              if (asset.isSubscribed ?? false) ...[
+                              if (asset.expressedInterest ?? false) ...[
                                 Text(
                                   'Interest Expressed',
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
                                     fontSize: 12,
-                                    color: asset.isSubscribed ?? false
+                                    color: asset.expressedInterest ?? false
                                         ? notifier.getwihitecolor
                                         : notifier.getbluewhitecolor,
                                   ),
@@ -867,7 +928,7 @@ Widget tokenizedAssetTile({
                                 Icon(
                                   Icons.check_circle_rounded,
                                   size: 20,
-                                  color: asset.isSubscribed ?? false
+                                  color: asset.expressedInterest ?? false
                                       ? notifier.getwihitecolor
                                       : notifier.getbluewhitecolor,
                                 ),
@@ -877,7 +938,7 @@ Widget tokenizedAssetTile({
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
                                     fontSize: 12,
-                                    color: asset.isSubscribed ?? false
+                                    color: asset.expressedInterest ?? false
                                         ? notifier.getwihitecolor
                                         : notifier.getbluewhitecolor,
                                   ),
@@ -885,7 +946,7 @@ Widget tokenizedAssetTile({
                                 Icon(
                                   Icons.add_circle_rounded,
                                   size: 20,
-                                  color: asset.isSubscribed ?? false
+                                  color: asset.expressedInterest ?? false
                                       ? notifier.getwihitecolor
                                       : notifier.getbluewhitecolor,
                                 ),
@@ -895,9 +956,8 @@ Widget tokenizedAssetTile({
                     ),
                   ],
                 ),
-              ] else ...[
+              ] else if (asset.tokenizationStatus == 5) ...[
                 Container(
-                  width: 270,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
@@ -19,6 +18,8 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens_receipt.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_wallet/screens/delete_account/delete_account.dart';
 import 'package:trovo_wallet/screens/delete_account/delete_account_prerequisites.dart';
 import 'package:trovo_wallet/screens/send_and_recieve/asset_token_details.dart';
@@ -194,9 +195,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.QrScanner:
           _addPageData(QrScanner(), QrScannerPageConfig);
-          break;
-        case Pages.SearchView:
-          _addPageData(SearchView(), SearchViewPageConfig);
           break;
         case Pages.NotificationsView:
           _addPageData(AnnouncementsView(), NotificationsViewPageConfig);
@@ -498,6 +496,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               SeeAllTokenizedAssets(), SeeAllTokenizedAssetsViewPageConfig);
           break;
+        case Pages.BuyTokensSuccessView:
+          _addPageData(BuyTokensSuccess(), BuyTokensSuccessViewPageConfig);
+          break;
+        case Pages.BuyTokensReceiptView:
+          _addPageData(BuyTokensReceipt(), BuyTokensReceiptViewPageConfig);
+          break;
         default:
           break;
       }
@@ -550,9 +554,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.QrScanner:
         QrScannerPageConfig.currentPageAction = action;
-        break;
-      case Pages.SearchView:
-        SearchViewPageConfig.currentPageAction = action;
         break;
       case Pages.NotificationsView:
         NotificationsViewPageConfig.currentPageAction = action;
@@ -818,6 +819,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ConfirmBuyXBNWithFiatView:
         ConfirmBuyXBNWithFiatViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyTokensSuccessView:
+        BuyTokensSuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyTokensReceiptView:
+        BuyTokensReceiptViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

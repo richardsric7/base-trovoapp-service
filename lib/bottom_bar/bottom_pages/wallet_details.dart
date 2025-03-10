@@ -16,7 +16,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -151,7 +150,7 @@ class _WalletDetailsState extends State<WalletDetails>
         tabLength = 1;
       }
     } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
-      tabLength = 2;
+      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -341,11 +340,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "Primary Listing".tr(),
-                    ),
-                    Tab(
-                      height: 20,
-                      text: "Secondary Listing".tr(),
+                      text: "assettokens".tr().toUpperCase(),
                     ),
                   ],
                 ),
@@ -364,50 +359,6 @@ class _WalletDetailsState extends State<WalletDetails>
       child: TabBarView(
         controller: _tabController,
         children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                if (listOfAssets.isNotEmpty) ...[
-                  for (var i = 0; i < listOfAssets.length; i++) ...[
-                    GestureDetector(
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: TokenizedAssetDetailViewPageConfig,
-                        );
-                      },
-                      child: tokenizedAssetTile(
-                          listOfAssets[i]['imageUrl'] ?? '',
-                          listOfAssets[i]['assetName'] ?? '',
-                          'Property',
-                          i % 2 == 0),
-                    ),
-                  ],
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      height: height / 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "nothingtoshowhere2".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-                SizedBox(height: height / 20),
-              ],
-            ),
-          ),
           SingleChildScrollView(
             child: Column(
               children: [
@@ -510,62 +461,6 @@ class _WalletDetailsState extends State<WalletDetails>
                 ],
               ),
             ],
-          ),
-          trailing: ElevatedButton(
-            onPressed: () async {
-              isSubscribed
-                  ? showUnSubscribePopup(
-                      context,
-                      assetCode: 'asset.assetCode!',
-                      onDone: (walletPublicKey) {},
-                      dropdownItems: getStandardWallets,
-                    )
-                  : showSubscribePopup(
-                      context,
-                      assetCode: 'tokenizedAsset.assetCode!',
-                      onDone: (walletPublicKey) {},
-                    );
-            },
-            style: ButtonStyle(
-              overlayColor:
-                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
-              side: MaterialStateProperty.all(
-                BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                    style: BorderStyle.solid),
-              ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            child: Container(
-              width: width / 4,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isSubscribed ? 'Subscribed' : 'Subscribe',
-                    style: TextStyle(
-                        fontFamily: fontsemibold,
-                        fontSize: 11,
-                        color: notifier.getwihitecolor),
-                  ),
-                  Icon(
-                      isSubscribed
-                          ? Icons.check_circle
-                          : Icons.add_circle_rounded,
-                      size: 18,
-                      color: notifier.getwihitecolor),
-                ],
-              ),
-            ),
           ),
         ),
       ),

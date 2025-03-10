@@ -15,7 +15,6 @@ const String BottomHomePath = '/home';
 const String WebViewPath = '/webview';
 const String PdfViewPath = '/pdfview';
 const String QrScannerPath = '/qrScanner';
-const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
 const String CreateSubWalletSuccessViewPath = '/createSubWalletSuccessView';
 const String WalletDetailsViewPath = '/WalletDetailsView';
@@ -112,6 +111,8 @@ const String DeleteAccountViewPath = '/DeleteAccountView';
 const String BuyXBNWithFiatViewPath = '/BuyXBNWithFiatView';
 const String ConfirmBuyXBNWithFiatViewPath = '/ConfirmBuyXBNWithFiatView';
 const String SeeAllTokenizedAssetsViewPath = '/SeeAllTokenizedAssetsView';
+const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
+const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
 
 enum Pages {
   Splash,
@@ -129,7 +130,6 @@ enum Pages {
   WebView,
   PdfView,
   QrScanner,
-  SearchView,
   NotificationsView,
   CreateSubWalletSuccessView,
   WalletDetailsView,
@@ -225,6 +225,8 @@ enum Pages {
   BuyXBNWithFiatView,
   ConfirmBuyXBNWithFiatView,
   SeeAllTokenizedAssetsView,
+  BuyTokensSuccessView,
+  BuyTokensReceiptView,
 }
 
 class PageConfiguration {
@@ -314,11 +316,6 @@ PageConfiguration QrScannerPageConfig = PageConfiguration(
     key: 'QrScanner',
     path: QrScannerPath,
     uiPage: Pages.QrScanner,
-    currentPageAction: null);
-PageConfiguration SearchViewPageConfig = PageConfiguration(
-    key: 'SearchView',
-    path: SearchViewPath,
-    uiPage: Pages.SearchView,
     currentPageAction: null);
 PageConfiguration NotificationsViewPageConfig = PageConfiguration(
     key: 'NotificationsView',
@@ -766,4 +763,14 @@ PageConfiguration SeeAllTokenizedAssetsViewPageConfig = PageConfiguration(
     key: 'SeeAllTokenizedAssetsView',
     path: SeeAllTokenizedAssetsViewPath,
     uiPage: Pages.SeeAllTokenizedAssetsView,
+    currentPageAction: null);
+PageConfiguration BuyTokensSuccessViewPageConfig = PageConfiguration(
+    key: 'BuyTokensSuccessView',
+    path: BuyTokensSuccessViewPath,
+    uiPage: Pages.BuyTokensSuccessView,
+    currentPageAction: null);
+PageConfiguration BuyTokensReceiptViewPageConfig = PageConfiguration(
+    key: 'BuyTokensReceiptView',
+    path: BuyTokensReceiptViewPath,
+    uiPage: Pages.BuyTokensReceiptView,
     currentPageAction: null);
