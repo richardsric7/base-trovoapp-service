@@ -458,7 +458,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, accountDeletionPayload)
 	})
 
-	router.POST("/v1/webhook/sumsub/kyc", func(c *gin.Context) {
+	router.POST("/v1/webhook/sumsub/kyc/individual", func(c *gin.Context) {
 		// var err error//true-client-ip
 
 		payloadDigest := c.GetHeader("x-payload-digest")
