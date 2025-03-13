@@ -458,6 +458,195 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, accountDeletionPayload)
 	})
 
+	router.POST("/v1/webhook/sumsub/kyc", func(c *gin.Context) {
+		// var err error//true-client-ip
+
+		payloadDigest := c.GetHeader("x-payload-digest")
+		algoHeader := c.GetHeader("x-payload-digest-alg")
+
+		var tInput userModels.SumSubReviewResultInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err := json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		if ok, _ := userServices.VerifySumSubWebhook(data, payloadDigest, algoHeader, gc); !ok {
+			c.JSON(http.StatusBadRequest, "failed")
+			return
+		}
+
+		err = userServices.ProcessSumsubwebhook(&tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, "success")
+
+	})
+
+	router.POST("/v1/users/kyc/sumsub/initiate/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		levelName := c.Param("levelName")
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/kyc/sumsub/initiate/%v %v", levelName, user.Username), gc.DB)
+
+		err = userServices.InitiateUserKYCProgressForSumsub(user.Username, levelName, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, levelName)
+	})
+
+	router.GET("/v1/users/kyc/sumsub/progress", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/kyc/sumsub/progress %v", user.Username), gc.DB)
+
+		progress := userServices.GetUserKYCProgress(user.Username, gc)
+
+		c.JSON(http.StatusOK, progress)
+	})
+
+	router.POST("/v1/users/kyc/sumsub/complete/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		levelName := c.Param("levelName")
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/kyc/sumsub/complete/%v %v", levelName, user.Username), gc.DB)
+
+		err = userServices.CompleteUserKYCProgressForSumsub(&user, levelName, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, levelName)
+	})
+
+	router.GET("/v1/users/kyc/sumsub/configs", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error//true-client-ip
+
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		kycLevels := userServices.GetKYCLevels(gc)
+		kycConfigs := userServices.GetKYCConfigs(gc)
+		kycProgress := userServices.GetUserKYCProgress(user.Username, gc)
+
+		c.JSON(http.StatusOK, gin.H{"kycProgress": kycProgress, "kycLevels": kycLevels, "kycConfigs": kycConfigs})
+
+	})
+
 	router.POST("/v1/users/subwallet", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 

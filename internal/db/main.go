@@ -152,6 +152,22 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Country: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.KYCConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KYCConfig: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.KYCLevel{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KYCLevel: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.SumSubReviewResult{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating SumSubReviewResult: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserKYCProgress{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserKYCProgress: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserFiatPaymentMethod{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserFiatPaymentMethod: ", errMigrate)
