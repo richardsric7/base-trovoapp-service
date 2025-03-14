@@ -523,7 +523,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/kyc/sumsub/initiate/%v %v", levelName, user.Username), gc.DB)
 
-		err = userServices.InitiateUserKYCProgressForSumsub(user.Username, levelName, gc)
+		token, applicant, err := userServices.InitiateUserKYCProgressForSumsub(&user, levelName, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -540,7 +540,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		//At this point, there was no error.
 
-		c.JSON(http.StatusOK, levelName)
+		c.JSON(http.StatusOK, gin.H{"applicantToken": token, "applicant": applicant})
 	})
 
 	router.GET("/v1/users/kyc/sumsub/progress", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -640,10 +640,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		kycLevels := userServices.GetKYCLevels(gc)
-		kycConfigs := userServices.GetKYCConfigs(gc)
+		// kycConfigs := userServices.GetKYCConfigs(gc)
 		kycProgress := userServices.GetUserKYCProgress(user.Username, gc)
 
-		c.JSON(http.StatusOK, gin.H{"kycProgress": kycProgress, "kycLevels": kycLevels, "kycConfigs": kycConfigs})
+		c.JSON(http.StatusOK, gin.H{"kycProgress": kycProgress, "kycLevels": kycLevels})
 
 	})
 
@@ -4414,6 +4414,54 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(statusCode, response)
 				return
 			}
+
+			bankList := userServices.GetBanks(countryCode, gc.DB)
+
+			c.JSON(http.StatusOK, gin.H{"bankList": bankList})
+
+		})
+
+		router.GET("/v1/trovo-manager/banks/:countryCode", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+			var err error
+			au, err := middleware.ExtractTokenMetadata(c.Request)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			countryCode := c.Param("countryCode")
 
 			bankList := userServices.GetBanks(countryCode, gc.DB)
 

@@ -30,11 +30,11 @@ func GetUserKYCProgress(username string, gc *sharedconfig.GlobalConfig) (progres
 	return
 }
 
-func GetKYCConfigs(gc *sharedconfig.GlobalConfig) (configs []userModels.KYCConfig) {
-	configs = make([]userModels.KYCConfig, 0)
-	gc.DB.Order("Service_Provider ASC").Find(&configs)
-	return
-}
+// func GetKYCConfigs(gc *sharedconfig.GlobalConfig) (configs []userModels.KYCConfig) {
+// 	configs = make([]userModels.KYCConfig, 0)
+// 	gc.DB.Order("Service_Provider ASC").Find(&configs)
+// 	return
+// }
 
 func GetKYCConfigByServiceProvider(serviceProvider string, gc *sharedconfig.GlobalConfig) (config userModels.KYCConfig, err error) {
 	err = gc.DB.Where("service_provider = ?", serviceProvider).First(&config).Error
@@ -102,18 +102,19 @@ func VerifySumSubWebhook(payload []byte, xPayloadDigestHeader, xPayloadDigestAlg
 	return calculatedDigest == xPayloadDigestHeader, nil
 }
 
-func InitiateUserKYCProgressForSumsub(username, levelName string, gc *sharedconfig.GlobalConfig) (err error) {
-
+func InitiateUserKYCProgressForSumsub(user *userModels.User, levelName string, gc *sharedconfig.GlobalConfig) (token string, applicant userModels.SumsubApplicant, err error) {
+	dbTx := gc.DB.Begin()
+	defer dbTx.Rollback()
 	//get kycprogress
 	var kycProgress userModels.UserKYCProgress
 
-	gc.DB.Where("username = ?", username).First(&kycProgress)
-	kycProgress.Username = username
+	// gc.DB.Where("username = ?", username).First(&kycProgress)
+	kycProgress.Username = user.Username
 
 	if strings.Contains(levelName, "level-1") {
 		//level 1
 		if kycProgress.KYCLevel1Done == 1 {
-			return &tErrors.CustomError{
+			return token, applicant, &tErrors.CustomError{
 				Err:        "kyc-level-already-done",
 				Param:      "levelName",
 				ErrMessage: "KYC level already done",
@@ -126,14 +127,14 @@ func InitiateUserKYCProgressForSumsub(username, levelName string, gc *sharedconf
 	if strings.Contains(levelName, "level-2") {
 		//level 2
 		if kycProgress.KYCLevel2Done == 1 {
-			return &tErrors.CustomError{
+			return token, applicant, &tErrors.CustomError{
 				Err:        "kyc-level-already-done",
 				Param:      "levelName",
 				ErrMessage: "KYC level already done",
 			}
 		}
 		if kycProgress.KYCLevel1Done == 0 {
-			return &tErrors.CustomError{
+			return token, applicant, &tErrors.CustomError{
 				Err:        "kyc-level-1-not-done",
 				Param:      "levelName",
 				ErrMessage: "KYC level must be done in the order 1 to 3",
@@ -145,14 +146,14 @@ func InitiateUserKYCProgressForSumsub(username, levelName string, gc *sharedconf
 	if strings.Contains(levelName, "level-3") {
 		//level 3
 		if kycProgress.KYCLevel3Done == 1 {
-			return &tErrors.CustomError{
+			return token, applicant, &tErrors.CustomError{
 				Err:        "kyc-level-already-done",
 				Param:      "levelName",
 				ErrMessage: "KYC level already done",
 			}
 		}
 		if kycProgress.KYCLevel1Done == 0 || kycProgress.KYCLevel2Done == 0 {
-			return &tErrors.CustomError{
+			return token, applicant, &tErrors.CustomError{
 				Err:        "kyc-level-not-done",
 				Param:      "levelName",
 				ErrMessage: "KYC level must be done in the order 1 to 3",
@@ -161,15 +162,16 @@ func InitiateUserKYCProgressForSumsub(username, levelName string, gc *sharedconf
 		kycProgress.KYCLevel3Initiated = 1
 	}
 
-	e := gc.DB.Omit(clause.Associations).Save(&kycProgress).Error
+	e := dbTx.Omit(clause.Associations).Save(&kycProgress).Error
 	if e != nil {
-		log.Printf("[UpdateUserKYCLevelFromSumsub] error saving user KYC progress to database  [%+v], %v\n", username, e)
+		log.Printf("[UpdateUserKYCLevelFromSumsub] error saving user KYC progress to database  [%+v], %v\n", user.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	// user.InvalidateUserCache(gc)
-	return nil
+	token, applicant, err = GetSumsubIndividualApplicantKYC(user, levelName, gc)
+	dbTx.Commit()
+	return token, applicant, err
 }
 
 func ResetUserKYCProgressForSumsub(username, levelName string, db *gorm.DB) (err error) {
