@@ -473,7 +473,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           children: [
                             Flexible(
                               child: Text(
-                                "PRIMARY OFFERS",
+                                "Primary Offers",
                                 textScaleFactor: 1.0,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -525,7 +525,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               onSubscribe: () {
                                 showSubscribePopup(
                                   context,
-                                  assetCode: item.assetCode!,
+                                  asset: item,
                                   onDone: (amount) async {
                                     await subscribeTokenizedAsset(
                                       amount: double.parse(amount),
@@ -635,7 +635,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           children: [
                             Flexible(
                               child: Text(
-                                "SECONDARY LISTING",
+                                "Secondary Listing",
                                 textScaleFactor: 1.0,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -751,7 +751,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           height: 5,
                         ),
                         Text(
-                          userInfo.firstName!.capitalizeFirst!,
+                          truncate(userInfo.username!.capitalizeFirst!,
+                              length: 8),
                           style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontSize: 17,

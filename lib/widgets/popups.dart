@@ -17,6 +17,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -4149,8 +4150,9 @@ Future<PlatformFile?>? getFile() async {
 showSubscribePopup(
   context, {
   required void Function(String amount) onDone,
-  required String assetCode,
+  required TokenizedAsset asset,
 }) async {
+  var appState = Provider.of<DataProvider>(context, listen: false);
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -4181,25 +4183,44 @@ showSubscribePopup(
                     SizedBox(
                       height: height / 50,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enterinterestedamount".tr(args: [assetCode]),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                    if (asset.expressedInterest!) ...[
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Center(
+                          child: Text(
+                            "You have already indicated to invest ${asset.expressedInterestAmount} ${appState.defaultCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15,
+                                fontFamily: fontbody),
+                          ),
                         ),
                       ),
-                    ),
+                    ] else ...[
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Center(
+                          child: Text(
+                            "enterinterestedamount"
+                                .tr(args: [asset.assetCode!.toUpperCase()]),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15,
+                                fontFamily: fontbody),
+                          ),
+                        ),
+                      ),
+                    ],
                     Form(
                       key: _formKey,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: CustomTextFormField.textField(
-                          "amount".tr(),
+                          asset.expressedInterest!
+                              ? 'Update ${"amount".tr()} (NGN)'
+                              : '${"amount".tr()} (NGN)',
                           notifier.getbluecolor,
                           null,
                           notifier.getgrey,
@@ -4261,7 +4282,9 @@ showSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          "continuee".tr(),
+                          asset.expressedInterest!
+                              ? "Update Amount"
+                              : "expressinterest".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),

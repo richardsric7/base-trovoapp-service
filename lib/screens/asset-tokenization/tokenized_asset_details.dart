@@ -107,7 +107,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             //   height: height / 70,
             // ),
             Text(
-              tokenizedAsset.assetName!,
+              tokenizedAsset.assetName!.capitalizeEachWord(),
               style: TextStyle(
                 fontSize: 20,
                 fontFamily: fontsemibold,
@@ -118,7 +118,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 70,
             ),
             Text(
-              '${tokenizedAsset.assetCode} token',
+              tokenizedAsset.assetCode!,
               style: TextStyle(
                 fontSize: 15,
                 fontFamily: fontbody,
@@ -235,7 +235,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     onPressed: () {
                       showSubscribePopup(
                         context,
-                        assetCode: tokenizedAsset.assetCode!,
+                        asset: tokenizedAsset,
                         onDone: (amount) async {
                           await subscribeTokenizedAsset(
                             amount: double.parse(amount),
@@ -478,18 +478,19 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
-                  label: 'Total Quantity Bought',
-                  value: '15',
-                  extraValue: '',
+                  label: 'Total Quantity Held',
+                  value:
+                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode}',
+                  extraValue: '\$0.12',
                 ),
                 SizedBox(
                   width: width / 50,
                 ),
                 infoCard(
-                  label: 'Total Amount Bought',
+                  label: 'Value of Quantity Held',
                   value:
-                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode}',
-                  extraValue: '\$0.12',
+                      '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                  extraValue: '',
                 ),
               ],
             ),

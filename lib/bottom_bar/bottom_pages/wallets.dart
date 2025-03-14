@@ -476,7 +476,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "othertokens".tr(),
+                      text:
+                          "othertokens".tr().toLowerCase().capitalizeEachWord(),
                     ),
                     if (unclaimedAssets != null && tabLength == 2) ...[
                       Tab(
@@ -502,9 +503,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   Widget showAssets() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 70,
-        ),
         DefaultTabController(
           length: tabLength,
           child: Column(
@@ -525,7 +523,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "assettokens".tr().toUpperCase(),
+                      text:
+                          "assettokens".tr().toLowerCase().capitalizeEachWord(),
                     ),
                   ],
                 ),
@@ -961,7 +960,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                     Text(
                       getAssetCode(asset.assetCode),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontFamily: fontsemibold,
                         color: notifier.getblck,
                       ),
