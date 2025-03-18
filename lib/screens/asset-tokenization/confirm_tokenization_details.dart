@@ -54,7 +54,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var isAlreadySubmitted = tokenizedAsset.tokenizationStatus == 1;
+    var isAlreadySubmitted = tokenizedAsset.tokenizationStatus! >= 1;
     var isVetted = tokenizedAsset.vettingStatus == 1;
     inspect(appState.viewData);
 
@@ -313,7 +313,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 ),
               ),
               if (isAlreadySubmitted) ...[
-                if (tokenizedAsset.vettingStatus == 1) ...[
+                if (tokenizedAsset.vettingStatus == 1 &&
+                    tokenizedAsset.tokenizationStatus == 1) ...[
                   SizedBox(
                     height: height / 30,
                   ),
@@ -330,9 +331,11 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   ),
                   SizedBox(height: height / 70),
                 ] else ...[
-                  notifyAdditionalInfo(
-                      "Please note that other statutory fees will be added after vetting"
-                          .tr()),
+                  if (!isVetted) ...[
+                    notifyAdditionalInfo(
+                        "Please note that other statutory fees will be added after vetting"
+                            .tr()),
+                  ],
                   SizedBox(height: 20),
                   ButtonOutlined(
                     'back'.tr(),

@@ -341,6 +341,80 @@ Future<Map> makeUnSecuredGetRequest(String path) async {
   }
 }
 
+Future<Map> makeUnSecuredPostRequest({
+  required String uri,
+  required String body,
+  Map<String, String>? headers,
+}) async {
+  try {
+    http.Response response = await http
+        .post(
+          Uri.parse(await getTrovoAppBaseURL() + uri),
+          body: body,
+          headers: headers,
+        )
+        .timeout(Duration(seconds: 60));
+    return {
+      'statusCode': response.statusCode,
+      'data': json.decode(response.body)
+    };
+  } on SocketException catch (e) {
+    print("The Catch Error on makeUnSecuredGetRequest() Is: $e");
+    // print('No Internet connection 😑');
+    // return {'statusCode': 505, 'data': 'No Internet connection'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "SocketException",
+      "message": "No Internet connection"
+    };
+    return {'statusCode': 505, 'data': errorResponse};
+  } on HttpException catch (e) {
+    print("The Catch Error on createBantuUser() Is: $e");
+    // print("Couldn't find the post 😱");
+    // return {'statusCode': 505, 'data': "Couldn't find the post. Try again"};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "HttpException",
+      "message": "Couldn't find the post"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on FormatException catch (e) {
+    print("The Catch Error on makeUnSecuredGetRequest() Is: $e");
+    // print("Bad response format 👎");
+    // return {'statusCode': 505, 'data': 'Bad response format'};
+
+    Map errorResponse = {
+      "data": "$e",
+      "error": "FormatException",
+      "message": "Bad response format"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on TimeoutException catch (e) {
+    print("The Catch Error on makeUnSecuredGetRequest() Is: $e");
+    print("Request Time Out");
+    // return {'statusCode': 505, 'data': 'Request Time Out'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "TimeoutException",
+      "message": "Request Time Out"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on Exception catch (e) {
+    print("The Catch Error on makeUnSecuredGetRequest() Is: $e");
+    // return {'statusCode': 505, 'data': 'Request failed. Try again'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "UnknownException",
+      "message": "Unknown error. Try again"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  }
+}
+
 Future<Map> makePutRequestForMultipartFile({
   required String uri,
   required String signer,

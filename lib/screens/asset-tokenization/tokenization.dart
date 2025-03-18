@@ -38,7 +38,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   DateTime? filterEndDate;
   double filterMinAmount = 0;
   double filterMaxAmount = 0;
-  bool showFilter = true;
+  bool showFilter = false;
   late List<Wallet> wallets;
   String selectedWallet = '';
   TokenizationFilterMode filterMode =
@@ -474,7 +474,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 return;
                               }
 
-                              if (records[i].tokenizationStatus == 1) {
+                              if (records[i].tokenizationStatus <= 3) {
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page:
@@ -898,7 +898,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   Widget getContent(TokenizationFilterMode type) {
-    print('fkalsdfsd type: $type');
     switch (type) {
       case TokenizationFilterMode.AssetDescription:
         return Padding(

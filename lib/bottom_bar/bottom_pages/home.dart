@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -393,7 +392,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   ] else ...[
                     showFundWallet(),
-                  ]
+                  ],
                 ],
               ),
             ],
@@ -954,12 +953,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   void refreshData() async {
     try {
-      // primaryOffersListFuture = fetchTokenizationList(status: 0);
+      primaryOffersListFuture = fetchTokenizationList(status: 0);
       secondaryListItemsFuture = fetchTokenizationList(status: 1);
-      // await appState.refreshData();
-      // await appState.getApprovals();
-      // _refreshController.refreshCompleted();
-      // appState.updateListeners();
+      await appState.refreshData();
+      await appState.getApprovals();
+      _refreshController.refreshCompleted();
+      appState.updateListeners();
     } catch (e) {
       _refreshController.refreshFailed();
     }
@@ -1217,9 +1216,24 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         isShort: true);
   }
 
+  Future<void> fetchTokenizationData() async {
+    var uri = '/v1/tokenization';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      appState.tokenizationData = responseData['data'];
+    }
+  }
+
   Future<List<TokenizedAsset>> fetchTokenizationList(
       {required int status}) async {
     try {
+      await fetchTokenizationData();
       await fetchExpressedInterests();
       await fetchSubscriptions();
       var uri =
@@ -1339,7 +1353,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       );
 
       print('==============>response: $responseData');
-      inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
         hideLoader(context);

@@ -69,9 +69,9 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
               ),
               SizedBox(height: height / 30),
               Text(
-                '- $quantity ${tokenizedAsset.assetCode}',
+                '+ ${formatNumber(quantity)} ${tokenizedAsset.assetCode}',
                 style: TextStyle(
-                    color: Colors.red,
+                    color: Colors.green,
                     fontFamily: fontsemibold,
                     fontSize: 20.sp),
               ),
@@ -143,7 +143,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                         ),
                       ),
                       SizedBox(
-                        height: height / 50,
+                        height: height / 90,
                       ),
                       Divider(
                         height: 5,
@@ -170,7 +170,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
-                          formatNumber(amount),
+                          '${formatNumber(amount)} ${tokenizedAsset.assetQuoteCurrency}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -180,7 +180,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                         ),
                       ),
                       SizedBox(
-                        height: height / 50,
+                        height: height / 90,
                       ),
                       Divider(
                         height: 5,
@@ -246,7 +246,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                         ),
                       ),
                       SizedBox(
-                        height: height / 50,
+                        height: height / 90,
                       ),
                       Divider(
                         height: 5,

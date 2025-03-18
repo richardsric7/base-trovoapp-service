@@ -9,6 +9,8 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -252,19 +254,18 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  // var form = _formKey.currentState;
-                  // if (form!.validate()) {
-                  //   form.save();
-                  //   appState.viewData = {
-                  //     'amount': amount,
-                  //     'quantity': quantity,
-                  //   };
-                  //   appState.currentAction = PageAction(
-                  //     state: PageState.addPage,
-                  //     page: ConfirmBuyViewPageConfig,
-                  //   );
-                  // }
-                  launchSDK();
+                  var form = _formKey.currentState;
+                  if (form!.validate()) {
+                    form.save();
+                    appState.viewData = {
+                      'amount': amount,
+                      'quantity': quantity,
+                    };
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ConfirmBuyViewPageConfig,
+                    );
+                  }
                 },
               ),
               SizedBox(

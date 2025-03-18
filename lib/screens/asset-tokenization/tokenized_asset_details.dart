@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -29,6 +31,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  String assetType = '';
+  late TokenizedAsset tokenizedAsset;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -57,6 +61,14 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    tokenizedAsset = appState.tokenizedAsset!;
+    var assetTypes = appState.tokenizationData['assetTypes'];
+    for (var i = 0; i < assetTypes.length; i++) {
+      if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
+        assetType = assetTypes[i]['assetType'];
+      }
+    }
   }
 
   @override
@@ -65,7 +77,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    var tokenizedAsset = appState.tokenizedAsset!;
+    inspect(appState.tokenizationData);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -416,6 +428,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
+                  notifier,
                   label: 'Asset Value',
                   value:
                       '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}',
@@ -425,6 +438,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   width: width / 50,
                 ),
                 infoCard(
+                  notifier,
                   label: 'Total Supply',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
@@ -437,6 +451,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
+                  notifier,
                   label: 'Amount to be Raised',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
@@ -446,6 +461,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   width: width / 50,
                 ),
                 infoCard(
+                  notifier,
                   label: 'Tokens for Sale',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
@@ -458,6 +474,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
+                  notifier,
                   label: 'Funding Currency',
                   value: 'CNGN',
                   extraValue: '',
@@ -466,6 +483,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   width: width / 50,
                 ),
                 infoCard(
+                  notifier,
                   label: 'Price Per Token',
                   value:
                       '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
@@ -478,6 +496,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
+                  notifier,
                   label: 'Total Quantity Held',
                   value:
                       '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode}',
@@ -487,6 +506,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   width: width / 50,
                 ),
                 infoCard(
+                  notifier,
                   label: 'Value of Quantity Held',
                   value:
                       '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
@@ -528,7 +548,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Type',
-              tokenizedAsset.assetType ?? '',
+              assetType,
             ),
             infoTile(notifier, 'Asset Country',
                 tokenizedAsset.assetCountryLocation ?? ''),
@@ -568,7 +588,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Cap Duration',
-              '${tokenizedAsset.capDurationInDays} days',
+              '${tokenizedAsset.assetLogo} days',
             ),
             infoTile(
               notifier,
@@ -580,70 +600,165 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Exempted Countries',
               '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
             ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: SizedBox(
+                    width: width / 1.2,
+                    child: Text(
+                      'Ownership and Legal Independence',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             infoTile(
               notifier,
-              'Free from Liens, Mortgages and Encumbrances',
+              'Free of liens, mortgages, and outstanding loans.',
               '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Free from Debt',
+              'Not pledged as collateral for any debts and has no use restrictions.',
               '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Free from Third Party Claims',
+              'No third party has any claims, rights, or interests in this asset.',
               '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Free of Foreclosures or Legal Disputes',
+              'Free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.',
               '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
             ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: SizedBox(
+                    width: width / 1.2,
+                    child: Text(
+                      'Regulatory Compliance and Approvals',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             infoTile(
               notifier,
-              'Environmentally Compliant',
+              'Complies with all environmental and land use regulations and is free of violations.',
               '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Has all Necessary Permits and Approvals',
+              'All necessary permits, licenses, and approvals for the use and ownership of this asset are in place.',
               '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+            ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: SizedBox(
+                    width: width / 1.2,
+                    child: Text(
+                      'Outstanding Financial Responsibilities',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             infoTile(
               notifier,
-              'Has Unpaid Bills',
+              'No unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.',
               '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Has Undisclosed Liabilities',
+              'Asset does not have any hidden liabilities or obligations that have not been disclosed. ',
               '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
+            ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: SizedBox(
+                    width: width / 1.2,
+                    child: Text(
+                      'Risk Management and Insurance Coverage',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             infoTile(
               notifier,
-              'Fully Insured',
+              'Asset is adequately insured against risks such as fire, theft, and natural disasters.',
               '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,
-              'Reflects Current Value',
+              'The declared value of this asset reflects its current market value and condition.',
               '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
             ),
-            infoTile(
-              notifier,
-              'Has Undisclosed Easements',
-              '${'?????'}',
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: SizedBox(
+                    width: width / 1.2,
+                    child: Text(
+                      'Physical Condition and Legal Status',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             infoTile(
               notifier,
-              'Under Contracts or Leases',
-              '${tokenizedAsset.physicalConditionNolease}',
+              'Asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.',
+              '?????',
             ),
             infoTile(
               notifier,
-              'Structurally Sound',
-              '${tokenizedAsset.physicalConditionSound}',
+              'Asset is structurally sound and has no unresolved maintenance or safety issues.',
+              '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
+            ),
+            infoTile(
+              notifier,
+              'Asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.',
+              '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
             ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
@@ -771,81 +886,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             // ),
             SizedBox(height: height / 20),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget infoCard(
-      {required String label, required String value, String? extraValue}) {
-    return Container(
-      width: width / 2.2,
-      // height: height / 5.5,
-      child: Card(
-        shadowColor: Colors.black,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        color: notifier.isDark
-            ? notifier.getbluecolor90
-            : notifier.getaddsubwalletgrey,
-        child: TextButton(
-          onPressed: () {
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: TotalSalesViewPageConfig,
-            );
-          },
-          child: Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    label,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  SizedBox(
-                    width: 130,
-                    child: Text(
-                      value,
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                  if (extraValue != null) ...[
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    Text(
-                      extraValue,
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );
