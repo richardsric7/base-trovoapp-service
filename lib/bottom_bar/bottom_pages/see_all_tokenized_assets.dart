@@ -164,7 +164,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                               onSubscribe: () {
                                 showSubscribePopup(
                                   context,
-                                  assetCode: item.assetCode!,
+                                  asset: item,
                                   onDone: (wallet) async {
                                     setState(() {
                                       var wallet = wallets

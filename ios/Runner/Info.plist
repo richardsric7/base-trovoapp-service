@@ -45,11 +45,15 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to the camera.</string>
+	<string>Let us take a photo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Time to record a video.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app requires access to Biometrics for authentication</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
+	<string>Let us pick a photo.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Please provide us with your geolocation data to prove your current location.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

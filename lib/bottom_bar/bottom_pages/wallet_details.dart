@@ -317,9 +317,6 @@ class _WalletDetailsState extends State<WalletDetails>
   Widget showAssets() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 70,
-        ),
         DefaultTabController(
           length: tabLength,
           child: Column(
@@ -340,7 +337,8 @@ class _WalletDetailsState extends State<WalletDetails>
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "assettokens".tr().toUpperCase(),
+                      text:
+                          "assettokens".tr().toLowerCase().capitalizeEachWord(),
                     ),
                   ],
                 ),
@@ -487,7 +485,7 @@ class _WalletDetailsState extends State<WalletDetails>
               tabs: [
                 Tab(
                   height: 20,
-                  text: "assets".tr(),
+                  text: "othertokens".tr().toLowerCase().capitalizeEachWord(),
                 ),
                 if (wallet.unClaimedAssets != null && tabLength == 2) ...[
                   Tab(

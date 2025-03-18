@@ -7,10 +7,10 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';

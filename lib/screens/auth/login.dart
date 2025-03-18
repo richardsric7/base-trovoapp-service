@@ -285,7 +285,9 @@ class _LoginState extends State<Login> {
                         ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: width / 1.1),
                           child: Text(
-                            userInfo.username ?? "",
+                            userInfo.username!
+                                .toLowerCase()
+                                .capitalizeEachWord(),
                             style: TextStyle(
                                 color: notifier.getblck,
                                 fontSize: 26.sp,

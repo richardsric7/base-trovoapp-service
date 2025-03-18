@@ -139,7 +139,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontSize: 16),
               ),
               Text(
-                '@${appState.userInfo!.username}',
+                appState.userInfo!.username!,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,

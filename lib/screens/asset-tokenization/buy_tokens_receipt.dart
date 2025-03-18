@@ -217,8 +217,46 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0),
                                     child: Text(
+                                      formatAmount(
+                                          TransactionDirection.Receive,
+                                          amount,
+                                          tokenizedAsset.assetQuoteCurrency),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15,
+                                        fontFamily: fontbody,
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    height: 5,
+                                  ),
+                                  SizedBox(
+                                    height: height / 90,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Text(
+                                      "quantity".tr(),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 16,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Text(
                                       formatAmount(TransactionDirection.Receive,
-                                          amount, tokenizedAsset.assetCode),
+                                          quantity, tokenizedAsset.assetCode),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,

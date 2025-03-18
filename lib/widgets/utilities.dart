@@ -29,7 +29,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/countdown.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-
+import 'package:flutter_idensic_mobile_sdk_plugin/flutter_idensic_mobile_sdk_plugin.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 
 void showSnackBar(String rel, BuildContext context) {
@@ -846,9 +846,9 @@ Widget tokenizedAssetTile({
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${asset.assetName!} (${asset.assetCode})',
+                                '${asset.assetName!.capitalizeEachWord()} (${asset.assetCode!.toUpperCase()})',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontFamily: fontsemibold,
                                   color: notifier.getblck,
                                 ),
@@ -1046,6 +1046,85 @@ String getFiatValue(double amount) {
       .replaceAll(',', '');
 }
 
+Widget infoCard(ColorNotifier notifier,
+    {required String label, required String value, String? extraValue}) {
+  return Container(
+    width: width / 2.2,
+    // height: height / 5.5,
+    child: Card(
+      shadowColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      color: notifier.isDark
+          ? notifier.getbluecolor90
+          : notifier.getaddsubwalletgrey,
+      child: TextButton(
+        onPressed: () {
+          // appState.currentAction = PageAction(
+          //   state: PageState.addPage,
+          //   page: TotalSalesViewPageConfig,
+          // );
+        },
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: height / 70,
+                ),
+                SizedBox(
+                  width: width / 2.6,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.start,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                SizedBox(
+                  width: 130,
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+                if (extraValue != null) ...[
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    extraValue,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 Widget infoTile(ColorNotifier notifier, String key, String value) {
   return Card(
     elevation: notifier.isDark ? 0 : 3,
@@ -1060,12 +1139,15 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  key,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
+                SizedBox(
+                  width: width / 1.18,
+                  child: Text(
+                    key,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
                 ),
                 Container(
@@ -1077,7 +1159,7 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
                       overflow: TextOverflow.visible,
                       style: TextStyle(
                         fontSize: 13,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
@@ -1144,6 +1226,166 @@ Widget pill(
   );
 }
 
+extension StringCasing on String {
+  String capitalizeFirstLetter() {
+    if (isEmpty) return this;
+    return this[0].toUpperCase() + substring(1);
+  }
+
+  String capitalizeEachWord() {
+    return split(' ').map((word) => word.capitalizeFirstLetter()).join(' ');
+  }
+}
+
+fetchKycConfig(DataProvider appState) async {
+  try {
+    var uri = '/v1/users/kyc/sumsub/configs';
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    print('===============> response ${responseData}');
+    if (responseData['statusCode'] == 200) {
+      return responseData['data'];
+    } else {
+      return {};
+    }
+  } catch (e) {
+    print('error');
+    print(e);
+    throw e;
+  }
+}
+
+initiateKyc(context, DataProvider appState, String kycLevel) async {
+  try {
+    showLoader(context);
+
+    Map responseData = await makePostRequest(
+      uri: '/v1/users/kyc/sumsub/initiate/${kycLevel}',
+      body: '{}',
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.publicKey!,
+    );
+
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200 ||
+        responseData['statusCode'] == 202) {
+      hideLoader(context);
+      return responseData['data'];
+    } else {
+      popup(context,
+          title: "error".tr(), message: responseData['data']['message']);
+      hideLoader(context);
+    }
+  } catch (e) {
+    popup(context, title: "error".tr(), message: e.toString());
+    hideLoader(context);
+  }
+}
+
+completeKyc(context, DataProvider appState, String kycLevel) async {
+  try {
+    showLoader(context);
+
+    Map responseData = await makePostRequest(
+      uri: '/v1/users/kyc/sumsub/complete/${kycLevel}',
+      body: '{}',
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.publicKey!,
+    );
+
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200 ||
+        responseData['statusCode'] == 202) {
+      hideLoader(context);
+      return responseData['data'];
+    } else {
+      popup(context,
+          title: "error".tr(), message: responseData['data']['message']);
+      hideLoader(context);
+    }
+  } catch (e) {
+    popup(context, title: "error".tr(), message: e.toString());
+    hideLoader(context);
+  }
+}
+
+void launchSDK(context, DataProvider appState) async {
+  var response = await fetchKycConfig(appState);
+  String kycLevel = '';
+  var kycVerified = appState.userInfo!.kycVerified;
+
+  if (kycVerified == 0 && response['kycProgress']['kycLevel1Done'] == 0) {
+    kycLevel = 'individual-level-1';
+  } else if (kycVerified == 1 &&
+      response['kycProgress']['kycLevel2Done'] == 0) {
+    kycLevel = 'individual-level-2';
+  } else if (kycVerified == 2 &&
+      response['kycProgress']['kycLevel3Done'] == 0) {
+    kycLevel = 'individual-level-3';
+  }
+
+  if (kycLevel.isEmpty) {
+    popup(context,
+        title: 'Error',
+        message:
+            'You cannot initiate another KYC at this moment. Please wait for your initiated KYC to complete.');
+    return;
+  }
+
+  var res = await initiateKyc(context, appState, kycLevel);
+
+  print('res ======> $res');
+  String accessToken = res['applicantToken'];
+  print('accessToken $accessToken');
+
+  // From your backend get an access token for the applicant to be verified.
+  // The token must be generated with `levelName` and `userId`,
+  // where `levelName` is the name of a level configured in your dashboard.
+  //
+  // The sdk will work in the production or in the sandbox environment
+  // depend on which one the `accessToken` has been generated on.
+  //
+
+  // // The access token has a limited lifespan and when it's expired, you must provide another one.
+  // So be prepared to get a new token from your backend.
+  final onTokenExpiration = () async {
+    // call your backend to fetch a new access token (this is just an example)
+    return Future<String>.delayed(Duration(seconds: 2), () async {
+      response = await initiateKyc(context, appState, kycLevel);
+      return response['applicantToken'];
+    });
+  };
+
+  final SNSStatusChangedHandler onStatusChanged =
+      (SNSMobileSDKStatus newStatus, SNSMobileSDKStatus prevStatus) {
+    print("The SDK status was changed: $prevStatus -> $newStatus");
+  };
+
+  final snsMobileSDK = SNSMobileSDK.init(accessToken, onTokenExpiration)
+      .withHandlers(
+          // optional handlers
+          onStatusChanged: onStatusChanged)
+      .withDebug(true) // set debug mode if required
+      .withLocale(Locale(
+          "en")) // optional, for cases when you need to override the system locale
+      .build();
+
+  final SNSMobileSDKResult result = await snsMobileSDK.launch();
+
+  print(
+      "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result");
+  await completeKyc(context, appState, kycLevel);
+  showSuccessAlert(context, onTap: () {});
+}
+
 Widget getDrawer(
     BuildContext context, DataProvider appState, ColorNotifier notifier) {
   return Drawer(
@@ -1163,7 +1405,7 @@ Widget getDrawer(
             ),
             margin: const EdgeInsets.only(bottom: 8.0),
             accountName: Text(
-              appState.userInfo!.fullName,
+              '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: fontsemibold,
@@ -1259,6 +1501,23 @@ Widget getDrawer(
                   ? SharedAccessViewPageConfig
                   : WelcomeToSharedAccessViewPageConfig,
             );
+          },
+        ),
+        ListTile(
+          leading: Icon(
+            CupertinoIcons.doc_chart,
+            color: notifier.getgrey.withOpacity(.80),
+          ),
+          title: Text(
+            "Launch KYC",
+            style: TextStyle(
+              fontFamily: fontbody,
+              color: notifier.getbluewhitecolor,
+            ),
+          ),
+          onTap: () {
+            launchSDK(context, appState);
+            Navigator.pop(context);
           },
         ),
         ListTile(
