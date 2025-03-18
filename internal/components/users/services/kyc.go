@@ -108,7 +108,7 @@ func InitiateUserKYCProgressForSumsub(user *userModels.User, levelName string, g
 	//get kycprogress
 	var kycProgress userModels.UserKYCProgress
 
-	// gc.DB.Where("username = ?", username).First(&kycProgress)
+	gc.DB.Where("username = ?", user.Username).First(&kycProgress)
 	kycProgress.Username = user.Username
 
 	if strings.Contains(levelName, "level-1") {
