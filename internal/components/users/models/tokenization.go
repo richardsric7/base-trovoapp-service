@@ -874,7 +874,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	//clear any DD failure flags
 	t.DueDiligenceFail = 0
 	t.DueDiligenceFailureReason = nil
-	
+
 	if len(ti.AssetSector) > 0 {
 
 		t.AssetSector = &ti.AssetSector
@@ -1097,7 +1097,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	//t.FeeInFiat x2 so as to recover the fee in asset
-	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + secFee + custodyFee + assetMgtFee + (t.FeeInFiat * 2)).InexactFloat64()
+	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + secFee + custodyFee + assetMgtFee + t.FeeInFiat).InexactFloat64()
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 
@@ -1285,7 +1285,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	}
 
 	//t.FeeInFiat x2 so as to recover the fee in asset
-	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + secFee + custodyFee + assetMgtFee + (t.FeeInFiat * 2)).InexactFloat64()
+	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + secFee + custodyFee + assetMgtFee + t.FeeInFiat).InexactFloat64()
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 
