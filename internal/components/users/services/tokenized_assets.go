@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	swapServices "trovo-wallet-api/internal/components/swaps/services"
@@ -867,7 +868,7 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 }
 
 // FailTokenizationDueDiligence used by trovoManager
-func FailTokenizationDueDiligence(tokenizationID string, initiator *userModels.User, reasonForFailure string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+func FailTokenizationDueDiligence(tokenizationID string, trovoManagerUser *userModels.User, reasonForFailure string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if errorGetTokenizationByID != nil {
@@ -894,11 +895,64 @@ func FailTokenizationDueDiligence(tokenizationID string, initiator *userModels.U
 	ato.DueDiligenceFail = 1
 	ato.DueDiligenceFailureReason = &reasonForFailure
 
-	ato.LastUpdatedBy = &initiator.Username
+	ato.LastUpdatedBy = &trovoManagerUser.Username
 
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[FailTokenizationDueDiligence] error saving tokenization to database [%v]  %v\n", initiator.Username, e)
+		log.Printf("[FailTokenizationDueDiligence] error saving tokenization to database [%v]  %v\n", trovoManagerUser.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, nil
+}
+
+// UpdateTokenizationSalesDates used by trovoManager to update tokenized asset sales dates
+func UpdateTokenizedAssetSalesDates(tokenizationID string, trovoManagerUser *userModels.User, dateInput *userModels.TokenizedAssetSalesDatesInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		log.Printf("[UpdateTokenizedAssetSalesDates] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+	if len(dateInput.SalesStart) == 0 && len(dateInput.SalesEnd) == 0 {
+		log.Printf("[UpdateTokenizedAssetSalesDates] No sales/end dates to change tokenization with ID: %v\n", tokenizationID)
+
+		return
+	}
+
+	if len(dateInput.SalesStart) > 0 {
+		// parse date
+		eventDate, e := time.Parse("2006-01-02", dateInput.SalesStart)
+		if e != nil {
+			log.Printf("[UpdateTokenizedAssetSalesDates] Error invalid sales start date format %v. [%v]\n", dateInput.SalesStart, e)
+			err = &tErrors.CustomError{Param: "salesStart", Err: "error-invalid-date-format", ErrMessage: "Invalid date format for sales start. Use YYYY-MM-DD."}
+			return
+		}
+		ato.SalesStart = eventDate
+
+	}
+
+	if len(dateInput.SalesEnd) > 0 {
+		// parse date
+		eventDate, e := time.Parse("2006-01-02", dateInput.SalesEnd)
+		if e != nil {
+			log.Printf("[UpdateTokenizedAssetSalesDates] Error invalid sales end date format %v. [%v]\n", dateInput.SalesStart, e)
+			err = &tErrors.CustomError{Param: "salesEnd", Err: "error-invalid-date-format", ErrMessage: "Invalid date format for sales end. Use YYYY-MM-DD."}
+			return
+		}
+		ato.SalesEnd = eventDate
+
+	}
+
+	ato.LastUpdatedBy = &trovoManagerUser.Username
+
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[UpdateTokenizedAssetSalesDates] error saving tokenization sales dates to database [%v]  %v\n", trovoManagerUser.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 

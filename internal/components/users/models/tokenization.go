@@ -668,6 +668,11 @@ type ExpressionOfInterestInput struct {
 	Amount float64 `json:"amount"` //fiat Amount in tokenized asset quote currency
 }
 
+type TokenizedAssetSalesDatesInput struct {
+	SalesStart string `json:"salesStart"`
+	SalesEnd   string `json:"salesEnd"`
+}
+
 type NonExistingAssetValidationAssetDocument struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
