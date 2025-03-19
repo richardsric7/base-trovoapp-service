@@ -772,6 +772,17 @@ func main() {
 		}()
 	}
 
+	{
+		//Start processing Sales
+		go func() {
+			for {
+
+				userServices.ActivateSalesRoutine(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
 	//setup router
 
 	if os.Getenv("GIN_MODE") == "release" {

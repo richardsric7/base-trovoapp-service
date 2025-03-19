@@ -948,6 +948,12 @@ func UpdateTokenizedAssetSalesDates(tokenizationID string, trovoManagerUser *use
 
 	}
 
+	if ato.SalesStart.Compare(ato.SalesEnd) == 0 || ato.SalesStart.Compare(ato.SalesEnd) == -1 {
+		log.Printf("[UpdateTokenizedAssetSalesDates] Error invalid sales start/end date %v. [%v]\n", dateInput.SalesStart, dateInput.SalesEnd)
+		err = &tErrors.CustomError{Param: "salesEnd", Err: "error-invalid-date-order", ErrMessage: "Dates for sales start/end are not logical. End date must be set to be ahead of Start date."}
+		return
+	}
+
 	ato.LastUpdatedBy = &trovoManagerUser.Username
 
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
@@ -959,6 +965,79 @@ func UpdateTokenizedAssetSalesDates(tokenizationID string, trovoManagerUser *use
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, nil
+}
+
+// ActivateSalesRoutine used by automation routine to update tokenized assets to begin sales
+func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
+	log.Println("##[ActivateSalesRoutine][CHECK SALES DATES] started routine to update asset sales status")
+
+	batchSize := 1
+	var assets []userModels.TokenizedAsset
+
+	{
+		//start primnary sales
+
+		e := gc.DB.Where("Sales_Start::date=now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
+		if e == nil {
+			result := gc.DB.Where("Sales_Start::date=now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+				for i, _ := range assets {
+
+					assets[i].AssetTokenizationStatus = 5
+				}
+
+				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+				if e != nil {
+					//saving model failed
+					log.Printf("[ActivateSalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
+				}
+				time.Sleep(200 * time.Millisecond)
+
+				return nil
+			})
+			if result.Error != nil {
+				if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					log.Println("[ActivateSalesRoutine][CHECK PRIMARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+
+				}
+
+			}
+		}
+
+	}
+
+	{
+		//start secondary sales
+
+		e := gc.DB.Where("Sales_End::date=now()::date AND Asset_Tokenization_Status = ?", 5).First(&userModels.TokenizedAsset{}).Error
+		if e == nil {
+			result := gc.DB.Where("Sales_End::date=now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+				for i, _ := range assets {
+
+					assets[i].AssetTokenizationStatus = 5
+				}
+
+				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+				if e != nil {
+					//saving model failed
+					log.Printf("[ActivateSalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
+				}
+				time.Sleep(200 * time.Millisecond)
+
+				return nil
+			})
+			if result.Error != nil {
+				if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					log.Println("[ActivateSalesRoutine][CHECK SECONDARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+
+				}
+
+			}
+		}
+
+	}
+
+	time.Sleep(15 * time.Minute)
+
 }
 
 // ConfirmTokenizationAssetInfoByInititator used by original owner/initiator to advance status to 1 and allow for vetting.
