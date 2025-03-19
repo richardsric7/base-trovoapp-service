@@ -977,9 +977,9 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 	{
 		//start primnary sales
 
-		e := gc.DB.Where("Sales_Start::date=now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
+		e := gc.DB.Where("Sales_Start::date = now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
-			result := gc.DB.Where("Sales_Start::date=now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+			result := gc.DB.Where("Sales_Start::date = now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, _ := range assets {
 
 					assets[i].AssetTokenizationStatus = 5
@@ -1008,9 +1008,9 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 	{
 		//start secondary sales
 
-		e := gc.DB.Where("Sales_End::date=now()::date AND Asset_Tokenization_Status = ?", 5).First(&userModels.TokenizedAsset{}).Error
+		e := gc.DB.Where("Sales_End::date = now()::date AND Asset_Tokenization_Status = ?", 5).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
-			result := gc.DB.Where("Sales_End::date=now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+			result := gc.DB.Where("Sales_End::date = now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, _ := range assets {
 
 					assets[i].AssetTokenizationStatus = 5
