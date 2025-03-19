@@ -164,6 +164,20 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   ),
                 ],
               ),
+              Text(
+                appState.userInfo!.kycVerified != null &&
+                        appState.userInfo!.kycVerified! > 0
+                    ? 'Verified (Level ${appState.userInfo!.kycVerified})'
+                    : 'Unverified',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: appState.userInfo!.kycVerified != null &&
+                          appState.userInfo!.kycVerified! > 0
+                      ? notifier.getgreencolor
+                      : Colors.red,
+                ),
+              ),
               // SizedBox(height: height / 20),
               // Padding(
               //   padding: const EdgeInsets.symmetric(horizontal: 20.0),

@@ -1412,13 +1412,33 @@ Widget getDrawer(
                 color: notifier.getbluewhitecolor,
               ),
             ),
-            accountEmail: Text(
-              appState.userInfo!.email!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
+            accountEmail: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  appState.userInfo!.email!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  appState.userInfo!.kycVerified != null &&
+                          appState.userInfo!.kycVerified! > 0
+                      ? 'Verified (Level ${appState.userInfo!.kycVerified})'
+                      : 'Unverified',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: appState.userInfo!.kycVerified != null &&
+                            appState.userInfo!.kycVerified! > 0
+                        ? notifier.getgreencolor
+                        : Colors.red,
+                  ),
+                ),
+              ],
             ),
             currentAccountPicture: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1504,12 +1524,13 @@ Widget getDrawer(
           },
         ),
         ListTile(
-          leading: Icon(
-            CupertinoIcons.doc_chart,
+          leading: Image.asset(
+            "assets/images/help.png",
             color: notifier.getgrey.withOpacity(.80),
+            height: height / 40,
           ),
           title: Text(
-            "Launch KYC",
+            "Verify Account",
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,

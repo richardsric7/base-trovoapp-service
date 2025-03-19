@@ -130,7 +130,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 70,
             ),
             Text(
-              tokenizedAsset.assetCode!,
+              tokenizedAsset.assetCode!.toUpperCase(),
               style: TextStyle(
                 fontSize: 15,
                 fontFamily: fontbody,
@@ -186,7 +186,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   ElevatedButton(
                     onPressed: () {
                       showBuyTokenPopup(context,
-                          assetCode: tokenizedAsset.assetCode!,
+                          assetCode: tokenizedAsset.assetCode!.toUpperCase(),
                           onDone: (wallet) {
                         appState.setActiveWallet = wallet;
                         appState.tokenizedAsset = tokenizedAsset;
@@ -342,16 +342,13 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      showBuyTokenPopup(context,
-                          assetCode: tokenizedAsset.assetCode!,
-                          onDone: (wallet) {
-                        appState.setActiveWallet = wallet;
-                        appState.tokenizedAsset = tokenizedAsset;
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: BuyTokensViewPageConfig,
-                        );
-                      }, dropdownItems: getStandardWallets);
+                      popup(
+                        context,
+                        title: "comingsoon".tr(),
+                        message: "p2pwillbelaunchingsoon".tr(),
+                        bodyColor: notifier.getbluewhitecolor,
+                      );
+                      // _launchUrl();
                     },
                     style: ButtonStyle(
                       padding: MaterialStateProperty.all(
@@ -400,8 +397,23 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 child: Center(
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height / 70,
+                      SizedBox(height: height / 70),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: Text(
+                              'Description',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -441,7 +453,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Total Supply',
                   value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                   extraValue: '',
                 ),
               ],
@@ -464,7 +476,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Tokens for Sale',
                   value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                   extraValue: '\$0.12',
                 ),
               ],
@@ -499,7 +511,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Total Quantity Held',
                   value:
-                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode}',
+                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                   extraValue: '\$0.12',
                 ),
                 SizedBox(
@@ -533,7 +545,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Asset Code',
-              tokenizedAsset.assetCode ?? '',
+              tokenizedAsset.assetCode!.toUpperCase(),
             ),
             infoTile(
               notifier,
@@ -578,12 +590,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Cap Amount',
-              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
+              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
             ),
             infoTile(
               notifier,
               'Cap Quantity',
-              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
+              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
             ),
             infoTile(
               notifier,

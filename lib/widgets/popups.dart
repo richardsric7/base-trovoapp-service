@@ -4183,7 +4183,7 @@ showSubscribePopup(
                     SizedBox(
                       height: height / 50,
                     ),
-                    if (asset.expressedInterest!) ...[
+                    if (asset.expressedInterest ?? false) ...[
                       Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Center(
@@ -4218,7 +4218,7 @@ showSubscribePopup(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: CustomTextFormField.textField(
-                          asset.expressedInterest!
+                          asset.expressedInterest ?? false
                               ? 'Update ${"amount".tr()} (NGN)'
                               : '${"amount".tr()} (NGN)',
                           notifier.getbluecolor,
@@ -4282,7 +4282,7 @@ showSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          asset.expressedInterest!
+                          asset.expressedInterest ?? false
                               ? "Update Amount"
                               : "expressinterest".tr(),
                           style: TextStyle(

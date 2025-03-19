@@ -61,7 +61,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   String selectedWalletMode = "My wallets";
   List<String> walletListMode = ['My wallets', 'Shared wallets', 'All wallets'];
   late List<WalletTileColor> colors;
-  List<TokenizedAsset> listOfAssets = [];
+  List<TokenizedAsset> tokenizedAssets = [];
 
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
@@ -156,13 +156,17 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
           .toList();
       unclaimedAssets = wallets[0].unClaimedAssets;
-      listOfAssets = wallets[0].tokenizedAssets ?? [];
+      tokenizedAssets = wallets[0].tokenizedAssets ?? [];
       noXbnBalance = wallets[0]
               .claimedAssets!
               .firstWhere((asset) =>
                   asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
               .amount ==
           0;
+
+      if (tokenizedAssets.isEmpty) {
+        listMode = DashboardAssetListMode.OtherAssets;
+      }
 
       reOrderClaimedAssets(activeWallet!);
     }
@@ -410,7 +414,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               },
                               getItems,
                               null,
-                              "assettokens".tr(),
+                              "othertokens".tr(),
                               context,
                               null,
                             ),
@@ -549,14 +553,14 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 SizedBox(
                   height: height / 90,
                 ),
-                if (listOfAssets.isNotEmpty) ...[
-                  for (var i = 0; i < listOfAssets.length; i++) ...[
+                if (tokenizedAssets.isNotEmpty) ...[
+                  for (var i = 0; i < tokenizedAssets.length; i++) ...[
                     GestureDetector(
                       onTap: () {
                         appState.viewData = {
-                          'assetCode': listOfAssets[i].assetCode,
-                          'assetIssuer': listOfAssets[i].assetIssuer,
-                          'tokenizedAsset': listOfAssets[i],
+                          'assetCode': tokenizedAssets[i].assetCode,
+                          'assetIssuer': tokenizedAssets[i].assetIssuer,
+                          'tokenizedAsset': tokenizedAssets[i],
                           'walletPublicKey': activeWallet,
                         };
                         appState.currentAction = PageAction(
@@ -565,7 +569,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                         );
                       },
                       child: tokenizedAssetTile(
-                          listOfAssets[i], i, activeWalletIndex),
+                          tokenizedAssets[i], i, activeWalletIndex),
                     ),
                   ],
                   SizedBox(height: height / 20),
@@ -726,7 +730,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                           asset.assetCode != '' && asset.assetIssuer != '')
                       .toList(),
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
-                  listOfAssets =
+                  tokenizedAssets =
                       wallets[activeWalletIndex].tokenizedAssets ?? [],
                 },
               ),
