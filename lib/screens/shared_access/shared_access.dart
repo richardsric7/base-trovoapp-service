@@ -1519,6 +1519,7 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   void submitSharedAccessForm() {
+    sharedAccessWalletsRecord.clear();
     sharedAccessWalletsRecord.add({
       'viewers': viewers,
       'addApprovers': addApprovers,

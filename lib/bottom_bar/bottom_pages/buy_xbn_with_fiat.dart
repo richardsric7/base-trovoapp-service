@@ -137,7 +137,8 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   notifier.getgrey,
                   70.sp,
                   350.sp,
-                  hintText: 'N2000 - N5000',
+                  hintText:
+                      '${appState.defaultCurrency}2000 - ${appState.defaultCurrency}5000',
                   onSaved: (value) {},
                 ),
                 Row(
