@@ -610,7 +610,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	ato.LastUpdatedBy = &initiator.Username
 	var NotIssuedByIssuer bool
 	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
-		NotIssuedByIssuer = *ato.IssuingWalletAlias != strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+		NotIssuedByIssuer = strings.HasPrefix(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")), *ato.IssuingWalletAlias)
 	}
 
 	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
@@ -678,16 +678,16 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		//second submission to blockchain
 		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
 		if err != nil {
-			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", issuer.Address(), err)
+			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
 			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
 			return
 		}
 
-		log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", issuer.Address(), p.TransactionID)
+		log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", p.PublicKey, p.TransactionID)
 
-		w, e := userModels.WalletAlias(p.Alias).GetWallet(gc.DB, gc)
+		w, e := userModels.UserWalletID(p.PublicKey).GetWallet(gc.DB, gc)
 		if e != nil {
-			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", issuer.Address(), e)
+			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", p.PublicKey, e)
 			err = e
 			return
 		}
@@ -710,9 +710,9 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	}
 	if len(issuingWallet.ID) == 0 {
 		//new wallet not generated. populate with existing wallet info.
-		w, e := userModels.WalletAlias(*ato.IssuingWalletAlias).GetWallet(gc.DB, gc)
+		w, e := userModels.UserWalletID(*ato.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
 		if e != nil {
-			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", ato.IssuingWalletAlias, e)
+			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", ato.IssuingWalletPublicKey, e)
 			err = e
 			return
 		}
