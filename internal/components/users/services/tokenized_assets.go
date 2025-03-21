@@ -554,6 +554,9 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
 		return
 	}
+	//referesh issuing wallet profile
+	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
+
 	input.AssetCode = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(input.AssetCode), " ", ""))
 	if len(input.AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
@@ -2580,7 +2583,8 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 // MintRegulatedTokenizedAsset mint tokenized assets
 func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
-
+	//referesh issuing wallet profile
+	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
 	ato, _, err = GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if err != nil {
 		// error tokenization is already in progress

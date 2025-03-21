@@ -2518,7 +2518,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	gc.RedisCache.DeleteFromCache(cacheKey1)
 	userAccount.InvalidateUserWalletCache(gc)
 }
-func (u Username) InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) {
+func (u Username) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	userAccount, err := u.GetFullUser(gc.DB, gc)
 	if err != nil {
 		return
