@@ -5942,7 +5942,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					log.Println("notifying approver:", v)
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = "pendingApproval"
-					u.SendPushMessage(fmt.Sprintf("Pending Approval: Mint asset %v!", ta.AssetCode), fmt.Sprintf("You have a pending approval to mint the asset %v (%v). Please tap to choose the appropriate action.", ta.AssetCode, ta.AssetName), "", dataPayload, gc)
+					u.SendPushMessage(fmt.Sprintf("Pending Approval: Mint asset %v!", ta.AssetCode), fmt.Sprintf("You have a pending approval to mint the asset %v (%v). Please tap to choose the appropriate action.", *ta.AssetCode, *ta.AssetName), "", dataPayload, gc)
 
 				}
 
