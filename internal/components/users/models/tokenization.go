@@ -11,6 +11,8 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gorm.io/gorm/clause"
 )
 
@@ -865,7 +867,8 @@ func (t *TokenizedAsset) UpdateBank(gc *sharedconfig.GlobalConfig) (bank Bank) {
 }
 
 func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
-	//TODO: set the SEC fee, Custody fee, Asset manager fee and recover feeInFiat from total asset value
+	titleCaser := cases.Title(language.English)
+
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
 	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
@@ -921,7 +924,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetName) > 0 {
-		ti.AssetName = strings.ToTitle(ti.AssetName)
+		ti.AssetName = titleCaser.String(ti.AssetName)
 		t.AssetName = &ti.AssetName
 	}
 
@@ -956,7 +959,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetDescription) > 0 {
-		ti.AssetDescription = strings.ToTitle(ti.AssetDescription)
+		ti.AssetDescription = titleCaser.String(ti.AssetDescription)
 		t.AssetDescription = &ti.AssetDescription
 	}
 
@@ -966,7 +969,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetPhysicalAddress) > 0 {
-		ti.AssetPhysicalAddress = strings.ToTitle(ti.AssetPhysicalAddress)
+		ti.AssetPhysicalAddress = titleCaser.String(ti.AssetPhysicalAddress)
 
 		t.AssetPhysicalAddress = &ti.AssetPhysicalAddress
 	}
@@ -998,7 +1001,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetOwnerAddress) > 0 {
-		ti.AssetOwnerAddress = strings.ToTitle(ti.AssetOwnerAddress)
+		ti.AssetOwnerAddress = titleCaser.String(ti.AssetOwnerAddress)
 
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
@@ -1350,6 +1353,7 @@ func (ti *TokenizedAsset) GetMintingApproversInCSV(gc *sharedconfig.GlobalConfig
 }
 
 func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAssetJSON) {
+	titleCaser := cases.Title(language.English)
 
 	t.ID = ti.ID
 	t.CreatedAt = ti.CreatedAt
@@ -1418,7 +1422,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 	if ti.AssetName != nil {
 
-		t.AssetName = strings.ToTitle(*ti.AssetName)
+		t.AssetName = titleCaser.String(*ti.AssetName)
 
 	}
 	if ti.AssetWebsite != nil {
@@ -1462,7 +1466,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.MarketMakingWallet = *ti.MarketMakingWallet
 	}
 	if ti.AssetDescription != nil {
-		t.AssetDescription = strings.ToTitle(*ti.AssetDescription)
+		t.AssetDescription = titleCaser.String(*ti.AssetDescription)
 	}
 	if ti.AssetCountryLocation != nil {
 		t.AssetCountryLocation = *ti.AssetCountryLocation
@@ -1470,7 +1474,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 
 	if ti.AssetPhysicalAddress != nil {
-		t.AssetPhysicalAddress = strings.ToTitle(*ti.AssetPhysicalAddress)
+		t.AssetPhysicalAddress = titleCaser.String(*ti.AssetPhysicalAddress)
 	}
 	if ti.AssetLongitude != nil {
 		t.AssetLongitude = *ti.AssetLongitude
@@ -1489,7 +1493,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.AssetOwnerName = strings.ToUpper(*ti.AssetOwnerName)
 	}
 	if ti.AssetOwnerAddress != nil {
-		t.AssetOwnerAddress = strings.ToTitle(*ti.AssetOwnerAddress)
+		t.AssetOwnerAddress = titleCaser.String(*ti.AssetOwnerAddress)
 	}
 	if ti.AssetManagerID > 0 {
 		t.AssetManagerID = ti.AssetManagerID
