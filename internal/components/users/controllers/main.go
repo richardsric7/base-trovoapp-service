@@ -5930,8 +5930,22 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if originalOwner.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = ""
-					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request vetted!", fmt.Sprintf("Your tokenization request for %v[%v] has been vetted. Please proceed to next stage to make fee payments.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request is now awaiting minting!", fmt.Sprintf("Your tokenization request for %v[%v] has been approved and now waiting for minting.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 				}
+			}
+			//get list of approvers
+			approvers := strings.Split(strings.ReplaceAll(strings.ToLower(*ta.MintingApprovers), " ", ","), ",")
+			for _, v := range approvers {
+
+				u, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
+				if e == nil && u.PushNotificationToken != nil {
+					log.Println("notifying approver:", v)
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingApproval"
+					u.SendPushMessage(fmt.Sprintf("Pending Approval: Mint asset %v!", ta.AssetCode), fmt.Sprintf("You have a pending approval to mint the asset %v (%v). Please tap to choose the appropriate action.", ta.AssetCode, ta.AssetName), "", dataPayload, gc)
+
+				}
+
 			}
 
 		})
