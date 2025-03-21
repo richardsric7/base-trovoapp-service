@@ -33,11 +33,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   late Future<Map> listOfTokenizations;
   bool canCreateNewTokenization = true;
   bool hasEnoughTrov = false;
+  double trovUsdPrice = 0;
   String filterValue = '';
   DateTime? filterStartDate;
   DateTime? filterEndDate;
   double filterMinAmount = 0;
   double filterMaxAmount = 0;
+  List<TokenizedAsset> records = [];
   bool showFilter = false;
   late List<Wallet> wallets;
   String selectedWallet = '';
@@ -185,7 +187,17 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     _refreshController = RefreshController(initialRefresh: false);
     listOfTokenizations = fetchTokenizationList();
     wallets = appState.userInfo!.allWallets;
-    checkAccountHasEnoughTrov();
+    for (var asset in appState.primaryWallet.claimedAssets!) {
+      if (asset.assetCode!.toUpperCase() == 'TROV') {
+        trovUsdPrice = asset.usdPrice!;
+        if (asset.amount! >= (500 / asset.usdPrice!)) {
+          hasEnoughTrov = true;
+          break;
+        }
+      }
+    }
+
+    print('================>>>>> hasenought $hasEnoughTrov');
   }
 
   void refreshData() async {
@@ -196,6 +208,39 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     } catch (e) {
       _refreshController.refreshFailed();
     }
+  }
+
+  void startTokenizationPressed() {
+    if (appState.tokenizationData.isEmpty) {
+      popup(context,
+          title: "error".tr(),
+          message:
+              "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
+      return;
+    }
+
+    if (!canCreateNewTokenization) {
+      popup(context,
+          title: "error".tr(),
+          message:
+              "You must complete the active tokenization process before starting a new one.");
+      return;
+    }
+
+    if (!hasEnoughTrov) {
+      popup(context,
+          title: "error".tr(),
+          message:
+              "You must have at least ${formatNumber(500 / trovUsdPrice)} TROV (\$500 worth) tokens in your wallet ${appState.primaryWallet.alias!.toUpperCase()} to begin a new tokenization process.");
+      return;
+    }
+
+    appState.viewData = {};
+
+    appState.currentAction = PageAction(
+      state: PageState.addPage,
+      page: SetupAndComplianceViewPageConfig,
+    );
   }
 
   @override
@@ -262,95 +307,67 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () async {
-                                if (appState.tokenizationData.isEmpty) {
-                                  popup(context,
-                                      title: "error".tr(),
-                                      message:
-                                          "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
-                                  return;
-                                }
-
-                                if (!canCreateNewTokenization) {
-                                  popup(context,
-                                      title: "error".tr(),
-                                      message:
-                                          "You must complete the active tokenization process before starting a new one.");
-                                  return;
-                                }
-
-                                if (hasEnoughTrov) {
-                                  popup(context,
-                                      title: "error".tr(),
-                                      message:
-                                          "You must have at least \$500 worth of TROV on any of your wallets to begin a new tokenization process.");
-                                  return;
-                                }
-
-                                appState.viewData = {};
-
-                                appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: SetupAndComplianceViewPageConfig,
-                                );
-                              },
-                              style: ButtonStyle(
-                                overlayColor: MaterialStateProperty.all<Color>(
-                                    notifier.getsplashgrey),
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                  notifier.isDark
-                                      ? notifier.getbluecolor90
-                                      : notifier.getaddsubwalletgrey,
-                                ),
-                                side: MaterialStateProperty.all(
-                                  BorderSide(
-                                      color: notifier.getbluewhitecolor,
-                                      width: 1,
-                                      style: BorderStyle.solid),
-                                ),
-                                shape: MaterialStateProperty.all<
-                                    RoundedRectangleBorder>(
-                                  const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10),
+                        if (records.length > 0) ...[
+                          SizedBox(
+                            height: height / 70,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              ElevatedButton(
+                                onPressed: startTokenizationPressed,
+                                style: ButtonStyle(
+                                  overlayColor:
+                                      MaterialStateProperty.all<Color>(
+                                          notifier.getsplashgrey),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                    notifier.isDark
+                                        ? notifier.getbluecolor90
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  side: MaterialStateProperty.all(
+                                    BorderSide(
+                                        color: notifier.getbluewhitecolor,
+                                        width: 1,
+                                        style: BorderStyle.solid),
+                                  ),
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(10),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              child: Container(
-                                width: width / 1.5,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_circle_rounded,
-                                      size: 20,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      "tokenizeasset".tr(),
-                                      style: TextStyle(
-                                          fontFamily: fontsemibold,
-                                          fontSize: 12,
-                                          color: notifier.getbluewhitecolor),
-                                    ),
-                                  ],
+                                child: Container(
+                                  width: width / 1.5,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_circle_rounded,
+                                        size: 20,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                      SizedBox(
+                                        width: 4,
+                                      ),
+                                      Text(
+                                        "Tokenize Another Asset",
+                                        style: TextStyle(
+                                            fontFamily: fontsemibold,
+                                            fontSize: 12,
+                                            color: notifier.getbluewhitecolor),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          )
+                        ],
                         SizedBox(
                           height: height / 50,
                         ),
@@ -452,13 +469,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         ),
                       );
                     } else if (snapshot.hasData) {
-                      var records = snapshot.data!['records'];
+                      // records =
+                      //     snapshot.data!['records'] as List<TokenizedAsset>;
                       if (records.length > 0) {
                         var assets = <Widget>[];
 
                         for (var i = 0; i < records.length; i++) {
-                          var asset = records[i] as TokenizedAsset;
-                          if (asset.tokenizationStatus! <= 2) {
+                          var asset = records[i];
+                          if (asset.tokenizationStatus! == 0) {
                             canCreateNewTokenization = false;
                           }
                           assets.add(GestureDetector(
@@ -474,7 +492,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 return;
                               }
 
-                              if (records[i].tokenizationStatus <= 3) {
+                              if (records[i].tokenizationStatus! <= 3) {
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page:
@@ -491,13 +509,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             },
                             child: assetTile(
                                 records[i].assetLogo ?? '',
-                                '${records[i].assetName.length == 0 ? 'No name yet' : records[i].assetName} ${records[i].assetCode.length == 0 ? '' : '(${records[i].assetCode})'}',
+                                '${records[i].assetName?.length == 0 ? 'No name yet' : records[i].assetName} ${records[i].assetCode?.length == 0 ? '' : '(${records[i].assetCode})'}',
                                 '${records[i].assetSubSector}',
                                 records[i].tokenizationStatus == 1 &&
                                         records[i].vettingStatus == 0
                                     ? 'Pending Vetting'
                                     : getTokenizationStatus(
-                                        records[i].tokenizationStatus)),
+                                        records[i].tokenizationStatus ?? 0)),
                             // getTokenizationStatus(
                             //     records[i].tokenizationStatus)),
                           ));
@@ -644,14 +662,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       height: height / 70,
                     ),
                     ElevatedButton(
-                      onPressed: () async {
-                        appState.viewData = {};
-
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: SetupAndComplianceViewPageConfig,
-                        );
-                      },
+                      onPressed: startTokenizationPressed,
                       style: ButtonStyle(
                         overlayColor: MaterialStateProperty.all<Color>(
                             notifier.getsplashgrey),
@@ -848,6 +859,9 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             assets.add(a);
           }
         }
+        setState(() {
+          records = assets;
+        });
         return {"records": assets};
       } else {
         return Future.error('Error! Something went wrong.');
@@ -877,23 +891,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         return 'Refunded';
       default:
         return 'Processing';
-    }
-  }
-
-  void checkAccountHasEnoughTrov() {
-    for (var wallet in wallets) {
-      for (var asset in wallet.claimedAssets!) {
-        if (asset.assetCode!.toUpperCase() == 'TROV') {
-          if ((asset.usdPrice! * asset.amount!) >= 500) {
-            hasEnoughTrov = true;
-            break;
-          }
-        }
-      }
-
-      if (hasEnoughTrov) {
-        break;
-      }
     }
   }
 

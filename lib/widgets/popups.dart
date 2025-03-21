@@ -4949,8 +4949,8 @@ showSwitchModePopup(context,
 
 late List<String> walletTypes = [
   'Standard',
-  'Issuing/Asset Tokenization',
-  'Bulk Payment'
+  // 'Issuing/Asset Tokenization',
+  // 'Bulk Payment'
 ];
 
 List<DropdownMenuItem<String>> get walletTypeDropdownItems {
@@ -5055,7 +5055,6 @@ Future sendFullDataToServer(
         appState.backupSecrets.add(subWallet.distributionWalletSecretKey!);
       }
 
-      print('im heredfadsf... ${subWallet.walletType} ${subWallet.tag}');
       await updateUserInfo(
         appState.primaryWallet.signer,
         appState.secretKeys[0],
@@ -5064,13 +5063,11 @@ Future sendFullDataToServer(
         appState,
         forceRefresh: true,
       );
-      print(
-          'new wallet.publickey ${subWallet.publicKey} : secret ${subWallet.secretKey}');
       // add the new subwallet to appState and
       // set the newly created subwallet as the activeWallet
       appState.activeWallet = appState.userInfo!.wallets!
           .firstWhere((wallet) => wallet.publicKey == subWallet.publicKey);
-      print('............got here');
+
       appState.activeWallet!.secretKey = subWallet.secretKey;
       // move to next page
       appState.currentAction =
@@ -5096,7 +5093,6 @@ Future sendDataToServer(
   SubwalletInfo subWallet,
   Account primaryWalletKeyPair,
 ) async {
-  print('sending... ${subWallet.tag} ${subWallet.walletType}');
   var state = Provider.of<DataProvider>(context, listen: false);
 
   try {
@@ -5180,15 +5176,12 @@ addSubWalletPopup(context) async {
 
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
-  bool isFromTokenizationView =
-      (appState.returnView != null && appState.returnView!.pages != null) &&
-          appState.returnView!.pages!.contains(WalletPreparationViewPageConfig);
   late SubwalletInfo newSubWalletKeyPair = SubwalletInfo(
     publicKey: '',
     secretKey: '',
     tag: '',
     description: '',
-    walletType: isFromTokenizationView ? 1 : 0,
+    walletType: 0,
   );
   String password = '';
   height = MediaQuery.of(context).size.height;
@@ -5594,44 +5587,6 @@ addSubWalletPopup(context) async {
                           ],
                         ),
                         SizedBox(height: 15),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: width / 1.5,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0)),
-                                  ),
-                                  child: dropdown(
-                                    isFromTokenizationView
-                                        ? null
-                                        : (newValue) async {
-                                            var intValue =
-                                                int.parse(newValue.toString());
-                                            setStateForDialog(() {
-                                              newSubWalletKeyPair.walletType =
-                                                  intValue;
-                                            });
-                                          },
-                                    walletTypeDropdownItems,
-                                    newSubWalletKeyPair.walletType.toString(),
-                                    walletTypes[newSubWalletKeyPair.walletType],
-                                    context,
-                                    null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 15),
-                          ],
-                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Container(
@@ -5928,7 +5883,6 @@ addSubWalletPopup(context) async {
                 onPressed: () {
                   setStateForDialog(() {
                     appState.returnView = null;
-                    isFromTokenizationView = false;
                   });
                   Navigator.of(
                     context,

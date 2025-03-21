@@ -39,7 +39,9 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    tokenizedAssetListFuture = fetchTokenizationList(status: 0);
+
+    tokenizedAssetListFuture =
+        fetchTokenizationList(status: appState.viewData!['rel']);
   }
 
   @override
@@ -55,7 +57,12 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(context, notifier.getwihitecolor, "Primary Offers",
+        appBar: CustomAppBar(
+                context,
+                notifier.getwihitecolor,
+                appState.viewData!['rel'] == 0
+                    ? "Primary Offers"
+                    : "Secondary Listing",
                 notifier.getblck,
                 height: height / 15)
             .getBar(),

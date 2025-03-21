@@ -484,6 +484,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             TextButton(
                               onPressed: () {
+                                appState.viewData = {
+                                  'rel': 0,
+                                };
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page: SeeAllTokenizedAssetsViewPageConfig,
@@ -646,6 +649,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             TextButton(
                               onPressed: () {
+                                appState.viewData = {
+                                  'rel': 1,
+                                };
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page: SeeAllTokenizedAssetsViewPageConfig,
