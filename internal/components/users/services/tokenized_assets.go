@@ -537,6 +537,18 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	}
 
+	if ato.AssetCountryLocation == nil {
+		log.Println("[SubmitTokenizationAssetInfoByInitiator]error Localtion/country not provided")
+		err = &tErrors.CustomError{Err: "error country not provided", ErrMessage: "country of location not provided."}
+		return
+	}
+
+	if len(*ato.AssetCountryLocation) != 2 {
+		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error Location/country not in acceptable format.")
+		err = &tErrors.CustomError{Err: "error country not provided", ErrMessage: "country of location not provided in corect format. Expects 2-character formart, eg. NG"}
+		return
+	}
+
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)

@@ -81,7 +81,7 @@ type TokenizedAsset struct {
 	IssuingWalletAlias                          *string                         `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                          *string                         `json:"marketMakingWallet"`
 	AssetDescription                            *string                         `json:"assetDescription"`
-	AssetCountryLocation                        *string                         `json:"assetCountryLocation"`
+	AssetCountryLocation                        *string                         `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
 	AssetPhysicalAddress                        *string                         `json:"assetPhysicalAddress"`
 	AssetLongitude                              *string                         `json:"assetLongitude"`
 	AssetLatitude                               *string                         `json:"assetLatitude"`
@@ -1009,7 +1009,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.AssetManagerID = ti.AssetManagerID
 
 	if len(ti.AssetQuoteCurrency) > 0 {
-
+		ti.AssetQuoteCurrency = strings.ToUpper(ti.AssetQuoteCurrency)
 		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
 	} else {
 		t.AssetQuoteCurrency = nil
@@ -1152,7 +1152,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.ProceedPayoutCurrency) > 0 {
-
+		ti.ProceedPayoutCurrency = strings.ToUpper(ti.ProceedPayoutCurrency)
 		t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
 	} else {
 		t.ProceedPayoutCurrency = nil
