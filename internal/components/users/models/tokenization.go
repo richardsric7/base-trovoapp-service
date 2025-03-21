@@ -896,7 +896,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetWebsite) > 0 {
-
+		ti.AssetWebsite = strings.ToLower(ti.AssetWebsite)
 		t.AssetWebsite = &ti.AssetWebsite
 	} else {
 		t.AssetWebsite = nil
@@ -921,7 +921,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetName) > 0 {
-
+		ti.AssetName = strings.ToTitle(ti.AssetName)
 		t.AssetName = &ti.AssetName
 	}
 
@@ -956,7 +956,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetDescription) > 0 {
-
+		ti.AssetDescription = strings.ToTitle(ti.AssetDescription)
 		t.AssetDescription = &ti.AssetDescription
 	}
 
@@ -966,6 +966,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetPhysicalAddress) > 0 {
+		ti.AssetPhysicalAddress = strings.ToTitle(ti.AssetPhysicalAddress)
 
 		t.AssetPhysicalAddress = &ti.AssetPhysicalAddress
 	}
@@ -991,11 +992,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.AssetOwnerName) > 0 {
+		ti.AssetOwnerName = strings.ToUpper(ti.AssetOwnerName)
 
 		t.AssetOwnerName = &ti.AssetOwnerName
 	}
 
 	if len(ti.AssetOwnerAddress) > 0 {
+		ti.AssetOwnerAddress = strings.ToTitle(ti.AssetOwnerAddress)
 
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
@@ -1053,6 +1056,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.AssetAlreadyExists = ti.AssetAlreadyExists
 
 	if len(ti.AssetCode) > 0 {
+		ti.AssetCode = strings.ToUpper(ti.AssetCode)
 
 		t.AssetCode = &ti.AssetCode
 	}
@@ -1197,6 +1201,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 	}
 	if len(ti.LegalAdvisor) > 0 {
+		ti.LegalAdvisor = strings.ToUpper(ti.LegalAdvisor)
 
 		t.LegalAdvisor = &ti.LegalAdvisor
 	} else {
@@ -1204,6 +1209,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.FinancialAdvisor) > 0 {
+		ti.FinancialAdvisor = strings.ToUpper(ti.FinancialAdvisor)
 
 		t.FinancialAdvisor = &ti.FinancialAdvisor
 	} else {
@@ -1218,6 +1224,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.BeneficiaryName) > 0 {
+		ti.BeneficiaryName = strings.ToUpper(ti.BeneficiaryName)
+
 		t.BeneficiaryName = &ti.BeneficiaryName
 
 	}
@@ -1409,16 +1417,17 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.AssetType = *ti.AssetType
 	}
 	if ti.AssetName != nil {
-		t.AssetName = *ti.AssetName
+
+		t.AssetName = strings.ToTitle(*ti.AssetName)
 
 	}
 	if ti.AssetWebsite != nil {
-		t.AssetWebsite = *ti.AssetWebsite
+		t.AssetWebsite = strings.ToLower(*ti.AssetWebsite)
 
 	}
 
 	if ti.AssetCode != nil {
-		t.AssetCode = *ti.AssetCode
+		t.AssetCode = strings.ToUpper(*ti.AssetCode)
 
 	}
 	if ti.AssetLogo != nil {
@@ -1453,7 +1462,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.MarketMakingWallet = *ti.MarketMakingWallet
 	}
 	if ti.AssetDescription != nil {
-		t.AssetDescription = *ti.AssetDescription
+		t.AssetDescription = strings.ToTitle(*ti.AssetDescription)
 	}
 	if ti.AssetCountryLocation != nil {
 		t.AssetCountryLocation = *ti.AssetCountryLocation
@@ -1461,7 +1470,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 
 	if ti.AssetPhysicalAddress != nil {
-		t.AssetPhysicalAddress = *ti.AssetPhysicalAddress
+		t.AssetPhysicalAddress = strings.ToTitle(*ti.AssetPhysicalAddress)
 	}
 	if ti.AssetLongitude != nil {
 		t.AssetLongitude = *ti.AssetLongitude
@@ -1477,10 +1486,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.OwnershipKind = *ti.OwnershipKind
 	}
 	if ti.AssetOwnerName != nil {
-		t.AssetOwnerName = *ti.AssetOwnerName
+		t.AssetOwnerName = strings.ToUpper(*ti.AssetOwnerName)
 	}
 	if ti.AssetOwnerAddress != nil {
-		t.AssetOwnerAddress = *ti.AssetOwnerAddress
+		t.AssetOwnerAddress = strings.ToTitle(*ti.AssetOwnerAddress)
 	}
 	if ti.AssetManagerID > 0 {
 		t.AssetManagerID = ti.AssetManagerID
@@ -1575,11 +1584,11 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 	if ti.LegalAdvisor != nil {
 
-		t.LegalAdvisor = *ti.LegalAdvisor
+		t.LegalAdvisor = strings.ToUpper(*ti.LegalAdvisor)
 	}
 	if ti.FinancialAdvisor != nil {
 
-		t.FinancialAdvisor = *ti.FinancialAdvisor
+		t.FinancialAdvisor = strings.ToUpper(*ti.FinancialAdvisor)
 	}
 	if ti.BankID != nil {
 
@@ -1588,7 +1597,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 
 	if ti.BeneficiaryName != nil {
-		t.BeneficiaryName = *ti.BeneficiaryName
+		t.BeneficiaryName = strings.ToUpper(*ti.BeneficiaryName)
 	}
 	if ti.AccountNumber != nil {
 		t.AccountNumber = *ti.AccountNumber
