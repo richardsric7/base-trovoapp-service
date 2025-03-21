@@ -2726,6 +2726,17 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 			}
 			return
 		}
+		if ato.AssetTokenizationStatus > 3 {
+			log.Printf("[MintRegulatedTokenizedAsset] Error Process has passed stage to mint. %v\n", ato.ID)
+
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-status-too-high",
+				ErrMessage: "Project status has exceeded the stage of minting.",
+				Code:       404,
+			}
+			return
+		}
 
 		if ato.IssuingWalletPublicKey == nil {
 			log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
@@ -2747,6 +2758,10 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 
 		return
 	}
+
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+
 	description := fmt.Sprintf("Minting tokenized asset %v:%v...%v", *ato.AssetCode, issuingWallet.ID[0:4], issuingWallet.ID[51:55])
 	mintObj := userModels.TokenMinting{
 		TokenizedAssetID:     ato.ID,
@@ -2777,13 +2792,21 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
-	e := gc.DB.Create(&pendingAuth).Error
+	e := dbTX.Create(&pendingAuth).Error
 	if e != nil {
-		log.Printf("[ClaimPendingAsset] Error saving txn [%+v] on pending auth table: %s\n", pendingAuth, e.Error())
+		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn [%+v] on pending auth table: %s\n", pendingAuth, e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-
+	ato.AssetTokenizationStatus = 4
+	ato.TokenizationTransaction = &xdrBase64
+	e = gc.DB.Save(&ato).Error
+	if e != nil {
+		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn on tokenizedAsset table: %s\n", e.Error())
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	dbTX.Commit()
 	return ato, nil
 
 }
