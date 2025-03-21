@@ -20,7 +20,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	// "github.com/k0kubun/pp"
-	"github.com/google/uuid"
+
 	"github.com/pkg/errors"
 )
 
@@ -49,7 +49,7 @@ func GetSumsubIndividualApplicantKYC(user *userModels.User, levelName string, gc
 	fixedInfo.FirstName = user.FirstName
 	fixedInfo.LastName = *user.LastName
 
-	applicant.ID = uuid.NewString()
+	// applicant.ID = user.Username
 	applicant.FixedInfo = fixedInfo
 	applicant.ExternalUserID = externalUserId
 
@@ -106,7 +106,7 @@ func CreateApplicant(applicant userModels.SumsubApplicant, levelName string, gc 
 	postBody, _ := json.Marshal(applicant)
 
 	var ac userModels.SumsubApplicant
-
+	log.Printf("[SumsubCreateApplicant] Applicant to be created: %+v\n", applicant)
 	b, err := _makeSumsubRequest(
 		"/resources/applicants?levelName="+levelName,
 		"POST",
@@ -125,6 +125,7 @@ func CreateApplicant(applicant userModels.SumsubApplicant, levelName string, gc 
 		log.Printf("[CreateApplicant] error unmarshaling applicant: %v\n", err)
 		return ac, &tErrors.ErrorTemporaryServerError{}
 	}
+	log.Printf("[SumsubCreateApplicant] Created Applicant: %+v\n", applicant)
 
 	return ac, nil
 }
