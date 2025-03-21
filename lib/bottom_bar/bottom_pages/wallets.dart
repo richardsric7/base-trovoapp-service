@@ -121,6 +121,11 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      carouselController.animateToPage(0,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    });
   }
 
   void tabListener() {
@@ -737,10 +742,11 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               // reOrderClaimedAssets(activeWallet!),
             }),
         height: height / 5.6,
+        initialPage: wallets.length > 1 ? 1 : 0,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,
-        viewportFraction: wallets.length > 1 ? 0.9 : 1,
+        viewportFraction: 1,
       ),
       items: carouselWallets.map((wallet) {
         var indexOfWallet = wallets.indexOf(wallet);
