@@ -626,6 +626,18 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
 		return
 	}
+
+	if ato.ExemptedCountries != nil {
+		exc := strings.Split(strings.ReplaceAll(*ato.ExemptedCountries, " ", ""), ",")
+		for _, countryCode := range exc {
+			if len(countryCode) != 2 {
+				err = &tErrors.CustomError{Param: "Id", Err: "error-asset-exempted-country-invalid", ErrMessage: "You must specify the exempted country in the formart: NG, SA, UK"}
+				return
+			}
+		}
+
+	}
+
 	ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 	ato.LastUpdatedBy = &initiator.Username
@@ -2630,7 +2642,16 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
 		return
 	}
+	if ato.ExemptedCountries != nil {
+		exc := strings.Split(strings.ReplaceAll(*ato.ExemptedCountries, " ", ""), ",")
+		for _, countryCode := range exc {
+			if len(countryCode) != 2 {
+				err = &tErrors.CustomError{Param: "Id", Err: "error-asset-exempted-country-invalid", ErrMessage: "You must specify the exempted country in the formart: NG, SA, UK"}
+				return
+			}
+		}
 
+	}
 	{
 		//check staff access
 		if !IsTokenizationMintingApprover(initiator.Username, gc.DB) && !IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
