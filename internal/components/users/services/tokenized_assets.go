@@ -1086,6 +1086,11 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 		return
 
 	}
+	if ato.AssetCountryLocation == nil {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location."}
+		return
+	}
+
 	//begin a database transaction here
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
@@ -1109,7 +1114,7 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 
 	}
 
-	xdrBase64, e := generateTokenizationFeeXdr(&wallet, taInput, gc)
+	xdrBase64, e := generateTokenizationFeeXdr(&wallet, &ato, taInput, gc)
 	if e != nil {
 		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
@@ -2715,9 +2720,12 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 
 }
 
-func generateTokenizationFeeXdr(wallet *userModels.UserWallet, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
-	tfa := strings.Split(os.Getenv("TOKENIZATION_APPLICATION_FEE_ASSET"), ":") //CODE:ISSUER
-	feeAmount := decimal.RequireFromString(os.Getenv("TOKENIZATION_APPLICATION_FEE_AMOUNT"))
+func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.TokenizedAsset, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+
+	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
+
+	tfa := strings.Split(countryConfig.TokenizationApplicationFeeAsset, ":") //CODE:ISSUER
+	feeAmount := decimal.NewFromFloat(countryConfig.TokenizationApplicationFee)
 	feeWallet := os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
 	feeWalletPK := keypair.MustParseFull(feeWallet)
 	assetIssuer := tfa[1]
