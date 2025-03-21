@@ -256,6 +256,35 @@ func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) strin
 	return url
 }
 
+// GetBlockchainAssetProperty fetches the blockchain asset information using bantu asset
+func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat horizon.AssetStat, err error) {
+
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: i.AssetIssuer, ForAssetCode: i.AssetCode, Limit: 1}
+	assetsPage, err := gc.BantuExpansionClient.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssetProperty]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssetProperty Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetStat, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	if len(assetsPage.Embedded.Records) == 0 {
+		//asset does not exist.
+		err = &tErrors.CustomError{Err: "error asset does not exist", ErrMessage: "Asset does not exist."}
+		return
+	}
+
+	assetStat = assetsPage.Embedded.Records[0]
+	return assetStat, nil
+}
+
 // GetBlockchainAccountDataKey fetches the bantu account information using public key
 func (i BantuAsset) GetBlockchainAccountDataKey(account *horizon.Account, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
@@ -299,27 +328,4 @@ func (c Currency) GetCurratedAsset(gc *sharedconfig.GlobalConfig) (ca assetModel
 	err = errors.New(currency + " is an invalid withdrawable currency")
 	return
 
-}
-
-// GetBlockchainAssetProperty fetches the blockchain asset information using bantu asset
-func (u *BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat horizon.AssetStat, err error) {
-
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.AssetIssuer, ForAssetCode: u.AssetCode, Limit: 1}
-	assetsPage, err := gc.BantuExpansionClient.Assets(assetRequest)
-	if err != nil {
-		log.Println("[GetBlockchainAssetProperty]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAssetProperty Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return assetStat, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
-
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return
-	}
-	assetStat = assetsPage.Embedded.Records[0]
-	return assetStat, nil
 }
