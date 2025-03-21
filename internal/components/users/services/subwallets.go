@@ -760,7 +760,8 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	signForFeeTrustLine := 0
-	{ //add fee for transaction
+	if accountOwner.Username != "atprofile" {
+		//add fee for transaction
 		usdPrice, _, _ := blockchain.GetDollarPrice(os.Getenv("SUBWALLET_FEE_ASSET_CODE"), os.Getenv("SUBWALLET_FEE_ASSET_ISSUER"), gc, true)
 
 		serviceFee, e := decimal.NewFromString(os.Getenv("SUBWALLET_FEE_AMOUNT_USD"))

@@ -49,7 +49,7 @@ func GetSumsubIndividualApplicantKYC(user *userModels.User, levelName string, gc
 	fixedInfo.FirstName = user.FirstName
 	fixedInfo.LastName = *user.LastName
 
-	// applicant.ID = user.Username
+	applicant.ID = user.Username
 	applicant.FixedInfo = fixedInfo
 	applicant.ExternalUserID = externalUserId
 
