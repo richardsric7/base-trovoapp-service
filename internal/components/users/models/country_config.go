@@ -4,7 +4,7 @@ import "trovo-wallet-api/internal/sharedconfig"
 
 // Country holds country struct
 type Country struct {
-	CountryCode                     string  `gorm:"size:3;primaryKey" json:"countryCode"`
+	CountryCode                     string  `gorm:"size:2;primaryKey" json:"countryCode"`
 	SECTokenizationFee              float64 `gorm:"default:0" json:"SECTokenizationFee"`
 	SECTokenizationFeeType          int     `gorm:"default:0" json:"SECTokenizationFeeType"` //0=percent,1 = fixed
 	SECTradeFee                     float64 `gorm:"default:0" json:"SECTradeFeePercent"`

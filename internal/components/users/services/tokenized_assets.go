@@ -2764,7 +2764,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 		SourceAccount: wallet.ID,
 	})
 
-	taInput.Messages = append(taInput.Messages, fmt.Sprintf("Application fee of %v %x will be charged to your wallet with alias [%v].", feeAmount.String(), assetCode, wallet.Alias))
+	taInput.Messages = append(taInput.Messages, fmt.Sprintf("Application fee of %v %v will be charged to your wallet with alias [%v].", feeAmount.String(), assetCode, wallet.Alias))
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 
