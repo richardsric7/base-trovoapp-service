@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/functions/google_drive_client.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/functions/google_drive_client.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 
 import '../custom_bloc_observer/fonts.dart';
 

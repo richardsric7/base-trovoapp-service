@@ -2,9 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/widgets/price_points.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/widgets/price_points.dart';
 
 class BarChartWidget extends StatefulWidget {
   const BarChartWidget({Key? key, required this.points}) : super(key: key);

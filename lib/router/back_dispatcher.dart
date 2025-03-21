@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/models/wallets_list_view_data.dart';
-import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/models/wallets_list_view_data.dart';
+import 'package:trovo_app/storage/state.dart';
 import 'router_delegate.dart';
 
 class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {

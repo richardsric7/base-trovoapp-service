@@ -4,10 +4,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:trovo_wallet/functions/helpers.dart';
+import 'package:trovo_app/functions/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_app/storage/store.dart';
 import '../functions/trovo-sdk.dart';
 
 Future<String> getTrovoAppBaseURL() async {

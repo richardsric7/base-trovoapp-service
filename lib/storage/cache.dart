@@ -1,8 +1,8 @@
-import 'package:trovo_wallet/models/user.dart';
-import 'package:trovo_wallet/models/announcement.dart';
-import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_app/models/user.dart';
+import 'package:trovo_app/models/announcement.dart';
+import 'package:trovo_app/network/requests.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/storage/store.dart';
 
 Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
     {bool forceRefresh = false, String? pnt}) async {

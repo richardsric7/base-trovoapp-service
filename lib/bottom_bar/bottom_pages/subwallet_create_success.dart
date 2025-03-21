@@ -1,13 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/router/page_actions.dart';
+import 'package:trovo_app/router/ui_pages.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
 class CreateSubWalletSuccessView extends StatefulWidget {

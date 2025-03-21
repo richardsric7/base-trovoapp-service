@@ -1,6 +1,6 @@
-import 'package:trovo_wallet/models/curated_asset.dart';
-import 'package:trovo_wallet/models/patronMembership.dart';
-import 'package:trovo_wallet/models/referral_info.dart';
+import 'package:trovo_app/models/curated_asset.dart';
+import 'package:trovo_app/models/patronMembership.dart';
+import 'package:trovo_app/models/referral_info.dart';
 
 import 'wallet.dart';
 

@@ -1,4 +1,4 @@
-library trovo_wallet_sdk_flutter;
+library trovo_app_sdk_flutter;
 
 import 'dart:convert';
 import 'dart:typed_data';

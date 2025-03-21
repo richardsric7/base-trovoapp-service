@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 
 class Countdown extends StatefulWidget {
   final DateTime startDate;

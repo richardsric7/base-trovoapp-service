@@ -1,11 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/page_view/onboarding_two.dart';
-import 'package:trovo_wallet/screens/page_view/onboarding_three.dart';
-import 'package:trovo_wallet/screens/page_view/onboarding_one.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/router/ui_pages.dart';
+import 'package:trovo_app/screens/page_view/onboarding_two.dart';
+import 'package:trovo_app/screens/page_view/onboarding_three.dart';
+import 'package:trovo_app/screens/page_view/onboarding_one.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../router/page_actions.dart';

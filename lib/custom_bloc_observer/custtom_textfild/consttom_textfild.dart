@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 
 class Customtextfild {
   static Widget textField(labletext, focuscolor, preicon, lablecolor, iconcolor,

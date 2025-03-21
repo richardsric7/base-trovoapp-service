@@ -5,11 +5,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 
 class PdfViewer extends StatefulWidget {
   const PdfViewer({super.key});

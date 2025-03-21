@@ -1,4 +1,4 @@
-import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/payment_history.dart';
 
 class TransactionInfo {
   DateTime? transactionDate;

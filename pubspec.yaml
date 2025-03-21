@@ -1,4 +1,4 @@
-name: trovo_wallet
+name: trovo_app
 description: A non-custodial wallet for the Trovo Ecosystem of apps.
 
 # The following line prevents the package from being accidentally published to

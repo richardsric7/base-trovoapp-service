@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_app/router/ui_pages.dart';
 
 enum PageState { none, addPage, addAll, addWidget, pop, replace, replaceAll }
 

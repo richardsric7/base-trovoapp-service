@@ -1,4 +1,4 @@
-import 'package:trovo_wallet/models/tokenizedAsset.dart';
+import 'package:trovo_app/models/tokenizedAsset.dart';
 
 import 'asset.dart';
 import 'permission.dart';

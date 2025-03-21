@@ -4,12 +4,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:trovo_wallet/models/bottom_tab_page.dart';
-import 'package:trovo_wallet/firebase_options.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:trovo_app/models/bottom_tab_page.dart';
+import 'package:trovo_app/firebase_options.dart';
+import 'package:trovo_app/router/page_actions.dart';
+import 'package:trovo_app/router/ui_pages.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();

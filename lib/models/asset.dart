@@ -1,4 +1,4 @@
-import 'package:trovo_wallet/models/crypto_wallet_address.dart';
+import 'package:trovo_app/models/crypto_wallet_address.dart';
 
 class Asset {
   String? assetIssuer;

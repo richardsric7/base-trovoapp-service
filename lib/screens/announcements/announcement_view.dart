@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/announcement.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/models/announcement.dart';
+import 'package:trovo_app/router/ui_pages.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 
 class AnnouncementView extends StatefulWidget {
   const AnnouncementView({super.key});

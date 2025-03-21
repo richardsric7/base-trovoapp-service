@@ -7,9 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scan/scan.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/loader.dart';
+import 'package:trovo_app/widgets/popups.dart';
 
 class QrScanner extends StatefulWidget {
   const QrScanner({Key? key}) : super(key: key);

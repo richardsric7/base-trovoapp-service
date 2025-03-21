@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';

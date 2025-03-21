@@ -1,16 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/bottom_tab_page.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/models/bottom_tab_page.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/home.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/models/wallets_list_view_data.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
-import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_app/models/wallets_list_view_data.dart';
+import 'package:trovo_app/screens/asset-tokenization/tokenization.dart';
+import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'bottom_pages/swap_assets.dart';
 import 'bottom_pages/wallets.dart';
 
