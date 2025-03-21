@@ -2447,7 +2447,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		//second submission to blockchain
 		_, err = CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
 		if err != nil {
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating issuing wallet [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), err)
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating shared access on wallet [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), err)
 			return
 		}
 
@@ -2605,6 +2605,29 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	//validators
 	{
+
+		if (ato.SecApproval == 0 || ato.SecApprovalIdNumber == nil) && *ato.OfferingType == "PUBLIC" {
+			log.Printf("[MintRegulatedTokenizedAsset] Error No complete DD information yet. Misssing SEC approval for public offering %v\n", ato.ID)
+
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-incomplete-data",
+				ErrMessage: "Asset Due Duligence information (SEC Aproval Number) must be provided for public offerings.",
+				Code:       404,
+			}
+			return
+		}
+		if ato.ClosedGroupID == nil && *ato.OfferingType == "PRIVATE" {
+			log.Printf("[MintRegulatedTokenizedAsset] Error No complete information yet. Misssing Closed Group for private offering %v\n", ato.ID)
+
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-incomplete-data",
+				ErrMessage: "Asset Closed Group information must be provided for private offerings.",
+				Code:       404,
+			}
+			return
+		}
 
 		if ato.AssetCode == nil || ato.AssetName == nil || ato.AssetDescription == nil || ato.AssetLogo == nil {
 			log.Printf("[MintRegulatedTokenizedAsset] Error No complete asset token information yet. %v\n", ato.ID)
