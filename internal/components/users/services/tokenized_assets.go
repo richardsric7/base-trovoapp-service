@@ -2599,7 +2599,18 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	//validators
 	{
-
+		if ato.IssuingWalletPublicKey == nil {
+			log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
+			ato.AssetTokenizationStatus = 2
+			gc.DB.Save(&ato)
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-no-issuing-wallet",
+				ErrMessage: "Issuing Wallet not assigned. Tokenization has been Returned to approproate status.",
+				Code:       404,
+			}
+			return
+		}
 	}
 
 	xdrBase64, transactionSource, messages, issuingWallet, err := generateMintRegulatedTokenizedAssetXdr(&ato, gc)
