@@ -2600,6 +2600,17 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	//validators
 	{
 
+		if ato.AssetCode == nil || ato.AssetName == nil || ato.AssetDescription == nil || ato.AssetLogo == nil {
+			log.Printf("[MintRegulatedTokenizedAsset] Error No complete asset token information yet. %v\n", ato.ID)
+
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-incomplete-data",
+				ErrMessage: "Asset token information (Name,Code,Description,Logo) must be provided before Minting can be done.",
+				Code:       404,
+			}
+			return
+		}
 		if ato.AssetTokenizationStatus < 3 {
 			log.Printf("[MintRegulatedTokenizedAsset] Error Process has not reached stage to approve yet. %v\n", ato.ID)
 
