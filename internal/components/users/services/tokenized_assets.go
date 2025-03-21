@@ -2621,6 +2621,16 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 
 	}
+
+	if ato.AssetCountryLocation == nil {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location."}
+		return
+	}
+	if len(*ato.AssetCountryLocation) != 2 {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
+		return
+	}
+
 	{
 		//check staff access
 		if !IsTokenizationMintingApprover(initiator.Username, gc.DB) && !IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
