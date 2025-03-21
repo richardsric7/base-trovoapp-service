@@ -2485,15 +2485,28 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 			p.TransactionSignature = signedBase64
 		}
-
+		//get fresh records.
+		tokenizationIssuerUser.InvalidateUserCache(gc)
+		tokenizationIssuerUser, _ = userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		issuingWallet, e = userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+		if e != nil {
+			err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "error validating issuing wallet."}
+			return
+		}
 		//second submission to blockchain
 		_, err = CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
 		if err != nil {
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating shared access on wallet [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), err)
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating shared access on wallet [%v], err: %v\n", issuingWallet.ID, err)
 			return
 		}
 
-		log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess] Succesfully Created shared access on issuing wallet [%v], txID: %v\n", tokenizationIssuerProfileWalletKP.Address(), p.TransactionID)
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess] Succesfully Created shared access on issuing wallet [%v], txID: %v\n", issuingWallet.ID, p.TransactionID)
+
+		//get fresh records.
+		tokenizationIssuerUser.InvalidateUserCache(gc)
+		tokenizationIssuerUser, _ = userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		issuingWallet, _ = userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+
 	}
 	// create distributionWallet trustline to asset
 	ops = append(ops, &txnbuild.ChangeTrust{
