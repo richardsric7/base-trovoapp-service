@@ -532,8 +532,6 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		ato = userModels.TokenizedAsset{
 			ID:                uuid.NewString(),
 			InitiatorUsername: initiator.Username,
-			// IssuingWalletPublicKey: issuingWallet.ID,
-			// IssuingWalletAlias:     issuingWallet.Alias,
 		}
 		ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
@@ -610,7 +608,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	ato.LastUpdatedBy = &initiator.Username
 	var NotIssuedByIssuer bool
 	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
-		NotIssuedByIssuer = strings.HasPrefix(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")), *ato.IssuingWalletAlias)
+		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
 	}
 
 	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
@@ -644,7 +642,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
 
 		if err != nil {
-			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", issuer.Address(), err)
+			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
 			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
 			return
 		}
@@ -719,7 +717,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 
 		//set issuing wallet
 		issuingWallet = w
-		// ato.IssuingWalletAlias = &w.Alias
+		ato.IssuingWalletAlias = &w.Alias
 		ato.IssuingWalletPublicKey = &w.ID
 		ato.MarketMakingWallet = w.LinkedWalletPublicKey
 		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
