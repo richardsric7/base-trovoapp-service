@@ -20,6 +20,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	// "github.com/k0kubun/pp"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -48,6 +49,7 @@ func GetSumsubIndividualApplicantKYC(user *userModels.User, levelName string, gc
 	fixedInfo.FirstName = user.FirstName
 	fixedInfo.LastName = *user.LastName
 
+	applicant.ID = uuid.NewString()
 	applicant.FixedInfo = fixedInfo
 	applicant.ExternalUserID = externalUserId
 
