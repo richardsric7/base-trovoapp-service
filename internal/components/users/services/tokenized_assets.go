@@ -2800,7 +2800,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	ato.AssetTokenizationStatus = 4
 	ato.TokenizationTransaction = &xdrBase64
-	e = gc.DB.Save(&ato).Error
+	e = dbTX.Save(&ato).Error
 	if e != nil {
 		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn on tokenizedAsset table: %s\n", e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}
