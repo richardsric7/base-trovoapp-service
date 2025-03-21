@@ -2599,6 +2599,19 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	//validators
 	{
+
+		if ato.AssetTokenizationStatus < 3 {
+			log.Printf("[MintRegulatedTokenizedAsset] Error Process has not reached stage to approve yet. %v\n", ato.ID)
+
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-status-too-low",
+				ErrMessage: "Process Status still too low for approval. Fee Payment confirmation not yet done.",
+				Code:       404,
+			}
+			return
+		}
+
 		if ato.IssuingWalletPublicKey == nil {
 			log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
 			ato.AssetTokenizationStatus = 2
