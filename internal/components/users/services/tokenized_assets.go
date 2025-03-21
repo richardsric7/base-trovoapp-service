@@ -618,6 +618,14 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		}
 	}
 
+	if ato.AssetCountryLocation == nil {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location."}
+		return
+	}
+	if len(*ato.AssetCountryLocation) != 2 {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
+		return
+	}
 	ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
 
 	ato.LastUpdatedBy = &initiator.Username
@@ -1100,6 +1108,10 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 	}
 	if ato.AssetCountryLocation == nil {
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location."}
+		return
+	}
+	if len(*ato.AssetCountryLocation) != 2 {
+		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
 		return
 	}
 
