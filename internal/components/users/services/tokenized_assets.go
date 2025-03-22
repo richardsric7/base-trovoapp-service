@@ -2524,18 +2524,19 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SourceAccount: feeWallet.Address(),
 	})
 
-	// allow trust from issuer to distribution wallet
-	ops = append(ops, &txnbuild.SetTrustLineFlags{
-		Trustor:       distributionWallet.ID,
-		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
-		SourceAccount: *t.IssuingWalletPublicKey,
-	})
 	// allow trust from issuer to fee wallet
 	ops = append(ops, &txnbuild.SetTrustLineFlags{
 		Trustor:       feeWallet.Address(),
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		SourceAccount: *t.IssuingWalletPublicKey,
+	})
+
+	// allow trust from issuer to distribution wallet
+	ops = append(ops, &txnbuild.SetTrustLineFlags{
+		Trustor:       distributionWallet.ID,
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
 
