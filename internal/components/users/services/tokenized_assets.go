@@ -2048,7 +2048,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 				Limit:         "900000000000",
 				SourceAccount: wallet.ID,
 			})
-			// allow trust from issuer to distribution wallet
+			// allow trust from issuer to destination wallet
 			ops = append(ops, &txnbuild.SetTrustLineFlags{
 				Trustor:       wallet.ID,
 				Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},

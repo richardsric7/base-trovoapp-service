@@ -313,7 +313,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	var err error
 	var amountToSwap, totalFees decimal.Decimal
-
+	var tokenizedAssetIssuerMustSign bool
 	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
@@ -378,7 +378,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 			}
 
-			if bcAsset.Flags.AuthRequired {
+			if bcAsset.Flags.AuthRequired && !gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
 
 				err = &tErrors.CustomError{
 					Param:      "destination",
@@ -402,6 +402,18 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 				Limit:         "900000000000",
 				SourceAccount: wallet.ID,
 			})
+
+			if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+				tokenizedAssetIssuerMustSign = true
+
+				// allow trust from issuer to destination wallet
+				ops = append(ops, &txnbuild.SetTrustLineFlags{
+					Trustor:       wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+					SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+					SourceAccount: swapInfo.DestinationAssetIssuer,
+				})
+			}
 
 		}
 	}
@@ -490,6 +502,18 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 					SourceAccount: feeAddress,
 				})
 
+				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+					tokenizedAssetIssuerMustSign = true
+
+					// allow trust from issuer to destination wallet
+					ops = append(ops, &txnbuild.SetTrustLineFlags{
+						Trustor:       feeAddress,
+						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						SourceAccount: swapInfo.DestinationAssetIssuer,
+					})
+				}
+
 			}
 		}
 
@@ -563,9 +587,22 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		}
 	}
 
-	if err != nil {
-		log.Println("[generateSwapXdr]error constructing transaction ", err)
-		return "", err
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateSwapXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	var xdrBase64 string
