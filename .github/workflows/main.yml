@@ -80,4 +80,4 @@ jobs:
       - name: Upload to Firebase App Distribution
         run: |
           curl -sL https://firebase.tools | bash  # Install Firebase CLI
-          firebase appdistribution:distribute build/app/outputs/bundle/release/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.aab --app ${{ secrets.FIREBASE_APP_ID }} --groups trovo-core-group --release-notes "New release for version ${{ github.ref }}. Fix issue with empty fields on tokenization form; fix bug in shared access approval page; update wallet details page."
+          firebase appdistribution:distribute build/app/outputs/bundle/release/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.aab --app ${{ secrets.FIREBASE_APP_ID }} --groups trovo-core-group --release-notes "New release for version ${{ github.ref }}. ${{ github.event.head_commit.message }}."
