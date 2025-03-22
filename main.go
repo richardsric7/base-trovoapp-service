@@ -357,7 +357,7 @@ func main() {
 		}()
 
 	}
-
+	globalConfig.ChannelOfTokenizedAssetIDs = make(chan string, 10)
 	globalConfig.InUseChannelAccounts = make(map[string]*keypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
@@ -775,6 +775,7 @@ func main() {
 	{
 		//Start processing Sales
 		go func() {
+
 			for {
 
 				userServices.ActivateSalesRoutine(&globalConfig)
