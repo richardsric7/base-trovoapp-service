@@ -2508,15 +2508,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		issuingWallet, _ = userModels.UserWalletID(*t.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
 
 	}
-
 	// create distributionWallet trustline to tokenized asset
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
-		Limit:         "900000000000",
-		SourceAccount: distributionWallet.ID,
-	})
-	// create distributionWallet trustline to quote currency
-
 	ops = append(ops, &txnbuild.ChangeTrust{
 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
 		Limit:         "900000000000",
@@ -2539,20 +2531,14 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
-	{ ////////REMOVED BECAUSE CNGN NEEDS TO INITIALLY APPROVE THE TRUSTLINE BEFORE OTHER TRANSANCTIONS CAN HAPPEN. SInce it takes some time, there is no need adding it here.
-		// _, distributorTrustsQuoteCurrency, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer})
 
-		// if !distributorTrustsQuoteCurrency {
-		// 	// allow trust from issuer to distribution wallet.
-		// 	ops = append(ops, &txnbuild.SetTrustLineFlags{
-		// 		Trustor:       distributionWallet.ID,
-		// 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		// 		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
-		// 		SourceAccount: *t.IssuingWalletPublicKey,
-		// 	})
-		// }
-
-	}
+	// allow trust from issuer to distribution wallet
+	ops = append(ops, &txnbuild.SetTrustLineFlags{
+		Trustor:       distributionWallet.ID,
+		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		SourceAccount: *t.IssuingWalletPublicKey,
+	})
 
 	//mint the token to distribution wallet
 	ops = append(ops, &txnbuild.Payment{
