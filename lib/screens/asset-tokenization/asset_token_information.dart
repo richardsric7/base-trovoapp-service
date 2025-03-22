@@ -101,10 +101,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     assetQuoteCurrencies.forEach((item) {
       options.add(DropdownMenuItem(
           child: Text(
-            item["label"].toString(),
+            item["assetCode"].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: item["label"].toString()));
+          value: item["assetCode"].toString()));
     });
     return options;
   }
@@ -925,57 +925,57 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 height: height / 50,
               ),
               if (capOnPurchase) ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "capquantity".tr(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
-                        "quantity".tr(),
-                        notifier.getbluecolor,
-                        null,
-                        notifier.getgrey,
-                        null,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        85,
-                        300.sp,
-                        controller: capQuantityController,
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return "fieldcannotbeempty".tr();
-                          }
-                          return null;
-                        },
-                        onSaved: (value) {
-                          setState(() {
-                            capQuantity = double.parse(value!);
-                          });
-                        },
-                        autoFormatNumber: true,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
-                      ),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     Padding(
+                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //       child: Text(
+                //         "capquantity".tr(),
+                //         style: TextStyle(
+                //           fontSize: 12,
+                //           fontFamily: fontsemibold,
+                //           color: notifier.getbluewhitecolor,
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // SizedBox(
+                //   height: height / 50,
+                // ),
+                // Row(
+                //   children: [
+                //     Padding(
+                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //       child: CustomTextFormField.textField(
+                //         "quantity".tr(),
+                //         notifier.getbluecolor,
+                //         null,
+                //         notifier.getgrey,
+                //         null,
+                //         notifier.getblck,
+                //         notifier.getgrey,
+                //         85,
+                //         300.sp,
+                //         controller: capQuantityController,
+                //         validator: (value) {
+                //           if (value.isEmpty) {
+                //             return "fieldcannotbeempty".tr();
+                //           }
+                //           return null;
+                //         },
+                //         onSaved: (value) {
+                //           setState(() {
+                //             capQuantity = double.parse(value!);
+                //           });
+                //         },
+                //         autoFormatNumber: true,
+                //         keyboardtype:
+                //             TextInputType.numberWithOptions(decimal: true),
+                //       ),
+                //     ),
+                //   ],
+                // ),
                 Row(
                   children: [
                     Padding(

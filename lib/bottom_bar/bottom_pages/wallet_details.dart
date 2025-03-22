@@ -10,6 +10,7 @@ import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/models/asset.dart';
+import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/router/page_actions.dart';
@@ -37,36 +38,10 @@ class _WalletDetailsState extends State<WalletDetails>
   int activeTabIndex = 0;
   late Asset gas;
   List<Asset> claimedAssets = [];
+  List<TokenizedAsset> tokenizedAssets = [];
   late bool localHideBalance;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   String rel = '';
-
-  var listOfAssets = <Map<String, String>>[
-    // {
-    //   "imageUrl": "",
-    //   "assetName": "Animal Farm",
-    //   "assetClass": "Agriculture",
-    //   "balance": "2049"
-    // },
-    // {
-    //   "imageUrl": "",
-    //   "assetName": "Beacon Homes",
-    //   "assetClass": "Property",
-    //   "balance": "3250"
-    // },
-    // {
-    //   "imageUrl": "",
-    //   "assetName": "C-Vitals",
-    //   "assetClass": "Health",
-    //   "balance": "100"
-    // },
-    // {
-    //   "imageUrl": "",
-    //   "assetName": "Drinkfly",
-    //   "assetClass": "Beverage",
-    //   "balance": "4000"
-    // }
-  ];
 
   Map<String, DashboardAssetListMode> listModes = {
     'Asset Tokens': DashboardAssetListMode.TokenizedAssets,
@@ -113,9 +88,15 @@ class _WalletDetailsState extends State<WalletDetails>
     gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
     rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
+    tokenizedAssets = wallet.tokenizedAssets ?? [];
     claimedAssets = wallet.claimedAssets!
         .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
         .toList();
+
+    if (tokenizedAssets.isEmpty) {
+      listMode = DashboardAssetListMode.OtherAssets;
+    }
+
     reOrderClaimedAssets(wallet.publicKey!);
   }
 
@@ -360,8 +341,8 @@ class _WalletDetailsState extends State<WalletDetails>
           SingleChildScrollView(
             child: Column(
               children: [
-                if (listOfAssets.isNotEmpty) ...[
-                  for (var i = 0; i < listOfAssets.length; i++) ...[
+                if (tokenizedAssets.isNotEmpty) ...[
+                  for (var i = 0; i < tokenizedAssets.length; i++) ...[
                     GestureDetector(
                       onTap: () {
                         appState.currentAction = PageAction(
@@ -370,9 +351,9 @@ class _WalletDetailsState extends State<WalletDetails>
                         );
                       },
                       child: tokenizedAssetTile(
-                          listOfAssets[i]['imageUrl'] ?? '',
-                          listOfAssets[i]['assetName'] ?? '',
-                          'Property',
+                          tokenizedAssets[i].assetLogo ?? '',
+                          tokenizedAssets[i].assetName ?? '',
+                          tokenizedAssets[i].assetType ?? '',
                           i % 2 == 0),
                     ),
                   ],

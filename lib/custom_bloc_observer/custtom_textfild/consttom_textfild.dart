@@ -11,6 +11,7 @@ class Customtextfild {
       width: w,
       child: TextField(
         style: TextStyle(color: textcolor, fontFamily: fontbody),
+        enableInteractiveSelection: true,
         cursorColor: lablecolor,
         onChanged: (value) {},
         // obscureText: hidePassword, //show/hide password
@@ -114,6 +115,7 @@ class CustomTextFormField {
         },
         child: TextFormField(
           key: key,
+          enableInteractiveSelection: true,
           maxLength: maxLength,
           readOnly: readOnly,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
@@ -217,6 +219,7 @@ class CustomTextFormField {
       constraints: BoxConstraints(minHeight: h),
       child: TextFormField(
         key: key,
+        enableInteractiveSelection: true,
         maxLength: maxLength,
         readOnly: readOnly,
         style: TextStyle(
@@ -295,6 +298,7 @@ Widget multilineInput(
       maxLength: maxLength,
       minLines: minLines,
       maxLines: maxLines,
+      enableInteractiveSelection: true,
       initialValue: initialValue,
       style: TextStyle(color: textcolor, fontFamily: fontbody),
       cursorColor: lablecolor,

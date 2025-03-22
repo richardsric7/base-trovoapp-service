@@ -196,8 +196,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         }
       }
     }
-
-    print('================>>>>> hasenought $hasEnoughTrov');
   }
 
   void refreshData() async {
@@ -477,6 +475,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         for (var i = 0; i < records.length; i++) {
                           var asset = records[i];
                           if (asset.tokenizationStatus! == 0) {
+                            print(
+                                "${asset.assetName} ===> ${asset.tokenizationStatus}");
                             canCreateNewTokenization = false;
                           }
                           assets.add(GestureDetector(
@@ -515,7 +515,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         records[i].vettingStatus == 0
                                     ? 'Pending Vetting'
                                     : getTokenizationStatus(
-                                        records[i].tokenizationStatus ?? 0)),
+                                        records[i].tokenizationStatus!)),
                             // getTokenizationStatus(
                             //     records[i].tokenizationStatus)),
                           ));
@@ -533,7 +533,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Tokenized Assets',
+                                    'My Tokenized Assets',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
@@ -843,7 +843,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         await fetchTokenizationData();
         List<TokenizedAsset> assets = [];
@@ -851,7 +850,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         if (tokenizedAssets != null) {
           for (int i = 0; i < tokenizedAssets.length; i++) {
             var a = TokenizedAsset().deserializeJson(tokenizedAssets[i]);
-            print('sadkfjals done deserializing');
             a.usdPrice = 1.47;
             a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
             a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
@@ -867,7 +865,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      // print('error');
       print(e);
       return Future.error('Error! ${e}');
     }

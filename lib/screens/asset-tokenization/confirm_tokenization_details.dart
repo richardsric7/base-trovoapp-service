@@ -42,6 +42,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   String password = '';
   double fiatFee = 0;
   double tokenFee = 0;
+  double trovUsdPrice = 0;
   String feeInfo = '';
   final Authenticator _authenticator = Authenticator();
 
@@ -51,6 +52,11 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
     getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+    for (var asset in appState.primaryWallet.claimedAssets!) {
+      if (asset.assetCode!.toUpperCase() == 'TROV') {
+        trovUsdPrice = asset.usdPrice!;
+      }
+    }
   }
 
   @override
@@ -303,7 +309,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("applicationfee".tr(),
-                            '500 TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
+                            '${formatNumber(500 / trovUsdPrice)} TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
                         SizedBox(height: height / 90),
                         item("tokenizationfee".tr(), feeInfo),
                         SizedBox(height: height / 90),

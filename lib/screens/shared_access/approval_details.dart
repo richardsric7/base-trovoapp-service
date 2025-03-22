@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -57,7 +56,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
+    viewData = appState.viewData?[ApprovalDetailsViewPageConfig.key];
     wallet = appState.userInfo!.getWalletByAlias(viewData['alias']);
     print('viewData ========>>>>>>>>>> $viewData');
 
@@ -117,7 +116,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                               key: "transactiontype".tr(),
                               value: viewData['transactionType']
                                   .toString()
-                                  .capitalizeFirst!),
+                                  .capitalizeFirstLetter()),
                           displayInfo(
                               key: "initiator".tr(),
                               value: viewData['initiator']),
@@ -186,10 +185,12 @@ class _ApprovalDetails extends State<ApprovalDetails>
                               key: "transactionstatus".tr(),
                               value: viewData['transactionStatus']
                                   .toString()
-                                  .capitalizeFirst!),
+                                  .capitalizeFirstLetter()),
                           displayInfo(
                               key: "blockchainproof".tr(),
-                              value: viewData['id'].toString().capitalizeFirst!,
+                              value: viewData['id']
+                                  .toString()
+                                  .capitalizeFirstLetter(),
                               isTransId: true),
                           SizedBox(
                             height: height / 50,
@@ -206,10 +207,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
               if (viewData['transactionStatus'] == 'PENDING' &&
                   !(viewData['approvedBy']
                           .toString()
-                          .contains(appState.userInfo!.username!) ||
+                          .contains(appState.userInfo?.username ?? '') ||
                       viewData['rejectedBy']
                           .toString()
-                          .contains(appState.userInfo!.username!)) &&
+                          .contains(appState.userInfo?.username ?? '')) &&
                   wallet.isApprover) ...[
                 SizedBox(
                   height: height / 20,
@@ -228,7 +229,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     validator: validatePassword,
                     onChanged: (value) {
                       setState(() {
-                        password = value!.trim().replaceAll(' ', '');
+                        password = value?.trim().replaceAll(' ', '') ?? "";
                       });
                     },
                   ),
@@ -391,10 +392,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
       case 'PENDING':
         return (viewData['approvedBy']
                     .toString()
-                    .contains(appState.userInfo!.username!) ||
+                    .contains(appState.userInfo?.username ?? "") ||
                 viewData['rejectedBy']
                     .toString()
-                    .contains(appState.userInfo!.username!))
+                    .contains(appState.userInfo?.username ?? ""))
             ? "youhavealreadysigned".tr()
             : "yourapprovalisrequested".tr();
       case 'REJECTED':
@@ -411,7 +412,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
       return;
     }
 
-    if (password == appState.password!) {
+    if (password == appState.password) {
       if (!approve) {
         sendRejectToServer();
         return;
@@ -445,9 +446,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return "enteryourpassword".tr();
+    if (value != null && value.isEmpty) return "enteryourpassword".tr();
 
-    if (value.length < 6) return "hinterrorpassword".tr();
+    if (value!.length < 6) return "hinterrorpassword".tr();
 
     return null;
   }
@@ -465,9 +466,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: appState.primaryWallet.signer!,
+        signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        publicKey: appState.primaryWallet.signer ?? "",
       );
       print('responseData: ${responseData}');
 
@@ -506,16 +507,16 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: appState.primaryWallet.signer!,
+        signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        publicKey: appState.primaryWallet.signer ?? "",
       );
 
       print('responseData: ${responseData}');
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         appState.getApprovals();
-        appState.viewData![SuccessViewPageConfig.key] = {
+        appState.viewData?[SuccessViewPageConfig.key] = {
           'title': "transactionapprovalsubmitted".tr(),
           'message': "transactionapprovalsubmitted2".tr(),
           'useOnDone': true,
@@ -553,16 +554,16 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makeDeleteRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: appState.primaryWallet.signer!,
+        signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        publicKey: appState.primaryWallet.signer ?? "",
       );
       print('responseData: ${responseData}');
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         appState.getApprovals();
-        appState.viewData![SuccessViewPageConfig.key] = {
+        appState.viewData?[SuccessViewPageConfig.key] = {
           'title': "rejectionsubmitted".tr(),
           'message': "rejectionsubmitted2".tr(),
           'useOnDone': true,
@@ -588,10 +589,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
   Future<void> updateUserInfo() async {
     Map responseData = await makeGetRequest(
       uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: appState.primaryWallet.signer!,
+          '/v1/users/${appState.userInfo?.username?.trim().replaceAll(' ', '')}',
+      signer: appState.primaryWallet.signer ?? "",
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: wallet.publicKey!,
+      publicKey: wallet.publicKey ?? "",
     );
 
     print('secretkey: ${appState.secretKeys[0]}');
