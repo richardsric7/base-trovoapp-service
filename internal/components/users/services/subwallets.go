@@ -506,11 +506,11 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 					},
 					SourceAccount: subWalletInfo.PublicKey,
 				})
-				//prevent any future changes to the auth flag of the wallet.
-				ops = append(ops, &txnbuild.SetOptions{
-					SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
-					SourceAccount: subWalletInfo.PublicKey,
-				})
+				// //prevent any future changes to the auth flag of the wallet.
+				// ops = append(ops, &txnbuild.SetOptions{
+				// 	SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
+				// 	SourceAccount: subWalletInfo.PublicKey,
+				// })
 			} else {
 				subWalletInfo.SubWalletMustSign = 0
 			}
