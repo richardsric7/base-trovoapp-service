@@ -248,6 +248,28 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 	return
 }
 
+// GetFeeReadyTokenizedAssetApplicationByInitiatorUsername get the tokenization that has status 1 and initiated by the initiator username
+func GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
+	// var ta userModels.TokenizedAsset
+	err = db.Preload(clause.Associations).Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			NotFound = true
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
+
 // GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
 func GetOpenTokenizedAssetByInitiatorUsernameAndID(initiatorUsername, tokenizedAssetID string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
@@ -1150,8 +1172,8 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 
 }
 
-// ConfirmTokenizationAssetInfoByInititator used by original owner/initiator to advance status to 1 and allow for vetting.
-func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokenizationID string, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+// ConfirmTokenizationApplicationInfoByInitiator used by original owner/initiator to advance status to 1 and allow for vetting.
+func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, tokenizationID string, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 	taInput.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	taInput.Messages = make([]string, 0)
 	//check if existing
@@ -1161,7 +1183,7 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 		//tokenization existing
 		if ato.AssetTokenizationStatus > 0 {
 			// error tokenization is already in progress
-			log.Printf("[ConfirmTokenizationAssetInfoByInititator] Error tokenization procesing is in progress and cannot be modified: %v\n", tokenizationID)
+			log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Error tokenization procesing is in progress and cannot be modified: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is already in progress, this action cannot be performed."}
 			return
 
@@ -1178,13 +1200,13 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[ConfirmTokenizationAssetInfoByInititator]error fetching existing tokenization from database ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
+			log.Printf("[ConfirmTokenizationApplicationInfoByInitiator]error fetching existing tokenization from database ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
 		}
 
-		log.Printf("[ConfirmTokenizationAssetInfoByInititator] Tokenization does not exist: %v\n", tokenizationID)
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Tokenization does not exist: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
 		return
 
@@ -1204,7 +1226,7 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 
 	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -1213,7 +1235,7 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 	//check for blockchain action
 	wallet, e := userModels.WalletAlias(initiator.Username).GetWallet(dbTX, gc)
 	if e != nil {
-		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error getting primary wallet from database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error getting primary wallet from database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -1223,7 +1245,7 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 
 	xdrBase64, e := generateTokenizationFeeXdr(&wallet, &ato, taInput, gc)
 	if e != nil {
-		log.Printf("[ConfirmTokenizationAssetInfoByInititator] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -1251,17 +1273,17 @@ func ConfirmTokenizationAssetInfoByInititator(initiator *userModels.User, tokeni
 	return ato, err
 }
 
-// ConfirmTokenizationAssetPaymentInfo is used to confirm payment by initiator. After successful call, it moves the tokenized asset status to trovo manager awaiting payment acknowledgement.
-func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+// ConfirmTokenizationFeePaymentByInitiator is used to confirm payment by initiator. After successful call, it moves the tokenized asset status to trovo manager awaiting payment acknowledgement.
+func ConfirmTokenizationFeePaymentByInitiator(initiator *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
+	ato, NotFound, e := GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(initiator.Username, gc.DB)
 
 	if e == nil {
 		//tokenization existing
 		if ato.AssetTokenizationStatus != 1 {
 			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization process not awaiting payment and cannot be modified: %v\n", tokenizationID)
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator] Error tokenization process not awaiting payment and cannot be modified: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization is not awaiting payment, this action cannot be performed."}
 			return
 
@@ -1283,25 +1305,21 @@ func ConfirmTokenizationAssetPaymentInfo(initiator *userModels.User, tokenizatio
 	} else {
 		if !NotFound {
 			//critical database error occured
-			log.Printf("[ConfirmTokenizationAssetPaymentInfo]error fetching existing tokenization from database  ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator]error fetching existing tokenization from database  ID [%v] for %v: %v\n", tokenizationID, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
 			return
 
 		}
 
-		log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization does not exist: %v\n", tokenizationID)
+		log.Printf("[ConfirmTokenizationFeePaymentByInitiator] Tokenization does not exist: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-not-found", ErrMessage: "Only existing valid tokenization requests can be confirmed."}
 		return
 
 	}
-	// if ato.TokenizationTransaction == nil {
-	// 	log.Printf("[ConfirmTokenizationAssetPaymentInfo] Tokenization transaction does not exist: %v\n", issuingWallet.ID)
-	// 	err = &tErrors.CustomError{Param: "Id", Err: "error-tokenization-transaction-found", ErrMessage: "Transaction could not be generated. Please ensure all mandatory fields are supplied and try again."}
-	// 	return
-	// }
+
 	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[ConfirmTokenizationAssetPaymentInfo] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationFeePaymentByInitiator] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
