@@ -2000,10 +2000,11 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 			})
 			// allow trust from issuer to distribution wallet
 			ops = append(ops, &txnbuild.SetTrustLineFlags{
-				Trustor:       wallet.ID,
-				Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
-				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
-				SourceAccount: swapInfo.DestinationAssetIssuer,
+				Trustor:  wallet.ID,
+				Asset:    txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+				SetFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+				// SourceAccount: swapInfo.DestinationAssetIssuer,
+				SourceAccount: wallet.ID,
 			})
 
 		}
@@ -2528,15 +2529,15 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	ops = append(ops, &txnbuild.SetTrustLineFlags{
 		Trustor:       distributionWallet.ID,
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineFlag(txnbuild.TrustLineAuthorized), txnbuild.TrustLineFlag(txnbuild.TrustLineClawbackEnabled), txnbuild.TrustLineFlag(txnbuild.AuthRevocable)},
-		SourceAccount: *t.IssuingWalletPublicKey,
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+		SourceAccount: distributionWallet.ID,
 	})
 	// allow trust from issuer to fee wallet
 	ops = append(ops, &txnbuild.SetTrustLineFlags{
 		Trustor:       feeWallet.Address(),
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineFlag(txnbuild.TrustLineAuthorized), txnbuild.TrustLineFlag(txnbuild.TrustLineClawbackEnabled), txnbuild.TrustLineFlag(txnbuild.AuthRevocable)},
-		SourceAccount: *t.IssuingWalletPublicKey,
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+		SourceAccount: feeWallet.Address(),
 	})
 
 	//mint the token to distribution wallet
