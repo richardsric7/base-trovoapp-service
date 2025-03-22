@@ -395,11 +395,11 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthRequired, txnbuild.AuthClawbackEnabled, txnbuild.AuthRevocable},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
-			//prevent any future changes to the auth flag of the wallet.
-			ops = append(ops, &txnbuild.SetOptions{
-				SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
-				SourceAccount: subWalletInfo.PublicKey,
-			})
+			// //prevent any future changes to the auth flag of the wallet.
+			// ops = append(ops, &txnbuild.SetOptions{
+			// 	SetFlags:      []txnbuild.AccountFlag{txnbuild.AuthImmutable},
+			// 	SourceAccount: subWalletInfo.PublicKey,
+			// })
 		}
 		//make it custodial
 		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
