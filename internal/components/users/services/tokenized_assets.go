@@ -2344,7 +2344,7 @@ func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.
 
 func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
 	client := gc.BantuExpansionClient
-	feeWallet := keypair.MustParse(os.Getenv("TOKENIZATION_FEE_WALLET"))
+	feeWallet := keypair.MustParseFull(os.Getenv("TOKENIZATION_FEE_WALLET"))
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
 	var permInfo []userModels.WalletPermissionInfo
@@ -2615,10 +2615,10 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		return "", transactionSource, messages, issuingWallet, err
 	}
 
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount, feeWallet)
 
 	if err != nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount key ", err)
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount & fee wallet key ", err)
 		return "", transactionSource, messages, issuingWallet, &tErrors.ErrorTemporaryServerError{}
 	}
 	var xdrBase64 string
