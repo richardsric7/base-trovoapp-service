@@ -34,6 +34,7 @@ type GlobalConfig struct {
 	ChannelAccounts           chan *keypair.Full
 	InUseChannelAccounts      map[string]*keypair.Full
 	Mutex                     sync.Mutex
+	ChannelOfTokenizedAssetIDs  chan string
 }
 
 type ClientUploader struct {

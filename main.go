@@ -433,7 +433,7 @@ func main() {
 				}
 				globalConfig.ChannelAccounts <- k
 				if len(ops) == 0 {
-					log.Println("NO OPeRATIONS for this wallet", k.Address())
+					log.Println("NO OPERATIONS for this wallet", k.Address())
 					continue
 				}
 				tx, err := txnbuild.NewTransaction(
@@ -778,6 +778,17 @@ func main() {
 			for {
 
 				userServices.ActivateSalesRoutine(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
+	{
+		//Start processing Sale Notification for Interests
+		go func() {
+			for {
+
+				userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
 				time.Sleep(5 * time.Second)
 			}
 		}()

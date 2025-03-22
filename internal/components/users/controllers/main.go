@@ -4868,21 +4868,21 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			// //get the wallet you are sending payment from
-			// subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			// if getWalletError != nil {
+			if getWalletError != nil {
 
-			// 	var ex tErrors.GenericError
-			// 	var ok bool
+				var ex tErrors.GenericError
+				var ok bool
 
-			// 	ex, ok = getWalletError.(tErrors.GenericError)
-			// 	if ok {
-			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
-			// 	} else {
-			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-			// 	}
-			// 	return
-			// }
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
 
 			// if temp {
 			// 	errAccountIsTemp := &tErrors.CustomError{
@@ -4945,7 +4945,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "expressionOfInterest"
-				user.SendPushMessage(fmt.Sprintf("You have successfully expressed interest on %v", tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully expressed interest to purchase %v %v on the wallet with alias [%v].", interest.Amount, tokenizedAsset.AssetCode, user.Username), "", dataPayload, gc)
+				user.SendPushMessage(fmt.Sprintf("You have successfully expressed interest on %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully expressed interest to purchase %v %v on the wallet with alias [%v].", interest.Amount, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
 			}
 
 		})
@@ -5055,7 +5055,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "assetSubscription"
-				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v on the wallet with alias [%v].", sub.Amount, tokenizedAsset.AssetCode, user.Username), "", dataPayload, gc)
+				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
 			}
 			user.InvalidateUserCache(gc)
 
