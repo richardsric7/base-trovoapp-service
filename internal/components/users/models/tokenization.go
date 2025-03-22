@@ -185,6 +185,7 @@ type TokenizedAsset struct {
 type TokenizedAssetID string
 
 type TokenizedAssetJSONInput struct {
+	ID                                          string       `json:"id,omitempty"`
 	AssetSector                                 string       `json:"assetSector"`
 	AssetSubSector                              string       `json:"assetSubSector"`
 	AssetType                                   string       `json:"assetType"`

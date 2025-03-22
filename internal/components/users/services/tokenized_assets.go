@@ -248,6 +248,28 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 	return
 }
 
+// GetOpenTokenizedAssetByInitiatorUsernameAndID get the tokenization that has status 0 or 1 initiated by the initiator username
+func GetOpenTokenizedAssetByInitiatorUsernameAndID(initiatorUsername, tokenizedAssetID string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
+	// var ta userModels.TokenizedAsset
+	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 2 AND initiator_username = ? AND id = ?", initiatorUsername, tokenizedAssetID).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			NotFound = true
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
+
 func UploadTokenizationDocument(user *userModels.User, file multipart.File, fileNameWithExt string, input *userModels.AssetTokenizationInputDocument, gc *sharedconfig.GlobalConfig) (string, error) {
 
 	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
@@ -498,44 +520,49 @@ func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint
 
 // SubmitTokenizationAssetInfoByInitiator for tokenization application request by initiator
 func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
-
+	var NotFound bool
 	// initialize message array
 	input.Messages = make([]string, 0)
 
 	//check if existing
-	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
-	// ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+	if len(input.ID) > 18 {
+		ato, NotFound, err = GetOpenTokenizedAssetByInitiatorUsernameAndID(initiator.Username, input.ID, gc.DB)
 
-	if e == nil {
-		//tokenization existing
-		if ato.AssetTokenizationStatus > 0 {
-			// error tokenization is already in progress
-			log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error tokenization procesing is in progress and cannot be modified: %v\n", ato.ID)
-			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization cannot be modified by this method."}
+		if err == nil {
+			//tokenization existing
+			if ato.AssetTokenizationStatus > 0 {
+				// error tokenization is already in progress
+				log.Printf("[SubmitTokenizationAssetInfoByInitiator] Error tokenization procesing is in progress and cannot be modified: %v\n", ato.ID)
+				err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization cannot be modified by this method."}
+				return
+
+			}
+			ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
+
+			ato.LastUpdatedBy = &initiator.Username
+
+		} else {
+			if !NotFound {
+				//critical database error occured
+				log.Printf("[SubmitTokenizationAssetInfoByInitiator]error fetching existing tokenization from database  [%v] for %v: %v\n", input, initiator.Username, err)
+				err = &tErrors.ErrorTemporaryServerError{}
+				return
+
+			}
 			return
 
 		}
-		ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
-
-		ato.LastUpdatedBy = &initiator.Username
 
 	} else {
-		if !NotFound {
-			//critical database error occured
-			log.Printf("[SubmitTokenizationAssetInfoByInitiator]error fetching existing tokenization from database  [%v] for %v: %v\n", input, initiator.Username, e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-
-		}
-
 		//create new tokenization
 		ato = userModels.TokenizedAsset{
 			ID:                uuid.NewString(),
 			InitiatorUsername: initiator.Username,
 		}
 		ato = UpdateTokenizedAssetFromInput(&ato, input, gc)
-
 	}
+
+	// ato, NotFound, err := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
 
 	if ato.AssetCountryLocation == nil {
 		log.Println("[SubmitTokenizationAssetInfoByInitiator]error Localtion/country not provided")
@@ -549,7 +576,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		return
 	}
 
-	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
