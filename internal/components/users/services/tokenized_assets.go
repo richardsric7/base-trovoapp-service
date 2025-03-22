@@ -1135,40 +1135,37 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 	var ei []userModels.ExpressionOfInterest
 	log.Println("[SendPNToSuscribersForPrimarySales]()()()()()()()()()()()()()Starting push notification for asset:", *t.AssetCode)
 
-	for {
-
-		e := gc.DB.Where("Tokenized_Asset_ID = ?", t.ID).First(&userModels.ExpressionOfInterest{}).Error
-		if e != nil {
-			break
-		}
-
-		result := gc.DB.Where("Tokenized_Asset_ID = ?", t.ID).FindInBatches(&ei, batchSize, func(tx *gorm.DB, batch int) error {
-			for _, ex := range ei {
-
-				u, err := userModels.Username(ex.SubscriberUsername).GetSimpleUser(gc.DB, gc)
-				if err != nil {
-					continue
-				}
-				if u.PushNotificationToken != nil {
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "assetSubscription"
-					u.SendPushMessage(fmt.Sprintf("The asset %v is now live on sale!", *t.AssetCode), fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v)", *t.AssetCode, *t.AssetName), *t.AssetLogo, dataPayload, gc)
-				}
-
-			}
-
-			return nil
-		})
-		if result.Error != nil {
-			if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				log.Println("[SendPNToSuscribersForPrimarySales]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
-
-			}
-
-		}
-
-		time.Sleep(5 * time.Minute)
+	e := gc.DB.Where("Tokenized_Asset_ID = ?", t.ID).First(&userModels.ExpressionOfInterest{}).Error
+	if e != nil {
+		return
 	}
+
+	result := gc.DB.Where("Tokenized_Asset_ID = ?", t.ID).FindInBatches(&ei, batchSize, func(tx *gorm.DB, batch int) error {
+		for _, ex := range ei {
+
+			u, err := userModels.Username(ex.SubscriberUsername).GetSimpleUser(gc.DB, gc)
+			if err != nil {
+				continue
+			}
+			if u.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "assetSubscription"
+				u.SendPushMessage(fmt.Sprintf("The asset %v is now live on sale!", *t.AssetCode), fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v)", *t.AssetCode, *t.AssetName), *t.AssetLogo, dataPayload, gc)
+			}
+
+		}
+
+		return nil
+	})
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Println("[SendPNToSuscribersForPrimarySales]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+
+		}
+
+	}
+
+	time.Sleep(5 * time.Minute)
 
 }
 
