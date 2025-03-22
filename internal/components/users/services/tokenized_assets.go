@@ -2052,7 +2052,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 			ops = append(ops, &txnbuild.SetTrustLineFlags{
 				Trustor:       wallet.ID,
 				Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
-				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.TrustLineClawbackEnabled},
+				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
 				SourceAccount: swapInfo.DestinationAssetIssuer,
 			})
 
