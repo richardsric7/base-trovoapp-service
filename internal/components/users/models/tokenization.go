@@ -868,7 +868,7 @@ func (t *TokenizedAsset) UpdateBank(gc *sharedconfig.GlobalConfig) (bank Bank) {
 
 func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
 	titleCaser := cases.Title(language.English)
-
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
 	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
@@ -906,8 +906,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.MintingApprovers) > 0 {
-		ti.MintingApprovers = strings.ReplaceAll(ti.MintingApprovers, " ", "")
-		t.MintingApprovers = &ti.MintingApprovers
+		trimmed := replacer.Replace(ti.MintingApprovers)
+		ti.MintingApprovers = trimmed
+		t.MintingApprovers = &trimmed
 	} else {
 		//set default
 		csvStr := t.GetMintingApproversInCSV(gc)
@@ -915,8 +916,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	if len(ti.MintingInitators) > 0 {
-		ti.MintingInitators = strings.ReplaceAll(ti.MintingInitators, " ", "")
-		t.MintingInitators = &ti.MintingInitators
+		trimmed := replacer.Replace(ti.MintingInitators)
+		ti.MintingInitators = trimmed
+		t.MintingInitators = &trimmed
 	} else {
 		//set default
 		csvStr := t.GetMintingInitiatorsInCSV(gc)
@@ -1330,9 +1332,10 @@ func (ti *TokenizedAsset) GetMintingInitiators(gc *sharedconfig.GlobalConfig) (u
 
 func (ti *TokenizedAsset) GetMintingInitiatorsInCSV(gc *sharedconfig.GlobalConfig) (csvStr string) {
 	us := make([]TokenizationMintingInitiator, 0)
-
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	gc.DB.Find(&us)
-	csvStr = TokenizationMintingInitiators(us).ToCSV()
+	trimmed := replacer.Replace(TokenizationMintingInitiators(us).ToCSV())
+	csvStr = trimmed
 	return
 }
 
@@ -1346,15 +1349,16 @@ func (ti *TokenizedAsset) GetMintingApprovers(gc *sharedconfig.GlobalConfig) (us
 
 func (ti *TokenizedAsset) GetMintingApproversInCSV(gc *sharedconfig.GlobalConfig) (csvStr string) {
 	us := make([]TokenizationMintingApprover, 0)
-
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	gc.DB.Find(&us)
-	csvStr = TokenizationMintingApprovers(us).ToCSV()
+	trimmed := replacer.Replace(TokenizationMintingApprovers(us).ToCSV())
+	csvStr = trimmed
 	return
 }
 
 func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAssetJSON) {
 	titleCaser := cases.Title(language.English)
-
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	t.ID = ti.ID
 	t.CreatedAt = ti.CreatedAt
 	t.UpdatedAt = ti.UpdatedAt
@@ -1401,8 +1405,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 
 	if ti.MintingApprovers != nil {
-
-		t.MintingApprovers = *ti.MintingApprovers
+		trimmed := replacer.Replace(*ti.MintingApprovers)
+		t.MintingApprovers = trimmed
 	} else {
 		//get default minting approvers.
 		t.MintingApprovers = ti.GetMintingApproversInCSV(gc)
@@ -1410,7 +1414,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 
 	if ti.MintingInitators != nil {
 
-		t.MintingInitators = *ti.MintingApprovers
+		trimmed := replacer.Replace(*ti.MintingInitators)
+		t.MintingInitators = trimmed
 	} else {
 		//get default minting approvers.
 		t.MintingInitators = ti.GetMintingInitiatorsInCSV(gc)
