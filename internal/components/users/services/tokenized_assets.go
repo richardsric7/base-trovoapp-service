@@ -1024,7 +1024,7 @@ func UpdateTokenizedAssetSalesDates(tokenizationID string, trovoManagerUser *use
 
 	}
 
-	if ato.SalesStart.Compare(ato.SalesEnd) == 0 || ato.SalesStart.Compare(ato.SalesEnd) == -1 {
+	if ato.SalesStart.Compare(ato.SalesEnd) == 0 || ato.SalesStart.Compare(ato.SalesEnd) == +1 {
 		log.Printf("[UpdateTokenizedAssetSalesDates] Error invalid sales start/end date %v. [%v]\n", dateInput.SalesStart, dateInput.SalesEnd)
 		err = &tErrors.CustomError{Param: "salesEnd", Err: "error-invalid-date-order", ErrMessage: "Dates for sales start/end are not logical. End date must be set to be ahead of Start date."}
 		return
