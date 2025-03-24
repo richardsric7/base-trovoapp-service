@@ -2429,6 +2429,8 @@ func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.
 }
 
 func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
+
 	client := gc.BantuExpansionClient
 	feeWallet := keypair.MustParseFull(os.Getenv("TOKENIZATION_FEE_WALLET"))
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
@@ -2477,6 +2479,11 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		u := t.GetMintingInitiatorsInCSV(gc)
 		t.MintingInitators = &u
 	}
+	trimmedApprovers := replacer.Replace(*t.MintingApprovers)
+	t.MintingApprovers = &trimmedApprovers
+
+	trimmedInitiators := replacer.Replace(*t.MintingInitators)
+	t.MintingInitators = &trimmedInitiators
 	var aps []string
 	var inits []string
 	aps = strings.Split(*t.MintingApprovers, ",")
