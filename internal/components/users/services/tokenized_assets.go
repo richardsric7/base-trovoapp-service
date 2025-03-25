@@ -1960,6 +1960,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		}
 		input.TransactionID = txnHash
 		taSubscription.TransactionID = txnHash
+		dbTX.Omit(clause.Associations).Save(&taSubscription)
 		dbTX.Commit()
 		subscriberWallet.InvalidateUserCache(gc)
 		return
