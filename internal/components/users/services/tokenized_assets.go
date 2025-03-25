@@ -1857,8 +1857,8 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	if walletOwner.KYCVerified == 0 {
 
-		log.Printf("[SubscribeToTokenizedAsset] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, ta.AssetCode)
-		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to purchase this tokenized asset %v.", walletOwner.Username, ta.AssetCode)}
+		log.Printf("[SubscribeToTokenizedAsset] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, *ta.AssetCode)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to purchase this tokenized asset %v.", walletOwner.Username, *ta.AssetCode)}
 		return
 
 	}
@@ -1970,7 +1970,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 		id := uuid.NewString()
 
-		description := fmt.Sprintf("Buying Tokenized asset [%v]\n Amount:%v,\n Getting Apprx:%v %v", *ta.AssetName, fmt.Sprintf("%v %v", input.Amount, *ta.AssetQuoteCurrency), input.SwappedEstimate, ta.AssetCode)
+		description := fmt.Sprintf("Buying Tokenized asset [%v]\n Amount:%v,\n Getting Apprx:%v %v", *ta.AssetName, fmt.Sprintf("%v %v", input.Amount, *ta.AssetQuoteCurrency), input.SwappedEstimate, *ta.AssetCode)
 		if len(swapInfo.Memo) > 0 {
 			description = fmt.Sprintf("%v\nMemo: %v", description, input.Memo)
 
