@@ -122,7 +122,7 @@ type TokenizedAsset struct {
 	PricePerToken                               float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                  time.Time                       `json:"salesStart"`
 	SalesEnd                                    time.Time                       `json:"salesEnd"`
-	CapOnPurchase                               float64                         `gorm:"default:0" json:"capOnPurchase"`
+	CapOnPurchase                               int                             `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64                         `gorm:"default:0" json:"capQuantity"`
 	CapDurationInDays                           int                             `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                *string                         `gorm:"size:50" json:"proceedCycle"`
@@ -228,7 +228,7 @@ type TokenizedAssetJSONInput struct {
 	PricePerToken                               float64      `json:"pricePerToken"`
 	SalesStart                                  time.Time    `json:"salesStart"`
 	SalesEnd                                    time.Time    `json:"salesEnd"`
-	CapOnPurchase                               float64      `gorm:"default:0" json:"capOnPurchase"`
+	CapOnPurchase                               int          `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64      `gorm:"default:0" json:"capQuantity"`
 	CapDurationInDays                           int          `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                string       `gorm:"size:50" json:"proceedCycle"`
@@ -356,7 +356,7 @@ type TokenizedAssetJSON struct {
 	PricePerToken                               float64                         `json:"pricePerToken"`
 	SalesStart                                  time.Time                       `json:"salesStart"`
 	SalesEnd                                    time.Time                       `json:"salesEnd"`
-	CapOnPurchase                               float64                         `gorm:"default:0" json:"capOnPurchase"`
+	CapOnPurchase                               int                             `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64                         `gorm:"default:0" json:"capQuantity"`
 	CapDurationInDays                           int                             `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                string                          `gorm:"size:50" json:"proceedCycle"`
