@@ -1149,6 +1149,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.CapOnPurchase = ti.CapOnPurchase
 	t.CapQuantity = ti.CapQuantity
 	t.CapDurationInDays = ti.CapDurationInDays
+	t.CapAmountInFiat = ti.CapAmountInFiat
 	if ti.CapOnPurchase == 1 && t.PricePerToken > 0 && ti.CapAmountInFiat > 0 {
 		t.CapQuantity = decimal.NewFromFloat(ti.CapAmountInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
