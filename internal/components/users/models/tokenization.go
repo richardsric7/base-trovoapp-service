@@ -124,6 +124,7 @@ type TokenizedAsset struct {
 	SalesEnd                                    time.Time                       `json:"salesEnd"`
 	CapOnPurchase                               int                             `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64                         `gorm:"default:0" json:"capQuantity"`
+	CapAmountInFiat                             float64                         `gorm:"default:0" json:"capAmountInFiat"`
 	CapDurationInDays                           int                             `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                *string                         `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
@@ -230,6 +231,7 @@ type TokenizedAssetJSONInput struct {
 	SalesEnd                                    time.Time    `json:"salesEnd"`
 	CapOnPurchase                               int          `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64      `gorm:"default:0" json:"capQuantity"`
+	CapAmountInFiat                             float64      `gorm:"default:0" json:"capAmountInFiat"`
 	CapDurationInDays                           int          `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                string       `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           uint64       `json:"tokenizationFeeId"`
@@ -358,6 +360,7 @@ type TokenizedAssetJSON struct {
 	SalesEnd                                    time.Time                       `json:"salesEnd"`
 	CapOnPurchase                               int                             `gorm:"default:0" json:"capOnPurchase"`
 	CapQuantity                                 float64                         `gorm:"default:0" json:"capQuantity"`
+	CapAmountInFiat                             float64                         `gorm:"default:0" json:"capAmountInFiat"`
 	CapDurationInDays                           int                             `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                                string                          `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                           uint64                          `json:"tokenizationFeeId"`
@@ -1146,6 +1149,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.CapOnPurchase = ti.CapOnPurchase
 	t.CapQuantity = ti.CapQuantity
 	t.CapDurationInDays = ti.CapDurationInDays
+	if ti.CapOnPurchase == 1 && t.PricePerToken > 0 && ti.CapAmountInFiat > 0 {
+		t.CapQuantity = decimal.NewFromFloat(ti.CapAmountInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
+	}
 
 	if len(ti.ProceedCycle) > 0 {
 
@@ -1544,6 +1550,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.CapOnPurchase = ti.CapOnPurchase
 	t.CapQuantity = ti.CapQuantity
 	t.CapDurationInDays = ti.CapDurationInDays
+	t.CapAmountInFiat = ti.CapAmountInFiat
 
 	if ti.ProceedCycle != nil {
 		t.ProceedCycle = *ti.ProceedCycle
