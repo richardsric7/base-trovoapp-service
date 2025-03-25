@@ -633,6 +633,7 @@ type TokenizedAssetSubscription struct {
 	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
 	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
+	TransactionID      string         `json:"transactionId"`
 }
 type ExpressionOfInterest struct {
 	ID                 uint64         `gorm:"" json:"-" form:"-"`
