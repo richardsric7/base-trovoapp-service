@@ -1969,6 +1969,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	//multi Party
 	if input.Multiparty == 1 {
 		input.TransactionID = "PENDING_AUTH"
+		taSubscription.TransactionID = "PENDING_AUTH"
 
 		id := uuid.NewString()
 
