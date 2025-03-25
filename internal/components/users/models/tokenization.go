@@ -1328,6 +1328,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 	}
 
+	if t.CapOnPurchase == 1 && t.PricePerToken > 0 && t.CapAmountInFiat > 0 {
+		t.CapQuantity = decimal.NewFromFloat(t.CapAmountInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
+	}
 }
 
 func (ti *TokenizedAsset) GetMintingInitiators(gc *sharedconfig.GlobalConfig) (us []TokenizationMintingInitiator) {
