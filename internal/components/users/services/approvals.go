@@ -935,7 +935,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			var taSubscription userModels.TokenizedAssetSubscription
 			taSubscription.UpdateTokenizedAssetSubscriptionFromInput(subscriber.Username, &subscriberWallet, &assetSubscription, &ta, gc)
-
+			taSubscription.TransactionID = txnResult.Hash
 			e = dbTX.Omit(clause.Associations).Save(&taSubscription).Error
 			if e != nil {
 				log.Println("[ApproveTransaction] Error creating asset subscription record:", e)
