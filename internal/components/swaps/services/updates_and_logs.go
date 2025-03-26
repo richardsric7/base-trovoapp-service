@@ -5,14 +5,15 @@ import (
 	userModels "trovo-wallet-api/internal/components/users/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-//UpdateAndLogUserSwapGeoInformation logs payment information and updates user location inforamtion
+// UpdateAndLogUserSwapGeoInformation logs payment information and updates user location inforamtion
 func UpdateAndLogUserSwapGeoInformation(userInfo *userModels.User, swapInfo *swapModels.SwapSendInfo, db *gorm.DB) {
 
 	// updatedUser:= &userInfo -m''
 	userInfo.AppendGeoInfo()
-	db.Save(userInfo)
+	db.Omit(clause.Associations).Save(userInfo)
 	swapLog := swapModels.PaymentLog{
 		TrasanctionType:        1,
 		Sender:                 userInfo.Username,

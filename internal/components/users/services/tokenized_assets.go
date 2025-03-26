@@ -307,7 +307,7 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	if e == nil {
 		//existing record match, update
 		documentUpload.DocumentUrl = url
-		es := gc.DB.Save(&documentUpload).Error
+		es := gc.DB.Omit(clause.Associations).Save(&documentUpload).Error
 		if es != nil {
 
 			log.Printf("[UploadTokenizationDocument]error saving existing document in database  [%v] for %v: %v\n", input, user.Username, e)
@@ -488,7 +488,7 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 		return document, err
 	}
 
-	e := gc.DB.Delete(&document).Error
+	e := gc.DB.Omit(clause.Associations).Delete(&document).Error
 	if e != nil {
 		log.Printf("[UploadTokenizationDocument]error deleting existing document in database  [%v] for %v: %v\n", document, user.Username, e)
 		return document, fmt.Errorf("error deleting document %v", document.DocumentTitle)
@@ -521,7 +521,7 @@ func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint
 		return document, err
 	}
 
-	e := gc.DB.Delete(&document).Error
+	e := gc.DB.Omit(clause.Associations).Delete(&document).Error
 	if e != nil {
 		log.Printf("[DeleteTokenizationFeePaymentDocument]error deleting existing document in database  [%v] for %v: %v\n", document, user.Username, e)
 		return document, fmt.Errorf("error deleting document with ID %v", documentID)
@@ -2838,7 +2838,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		if ato.IssuingWalletPublicKey == nil {
 			log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
 			ato.AssetTokenizationStatus = 2
-			gc.DB.Save(&ato)
+			gc.DB.Omit(clause.Associations).Save(&ato)
 			err = &tErrors.CustomError{
 				Param:      "publicKey",
 				Err:        "error-no-issuing-wallet",

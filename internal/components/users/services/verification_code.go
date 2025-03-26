@@ -367,7 +367,7 @@ func RemoveAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string
 	}
 
 	//verification code matches
-	db.Delete(&userVerification)
+	db.Omit(clause.Associations).Delete(&userVerification)
 
 	return nil
 

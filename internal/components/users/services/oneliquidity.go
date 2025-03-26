@@ -21,6 +21,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func GetCryptoDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []userModels.CryptoWalletDepositAddress) {
@@ -487,7 +488,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	}
 	wdlItem.TrovoWalletPublicKey = wallet.ID
 	wdlItem.Fees = wdlInput.WithdrawalServiceFee
-	e = gc.DB.Save(&wdlItem).Error
+	e = gc.DB.Omit(clause.Associations).Save(&wdlItem).Error
 	if e != nil {
 		err = &tErrors.CustomError{
 			Param:      "withdrwalID",

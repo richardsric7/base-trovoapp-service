@@ -25,6 +25,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm/clause"
 
 	"github.com/gin-gonic/gin"
 )
@@ -403,7 +404,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//exists and needs to be updated
 		loginSession.Authorized = 1
 
-		err = gc.DB.Save(&loginSession).Error
+		err = gc.DB.Omit(clause.Associations).Save(&loginSession).Error
 		if err != nil {
 			//could not save login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -1084,7 +1085,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//exists and needs to be updated
 		authData.Authorized = 1
 
-		err = gc.DB.Save(&authData).Error
+		err = gc.DB.Omit(clause.Associations).Save(&authData).Error
 		if err != nil {
 			//could not save authData
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}

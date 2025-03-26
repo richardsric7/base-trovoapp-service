@@ -111,7 +111,7 @@ func UploadClosedGroupRegistrationDocument(groupOwner *userModels.User, file mul
 	if len(closedGroup.RegistrationDocumentUrl) > 0 {
 		//existing record match, update
 		closedGroup.RegistrationDocumentUrl = url
-		es := gc.DB.Save(closedGroup).Error
+		es := gc.DB.Omit(clause.Associations).Save(closedGroup).Error
 		if es != nil {
 
 			log.Printf("[UploadClosedGroupRegistrationDocument]error saving existing document in database  [%v] for %v: %v\n", closedGroup, groupOwner.Username, es)
