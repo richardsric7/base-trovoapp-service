@@ -2112,7 +2112,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		DestinationAssets: destAsset,
 		SourceAssetCode:   swapInfo.SourceAssetCode,
 		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
-		SourceAmount:      amountToSwap.Truncate(2).String(),
+		SourceAmount:      swapInfo.SwapAmount,
 	}
 	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
 	if err != nil {
