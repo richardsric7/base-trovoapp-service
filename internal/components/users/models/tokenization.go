@@ -10,6 +10,7 @@ import (
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -1672,6 +1673,7 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	if ta.AssetTokenizationStatus < 4 {
 		return
 	}
+	tas.ID = uuid.NewString()
 	tas.TokenizedAssetID = ta.ID
 	tas.AssetCode = *ta.AssetCode
 	tas.AssetIssuer = *ta.IssuingWalletPublicKey
