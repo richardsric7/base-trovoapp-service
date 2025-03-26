@@ -1071,9 +1071,9 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 	{
 		//start primnary sales
 
-		e := gc.DB.Where("Sales_Start::date = now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
+		e := gc.DB.Where("Sales_Start::date =< now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
-			result := gc.DB.Where("Sales_Start::date = now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+			result := gc.DB.Where("Sales_Start::date =< now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, asset := range assets {
 
 					//check if it has been minted.
