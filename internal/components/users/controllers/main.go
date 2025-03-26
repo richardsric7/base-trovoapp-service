@@ -5055,7 +5055,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "assetSubscription"
-				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
 			}
 			user.InvalidateUserCache(gc)
 
