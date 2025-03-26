@@ -1846,6 +1846,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	input.Amount = decimal.NewFromFloat(input.Amount).Truncate(2).InexactFloat64()
 	var swapInfo swapModels.SwapSendInfo
 	swapInfo.Messages = make([]string, 0)
+	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
 	// get wallet owner
 	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
 	if e != nil {
@@ -1898,7 +1899,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
 	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
-	// swapInfo.SwapAmount = swapAmount.String()
+	swapInfo.SwapAmount = swapInfo.SourceAmount
 
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
