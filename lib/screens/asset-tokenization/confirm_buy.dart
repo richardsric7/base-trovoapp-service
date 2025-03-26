@@ -3,17 +3,23 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
@@ -32,7 +38,10 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
   late DataProvider appState;
   double amount = 0;
   double quantity = 0;
+  String password = '';
+  final formKey = GlobalKey<FormState>();
   late TokenizedAsset tokenizedAsset;
+  final Authenticator _authenticator = Authenticator();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -208,21 +217,62 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
             SizedBox(
               height: height / 30,
             ),
-            Button(
-              'Confirm Payment',
-              notifier.getbluecolor,
-              wihitecolor,
-              onTap: () async {
-                await buyTokenizedAsset();
-                appState.viewData = {
-                  'amount': amount,
-                  'quantity': quantity,
-                };
-                appState.currentAction = PageAction(
-                    state: PageState.replace,
-                    page: BuyTokensSuccessViewPageConfig);
-              },
+            SizedBox(height: 10),
+            Form(
+              key: formKey,
+              child: CustomPasswordFormField(
+                "password".tr(),
+                notifier.getbluewhitecolor,
+                Icons.lock,
+                notifier.getgrey,
+                notifier.getprefixicon,
+                notifier.getblck,
+                70.sp,
+                300.sp,
+                validator: (String? value) {
+                  if (value!.isEmpty) return 'Enter your password';
+
+                  if (value.length < 6)
+                    return 'Use 6 characters or more for your password';
+
+                  return null;
+                },
+                onChanged: (value) {
+                  setState(() {
+                    password = value!.trim().replaceAll(' ', '');
+                  });
+                },
+              ),
             ),
+            SizedBox(
+              height: height / 50,
+            ),
+            if (appState.biometricEnabled && password.isEmpty) ...[
+              Button(
+                "authorizewithbiometrics".tr(),
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: toggleSwitch,
+              ),
+            ] else ...[
+              Button(
+                "authorize".tr(),
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () {
+                  if (!formKey.currentState!.validate()) {
+                    return;
+                  }
+
+                  if (password == appState.password!) {
+                    buyTokenizedAsset();
+                  } else {
+                    popup(context,
+                        title: "oops".tr(), message: "invalidpassword".tr());
+                  }
+                },
+              ),
+            ],
             SizedBox(
               height: height / 10,
             ),
@@ -230,6 +280,24 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  void toggleSwitch() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        buyTokenizedAsset();
+        // aparently we need the code below to make the
+        // screen updata to show loader
+        // after authorizing with biometrics
+        setState(() {});
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
   }
 
   buyTokenizedAsset() async {
@@ -254,18 +322,16 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
 
       print('==============>response: $responseData');
       inspect(responseData);
+      hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
-        appState.viewData![SuccessViewPageConfig.key] = {
-          'title': 'Purchase Successful',
-          'message':
-              'Your purchase of [${tokenizedAsset.assetName} (${tokenizedAsset.assetCode})] tokens was successful.',
-        };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
-        hideLoader(context);
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        await postProcessData(
+            messageShown, messageLength, responseData['data']);
       } else {
-        hideLoader(context);
         popup(
           context,
           title: "error".tr(),
@@ -276,6 +342,92 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
       }
     } catch (e) {
       // print(e);
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  postProcessData(messageShown, messageLength, data) async {
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                postProcessData(messageShown, messageLength, data),
+              });
+
+      messageShown++;
+      return;
+    }
+
+    sendFullDataToServer(transactionData: data);
+  }
+
+  Future<void> sendFullDataToServer({required Map transactionData}) async {
+    try {
+      showLoader(context);
+      if (appState.activeWallet!.isSharedWalletAndCanInitiate) {
+        transactionData['commit'] = 1;
+      } else {
+        // sign transaction
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          transactionData['transaction'],
+          transactionData['networkPassPhrase'],
+        );
+        transactionData['transactionSignature'] = signature;
+      }
+      var requestBody = jsonEncode(transactionData);
+      print('requestBody  =======> $requestBody');
+
+      Map responseData = await makePostRequest(
+        uri: appState.activeWallet!.isSharedWallet
+            ? '/v1/shared-access/tokenization/subscriptions/${tokenizedAsset.id}'
+            : '/v1/tokenization/subscriptions/${tokenizedAsset.id}',
+        body: requestBody,
+        signer: appState.activeWallet!.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.activeWallet!.publicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData token information  ${responseData}');
+      inspect(responseData);
+
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
+        if (appState.activeWallet!.isSharedWallet) {
+          appState.viewData = {
+            SuccessViewPageConfig.key: {
+              'title': 'Purchase request submitted',
+              'message':
+                  'You have successfully requested to purchase $amount ${tokenizedAsset.assetCode.toString()} with wallet ${appState.activeWallet!.alias}. This transaction will be completed when it gets the required number of approvals from the authorized approvers.',
+              'useOnDone': true,
+              'onDone': () {
+                appState.currentAction = PageAction(
+                  state: PageState.replaceAll,
+                  page: BottomHomePageConfig,
+                );
+              },
+            }
+          };
+          appState.currentAction =
+              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        } else {
+          appState.viewData = responseData['data'];
+          appState.currentAction = PageAction(
+              state: PageState.replace, page: BuyTokensSuccessViewPageConfig);
+        }
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }

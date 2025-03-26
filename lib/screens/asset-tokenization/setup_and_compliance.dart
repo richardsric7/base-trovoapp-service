@@ -1015,7 +1015,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
-
+        await fetchBanksList();
         appState.currentAction = PageAction(
             state: PageState.addPage, page: TokenizeAssetViewPageConfig);
       } else {
@@ -1025,6 +1025,21 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  Future<void> fetchBanksList() async {
+    var uri = '/v1/banks/${selectedCountry}';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    inspect(responseData['data']);
+    if (responseData['statusCode'] == 200) {
+      appState.tokenizationData['banks'] = responseData['data'];
     }
   }
 

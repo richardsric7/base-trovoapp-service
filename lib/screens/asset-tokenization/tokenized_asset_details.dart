@@ -477,7 +477,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   label: 'Tokens for Sale',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                  extraValue: '\$0.12',
+                  extraValue: '',
                 ),
               ],
             ),
@@ -499,7 +499,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   label: 'Price Per Token',
                   value:
                       '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
-                  extraValue: '\$0.12',
+                  extraValue: '',
                 ),
               ],
             ),
@@ -512,7 +512,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   label: 'Total Quantity Held',
                   value:
                       '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                  extraValue: '\$0.12',
+                  extraValue: '',
                 ),
                 SizedBox(
                   width: width / 50,
@@ -569,39 +569,41 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Address',
               tokenizedAsset.assetPhysicalAddress ?? '',
             ),
-            if (tokenizedAsset.assetAlreadyExists == 1) ...[
-              infoTile(
-                notifier,
-                'Original Asset Owner',
-                tokenizedAsset.assetOwnerName ?? '',
-              ),
-            ] else ...[
-              infoTile(
-                notifier,
-                'Project Sponsor',
-                tokenizedAsset.assetOwnerName ?? '',
-              ),
-            ],
+            // if (tokenizedAsset.assetAlreadyExists == 1) ...[
+            //   infoTile(
+            //     notifier,
+            //     'Original Asset Owner',
+            //     tokenizedAsset.assetOwnerName ?? '',
+            //   ),
+            // ] else ...[
+            //   infoTile(
+            //     notifier,
+            //     'Project Sponsor',
+            //     tokenizedAsset.assetOwnerName ?? '',
+            //   ),
+            // ],
             infoTile(
               notifier,
               'Sales Window',
               '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
             ),
-            infoTile(
-              notifier,
-              'Cap Amount',
-              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-            ),
-            infoTile(
-              notifier,
-              'Cap Quantity',
-              '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-            ),
-            infoTile(
-              notifier,
-              'Cap Duration',
-              '${tokenizedAsset.assetLogo} days',
-            ),
+            if ((tokenizedAsset.capAmountInFiat ?? 0) > 0) ...[
+              infoTile(
+                notifier,
+                'Cap Amount',
+                '${getFiatValue(double.parse(tokenizedAsset.capQuantity!.toString()))} ${tokenizedAsset.assetCode!.toUpperCase()}',
+              ),
+              infoTile(
+                notifier,
+                'Cap Quantity',
+                '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+              ),
+              infoTile(
+                notifier,
+                'Cap Duration',
+                '${tokenizedAsset.capDurationInDays} days',
+              ),
+            ],
             infoTile(
               notifier,
               'Proceed Payout Cycle',
@@ -760,7 +762,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.',
-              '?????',
+              '${tokenizedAsset.physicalConditionNoUndisclosedEasements == 1 ? 'Yes' : 'No'}',
             ),
             infoTile(
               notifier,

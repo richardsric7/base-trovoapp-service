@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -46,7 +45,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late String assetName;
   late DateTime? salesStart;
   late DateTime? salesEnd;
-  late double capQuantity;
+  late double? capQuantity;
+  late double? capAmountInFiat;
   late String assetQuoteCurrency;
   late int capDurationInDays;
   late String proceedCycle;
@@ -55,14 +55,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late bool investorAccreditationRequired;
   late bool capOnPurchase;
   late String walletToHoldAssetsNotForSale;
-  late String bankId;
+  late int bankId;
   late String accountNumber;
   late String beneficiaryName;
   late int tokenizationFeeId;
   late dynamic data = {};
   final numberOfTokenToBeIssuedController = TextEditingController();
   final capQuantityController = TextEditingController();
-  final capAmountController = TextEditingController();
+  final capAmountInFiatController = TextEditingController();
   final capDurationInDaysController = TextEditingController();
   bool formIsValid = true;
 
@@ -81,6 +81,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     } else {
       notifier.setIsDark = previusstate;
     }
+  }
+
+  List<DropdownMenuItem<int>> get getBanksList {
+    List<DropdownMenuItem<int>> options = [];
+    appState.tokenizationData['banks']['bankList'].forEach((item) {
+      options.add(DropdownMenuItem(
+          child: Text(
+            item["bankName"],
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: item["id"]));
+    });
+    return options;
   }
 
   List<DropdownMenuItem<String>> get getAssetQuoteCurrencies {
@@ -213,7 +226,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     assetName = data['assetName'];
     accountNumber = data['accountNumber'];
     beneficiaryName = data['beneficiaryName'];
-    bankId = data['bankId'].toString();
+    bankId = data['bankId'];
     var parsedSalesStart = DateTime.parse(data['salesStart']);
     salesStart =
         parsedSalesStart.year == DateTime(0001).year ? null : parsedSalesStart;
@@ -222,6 +235,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         parsedSalesEnd.year == DateTime(0001).year ? null : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
     capQuantity = double.parse(data['capQuantity'].toString());
+    capAmountInFiat = double.parse(data['capAmountInFiat'].toString());
     capDurationInDays = data['capDurationInDays'];
     proceedCycle = data['proceedCycle'];
     assetLogo = data['assetLogo'];
@@ -242,9 +256,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     // numberOfTokenToBeSoldController.text = numberOfTokenToBeSold == 0
     //     ? ''
     //     : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
-    capQuantityController.text = capQuantity == 0 ? '' : capQuantity.toString();
-    // capAmountController.text =
-    //     capQuantity == 0 ? '' : (capQuantity * pricePerToken).toString();
+    capQuantityController.text = capQuantity == 0
+        ? ''
+        : formatNumberForInput(double.parse(capQuantity.toString()));
+    capAmountInFiatController.text = capAmountInFiat == 0
+        ? ''
+        : formatNumberForInput(double.parse(capAmountInFiat.toString()));
     capDurationInDaysController.text =
         capDurationInDays == 0 ? '' : capDurationInDays.toString();
     super.initState();
@@ -512,19 +529,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onChanged: (value) {
                         setState(() {
-                          var val = value.toString().replaceAll('.', '');
                           numberOfTokenToBeIssued =
-                              val.isNotEmpty ? int.parse(val) : 0;
-                          // totalTokenHeldByManager =
-                          //     numberOfTokenToBeIssued - numberOfTokenToBeSold;
-
-                          // pricePerToken = (double.parse(
-                          //         data['assetCurrentValue'].toString()) /
-                          //     numberOfTokenToBeIssued);
-                          numberOfTokenToBeIssuedController.text =
-                              val.isNotEmpty
-                                  ? formatNumberForInput(double.parse(val))
-                                  : val;
+                              value.isNotEmpty ? int.parse(value) : 0;
                         });
                       },
                       onSaved: (value) {
@@ -533,9 +539,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         });
                       },
                       autoFormatNumber: true,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
-                      ],
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
@@ -1008,11 +1011,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        controller: capAmountController,
-                        onChanged: (value) {
+                        controller: capAmountInFiatController,
+                        onChanged: (val) {
                           setState(() {
-                            capQuantity = value!;
-                            capQuantityController.text = capQuantity.toString();
+                            capAmountInFiat =
+                                val.isNotEmpty ? double.parse(val) : 0;
                           });
                         },
                         autoFormatNumber: true,
@@ -1236,12 +1239,13 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      bankId = 0.toString();
-                      // bankId = value.toString();
+                      bankId = int.parse(value.toString());
+                      print('bankId =========> $bankId');
                     });
                   },
-                  getPayoutCurrencies,
-                  proceedPayoutCurrency.isEmpty ? null : proceedPayoutCurrency,
+                  getBanksList,
+                  bankId == 0 ? null : bankId,
+                  // null,
                   'pleaseselectbank'.tr(),
                   context,
                   null,
@@ -1742,13 +1746,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['assetName'] = assetName;
       newData['accountNumber'] = accountNumber;
       newData['beneficiaryName'] = beneficiaryName;
-      newData['bankId'] = int.tryParse(bankId) ?? 0;
+      newData['bankId'] = bankId;
       newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
           .format(salesStart!.toUtc());
       newData['salesEnd'] =
           DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'").format(salesEnd!);
       newData['capOnPurchase'] = capOnPurchase ? 1 : 0;
       newData['capQuantity'] = capQuantity;
+      newData['capAmountInFiat'] = capAmountInFiat;
       newData['capDurationInDays'] = capDurationInDays;
       newData['proceedCycle'] = proceedCycle;
       newData['walletToHoldAssetsNotForSale'] = walletToHoldAssetsNotForSale;

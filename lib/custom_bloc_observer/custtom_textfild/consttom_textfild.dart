@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
@@ -121,8 +122,10 @@ class CustomTextFormField {
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           initialValue: initialValue,
           cursorColor: lablecolor,
-          onChanged: (newVal) {
+          onChanged: (value) {
             if (onChanged != null) {
+              var newVal =
+                  value.toString().replaceAll('.', '').replaceAll(',', '');
               onChanged(newVal);
             }
           },
@@ -159,7 +162,9 @@ class CustomTextFormField {
               borderRadius: BorderRadius.circular(15),
             ),
           ),
-          inputFormatters: inputFormatters,
+          inputFormatters: autoFormatNumber == true
+              ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))]
+              : null,
           keyboardType: keyboardtype,
           validator: (value) {
             if (validator != null) {

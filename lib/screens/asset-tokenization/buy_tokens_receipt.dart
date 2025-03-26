@@ -28,7 +28,9 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
   late DataProvider appState;
   late UserInfo userInfo;
   double amount = 0;
-  double quantity = 0;
+  String quantity = '0';
+  String transactionId = '';
+  String memo = '';
   late DateTime date;
   late TokenizedAsset tokenizedAsset;
   GlobalKey shareArea = GlobalKey();
@@ -36,6 +38,13 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    tokenizedAsset = appState.tokenizedAsset!;
+    amount = appState.viewData!['amount'];
+    quantity = appState.viewData!['quantity'];
+    date = appState.viewData!['date'];
+    transactionId = appState.viewData!['transactionId'];
+    memo = appState.viewData!['memo'];
   }
 
   @override
@@ -43,12 +52,6 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    tokenizedAsset = appState.tokenizedAsset!;
-    amount = appState.viewData!['amount'];
-    quantity = appState.viewData!['quantity'];
-    date = appState.viewData!['date'];
-
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -295,12 +298,12 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                         Expanded(
                                           flex: 5,
                                           child: GestureDetector(
-                                            // onTap: () => appState.goToWebView(
-                                            //     getExplorerBaseUrl(
-                                            //             appState.walletMode) +
-                                            //         viewData.transactionId!),
+                                            onTap: () => appState.goToWebView(
+                                                getExplorerBaseUrl(
+                                                        appState.walletMode) +
+                                                    transactionId),
                                             child: Text(
-                                              'viewData.transactionId!',
+                                              transactionId,
                                               style: TextStyle(
                                                 decoration:
                                                     TextDecoration.underline,
@@ -374,7 +377,7 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                 wihitecolor,
                 onTap: () {
                   share(
-                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}${'viewData.transactionId!'}',
+                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
                       shareArea);
                 },
               ),
@@ -387,7 +390,7 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}${'viewData.transactionId!'}',
+                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
                       shareArea);
                 },
               ),
@@ -421,9 +424,9 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
     String? shareString = "sharestringpurchase".tr(args: [
       '${amount.toString()} ${tokenizedAsset.assetCode!}',
       appState.activeWallet!.alias!,
-      'viewData.transactionId!.toLowerCase()',
+      transactionId.toLowerCase(),
       date.toString(),
-      getExplorerBaseUrl(appState.walletMode) + 'viewData.transactionId!'
+      getExplorerBaseUrl(appState.walletMode) + transactionId,
     ]);
 
     Share.share(shareString);

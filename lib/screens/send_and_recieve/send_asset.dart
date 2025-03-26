@@ -238,7 +238,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       focusNode: focusNode,
                       isReadOnly: deeplinkInfo != null,
                       validator: validateTo,
-                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
+                      onSaved: (value) =>
+                          to = value.toLowerCase().trim().replaceAll(' ', ''),
                     ),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(

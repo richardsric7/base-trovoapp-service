@@ -49,6 +49,7 @@ class TokenizedAsset {
   DateTime? salesEnd;
   int? capOnPurchase;
   double? capQuantity;
+  double? capAmountInFiat;
   int? capDurationInDays;
   String? proceedCycle;
   String? assetLogo;
@@ -104,6 +105,7 @@ class TokenizedAsset {
   int? riskManagementDeclaredValue;
   int? physicalConditionSound;
   int? physicalConditionNolease;
+  int? physicalConditionNoUndisclosedEasements;
   double? assetMscCostOutisdeOfValuation;
   double? SECTokenizationFeePercent;
   double? SECTokenizationFeeValue;
@@ -161,6 +163,7 @@ class TokenizedAsset {
     this.salesEnd,
     this.capOnPurchase,
     this.capQuantity,
+    this.capAmountInFiat,
     this.capDurationInDays,
     this.proceedCycle,
     this.vettingStatus,
@@ -215,6 +218,7 @@ class TokenizedAsset {
     this.riskManagementDeclaredValue,
     this.physicalConditionSound,
     this.physicalConditionNolease,
+    this.physicalConditionNoUndisclosedEasements,
     this.assetMscCostOutisdeOfValuation,
     this.SECTokenizationFeePercent,
     this.SECTokenizationFeeValue,
@@ -284,6 +288,7 @@ class TokenizedAsset {
       salesEnd: DateTime.parse(m["salesEnd"]),
       capOnPurchase: m["capOnPurchase"],
       capQuantity: double.parse(m["capQuantity"].toString()),
+      capAmountInFiat: double.parse(m["capAmountInFiat"].toString()),
       capDurationInDays: m["capDurationInDays"],
       proceedCycle: m["proceedCycle"],
       assetLogo: m["assetLogo"],
@@ -342,6 +347,8 @@ class TokenizedAsset {
       riskManagementDeclaredValue: m["riskManagementDeclaredValue"],
       physicalConditionSound: m["physicalConditionSound"],
       physicalConditionNolease: m["physicalConditionNolease"],
+      physicalConditionNoUndisclosedEasements:
+          m["physicalConditionNoUndisclosedEasements"],
       assetMscCostOutisdeOfValuation:
           double.tryParse(m["assetMscCostOutisdeOfValuation"].toString()),
       SECTokenizationFeePercent:

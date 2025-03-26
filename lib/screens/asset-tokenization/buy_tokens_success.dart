@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +28,9 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
   late ColorNotifier notifier;
   late DataProvider appState;
   double amount = 0;
-  double quantity = 0;
+  String quantity = '0';
+  String transactionId = '';
+  String memo = '';
   DateTime date = DateTime.now();
   late TokenizedAsset tokenizedAsset;
 
@@ -34,6 +38,12 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
+    tokenizedAsset = appState.tokenizedAsset!;
+    inspect(appState.viewData);
+    amount = appState.viewData!['amount'];
+    quantity = appState.viewData!['swappedEstimate'];
+    transactionId = appState.viewData!['transactionId'];
+    memo = appState.viewData!['memo'];
   }
 
   @override
@@ -41,10 +51,6 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    tokenizedAsset = appState.tokenizedAsset!;
-    amount = appState.viewData!['amount'];
-    quantity = appState.viewData!['quantity'];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -69,7 +75,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
               ),
               SizedBox(height: height / 30),
               Text(
-                '+ ${formatNumber(quantity)} ${tokenizedAsset.assetCode}',
+                '+ $quantity',
                 style: TextStyle(
                     color: Colors.green,
                     fontFamily: fontsemibold,
@@ -211,12 +217,11 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                             Expanded(
                               flex: 5,
                               child: GestureDetector(
-                                // onTap: () => appState.goToWebView(
-                                //     getExplorerBaseUrl(appState.walletMode) +
-                                //         viewData['transactionId']),
-
+                                onTap: () => appState.goToWebView(
+                                    getExplorerBaseUrl(appState.walletMode) +
+                                        transactionId),
                                 child: Text(
-                                  "viewData['transactionId']",
+                                  transactionId,
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: notifier.getbluewhitecolor,
@@ -233,7 +238,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                                 onPressed: () => {
                                   Clipboard.setData(
                                     ClipboardData(
-                                      text: "viewData['transactionId']",
+                                      text: transactionId,
                                     ),
                                   ),
                                   showSnackBar("transactionid".tr(), context),
@@ -307,6 +312,8 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                   appState.viewData = {
                     'amount': amount,
                     'quantity': quantity,
+                    'transactionId': transactionId,
+                    'memo': memo,
                     'date': date,
                   };
                   appState.currentAction = PageAction(

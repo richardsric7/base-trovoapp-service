@@ -172,7 +172,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     label: 'Tokens for Sale',
                     value:
                         '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
-                    extraValue: '\$0.12',
+                    extraValue: '',
                   ),
                 ],
               ),
@@ -194,7 +194,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     label: 'Price Per Token',
                     value:
                         '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
-                    extraValue: '\$0.12',
+                    extraValue: '',
                   ),
                 ],
               ),
@@ -229,7 +229,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     label: 'Total Amount Raised',
                     value:
                         '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
-                    extraValue: '\$100.12',
+                    extraValue: '',
                   ),
                   SizedBox(
                     width: width / 50,
@@ -472,12 +472,12 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoTile(
                 notifier,
                 'Cap Amount',
-                '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
+                '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode}',
               ),
               infoTile(
                 notifier,
                 'Cap Quantity',
-                '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode}',
+                '${getFiatValue(double.parse(tokenizedAsset.capQuantity!.toString()))} ${tokenizedAsset.assetCode}',
               ),
               infoTile(
                 notifier,
@@ -642,7 +642,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoTile(
                 notifier,
                 'I confirm that this asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.',
-                '?????',
+                '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
               ),
               infoTile(
                 notifier,
