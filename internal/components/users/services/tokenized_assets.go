@@ -1936,7 +1936,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	}
 	//no need to check this since offer can change, therefore changing the transaction
 
-	if len(input.TransactionSignature) > 0 && input.Commit == 0 {
+	if len(input.TransactionSignature) > 0 && (input.Commit == 0 || subscriberWallet.HasViewOnlyAccess(gc)) {
 		txnHash, e := network.SubmitXdrWithSignature(client, subscriber.PrimarySigner, input.Transaction, input.TransactionSignature)
 		if e != nil {
 			err = e

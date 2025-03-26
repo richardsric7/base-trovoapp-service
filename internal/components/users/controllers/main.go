@@ -5050,7 +5050,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			c.JSON(http.StatusOK, sub)
+			c.JSON(http.StatusOK, tInput)
 
 			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
 				dataPayload := make(map[string]string)
@@ -5183,7 +5183,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 			}
 
-			sub, err := userServices.SubscribeToTokenizedAsset(&accountSignerUser, &subscriptionWallet, &tokenizedAsset, &tInput, gc)
+			_, err = userServices.SubscribeToTokenizedAsset(&accountSignerUser, &subscriptionWallet, &tokenizedAsset, &tInput, gc)
 			if err != nil {
 
 				var ex tErrors.GenericError
@@ -5199,10 +5199,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			if tInput.TransactionID != "PENDING_AUTH" {
-				c.JSON(http.StatusAccepted, sub)
+				c.JSON(http.StatusAccepted, tInput)
 				return
 			} else {
-				c.JSON(http.StatusOK, sub)
+				c.JSON(http.StatusOK, tInput)
 			}
 
 			if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
