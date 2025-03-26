@@ -293,6 +293,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	if !publicKeyPayment {
+		if gc.IsValidTokenizedAsset(asset.GetCode()) && destinationInfo.KYCVerified == 0 {
+			log.Printf("[SubscribeToTokenizedAsset] Error Destination Wallet owner %v has not met KYC status for asset %v\n", destinationInfo.Username, asset.GetCode())
+			err = &tErrors.CustomError{Param: "destination", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed/met the KYC requirement to receive this tokenized asset %v.", destinationInfo.Username, asset.GetCode())}
+			return "", nil, err
+		}
 		paymentInfo.DestinationFirstName = destinationInfo.FirstName
 		if destinationInfo.LastName != nil {
 			paymentInfo.DestinationLastName = *destinationInfo.LastName
