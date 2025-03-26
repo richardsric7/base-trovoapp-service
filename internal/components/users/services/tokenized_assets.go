@@ -1910,13 +1910,18 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	quoteCurrency := GetTokenizationCurrencyByCode(*ta.AssetQuoteCurrency, dbTX)
 	swapInfo.SourceAssetIssuer = strings.ToUpper(quoteCurrency.AssetIssuer)
 	if e := swapServices.ValidateSwapSendInfo(&swapInfo); e != nil {
+		log.Printf("[SubscribeToTokenizedAsset] error validating tokenized asset subscription [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
+
 		err = e
+
 		return
 	}
 
 	if len(input.TransactionSignature) == 0 {
 		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, &swapInfo, gc)
 		if e != nil {
+			log.Printf("[SubscribeToTokenizedAsset] error generating tokenized asset subscription xdr [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
+
 			err = e
 			return
 		}
@@ -1934,13 +1939,15 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	if len(input.TransactionSignature) == 0 && input.Commit == 0 {
 		err = nil
-		return
+		return taSubscription, nil
 	}
 	//no need to check this since offer can change, therefore changing the transaction
 
 	if len(input.TransactionSignature) > 0 && (input.Commit == 0 || subscriberWallet.HasViewOnlyAccess(gc)) {
 		txnHash, e := network.SubmitXdrWithSignature(client, subscriber.PrimarySigner, input.Transaction, input.TransactionSignature)
 		if e != nil {
+			log.Printf("[SubscribeToTokenizedAsset] error submitting tokenized asset subscription to blockchain [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
+
 			err = e
 			logDiscordFailedTokenizedAssetSubscription(fmt.Sprintf("Error submitting asset subscription [%+v] transaction: %s", input, err.Error()))
 			if strings.Contains(err.Error(), "liquid") {
@@ -1965,7 +1972,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		dbTX.Omit(clause.Associations).Save(&taSubscription)
 		dbTX.Commit()
 		subscriberWallet.InvalidateUserCache(gc)
-		return
+		return taSubscription, nil
 
 	}
 	//multi Party
@@ -2016,7 +2023,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 		dbTX.Commit()
 
-		return
+		return taSubscription, nil
 	}
 	log.Println("[SubscribeToTokenizedAsset]UNKNOWN OPTION FOR ACTION")
 	err = &tErrors.ErrorTemporaryServerError{}
