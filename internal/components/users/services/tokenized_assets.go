@@ -545,6 +545,15 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	// initialize message array
 	input.Messages = make([]string, 0)
+	if len(GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB).AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
+		return
+	}
+
+	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
+		return
+	}
 
 	//check if existing
 	ato, NotFound, e := GetOpenTokenizedAssetByInitiatorUsername(initiator.Username, gc.DB)
@@ -607,6 +616,15 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
 	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
+		return
+	}
+	if len(GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB).AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
+		return
+	}
+
+	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
 		return
 	}
 	//referesh issuing wallet profile
