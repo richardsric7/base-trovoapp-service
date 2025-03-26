@@ -223,6 +223,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	var tokenizedAssetIssuerMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	// var messages []string
@@ -518,8 +519,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				}
 				if destinationWallet.WalletType == 0 {
 					//standard wallet, create pending asset
-					ops2, _tempAccountKeyPair, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-
+					ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
+					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
 					if err != nil {
 						return "", nil, err
 					}
@@ -663,6 +664,23 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generatePaymentXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generatePaymentXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", nil, &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	var xdrBase64 string
 
 	xdrBase64, err = tx.Base64()
@@ -684,6 +702,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	var tokenizedAssetIssuerMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 
 	var err error
@@ -776,11 +795,11 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
-	log.Printf("[generatePaymentXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
+	log.Printf("[generateMintingXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
 
 	//check if destination account exists
 	if destinationAccountErr != nil {
-		log.Println("[generatePaymentXdr]destination Account error:", destinationAccountErr)
+		log.Println("[generateMintingXdr]destination Account error:", destinationAccountErr)
 		return "", nil, destinationAccountErr
 	}
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
@@ -813,8 +832,8 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 		if destinationWallet.WalletType == 0 {
 			//standard wallet, create pending asset
-			ops2, _tempAccountKeyPair, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-
+			ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
+			tokenizedAssetIssuerMustSign = tokenIssuerMustSign
 			if err != nil {
 				return "", nil, err
 			}
@@ -878,7 +897,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	if err != nil {
-		log.Println("[generatePaymentXdr] error constructing transaction ", err)
+		log.Println("[generateMintingXdr] error constructing transaction ", err)
 		return "", nil, err
 	}
 
@@ -887,7 +906,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
 
 		if err != nil {
-			log.Println("[generatePaymentXdr] error signing transaction with channelAccount key ", err)
+			log.Println("[generateMintingXdr] error signing transaction with channelAccount key ", err)
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
@@ -897,7 +916,25 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), extraAccountKeyPair)
 
 		if err != nil {
-			log.Println("[generatePaymentXdr] error signing transaction with temporary key ", err)
+			log.Println("[generateMintingXdr] error signing transaction with temporary key ", err)
+			return "", nil, &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateMintingXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateMintingXdr] error signing transaction with issuer key to authorize trustline", err)
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
@@ -906,7 +943,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	xdrBase64, err = tx.Base64()
 	if err != nil {
-		log.Println("[generatePaymentXdr] error getting txn base64", err)
+		log.Println("[generateMintingXdr] error getting txn base64", err)
 		return "", nil, err
 	}
 
@@ -925,6 +962,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	var tokenizedAssetIssuerMustSign bool
 	// var messages []string
 	//check if it is public key payment
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
@@ -1151,8 +1189,8 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 				}
 				if destinationWallet.WalletType == 0 {
 					//standard wallet, create pending asset
-					ops2, _tempAccountKeyPair, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-
+					ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
+					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
 					if err != nil {
 						return "", nil, err
 					}
@@ -1243,6 +1281,23 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generatePaymentXdrWithChannelAccountPK] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generatePaymentXdrWithChannelAccountPK] error signing transaction with issuer key to authorize trustline", err)
+			return "", nil, &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 
 	var xdrBase64 string
 
@@ -1265,17 +1320,17 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	return xdrBase64, &destinationInfo, nil
 }
 
-func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, gc *sharedconfig.GlobalConfig) ([]txnbuild.Operation, *keypair.Full, error) {
+func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, gc *sharedconfig.GlobalConfig) ([]txnbuild.Operation, *keypair.Full, bool, error) {
 
 	ops := make([]txnbuild.Operation, 0)
 
 	var signerKeyPairToReturn *keypair.Full = nil
-
+	var tokenizedAssetIssuerMustSign bool
 	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
 
 	if tempAccountError != nil {
 		log.Printf("[processDestinationAssetDoesNotTrustAsset] error generating temporary account %v\n", tempAccountError)
-		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
+		return ops, tempAccountKeypair, false, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	// var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
@@ -1285,7 +1340,7 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 	if tempAccountError != nil {
 		log.Printf("[processDestinationAssetDoesNotTrustAsset] error looking up temporary account %v\n", tempAccountError)
-		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
+		return ops, tempAccountKeypair, false, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	{
@@ -1297,11 +1352,11 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return ops, nil, &tErrors.ErrorInvalidPublicKey{}
+				return ops, nil, false, &tErrors.ErrorInvalidPublicKey{}
 
 			}
 			log.Println("[processDestinationAssetDoesNotTrustAsset]", err)
-			return ops, nil, &tErrors.ErrorTemporaryServerError{}
+			return ops, nil, false, &tErrors.ErrorTemporaryServerError{}
 
 		}
 
@@ -1326,7 +1381,7 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 			if dbSaveError != nil {
 				log.Printf("[processDestinationAssetDoesNotTrustAsset]db temp save error %v\n", dbSaveError)
-				return ops, nil, &tErrors.ErrorTemporaryServerError{}
+				return ops, nil, tokenizedAssetIssuerMustSign, &tErrors.ErrorTemporaryServerError{}
 			}
 		}
 
@@ -1412,6 +1467,18 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 		signerKeyPairToReturn = tempAccountKeypair
 
+		if gc.IsValidTokenizedAsset(asset.GetCode()) {
+			//check if it is a tokenized asset
+			// allow trust from issuer to destination wallet
+			ops = append(ops, &txnbuild.SetTrustLineFlags{
+				Trustor:       tempAccountKeypair.FromAddress().Address(),
+				Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+				SourceAccount: asset.GetIssuer(),
+			})
+			tokenizedAssetIssuerMustSign = true
+		}
+
 	}
 
 	ops = append(ops, &txnbuild.Payment{
@@ -1421,7 +1488,7 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 		SourceAccount: sourceAccount.AccountID,
 	})
 
-	return ops, signerKeyPairToReturn, nil
+	return ops, signerKeyPairToReturn, tokenizedAssetIssuerMustSign, nil
 
 }
 
