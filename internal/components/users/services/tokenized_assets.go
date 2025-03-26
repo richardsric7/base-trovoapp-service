@@ -1897,7 +1897,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	//begin transaction xdr
 
-	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
+	// swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
 	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
 	swapInfo.SwapAmount = swapInfo.SourceAmount
 
