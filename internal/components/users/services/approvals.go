@@ -867,13 +867,17 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			//add the tokenized asset to curated asset
 			org := "Trovotech Ltd."
+			assetWebsite := org
+			if ta.AssetWebsite != nil {
+				assetWebsite = *ta.AssetWebsite
+			}
 			cAsset := assetModels.CuratedAsset{
 				AssetCode:    *ta.AssetCode,
 				AssetIssuer:  *ta.IssuingWalletPublicKey,
 				AssetName:    *ta.AssetName,
 				Description:  *ta.AssetDescription,
 				ImageURL:     ta.AssetLogo,
-				Website:      *ta.AssetWebsite,
+				Website:      assetWebsite,
 				Organization: org,
 				AssetClassID: 3,
 				Inactive:     0,
