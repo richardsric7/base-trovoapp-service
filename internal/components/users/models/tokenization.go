@@ -1120,7 +1120,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 
-		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(2).InexactFloat64()
 		// auto calculate, token to be held is less the fee. token not to be sold
 		t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
 		{
@@ -1150,7 +1150,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.CapOnPurchase = ti.CapOnPurchase
 	t.CapQuantity = ti.CapQuantity
 	t.CapDurationInDays = ti.CapDurationInDays
-	t.CapAmountInFiat = ti.CapAmountInFiat
+	t.CapAmountInFiat = decimal.NewFromFloat(ti.CapAmountInFiat).Truncate(2).InexactFloat64()
 	if ti.CapOnPurchase == 1 && t.PricePerToken > 0 && ti.CapAmountInFiat > 0 {
 		t.CapQuantity = decimal.NewFromFloat(ti.CapAmountInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
@@ -1316,7 +1316,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
 
-		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(2).InexactFloat64()
 
 		// auto calculate, token to be held is less the fee. token not to be sold
 		t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
@@ -1696,7 +1696,7 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 	e.TokenizedAssetID = ta.ID
 	e.AssetCode = *ta.AssetCode
 	e.AssetIssuer = *ta.IssuingWalletPublicKey
-	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
+	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(2).InexactFloat64()
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername
 	return *e
