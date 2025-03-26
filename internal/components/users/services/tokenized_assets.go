@@ -1843,6 +1843,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	input.TokenizedAssetID = ta.ID
 	input.WalletPublicKey = subscriberWallet.ID
 	input.SubscriberUsername = subscriber.Username
+	input.Amount = decimal.NewFromFloat(input.Amount).Truncate(2).InexactFloat64()
 	var swapInfo swapModels.SwapSendInfo
 	swapInfo.Messages = make([]string, 0)
 	// get wallet owner
@@ -1895,9 +1896,9 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	//begin transaction xdr
 
-	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).String()
-	swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
-	swapInfo.SwapAmount = swapAmount.String()
+	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
+	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
+	// swapInfo.SwapAmount = swapAmount.String()
 
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
@@ -2023,7 +2024,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 }
 
 func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
-	baseReserve := network.GetBlockchainBaseReserve()
+	// baseReserve := network.GetBlockchainBaseReserve()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
 	client := gc.BantuExpansionClient
 	messages := make([]string, 0)
@@ -2034,7 +2035,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
-	newAmountToSwap := amountToSwap.Truncate(7).String()
+	// newAmountToSwap := amountToSwap.Truncate(2).String()
 
 	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -2048,8 +2049,6 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
 	}
 
-	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
-	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 	chanAccount := <-gc.ChannelAccounts
@@ -2077,9 +2076,6 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
-			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
-			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing will activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
-			messages = append(messages, message)
 
 			//establish trustline
 			ops = append(ops, &txnbuild.ChangeTrust{
@@ -2100,30 +2096,8 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 
 	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
 
-	amountToSwapDec := amountToSwap
-
-	if sourceAsset.IsNative() {
-		if !sourceAccountTrustsDestinationAsset {
-			if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
-			}
-		} else {
-			if sourceAccountNativeBalance.LessThan(amountToSwapDec) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
-			}
-		}
-
-	} else {
-
-		if !sourceAccountTrustsDestinationAsset {
-			if sourceAccountNativeBalance.LessThan(appliedCharge) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
-			}
-		}
-		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
-			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
-		}
-
+	if sourceAccountCustomBalance.LessThan(amountToSwap) {
+		return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwap).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
 	}
 
 	//get sendPath
@@ -2137,7 +2111,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		DestinationAssets: destAsset,
 		SourceAssetCode:   swapInfo.SourceAssetCode,
 		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
-		SourceAmount:      newAmountToSwap,
+		SourceAmount:      amountToSwap.Truncate(2).String(),
 	}
 	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
 	if err != nil {
@@ -2160,12 +2134,6 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode
 	memoDAC = swapInfo.DestinationAssetCode
-	if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
-		memoSAC = os.Getenv("NATIVE_ASSET_CODE")
-	}
-	if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
-		memoDAC = os.Getenv("NATIVE_ASSET_CODE")
-	}
 
 	memo := fmt.Sprintf("%v>%v", memoSAC, memoDAC)
 	log.Println("[generateAssetSubscriptionXdr] Memo:", memo)
