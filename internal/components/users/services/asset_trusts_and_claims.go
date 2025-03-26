@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -260,7 +261,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 }
 
 func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
-
+	var tokenizedAssetIssuerMustSign bool
 	if len(pendingAssetToClaim.AssetIssuer) != 56 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
@@ -338,6 +339,18 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 		})
 	}
 
+	if gc.IsValidTokenizedAsset(asset.GetCode()) {
+		//check if it is a tokenized asset
+		// allow trust from issuer to destination wallet
+		ops = append(ops, &txnbuild.SetTrustLineFlags{
+			Trustor:       wallet.ID,
+			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SourceAccount: asset.GetIssuer(),
+		})
+		tokenizedAssetIssuerMustSign = true
+	}
+
 	if customAccountBalance.GreaterThan(decimal.Zero) {
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   wallet.ID,
@@ -351,7 +364,6 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
-
 
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
@@ -398,7 +410,23 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateTrustAssetXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
 
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateTrustAssetXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err := tx.Base64()
 
 	if err != nil {
@@ -549,6 +577,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 }
 
 func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	var tokenizedAssetIssuerMustSign bool
 	if len(trustLineInfo.AssetIssuer) != 56 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
@@ -597,7 +626,17 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		SourceAccount: wallet.ID,
 	})
 
-
+	if gc.IsValidTokenizedAsset(asset.GetCode()) {
+		//check if it is a tokenized asset
+		// allow trust from issuer to destination wallet
+		ops = append(ops, &txnbuild.SetTrustLineFlags{
+			Trustor:       wallet.ID,
+			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SourceAccount: asset.GetIssuer(),
+		})
+		tokenizedAssetIssuerMustSign = true
+	}
 	// Construct the transaction that holds the operations to execute on the network
 
 	var tx *txnbuild.Transaction
@@ -644,7 +683,23 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateTrustAssetXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
 
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateTrustAssetXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err := tx.Base64()
 
 	if err != nil {
