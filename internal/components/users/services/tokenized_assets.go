@@ -614,6 +614,8 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 // SubmitTokenizationAssetInfo used by trovoManager
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
+
 	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
 		return
@@ -630,7 +632,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	//referesh issuing wallet profile
 	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
 
-	input.AssetCode = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(input.AssetCode), " ", ""))
+	input.AssetCode = strings.ToUpper(replacer.Replace(strings.TrimSpace(input.AssetCode)))
 	if len(input.AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
 		return
@@ -656,23 +658,24 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	//validate submitted initiators/approvers
 	{
 		if len(input.MintingInitators) > 0 {
-			input.MintingInitators = strings.ReplaceAll(input.MintingInitators, " ", "")
+
+			input.MintingInitators = replacer.Replace(input.MintingInitators)
 			us := strings.Split(input.MintingInitators, ",")
 			for _, v := range us {
 				_, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
 				if e != nil {
-					err = &tErrors.CustomError{Param: "mintingInitiators", Err: "error-invalid-minting-initiator", ErrMessage: fmt.Sprintf("%v is an invalid username for minting initiator")}
+					err = &tErrors.CustomError{Param: "mintingInitiators", Err: "error-invalid-minting-initiator", ErrMessage: fmt.Sprintf("%v is an invalid username for minting initiator", v)}
 					return
 				}
 			}
 		}
 		if len(input.MintingApprovers) > 0 {
-			input.MintingApprovers = strings.ReplaceAll(input.MintingApprovers, " ", "")
+			input.MintingApprovers = replacer.Replace(input.MintingApprovers)
 			us := strings.Split(input.MintingApprovers, ",")
 			for _, v := range us {
 				_, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
 				if e != nil {
-					err = &tErrors.CustomError{Param: "mintingApprovers", Err: "error-invalid-minting-approver", ErrMessage: fmt.Sprintf("%v is an invalid username for minting Approver")}
+					err = &tErrors.CustomError{Param: "mintingApprovers", Err: "error-invalid-minting-approver", ErrMessage: fmt.Sprintf("%v is an invalid username for minting Approver", v)}
 					return
 				}
 			}
@@ -689,7 +692,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	}
 
 	if ato.ExemptedCountries != nil {
-		exc := strings.Split(strings.ReplaceAll(*ato.ExemptedCountries, " ", ""), ",")
+		exc := strings.Split(replacer.Replace(*ato.ExemptedCountries), ",")
 		for _, countryCode := range exc {
 			if len(countryCode) != 2 {
 				err = &tErrors.CustomError{Param: "Id", Err: "error-asset-exempted-country-invalid", ErrMessage: "You must specify the exempted country in the formart: NG, SA, UK"}
@@ -2728,6 +2731,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 // MintRegulatedTokenizedAsset mint tokenized assets
 func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	//referesh issuing wallet profile
 	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
 	ato, _, err = GetTokenizedAssetByID(tokenizationID, gc.DB)
@@ -2747,7 +2751,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 	}
 	if ato.ExemptedCountries != nil {
-		exc := strings.Split(strings.ReplaceAll(*ato.ExemptedCountries, " ", ""), ",")
+		exc := strings.Split(replacer.Replace(*ato.ExemptedCountries), ",")
 		for _, countryCode := range exc {
 			if len(countryCode) != 2 {
 				err = &tErrors.CustomError{Param: "Id", Err: "error-asset-exempted-country-invalid", ErrMessage: "You must specify the exempted country in the formart: NG, SA, UK"}
