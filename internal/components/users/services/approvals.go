@@ -883,7 +883,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
 			if e != nil {
-				log.Println("[ApproveTransaction]error creating curated asset:", e)
+				log.Println("[ApproveTransaction]error creating curated asset:", e, cAsset)
 			}
 
 			dbTX.Commit()

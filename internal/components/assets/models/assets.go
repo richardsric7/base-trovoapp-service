@@ -19,7 +19,7 @@ type CuratedAsset struct {
 	AssetLimit                  uint64     `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
 	AssetRedemptionInstructions string     `gorm:"null;" json:"assetRedemptionInstructions"`
 	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
-	Priority                    uint64     `gorm:"null;unique" json:"-"`
+	Priority                    uint64     `gorm:"null;" json:"-"`
 	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`
 	AssetClass                  AssetClass `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetClass"`
 	Organization                string     `gorm:"null;size:100" json:"organization"`
