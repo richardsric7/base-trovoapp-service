@@ -356,7 +356,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				}
 
 			}
-			if !destinationAccountTrustsAsset {
+			if !destinationAccountTrustsAsset && !gc.IsValidTokenizedAsset(asset.GetCode()) {
 
 				bantuAsset := userModels.BantuAsset{
 					AssetCode:   asset.GetCode(),
@@ -525,10 +525,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				if destinationWallet.WalletType == 0 {
 					//standard wallet, create pending asset
 					ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
 					if err != nil {
 						return "", nil, err
 					}
+
+					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
 
 					extraAccountKeyPair = _tempAccountKeyPair
 
@@ -588,6 +589,18 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 						Limit:         "900000000000",
 						SourceAccount: feeAddress,
 					})
+
+					if gc.IsValidTokenizedAsset(asset.GetCode()) {
+						//check if it is a tokenized asset
+						// allow trust from issuer to destination wallet
+						ops = append(ops, &txnbuild.SetTrustLineFlags{
+							Trustor:       feeAddress,
+							Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+							SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+							SourceAccount: asset.GetIssuer(),
+						})
+						tokenizedAssetIssuerMustSign = true
+					}
 
 				}
 			}
