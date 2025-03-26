@@ -5208,7 +5208,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = ""
-				accountSignerUser.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v on %v!", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("You have successfully submitted a purchase request for %v using %v %v on the wallet with alias [%v]. All approvers have been notified.", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), "", dataPayload, gc)
+				accountSignerUser.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("You have successfully submitted a purchase request for %v using %v %v on the wallet with alias [%v]. All approvers have been notified.", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), "", dataPayload, gc)
 
 			}
 			{
@@ -5224,7 +5224,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = "pendingApproval"
 					if tInput.TransactionID == "PENDING_AUTH" {
-						u.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v submitted on %v!", tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
+						u.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v submitted on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
 					}
 
 				}
