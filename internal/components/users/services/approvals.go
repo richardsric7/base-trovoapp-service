@@ -728,7 +728,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 		} else if p.TransactionType == "MAKE MARKET OFFER" {
-		
+
 			marketOffer.TransactionID = &txnResult.Hash
 			//get and set the offerID
 			{
@@ -816,7 +816,6 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, e)
 				// return &tErrors.ErrorTemporaryServerError{}
 			}
-		
 
 			dbTX.Commit()
 
@@ -875,7 +874,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				Inactive:     0,
 				ClosedGroup:  ta.ClosedGroupID,
 				Priority:     1,
-			
+				AssetLimit:   ta.NumberOfTokenToBeIssued,
 			}
 
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error

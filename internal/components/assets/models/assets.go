@@ -16,7 +16,7 @@ type CuratedAsset struct {
 	ImageURL                    *string    `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
 	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
-	AssetLimit                  uint64     `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
+	AssetLimit                  float64    `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
 	AssetRedemptionInstructions string     `gorm:"null;" json:"assetRedemptionInstructions"`
 	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
 	Priority                    uint64     `gorm:"null;" json:"-"`
@@ -43,7 +43,7 @@ type CuratedSwapAsset struct {
 	ImageURL                    string     `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
 	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
-	AssetLimit                  uint64     `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
+	AssetLimit                  float64    `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
 	AssetRedemptionInstructions string     `gorm:"null;size:100" json:"assetRedemptionInstructions"`
 	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
 	Priority                    uint64     `gorm:"null;unique" json:"-"`
