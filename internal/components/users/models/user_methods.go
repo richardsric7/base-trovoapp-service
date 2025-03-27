@@ -2539,8 +2539,8 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
 	cacheKeyCuratedAssets := fmt.Sprintf("curatedAssets %v", u.Username)
 	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID, cacheKey1, cacheKeyCuratedAssets)
-
 	u.InvalidateUserWalletCache(gc)
+	gc.RedisCache.InvalidateCachedHttpResponse(cacheKeyCuratedAssets)
 }
 
 func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
