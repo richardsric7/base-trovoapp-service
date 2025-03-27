@@ -237,7 +237,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v1/curated-assets %v", user.Username)
+		cacheKey := fmt.Sprintf("curatedAssets %v", user.Username)
 
 		ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
