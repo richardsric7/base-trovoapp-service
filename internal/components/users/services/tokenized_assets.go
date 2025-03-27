@@ -623,12 +623,15 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
 	tc := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
 	if len(tc.AssetCode) == 0 {
+		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: payout currency is invalid: %v, received object: %+v\n\n", tc.AssetCode, input)
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: fmt.Sprintf("Proceed Payout currency code [%v] you supplied is invalid.", input.ProceedPayoutCurrency)}
 		return
 	}
 	input.AssetQuoteCurrency = strings.ToUpper(input.AssetQuoteCurrency)
 	ac := GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB)
 	if len(ac.AssetCode) == 0 {
+		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: quote currency is invalid: %v, received object: %+v\n\n", ac.AssetCode, input)
+
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: fmt.Sprintf("Asset quote currency [%v] you supplied is invalid.", input.AssetQuoteCurrency)}
 		return
 	}
