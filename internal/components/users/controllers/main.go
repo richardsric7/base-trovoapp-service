@@ -5494,7 +5494,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			ta, _, err := userServices.SubmitTokenizationAssetInfo(tid, &initiator, &tInput, gc)
 
 			if err != nil {
-
+				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] RawData: %s\n\nUnmarshalled: %#v\n\n", string(data), tInput)
 				var ex tErrors.GenericError
 				var ok bool
 
