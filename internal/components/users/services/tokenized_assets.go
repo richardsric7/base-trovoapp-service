@@ -1267,7 +1267,7 @@ func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, t
 
 	xdrBase64, e := generateTokenizationFeeXdr(&wallet, &ato, taInput, gc)
 	if e != nil {
-		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error getting appliction fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error getting application fee transaction  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -2923,13 +2923,13 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 
-	sourceAccountExists, _, _, assetAccountBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	sourceAccountExists, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
-	if assetAccountBalance.LessThan(feeAmount) {
+	if assetAccountFeeBalance.LessThan(feeAmount) {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", feeAmount.String(), tfa[0]), Code: http.StatusBadRequest}
 
 	}
