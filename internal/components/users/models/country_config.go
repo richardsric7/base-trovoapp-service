@@ -15,6 +15,10 @@ type Country struct {
 	MinTokenizationFee              float64 `gorm:"default:0" json:"minTokenizationFee"`
 	TokenizationApplicationFee      float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
 	TokenizationApplicationFeeAsset string  `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
+	LegalAndProfessionalFee         float64 `gorm:"default:0" json:"legalAndProfessionalFee"`
+	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
+	VAT                             float64 `gorm:"default:0" json:"vat"`
 }
 
 type CountryCode string
