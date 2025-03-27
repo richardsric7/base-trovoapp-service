@@ -863,18 +863,19 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				assetWebsite = *ta.AssetWebsite
 			}
 			cAsset := assetModels.CuratedAsset{
-				AssetCode:    *ta.AssetCode,
-				AssetIssuer:  *ta.IssuingWalletPublicKey,
-				AssetName:    *ta.AssetName,
-				Description:  *ta.AssetDescription,
-				ImageURL:     ta.AssetLogo,
-				Website:      assetWebsite,
-				Organization: org,
-				AssetClassID: 3,
-				Inactive:     0,
-				ClosedGroup:  ta.ClosedGroupID,
-				Priority:     1,
-				AssetLimit:   ta.NumberOfTokenToBeIssued,
+				AssetCode:       *ta.AssetCode,
+				AssetIssuer:     *ta.IssuingWalletPublicKey,
+				AssetName:       *ta.AssetName,
+				Description:     *ta.AssetDescription,
+				ImageURL:        ta.AssetLogo,
+				Website:         assetWebsite,
+				Organization:    org,
+				AssetClassID:    3,
+				Inactive:        0,
+				ClosedGroup:     ta.ClosedGroupID,
+				Priority:        1,
+				AssetLimit:      ta.NumberOfTokenToBeIssued,
+				AssetConditions: "Requires KYC to purchase and to hold it.",
 			}
 
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
