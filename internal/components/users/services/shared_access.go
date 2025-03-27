@@ -437,7 +437,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	wallet.SharedAccessEnabled = 1
 	wallet.NumberOfApprovalsNeeded = accessInfo.NumberOfApprovalsNeeded
 
-	errDB := dbTX.Create(&accessList).Error
+	errDB := dbTX.Omit(clause.Associations).Create(&accessList).Error
 	if err != nil {
 		log.Printf("[CreateSharedWalletAccess] error saving access list:%v\n AccessList:%+v\n", errDB, accessList)
 		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
@@ -453,7 +453,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if hasLinkedWallet {
 		linkedWallet.SharedAccessEnabled = wallet.SharedAccessEnabled
 		linkedWallet.NumberOfApprovalsNeeded = wallet.NumberOfApprovalsNeeded
-		errDB := dbTX.Create(&linkedWalletAccessList).Error
+		errDB := dbTX.Omit(clause.Associations).Create(&linkedWalletAccessList).Error
 		if err != nil {
 			log.Printf("[CreateSharedWalletAccess] error saving linked wallet access list:%v\n Linked wallet AccessList:%+v\n", errDB, linkedWalletAccessList)
 			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
@@ -1089,14 +1089,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 		}
 		if len(modifiedList) > 0 {
-			e := dbTX.Save(&modifiedList).Error
+			e := dbTX.Omit(clause.Associations).Save(&modifiedList).Error
 			if e != nil {
 				log.Println("[ModifySharedWalletAccess] error saving modified list: ", e)
 				err = &tErrors.ErrorTemporaryServerError{}
 				return
 			}
 			if hasLinkedWallet && len(linkedModifiedList) > 0 {
-				e := dbTX.Save(&linkedModifiedList).Error
+				e := dbTX.Omit(clause.Associations).Save(&linkedModifiedList).Error
 				if e != nil {
 					log.Println("[ModifySharedWalletAccess] error saving linked modified list: ", e)
 					err = &tErrors.ErrorTemporaryServerError{}
@@ -1105,7 +1105,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 		}
 		if len(addedList) > 0 {
-			e := dbTX.Create(&addedList).Error
+			e := dbTX.Omit(clause.Associations).Create(&addedList).Error
 			if e != nil {
 				log.Println("[ModifySharedWalletAccess] error creating added permissions: ", e)
 				err = &tErrors.ErrorTemporaryServerError{}
@@ -1113,7 +1113,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 
 			if hasLinkedWallet && len(linkedAddedList) > 0 {
-				e := dbTX.Create(&linkedAddedList).Error
+				e := dbTX.Omit(clause.Associations).Create(&linkedAddedList).Error
 				if e != nil {
 					log.Println("[ModifySharedWalletAccess] error creating linked added permissions: ", e)
 					err = &tErrors.ErrorTemporaryServerError{}
@@ -1352,7 +1352,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		// rollback all the other changes since the changes can only apply when approvals are completed.
 		dbTX.Rollback()
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("Error saving modify shared access txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -1516,7 +1516,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			// rollback all the other changes since the changes can only apply when approvals are completed.
 			// dbTX.Rollback()
 			//save and commit this to database
-			e := gc.DB.Create(&pendingAuth).Error
+			e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 			if e != nil {
 				log.Printf("Error saving disable shared access txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 				return &tErrors.ErrorTemporaryServerError{}

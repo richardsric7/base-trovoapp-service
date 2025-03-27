@@ -19,6 +19,7 @@ import (
 	"github.com/ecnepsnai/discord"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm/clause"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -160,7 +161,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[SwapSend] Error saving swap txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err := &tErrors.ErrorTemporaryServerError{}
@@ -291,7 +292,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[SwapSend] Error saving swap txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err := &tErrors.ErrorTemporaryServerError{}

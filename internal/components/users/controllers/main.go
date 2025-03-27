@@ -220,6 +220,41 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	router.GET("/v1/curated-assets/users", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		cacheKey := fmt.Sprintf("[GET] /v1/curated-assets %v", user.Username)
+
+		ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
+
+		if ok {
+			// log.Printf("[%v], served from cache\n", cacheKey)
+			c.JSON(status, response)
+			return
+		}
+		curatedAssets := user.GetCuratedSwapList(gc)
+
+		c.JSON(http.StatusOK, curatedAssets)
+
+		cacheDurationInSeconds := 20
+		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, curatedAssets, cacheDurationInSeconds)
+
+	})
+
 	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error//true-client-ip
 		if os.Getenv("LOG_IP_ADDRESS") == "1" {

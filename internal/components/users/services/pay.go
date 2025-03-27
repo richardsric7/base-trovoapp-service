@@ -210,7 +210,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
-	e := db.Create(&pendingAuth).Error
+	e := db.Omit(clause.Associations).Create(&pendingAuth).Error
 	if e != nil {
 		log.Printf("[Pay] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}
@@ -1683,7 +1683,7 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
-	e := db.Create(&pendingAuth).Error
+	e := db.Omit(clause.Associations).Create(&pendingAuth).Error
 	if e != nil {
 		log.Printf("[Pay] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}

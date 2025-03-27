@@ -363,7 +363,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	user.AccountRecoveryEnabled = 0
 	// exp := time.Now().AddDate(1, 0, 0)
 	user.AccountRecoveryExpiresOn = nil
-	dbErr := dbtx.Save(user).Error
+	dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 	if dbErr != nil {
 		log.Printf("[DisableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -615,7 +615,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		NewSignerPublicKey: payload.NewSignerPublicKey,
 		MasterWallet:       masterRecover,
 	}
-	e = dbtx.Create(&arl).Error
+	e = dbtx.Omit(clause.Associations).Create(&arl).Error
 	if e != nil {
 		log.Printf("[DoAccountRecovery] Error creating log for account recovery for [%v]: %v\n", arl, e)
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error unable to log recovery attempt", ErrMessage: "Unable to log recovery attempt. Please try again."}

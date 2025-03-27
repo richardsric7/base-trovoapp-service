@@ -18,6 +18,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 // ClaimPendingAsset claim pending assets
@@ -136,7 +137,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -246,7 +247,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -917,7 +918,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[TrustAsset] Error saving opt in txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -998,7 +999,7 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[RemoveAssetTrust] Error saving opt out txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}

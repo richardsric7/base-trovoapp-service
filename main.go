@@ -709,7 +709,7 @@ func main() {
 					}
 
 					dbtx := database.Begin()
-					e = dbtx.Create(&depositItem).Error
+					e = dbtx.Omit(clause.Associations).Create(&depositItem).Error
 					if e != nil {
 						dbtx.Rollback()
 						log.Printf("[MINTING INITIATOR] error creating deposit item. error: %v\nDepositItem: %+v\n", e, depositItem)
@@ -717,7 +717,7 @@ func main() {
 						continue
 					}
 					di.Minted = 1
-					e = dbtx.Save(&di).Error
+					e = dbtx.Omit(clause.Associations).Save(&di).Error
 					if e != nil {
 						dbtx.Rollback()
 						log.Printf("[MINTING INITIATOR] error saving callback item. error: %v\nCallbackDepositItem: %+v\n", e, di)

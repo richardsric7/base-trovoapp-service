@@ -40,6 +40,6 @@ func UpdateAndLogUserSwapGeoInformation(userInfo *userModels.User, swapInfo *swa
 		ISP:                    userInfo.ISP,
 	}
 
-	db.Create(&swapLog)
+	db.Omit(clause.Associations).Create(&swapLog)
 
 }

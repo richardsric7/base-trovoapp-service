@@ -59,7 +59,7 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}
 
 	}
-	dbErr = dbtx.Create(&accountToDelete).Error
+	dbErr = dbtx.Omit(clause.Associations).Create(&accountToDelete).Error
 	if dbErr != nil {
 		log.Printf("[AccountDeletion] Error saving job of account to be deleted: %v\n", dbErr)
 		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}

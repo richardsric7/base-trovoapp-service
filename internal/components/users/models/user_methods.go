@@ -1849,7 +1849,7 @@ func (d CryptoDepositAddress) GetDetail(currency string, gc *sharedconfig.Global
 }
 func (callback *CallbackDepositItem) Save(gc *sharedconfig.GlobalConfig) (err error) {
 
-	e := gc.DB.Create(callback).Error
+	e := gc.DB.Omit(clause.Associations).Create(callback).Error
 	if e != nil {
 		log.Println("[SAVE CALLBACK]error creating callback: ", e)
 		//notify failure
@@ -1879,7 +1879,7 @@ func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalC
 
 		return err
 	}
-	e := gc.DB.Create(&callbackObj.Data).Error
+	e := gc.DB.Omit(clause.Associations).Create(&callbackObj.Data).Error
 	if e != nil {
 		log.Println("[SAVE CALLBACK]error creating callback: ", e)
 		//notify failure

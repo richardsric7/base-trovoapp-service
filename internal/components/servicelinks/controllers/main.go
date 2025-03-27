@@ -220,7 +220,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			newLoginSession.CallbackURL = &serviceLinkRequestInput.CallbackURL
 		}
 
-		err = gc.DB.Create(&newLoginSession).Error
+		err = gc.DB.Omit(clause.Associations).Create(&newLoginSession).Error
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -845,7 +845,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 		authorizationData.ExpiresAt = time.Now().Add(period * time.Minute)
-		err = gc.DB.Create(&authorizationData).Error
+		err = gc.DB.Omit(clause.Associations).Create(&authorizationData).Error
 		if err != nil {
 			log.Printf("unable to create authorization: %v\n", err)
 			//could not save login session
@@ -947,7 +947,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 		authorizationData.ExpiresAt = time.Now().Add(period * time.Minute)
-		err = gc.DB.Create(&authorizationData).Error
+		err = gc.DB.Omit(clause.Associations).Create(&authorizationData).Error
 		if err != nil {
 			log.Printf("unable to create event: %v\n", err)
 			//could not save login session

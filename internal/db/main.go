@@ -22,6 +22,7 @@ import (
 
 	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 )
 
@@ -456,7 +457,7 @@ func MigrateDB(gormDB *gorm.DB) {
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error
 		if errors.Is(dberr, gorm.ErrRecordNotFound) {
 			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Tokenized Asset"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}
-			gormDB.Create(&assetClasses)
+			gormDB.Omit(clause.Associations).Create(&assetClasses)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&assetModels.CuratedAsset{})

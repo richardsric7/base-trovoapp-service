@@ -36,6 +36,6 @@ func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInf
 		TimeZone:             userInfo.TimeZone,
 		ISP:                  userInfo.ISP,
 	}
-	db.Create(&paymentLog)
+	db.Omit(clause.Associations).Create(&paymentLog)
 
 }

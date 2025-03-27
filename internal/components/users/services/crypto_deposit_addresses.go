@@ -10,6 +10,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm/clause"
 )
 
 func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
@@ -66,7 +67,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 		depositAddresses = append(depositAddresses, da)
 	}
 	if len(depositAddresses) > 0 {
-		e := dbTX.Create(&depositAddresses).Error
+		e := dbTX.Omit(clause.Associations).Create(&depositAddresses).Error
 		if e != nil {
 			log.Printf("[GenerateDepositAddresses] error saving deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
 			err = &tErrors.ErrorTemporaryServerError{}

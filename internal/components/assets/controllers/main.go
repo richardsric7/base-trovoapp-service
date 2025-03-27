@@ -34,17 +34,4 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, curatedAssets, cacheDurationInSeconds)
 
 	})
-	// router.GET("/v2/assets", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
-	// 	limitStr := c.DefaultQuery("limit", "25")
-	// 	limit, _ := strconv.ParseUint(limitStr, 10, 64)
-	// 	order := c.DefaultQuery("order", "asc")
-	// 	cursor := c.Query("cursor")
-	// 	assetCode := c.Query("assetCode")
-	// 	assetIssuer := c.Query("assetIssuer")
-
-	// 	assets, _ := assets.GetBlockchainAssets(assetCode, assetIssuer, cursor, order, uint(limit), db)
-
-	// 	c.JSON(http.StatusOK, assets)
-
-	// })
 }

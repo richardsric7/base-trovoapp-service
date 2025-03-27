@@ -20,6 +20,7 @@ import (
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
+	"gorm.io/gorm/clause"
 )
 
 func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
@@ -181,7 +182,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	if (offerRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && offerRequest.Commit == 0) {
 		dbTX := gc.DB.Begin()
 		defer dbTX.Rollback()
-		e = dbTX.Create(&marketOffer).Error
+		e = dbTX.Omit(clause.Associations).Create(&marketOffer).Error
 		if e != nil {
 			log.Printf("[MakeOffer]Error creating market offer: %+v\nError: %v\n", marketOffer, e)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -218,7 +219,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 				marketOffer.BlockchainOfferID = &offerID
 			}
 		}
-		e = dbTX.Save(&marketOffer).Error
+		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
 		if e != nil {
 			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, e)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -250,7 +251,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[MakeOffer] Error saving MAKE MARKET OFFER txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -350,7 +351,7 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 	if (deleteOfferRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && deleteOfferRequest.Commit == 0) {
 		dbTX := gc.DB.Begin()
 		defer dbTX.Rollback()
-		e := dbTX.Create(&marketOffer).Error
+		e := dbTX.Omit(clause.Associations).Create(&marketOffer).Error
 		if e != nil {
 			log.Printf("[DeleteOffer]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -387,7 +388,7 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 				marketOffer.BlockchainOfferID = &offerID
 			}
 		}
-		e = dbTX.Save(&marketOffer).Error
+		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
 		if e != nil {
 			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -419,7 +420,7 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[MakeOffer] Error saving MAKE MARKET OFFER txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}

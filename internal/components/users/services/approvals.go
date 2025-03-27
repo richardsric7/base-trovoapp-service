@@ -353,7 +353,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		TransactionWithSignature: approvalInfo.TransactionSignature,
 	}
 
-	e = dbTX.Create(&pts).Error
+	e = dbTX.Omit(clause.Associations).Create(&pts).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving transaction signature:", e)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -375,7 +375,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 	}
 	if p.ApprovalsGotten < p.ApprovalsNeeded {
-		e = dbTX.Save(p).Error
+		e = dbTX.Omit(clause.Associations).Save(p).Error
 		if e != nil {
 			log.Println("[ApproveTransaction]error saving approval state:", e)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -390,7 +390,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	//if transaction fails on blockchain, then reverse all changes.
 	var txnResult horizon.Transaction
 	{
-		e = dbTX.Save(p).Error
+		e = dbTX.Omit(clause.Associations).Save(p).Error
 		if e != nil {
 			log.Println("[ApproveTransaction]error saving approval state:", e)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -407,7 +407,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	}
 
 	//blockchain succeeded
-	e = dbTX.Save(p).Error
+	e = dbTX.Omit(clause.Associations).Save(p).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
 		// return &tErrors.ErrorTemporaryServerError{}
@@ -430,7 +430,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			wallet.NumberOfApprovalsNeeded = 0
 			wallet.Permissions = nil
 
-			e = dbTX.Save(&wallet).Error
+			e = dbTX.Omit(clause.Associations).Save(&wallet).Error
 			if e != nil {
 				log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
 			}
@@ -444,7 +444,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				linkedWallet.SharedAccessEnabled = 0
 				linkedWallet.NumberOfApprovalsNeeded = 0
 				linkedWallet.Permissions = nil
-				e = dbTX.Save(&linkedWallet).Error
+				e = dbTX.Omit(clause.Associations).Save(&linkedWallet).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error saving linked wallet state:", e.Error())
 				}
@@ -496,13 +496,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			if len(modifiedList) > 0 {
 				//save modified access
-				e = dbTX.Save(&modifiedList).Error
+				e = dbTX.Omit(clause.Associations).Save(&modifiedList).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error saving modified list:", e.Error())
 				}
 				if hasLinkedWallet {
 					//save modified access
-					e = dbTX.Save(&linkedModifiedList).Error
+					e = dbTX.Omit(clause.Associations).Save(&linkedModifiedList).Error
 					if e != nil {
 						log.Println("[ApproveTransaction] error saving linked modified list:", e.Error())
 					}
@@ -511,13 +511,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			if len(addedList) > 0 {
 				//create added access
-				e = dbTX.Create(&addedList).Error
+				e = dbTX.Omit(clause.Associations).Create(&addedList).Error
 				if e != nil {
 					log.Println("[ApproveTransaction] error creating added list:", e.Error())
 				}
 				if hasLinkedWallet {
 					//create added access
-					e = dbTX.Create(&linkedAddedList).Error
+					e = dbTX.Omit(clause.Associations).Create(&linkedAddedList).Error
 					if e != nil {
 						log.Println("[ApproveTransaction] error creating linked added list:", e.Error())
 					}
@@ -728,11 +728,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 		} else if p.TransactionType == "MAKE MARKET OFFER" {
-			// e = dbTX.Create(&marketOffer).Error
-			// if e != nil {
-			// 	log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
-			// 	return &tErrors.ErrorTemporaryServerError{}
-			// }
+		
 			marketOffer.TransactionID = &txnResult.Hash
 			//get and set the offerID
 			{
@@ -755,7 +751,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					marketOffer.BlockchainOfferID = &offerID
 				}
 			}
-			e = dbTX.Create(&marketOffer).Error
+			e = dbTX.Omit(clause.Associations).Create(&marketOffer).Error
 			if e != nil {
 				log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
 				// return &tErrors.ErrorTemporaryServerError{}
@@ -815,16 +811,12 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
 				TransactionID:        wdlInput.TransactionID,
 			}
-			e = dbTX.Create(&wdlRequest).Error
+			e = dbTX.Omit(clause.Associations).Create(&wdlRequest).Error
 			if e != nil {
 				log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, e)
 				// return &tErrors.ErrorTemporaryServerError{}
 			}
-			// e = dbTX.Save(&wdlRequest).Error
-			// if e != nil {
-			// 	log.Printf("[ApproveTransaction] error saving withdrawal request for transactionID %v on db. error: %v\n", wdlInput.TransactionID, e)
-
-			// }
+		
 
 			dbTX.Commit()
 
@@ -883,6 +875,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				Inactive:     0,
 				ClosedGroup:  ta.ClosedGroupID,
 				Priority:     1,
+			
 			}
 
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
@@ -1038,7 +1031,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 	//signature exists
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	e := dbTX.Save(p).Error
+	e := dbTX.Omit(clause.Associations).Save(p).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
 		return &tErrors.ErrorTemporaryServerError{}

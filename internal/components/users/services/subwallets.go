@@ -192,40 +192,6 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 			}
 		}
 
-		// else{
-		// 	txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, accountOwner.PrimarySigner, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
-		// 	if err != nil {
-		// 		log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
-		// 		return subWalletInfo, err
-		// 	}
-		// 	subWalletInfo.TransactionID = txnHash
-		// 	dbTX.Commit()
-		// 	{
-		// 		//send to monitoring service
-		// 		trackPublicKey := userModels.TrackedPublicKey{
-		// 			PublicKey: subWalletInfo.PublicKey,
-		// 		}
-		// 		errTrack := gc.RoachDB.Create(&trackPublicKey).Error
-		// 		if errTrack != nil {
-		// 			//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-		// 			discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
-
-		// 		}
-		// 		if len(linkedWallet.ID) > 0 && len(subWalletInfo.LinkedWalletPublicKey) > 0 {
-		// 			//send to monitoring service
-		// 			trackPublicKey := userModels.TrackedPublicKey{
-		// 				PublicKey: linkedWallet.ID,
-		// 			}
-		// 			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
-		// 			if errTrack != nil {
-		// 				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-		// 				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking linked public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
-
-		// 			}
-		// 		}
-		// 	}
-		// }
-
 	}
 	accountOwner.InvalidateUserCache(gc)
 

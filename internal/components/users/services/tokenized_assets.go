@@ -327,7 +327,7 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 			DocumentTitle:    input.DocumentTitle,
 			DocumentUrl:      url,
 		}
-		e := gc.DB.Create(&documentUpload).Error
+		e := gc.DB.Omit(clause.Associations).Create(&documentUpload).Error
 		if e != nil {
 			log.Printf("[UploadTokenizationDocument]error creating document in database  [%v] for %v: %v\n", input, user.Username, e)
 			return "", fmt.Errorf("error saving document %v", input.DocumentTitle)
@@ -363,7 +363,7 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 		TransactionReference:           &feepaymentproofinput.TransactionReference,
 		DocumentUrl:                    url,
 	}
-	e := gc.DB.Create(&documentUpload).Error
+	e := gc.DB.Omit(clause.Associations).Create(&documentUpload).Error
 	if e != nil {
 		log.Printf("[UploadTokenizationFeeProofOfPaymentDocument]error creating proof of payment document in database for %v: %v\n", user.Username, e)
 		return "", fmt.Errorf("error saving proof of payment for tokenization ID %v", tokenizedAssetID)
@@ -2042,7 +2042,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := dbTX.Create(&pendingAuth).Error
+		e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[SubscribeToTokenizedAsset] Error saving asset subscription txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -2894,7 +2894,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
-	e := dbTX.Create(&pendingAuth).Error
+	e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
 	if e != nil {
 		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn [%+v] on pending auth table: %s\n", pendingAuth, e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}
@@ -2902,7 +2902,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	ato.AssetTokenizationStatus = 4
 	// ato.TokenizationTransaction = &xdrBase64
-	e = dbTX.Save(&ato).Error
+	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn on tokenizedAsset table: %s\n", e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}

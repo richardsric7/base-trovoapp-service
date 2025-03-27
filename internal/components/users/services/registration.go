@@ -15,6 +15,7 @@ import (
 	"github.com/ecnepsnai/discord"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm/clause"
 )
 
 // RegisterUser registers user information
@@ -114,7 +115,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	user.BuildPrimaryWallet()
 	//save the user
 
-	errCreate := gc.DB.Create(user).Error
+	errCreate := gc.DB.Omit(clause.Associations).Create(user).Error
 	if errCreate != nil {
 
 		discord.Say(fmt.Sprintf("[RegisterUser] user creation failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errCreate, userInfo))
