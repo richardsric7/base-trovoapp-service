@@ -94,7 +94,7 @@ type TokenizedAsset struct {
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetIssuingHouseID                         uint64                          `gorm:"not null" json:"assetIssuingHouseId"`
-	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouse"`
+	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
 	AssetQuoteCurrency                          *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                           float64                         `gorm:"default:0" json:"assetCurrentValue"`
 	AssetOwnerRetainedOrContributedValue        float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
@@ -321,7 +321,7 @@ type TokenizedAssetJSON struct {
 	ApprovedAssetCustodianID                    uint64                          `gorm:"not null" json:"approvedAssetCustodianId"`
 	ApprovedAssetCustodian                      ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
 	AssetIssuingHouseID                         uint64                          `gorm:"not null" json:"assetIssuingHouseId"`
-	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouse"`
+	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
 	OfferingType                                string                          `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                               string                          `gorm:"null" json:"closedGroupId"`
 	ClosedGroup                                 ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
