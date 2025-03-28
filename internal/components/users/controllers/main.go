@@ -5536,7 +5536,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
-					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err)
+					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%#v]\n\n", ex.JSONError())
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
 					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err.Error())
