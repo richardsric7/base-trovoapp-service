@@ -1145,7 +1145,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
 		totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFee + legalAndProfessionalFee + ratingAgencyFee
 		vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
-
+		t.IssuingHouseFee = cConfig.IssuingHouseFee
+		t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
+		t.RatingAgencyFee = cConfig.RatingAgencyFee
+		t.VAT = cConfig.VAT
 		t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
 		if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
@@ -1359,7 +1362,10 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
 	totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFee + legalAndProfessionalFee + ratingAgencyFee
 	vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
-
+	t.IssuingHouseFee = cConfig.IssuingHouseFee
+	t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
+	t.RatingAgencyFee = cConfig.RatingAgencyFee
+	t.VAT = cConfig.VAT
 	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
