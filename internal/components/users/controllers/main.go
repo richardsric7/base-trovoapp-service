@@ -5701,8 +5701,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
+					log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, ex.JSONError())
 				} else {
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+					log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, err)
+
 				}
 				return
 			}
@@ -5748,6 +5751,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				if ok {
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
+
 					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 				}
 				return
@@ -5785,8 +5789,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
+					log.Printf("[FAILDD]Error:%+v\n", ex.JSONError())
+
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
+					log.Printf("[FAILDD]Error:%v\n", err)
+
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
@@ -5870,8 +5878,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
+					log.Printf("[FEEACKNOWLEDGEMENT]Error:%+v\n", ex.JSONError())
+
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
+					log.Printf("[FEEACKNOWLEDGEMENT]Error:%v\n", err)
+
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
@@ -5932,19 +5944,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			// var tInput userModels.VetTokenizedAssetJSONInput
-
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tInput)
-
-			// var invalidJSON tErrors.ErrorInvalidJSON
-
-			// if err != nil {
-			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			// 	return
-			// }
-
 			//perform request action
 			ta, err := userServices.MintRegulatedTokenizedAsset(tid, &initiator, gc)
 
@@ -5955,8 +5954,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
+					log.Printf("[MINT TOKEN]Error:%+v\n", ex.JSONError())
+
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
+					log.Printf("[MINT TOKEN]Error:%v\n", err)
+
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
