@@ -49,7 +49,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       appState.viewData!['walletPublicKey'],
     );
 
-    var result = userInfo.curatedSwapList!.firstWhereOrNull(
+    var result = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.assetIssuer == appState.viewData!['assetIssuer'],

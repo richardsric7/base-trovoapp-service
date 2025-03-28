@@ -40,8 +40,8 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = appState.tokenizedAsset!;
     inspect(appState.viewData);
-    amount = appState.viewData!['amount'];
-    quantity = appState.viewData!['swappedEstimate'];
+    amount = double.parse(appState.viewData!['amount'].toString());
+    quantity = appState.viewData!['swappedEstimate'].toString();
     transactionId = appState.viewData!['transactionId'];
     memo = appState.viewData!['memo'];
   }

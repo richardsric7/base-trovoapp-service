@@ -12,6 +12,7 @@ class Asset {
       0; // index where user prefers it to appear on asset list
   Map? inTrade;
   List<CryptoWalletDepositAddress>? cryptoWalletDepositAddresses;
+  int? assetClassId;
 
   Asset({
     this.assetCode,
@@ -23,6 +24,7 @@ class Asset {
     this.inTrade,
     this.nativePrice,
     this.cryptoWalletDepositAddresses,
+    this.assetClassId,
   });
 
   Asset deserializeJson(Map<String, dynamic> m) {

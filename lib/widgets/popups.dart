@@ -4188,7 +4188,7 @@ showSubscribePopup(
                         padding: const EdgeInsets.all(20.0),
                         child: Center(
                           child: Text(
-                            "You have already indicated to invest ${asset.expressedInterestAmount} ${appState.defaultCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
+                            "You have already indicated to invest ${formatNumberShort(asset.expressedInterestAmount ?? 0)} ${appState.defaultCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,

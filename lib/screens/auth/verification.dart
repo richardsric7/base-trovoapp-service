@@ -236,6 +236,7 @@ class _VeryficationState extends State<Veryfication> {
     if (responseData['statusCode'] == 200) {
       fetchNotifications(state);
       getFiatRates(state);
+      fetchCuratedSwapList(state);
       await storeUserInfo(responseData['data']);
       hideLoader(context);
     } else if (responseData['statusCode'] == 404) {

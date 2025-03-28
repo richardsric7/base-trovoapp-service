@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -109,6 +108,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     selectedWallet = appState.primaryWallet.publicKey!;
     claimedAssets = wallet.claimedAssets!;
     _refreshController = RefreshController(initialRefresh: false);
+    print('==============> swap list ${appState.curatedSwapList}');
   }
 
   @override
@@ -617,12 +617,14 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     if (isDestination) {
       // add the default assets to the list of destination assets
-      appState.userInfo!.curatedSwapList!.forEach((asset) {
-        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] = asset.assetCode;
+      appState.curatedSwapList.forEach((asset) {
+        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] =
+            '${asset.assetCode}|${asset.imageUrl}';
       });
     } else {
       assets.forEach((asset) {
-        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] = asset.assetCode;
+        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] =
+            '${asset.assetCode}|${asset.imageUrl}';
       });
     }
 
@@ -632,6 +634,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     }
 
     assetsMap.forEach((key, value) {
+      print('===============>>> ${key} ${value}');
+      var splitValue = value.split('|');
       dropDownItems.add(
         DropdownMenuItem<String>(
           // to make each asset in the list unique we combine both the assetCode
@@ -642,15 +646,15 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
             children: [
               CircleAvatar(
                 maxRadius: 15,
-                child: SvgPicture.asset(
-                  "assets/images/swapicon.svg",
-                  // height: height / 40,
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(
+                  splitValue[1],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
                 child: Text(
-                  value.toString().isEmpty ? 'XBN' : value,
+                  splitValue[0].toString().isEmpty ? 'XBN' : splitValue[0],
                   style: TextStyle(
                     fontSize: 15,
                     // fontWeight: FontWeight.bold,

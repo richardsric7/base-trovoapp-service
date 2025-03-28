@@ -114,7 +114,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '${formatNumberShort(quantity)} Tokens',
+                        '${formatNumber(quantity)} Tokens',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -370,7 +370,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
   Future<void> sendFullDataToServer({required Map transactionData}) async {
     try {
       showLoader(context);
-      if (appState.activeWallet!.isSharedWalletAndCanInitiate) {
+      if (transactionData['signatureRequired'] == 0) {
         transactionData['commit'] = 1;
       } else {
         // sign transaction
@@ -401,7 +401,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
-        if (appState.activeWallet!.isSharedWallet) {
+        if (transactionData['signatureRequired'] == 0) {
           appState.viewData = {
             SuccessViewPageConfig.key: {
               'title': 'Purchase request submitted',

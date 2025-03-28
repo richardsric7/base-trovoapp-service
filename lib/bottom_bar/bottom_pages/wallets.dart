@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +9,6 @@ import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/models/asset.dart';
-import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:trovo_app/functions/trovo-sdk.dart';
@@ -51,7 +48,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late Account newSubWalletKeyPair;
   late DataProvider appState;
   List<Asset>? unclaimedAssets;
-  List<Asset> claimedAssets = [];
+  List<Asset> otherTokens = [];
   late UserInfo userInfo;
   final carouselController = CarouselController();
   int tabLength = 2;
@@ -61,7 +58,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   String selectedWalletMode = "My wallets";
   List<String> walletListMode = ['My wallets', 'Shared wallets', 'All wallets'];
   late List<WalletTileColor> colors;
-  List<TokenizedAsset> tokenizedAssets = [];
+  List<Asset> tokenizedAssets = [];
 
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
@@ -156,12 +153,12 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
     if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;
-      claimedAssets = wallets[0]
-          .claimedAssets!
+      otherTokens = wallets[0]
+          .getOtherTokens(appState)
           .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
           .toList();
       unclaimedAssets = wallets[0].unClaimedAssets;
-      tokenizedAssets = wallets[0].tokenizedAssets ?? [];
+      tokenizedAssets = wallets[0].getTokenizedAssets(appState);
       noXbnBalance = wallets[0]
               .claimedAssets!
               .firstWhere((asset) =>
@@ -555,159 +552,76 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           SingleChildScrollView(
             child: Column(
               children: [
-                SizedBox(
-                  height: height / 90,
-                ),
-                if (tokenizedAssets.isNotEmpty) ...[
-                  for (var i = 0; i < tokenizedAssets.length; i++) ...[
-                    GestureDetector(
-                      onTap: () {
-                        appState.viewData = {
-                          'assetCode': tokenizedAssets[i].assetCode,
-                          'assetIssuer': tokenizedAssets[i].assetIssuer,
-                          'tokenizedAsset': tokenizedAssets[i],
-                          'walletPublicKey': activeWallet,
-                        };
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: AssetTokenDetailsViewPageConfig,
-                        );
+                if (tokenizedAssets.length > 0) ...[
+                  Container(
+                    height: height / 2.2,
+                    child: ReorderableListView(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                      onReorder: (oldIndex, newIndex) {
+                        print('reodered $oldIndex $newIndex');
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final Asset item = tokenizedAssets.removeAt(oldIndex);
+                        tokenizedAssets.insert(newIndex, item);
+                        setState(() {});
                       },
-                      child: tokenizedAssetTile(
-                          tokenizedAssets[i], i, activeWalletIndex),
-                    ),
-                  ],
-                  SizedBox(height: height / 20),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      height: height / 4,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "nothingtoshowhere2".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
+                      children: [
+                        for (var i = 0; i < tokenizedAssets.length; i++) ...[
+                          if (tokenizedAssets[i].assetCode != '') ...[
+                            GestureDetector(
+                              key: Key(i.toString()),
+                              onTap: () {
+                                appState.setActiveWallet = wallets.firstWhere(
+                                    (wallet) =>
+                                        wallet.publicKey == activeWallet);
+
+                                appState.viewData = {
+                                  'assetCode': tokenizedAssets[i].assetCode,
+                                  'assetIssuer': tokenizedAssets[i].assetIssuer,
+                                  'walletPublicKey': activeWallet,
+                                };
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: AssetDetailsViewPageConfig,
+                                );
+                              },
+                              child: tiles(
+                                  tokenizedAssets[i], i, activeWalletIndex),
+                            ),
+                          ]
                         ],
-                      ),
+                      ],
                     ),
-                  )
+                  ),
+                  SizedBox(
+                    height: height / 22,
+                  ),
+                ] else ...[
+                  Container(
+                    height: height / 3,
+                    child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                        child: Center(
+                          child: Text(
+                            "noassets".tr(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: fontsemibold,
+                              color: notifier.getblck,
+                            ),
+                          ),
+                        )),
+                  ),
                 ],
+                SizedBox(
+                  height: height / 22,
+                ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget tokenizedAssetTile(
-      TokenizedAsset asset, int? indexOfAsset, int indexOfWallet) {
-    if (indexOfAsset != null) {
-      if (appState.assetOrderings[wallets[indexOfWallet].publicKey!] == null) {
-        appState.assetOrderings[wallets[indexOfWallet].publicKey!] = {
-          asset.assetCode!: indexOfAsset
-        };
-      }
-      appState.assetOrderings[wallets[indexOfWallet].publicKey!]![
-          asset.assetCode!] = indexOfAsset;
-    }
-    return Card(
-      elevation: notifier.isDark ? 0 : 5,
-      shadowColor: Colors.black,
-      color: notifier.gettilewihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-            title: Row(
-              children: [
-                if (asset.assetLogo != null) ...[
-                  Image.memory(
-                    base64Decode(asset.assetLogo!),
-                    height: 35,
-                    width: 35,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'assets/images/trovo.png',
-                        height: 35,
-                        width: 35,
-                      );
-                    },
-                  ),
-                ] else ...[
-                  Image.asset(
-                    'assets/images/trovo.png',
-                    height: 35,
-                    width: 35,
-                  ),
-                ],
-                SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getAssetCode(asset.assetCode),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                      child: Text(
-                        "${getFiatRate(asset.usdPrice == null ? '1.45' : asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  getBalance(
-                      formatHistoryNumber(
-                          asset.subscriptionAmount ?? 0, 99000000000),
-                      indexOfWallet),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getblck,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                  child: Text(
-                    getBalance(
-                        '${calculateFiatValue(asset.subscriptionAmount == null ? '0' : asset.subscriptionAmount.toString(), asset.usdPrice == null ? '1.45' : asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
-                        indexOfWallet),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getblck,
-                    ),
-                  ),
-                ),
-              ],
-            )),
       ),
     );
   }
@@ -729,14 +643,14 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 () => {
                   activeWalletIndex = index == 5 ? index - 1 : index,
                   activeWallet = wallets[activeWalletIndex].publicKey,
-                  claimedAssets = wallets[activeWalletIndex]
-                      .claimedAssets!
+                  otherTokens = wallets[activeWalletIndex]
+                      .getOtherTokens(appState)
                       .where((asset) =>
                           asset.assetCode != '' && asset.assetIssuer != '')
                       .toList(),
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
                   tokenizedAssets =
-                      wallets[activeWalletIndex].tokenizedAssets ?? [],
+                      wallets[activeWalletIndex].getTokenizedAssets(appState),
                 },
               ),
               // reOrderClaimedAssets(activeWallet!),
@@ -1026,7 +940,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     return SingleChildScrollView(
       child: Column(
         children: [
-          if (claimedAssets.length > 0) ...[
+          if (otherTokens.length > 0) ...[
             Container(
               height: height / 2.2,
               child: ReorderableListView(
@@ -1036,13 +950,13 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   if (oldIndex < newIndex) {
                     newIndex -= 1;
                   }
-                  final Asset item = claimedAssets.removeAt(oldIndex);
-                  claimedAssets.insert(newIndex, item);
+                  final Asset item = otherTokens.removeAt(oldIndex);
+                  otherTokens.insert(newIndex, item);
                   setState(() {});
                 },
                 children: [
-                  for (var i = 0; i < claimedAssets.length; i++) ...[
-                    if (claimedAssets[i].assetCode != '') ...[
+                  for (var i = 0; i < otherTokens.length; i++) ...[
+                    if (otherTokens[i].assetCode != '') ...[
                       GestureDetector(
                         key: Key(i.toString()),
                         onTap: () {
@@ -1050,8 +964,8 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               (wallet) => wallet.publicKey == activeWallet);
 
                           appState.viewData = {
-                            'assetCode': claimedAssets[i].assetCode,
-                            'assetIssuer': claimedAssets[i].assetIssuer,
+                            'assetCode': otherTokens[i].assetCode,
+                            'assetIssuer': otherTokens[i].assetIssuer,
                             'walletPublicKey': activeWallet,
                           };
                           appState.currentAction = PageAction(
@@ -1059,7 +973,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                             page: AssetDetailsViewPageConfig,
                           );
                         },
-                        child: tiles(claimedAssets[i], i, activeWalletIndex),
+                        child: tiles(otherTokens[i], i, activeWalletIndex),
                       ),
                     ]
                   ],
@@ -1112,9 +1026,9 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     // order asset according to user preference
     print('reodering assets... ${appState.assetOrderings}');
     if (appState.assetOrderings[publicKey] != null) {
-      claimedAssets.forEach((asset) => asset.userPreferredIndex =
+      otherTokens.forEach((asset) => asset.userPreferredIndex =
           appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      claimedAssets
+      otherTokens
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
     }
   }

@@ -22,10 +22,32 @@ Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
 
   if (responseData['statusCode'] == 200) {
     await storeUserInfo(responseData['data'], appState);
+    await fetchCuratedSwapList(appState);
   }
 }
 
-storeUserInfo(userInfoMap, state) async {
+Future<void> fetchCuratedSwapList(
+  DataProvider appState,
+) async {
+  String uri = '/v1/curated-assets/users';
+
+  Map responseData = await makeGetRequest(
+    uri: uri,
+    signer: appState.primaryWallet.signer ?? "",
+    secretKey: appState.secretKeys[0], // the primary wallet secret key
+    publicKey: appState.primaryWallet.publicKey ?? "",
+  );
+  if (responseData['statusCode'] == 200) {
+    await StoreData().storeInsertData('curatedSwapList', responseData['data']);
+    appState.curatedSwapList =
+        appState.deserializeSwapList(responseData['data']);
+    appState.curatedSwapList.forEach((ca) {
+      appState.curatedSwapListMap['${ca.assetIssuer}|${ca.assetCode}'] = ca;
+    });
+  }
+}
+
+storeUserInfo(userInfoMap, DataProvider state) async {
   // print('userInfoMap: ${userInfoMap['userData']}');
   var userInfo = userInfoMap['userData'] ?? {};
   var assetBalances = userInfoMap['assetBalances'] ?? {};
@@ -41,7 +63,6 @@ storeUserInfo(userInfoMap, state) async {
   await StoreData().storeInsertData('isFirstTime', false);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
   await StoreData().storeInsertData('restartedAfterSwitch', false);
-
   // save useInfo to appstate
   state.setUser = UserInfo()
       .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);

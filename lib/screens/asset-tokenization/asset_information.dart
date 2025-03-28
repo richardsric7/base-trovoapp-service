@@ -127,7 +127,7 @@ class _AssetInformation extends State<AssetInformation>
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-    // inspect(data);
+    inspect(appState.tokenizationData);
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
             ? data['ownershipType']

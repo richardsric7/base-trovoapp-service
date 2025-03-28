@@ -926,27 +926,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return wallets;
   }
 
-  List<DropdownMenuItem<String>> getUnsubscribableWallets(
-      TokenizedAsset asset) {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWallets.where((wallet) {
-      return wallet.tokenizedAssets != null &&
-          wallet.tokenizedAssets!
-              .where((a) =>
-                  a.assetName == asset.assetName &&
-                  a.assetCode == asset.assetCode)
-              .isNotEmpty;
-    }).forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {

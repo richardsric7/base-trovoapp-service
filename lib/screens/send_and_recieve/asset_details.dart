@@ -52,7 +52,7 @@ class _AssetDetailsState extends State<AssetDetails>
           asset.assetIssuer == appState.viewData!['assetIssuer'],
     );
 
-    curatedAsset = userInfo.curatedSwapList!.firstWhereOrNull(
+    curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.assetIssuer == appState.viewData!['assetIssuer'],
@@ -80,7 +80,7 @@ class _AssetDetailsState extends State<AssetDetails>
       selectedAsset = '';
     }
 
-    this.curatedAsset = userInfo.curatedSwapList!.firstWhereOrNull(
+    this.curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (curatedAsset) =>
           curatedAsset.assetCode == asset!.assetCode &&
           curatedAsset.assetIssuer == asset!.assetIssuer,
@@ -95,6 +95,39 @@ class _AssetDetailsState extends State<AssetDetails>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        bottomSheet: SizedBox(
+          height: 120,
+          width: double.infinity,
+          child: Column(
+            children: [
+              SizedBox(height: 10),
+              if ((!wallet.isSharedWallet ||
+                      wallet.isInitiator ||
+                      wallet.isPrimaryWallet) &&
+                  wallet.walletType == 0) ...[
+                actionButtons(),
+              ] else ...[
+                Button(
+                  "receive".tr(),
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.viewData = {
+                      'walletPublicKey': wallet.publicKey,
+                      'assetCode': asset!.assetCode,
+                      'assetIssuer': asset!.assetIssuer,
+                    };
+
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ReceiveAssetViewPageConfig,
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(height / 15),
           child: AppBar(
@@ -215,34 +248,7 @@ class _AssetDetailsState extends State<AssetDetails>
               ),
               if (curatedAsset != null) curatedAssetInfo() else assetInfo(),
               SizedBox(
-                height: height / 20,
-              ),
-              if ((!wallet.isSharedWallet ||
-                      wallet.isInitiator ||
-                      wallet.isPrimaryWallet) &&
-                  wallet.walletType == 0) ...[
-                actionButtons(),
-              ] else ...[
-                Button(
-                  "receive".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    appState.viewData = {
-                      'walletPublicKey': wallet.publicKey,
-                      'assetCode': asset!.assetCode,
-                      'assetIssuer': asset!.assetIssuer,
-                    };
-
-                    appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: ReceiveAssetViewPageConfig,
-                    );
-                  },
-                ),
-              ],
-              SizedBox(
-                height: height / 20,
+                height: 150,
               ),
             ],
           ),
@@ -433,7 +439,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
+                        '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState)))} ${appState.defaultCurrency}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w500,

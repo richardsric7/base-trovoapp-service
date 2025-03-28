@@ -1,4 +1,5 @@
 import 'package:trovo_app/models/tokenizedAsset.dart';
+import 'package:trovo_app/storage/state.dart';
 
 import 'asset.dart';
 import 'permission.dart';
@@ -29,7 +30,6 @@ class Wallet {
   String? owner; // for shared wallet
   List<Asset>? claimedAssets;
   List<Asset>? unClaimedAssets;
-  List<TokenizedAsset>? tokenizedAssets;
 
   Wallet({
     this.createdAt,
@@ -54,7 +54,6 @@ class Wallet {
     this.owner,
     this.claimedAssets,
     this.unClaimedAssets,
-    this.tokenizedAssets,
   });
 
   toJSONEncodable() {
@@ -110,8 +109,6 @@ class Wallet {
           deserializeAssetList(assetBalances[m["publicKey"]]['claimed']),
       unClaimedAssets:
           deserializeAssetList(assetBalances[m["publicKey"]]['unclaimed']),
-      // tokenizedAssets: deserializeTokenizedAssetList(
-      //     assetBalances[m["publicKey"]]['unclaimed']),
     );
   }
 
@@ -212,5 +209,31 @@ class Wallet {
       }
     }
     return assetsList;
+  }
+
+  List<Asset> getTokenizedAssets(DataProvider appState) {
+    var tokenizedAssets = <Asset>[];
+    claimedAssets!.forEach((asset) {
+      print(appState.curatedSwapListMap);
+      if (appState.curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+              ?.assetClassId ==
+          3) {
+        tokenizedAssets.add(asset);
+      }
+    });
+    return tokenizedAssets;
+  }
+
+  List<Asset> getOtherTokens(DataProvider appState) {
+    var tokenizedAssets = <Asset>[];
+    claimedAssets!.forEach((asset) {
+      print(appState.curatedSwapListMap);
+      if (appState.curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+              ?.assetClassId !=
+          3) {
+        tokenizedAssets.add(asset);
+      }
+    });
+    return tokenizedAssets;
   }
 }

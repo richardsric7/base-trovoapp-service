@@ -133,10 +133,13 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setAssetOrderings =
             await StoreData().storeGetData('assetOrderings');
         appState.setNFTs = await StoreData().storeGetData('nfts');
+        appState.curatedSwapList = appState.deserializeSwapList(
+            await StoreData().storeGetData('curatedSwapList'));
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
         print('fiatRates ${appState.fiatRate['NGN']}');
         appState.introducedSharedAccess =
             await StoreData().storeGetData('introducedSharedAccess') ?? false;
+
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
@@ -172,6 +175,7 @@ class _SplashScreenState extends State<SplashScreen>
                 pnt: dateDifference.inDays > 10 ? token : null,
               );
               fetchNotifications(appState);
+              fetchCuratedSwapList(appState);
 
               if (initialDynamicLink != null) {
                 appState.processDeepLink(
@@ -272,6 +276,7 @@ class _SplashScreenState extends State<SplashScreen>
 
       fetchNotifications(appState);
       getFiatRates(appState);
+      fetchCuratedSwapList(appState);
       storeUserInfo(responseData['data'], appState);
       await StoreData()
           .storeInsertData('biometricsEnabled', appState.biometricEnabled);

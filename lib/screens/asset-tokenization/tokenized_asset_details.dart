@@ -32,6 +32,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   late ColorNotifier notifier;
   late DataProvider appState;
   String assetType = '';
+  String fiatCurrency = '';
   late TokenizedAsset tokenizedAsset;
 
   getdarkmodepreviousstate() async {
@@ -64,6 +65,36 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = appState.tokenizedAsset!;
     var assetTypes = appState.tokenizationData['assetTypes'];
+    var quoteCurrencyCode = '';
+
+    for (var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        print(
+            '====================> got here ${appState.tokenizationData['countryConfigs'][i]}');
+        quoteCurrencyCode =
+            appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+      }
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData['tokenizationCurrencies'].length;
+        i++) {
+      if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
+              .toString()
+              .toLowerCase() ==
+          quoteCurrencyCode.toString().toLowerCase()) {
+        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
+                ['label']
+            .toString()
+            .toUpperCase();
+      }
+    }
+
     for (var i = 0; i < assetTypes.length; i++) {
       if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
         assetType = assetTypes[i]['assetType'];
@@ -443,7 +474,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Asset Value',
                   value:
-                      '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}',
+                      '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
                   extraValue: '\$4,390.23',
                 ),
                 SizedBox(
@@ -466,7 +497,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Amount to be Raised',
                   value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                   extraValue: '',
                 ),
                 SizedBox(
@@ -498,7 +529,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Price Per Token',
                   value:
-                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                   extraValue: '',
                 ),
               ],
@@ -521,7 +552,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   notifier,
                   label: 'Value of Quantity Held',
                   value:
-                      '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                      '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                   extraValue: '',
                 ),
               ],
@@ -774,68 +805,71 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.',
               '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
             ),
-            Card(
-              elevation: notifier.isDark ? 0 : 3,
-              shadowColor: Colors.black,
-              color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Asset Verification Documents',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          for (var item in tokenizedAsset
-                              .assetTokenizationDocuments!) ...[
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size(50, 30),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  alignment: Alignment.centerLeft),
-                              onPressed: () {
-                                var fileUrl = item.documentUrl;
-                                if (fileUrl!.isNotEmpty &&
-                                    fileUrl.endsWith('.pdf')) {
-                                  appState.pdfUrl = fileUrl;
-                                  appState.currentAction = PageAction(
-                                      state: PageState.addPage,
-                                      page: PdfViewPageConfig);
-
-                                  return;
-                                }
-
-                                appState.goToWebView(fileUrl);
-                              },
-                              child: Text(
-                                item.documentTitle ?? '',
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 12,
-                                  fontFamily: fontbody,
-                                  color: notifier.getbluewhitecolor,
-                                ),
+            if (tokenizedAsset.assetTokenizationDocuments != null &&
+                tokenizedAsset.assetTokenizationDocuments!.isNotEmpty) ...[
+              Card(
+                elevation: notifier.isDark ? 0 : 3,
+                shadowColor: Colors.black,
+                color: notifier.gettilewihitecolor,
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Asset Verification Documents',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
+                            for (var item in tokenizedAsset
+                                .assetTokenizationDocuments!) ...[
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size(50, 30),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    alignment: Alignment.centerLeft),
+                                onPressed: () {
+                                  var fileUrl = item.documentUrl;
+                                  if (fileUrl!.isNotEmpty &&
+                                      fileUrl.endsWith('.pdf')) {
+                                    appState.pdfUrl = fileUrl;
+                                    appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: PdfViewPageConfig);
+
+                                    return;
+                                  }
+
+                                  appState.goToWebView(fileUrl);
+                                },
+                                child: Text(
+                                  item.documentTitle ?? '',
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
             // Card(
             //   elevation: notifier.isDark ? 0 : 3,
             //   shadowColor: Colors.black,

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:restart_app/restart_app.dart';
+import 'package:trovo_app/models/curated_asset.dart';
 import 'package:trovo_app/models/deposit_transaction_model.dart';
 import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/models/transaction.dart';
@@ -26,6 +27,8 @@ class DataProvider with ChangeNotifier {
   bool isDark = false;
   bool biometricEnabled = false;
   bool restartedAfterSwitch = false;
+  List<CuratedAsset> curatedSwapList = [];
+  Map<String, CuratedAsset> curatedSwapListMap = {};
   bool isFirstTime = true;
   String timeout = '5'; // 5 minutes
   String? password;
@@ -83,6 +86,14 @@ class DataProvider with ChangeNotifier {
       }
     }
     return _transactionableWallets;
+  }
+
+  List<CuratedAsset> deserializeSwapList(List<dynamic> m) {
+    List<CuratedAsset> list = [];
+    m.forEach((item) {
+      list.add(CuratedAsset().deserializeJson(item));
+    });
+    return list;
   }
 
   Map<String, Map<String, int>> assetOrderings = {};

@@ -78,6 +78,70 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
+                      'Amount',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      'Amount',
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      300.sp,
+                      onChanged: (value) {
+                        setState(() {
+                          var a = int.tryParse(value);
+                          if (a != null) {
+                            var pricePerToken = tokenizedAsset.pricePerToken!;
+                            quantity = a / pricePerToken;
+                          } else {
+                            quantity = 0;
+                          }
+                        });
+                      },
+                      autoFormatNumber: true,
+                      isFiat: true,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      controller: amountController,
+                      onSaved: (value) {
+                        amount = double.parse(value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
                       'Currency',
                       style: TextStyle(
                         fontSize: 12,
@@ -145,105 +209,31 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      'Quantity',
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      autoFormatNumber: true,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          var a = int.tryParse(value);
-                          if (a != null) {
-                            var pricePerToken = tokenizedAsset.pricePerToken!;
-                            amountController.text =
-                                formatNumberShort(a * pricePerToken).toString();
-                          }
-                        });
-                      },
-                      controller: quantityController,
-                      onSaved: (value) {
-                        quantity = double.parse(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'Amount',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: 300.sp,
+                      height: 55.sp,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              formatNumber(quantity),
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      'Amount',
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      onChanged: (value) {
-                        setState(() {
-                          var a = int.tryParse(value);
-                          if (a != null) {
-                            var pricePerToken = tokenizedAsset.pricePerToken!;
-                            quantityController.text =
-                                formatNumberShort(a / pricePerToken).toString();
-                          }
-                        });
-                      },
-                      autoFormatNumber: true,
-                      isFiat: true,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      controller: amountController,
-                      onSaved: (value) {
-                        amount = double.parse(value);
-                      },
-                    ),
-                  ),
+                  )
                 ],
               ),
               SizedBox(

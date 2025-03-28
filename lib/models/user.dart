@@ -1,4 +1,3 @@
-import 'package:trovo_app/models/curated_asset.dart';
 import 'package:trovo_app/models/patronMembership.dart';
 import 'package:trovo_app/models/referral_info.dart';
 
@@ -30,7 +29,6 @@ class UserInfo {
   int? suspended;
   List<Wallet>? wallets;
   List<Wallet>? sharedWallets;
-  List<CuratedAsset>? curatedSwapList;
   ReferralInfoObject? referralInfo;
 
   UserInfo({
@@ -59,7 +57,6 @@ class UserInfo {
     this.sharedWallets,
     this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
-    this.curatedSwapList,
     this.referralInfo,
   });
 
@@ -87,7 +84,6 @@ class UserInfo {
       "kycVerified": kycVerified,
       "verified": verified,
       "suspended": suspended,
-      // "curatedSwapList": curatedSwapList,
     };
   }
 
@@ -117,19 +113,10 @@ class UserInfo {
       kycVerified: m['kycVerified'],
       verified: m['verified'],
       suspended: m['suspended'],
-      curatedSwapList: deserializeSwapList(m),
       wallets: deserializeWallets(m, assetBalances),
       sharedWallets: deserializeSharedWallets(sharedWallets),
       referralInfo: deserializeReferralInfo(m),
     );
-  }
-
-  List<CuratedAsset> deserializeSwapList(Map<String, dynamic> m) {
-    List<CuratedAsset> list = [];
-    m['curatedSwapList'].forEach((item) {
-      list.add(CuratedAsset().deserializeJson(item));
-    });
-    return list;
   }
 
   ReferralInfoObject deserializeReferralInfo(Map<String, dynamic> m) {

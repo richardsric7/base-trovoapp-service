@@ -63,7 +63,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
           asset.assetIssuer == appState.viewData!['assetIssuer'],
     );
 
-    curatedAsset = appState.userInfo!.curatedSwapList!.firstWhereOrNull(
+    curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.assetIssuer == appState.viewData!['assetIssuer'],

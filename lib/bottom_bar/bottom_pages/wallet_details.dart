@@ -10,7 +10,6 @@ import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/models/asset.dart';
-import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/router/page_actions.dart';
@@ -37,8 +36,8 @@ class _WalletDetailsState extends State<WalletDetails>
   int tabLength = 1;
   int activeTabIndex = 0;
   late Asset gas;
-  List<Asset> claimedAssets = [];
-  List<TokenizedAsset> tokenizedAssets = [];
+  List<Asset> otherTokens = [];
+  List<Asset> tokenizedAssets = [];
   late bool localHideBalance;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   String rel = '';
@@ -88,8 +87,9 @@ class _WalletDetailsState extends State<WalletDetails>
     gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
     rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
-    tokenizedAssets = wallet.tokenizedAssets ?? [];
-    claimedAssets = wallet.claimedAssets!
+    tokenizedAssets = wallet.getTokenizedAssets(appState);
+    otherTokens = wallet
+        .getOtherTokens(appState)
         .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
         .toList();
 
@@ -98,6 +98,7 @@ class _WalletDetailsState extends State<WalletDetails>
     }
 
     reOrderClaimedAssets(wallet.publicKey!);
+    reOrderTokenizedAssets(wallet.publicKey!);
   }
 
   void tabListener() {
@@ -287,11 +288,22 @@ class _WalletDetailsState extends State<WalletDetails>
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      claimedAssets.forEach((asset) => asset.userPreferredIndex =
+      otherTokens.forEach((asset) => asset.userPreferredIndex =
           appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      claimedAssets
+      otherTokens
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
-      print('testing the microphone $claimedAssets');
+      print('testing the microphone $otherTokens');
+    }
+  }
+
+  void reOrderTokenizedAssets(String publicKey) {
+    // order asset according to user preference
+    if (appState.assetOrderings[publicKey] != null) {
+      tokenizedAssets.forEach((asset) => asset.userPreferredIndex =
+          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
+      tokenizedAssets
+          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
+      print('testing the microphone $tokenizedAssets');
     }
   }
 
@@ -341,42 +353,75 @@ class _WalletDetailsState extends State<WalletDetails>
           SingleChildScrollView(
             child: Column(
               children: [
-                if (tokenizedAssets.isNotEmpty) ...[
-                  for (var i = 0; i < tokenizedAssets.length; i++) ...[
-                    GestureDetector(
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: TokenizedAssetDetailViewPageConfig,
-                        );
+                if (tokenizedAssets.length > 0) ...[
+                  Container(
+                    height: height / 1.76,
+                    child: ReorderableListView(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                      onReorder: (oldIndex, newIndex) {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final Asset item = tokenizedAssets.removeAt(oldIndex);
+                        tokenizedAssets.insert(newIndex, item);
+                        setState(() {});
                       },
-                      child: tokenizedAssetTile(
-                          tokenizedAssets[i].assetLogo ?? '',
-                          tokenizedAssets[i].assetName ?? '',
-                          tokenizedAssets[i].assetType ?? '',
-                          i % 2 == 0),
-                    ),
-                  ],
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      height: height / 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "nothingtoshowhere2".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
+                      children: [
+                        for (var i = 0; i < tokenizedAssets.length; i++) ...[
+                          GestureDetector(
+                            key: Key(tokenizedAssets[i].assetIssuer!),
+                            onTap: () {
+                              appState.returnView = PageAction(
+                                state: PageState.addAll,
+                                pages: [
+                                  BottomHomePageConfig,
+                                  WalletDetailsViewPageConfig
+                                ],
+                              );
+
+                              if (rel == 'sharedWalletView') {
+                                appState.returnView =
+                                    PageAction(state: PageState.addAll, pages: [
+                                  BottomHomePageConfig,
+                                  SharedAccessViewPageConfig,
+                                  SharedWalletInfoViewPageConfig,
+                                  WalletDetailsViewPageConfig
+                                ]);
+                              }
+
+                              appState.viewData = {
+                                'assetCode': tokenizedAssets[i].assetCode,
+                                'assetIssuer': tokenizedAssets[i].assetIssuer,
+                                'walletPublicKey': wallet.publicKey,
+                              };
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: AssetDetailsViewPageConfig,
+                              );
+                            },
+                            child: tiles(tokenizedAssets[i], i),
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                  )
+                  ),
+                ] else ...[
+                  Container(
+                    height: height / 3,
+                    child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                        child: Center(
+                          child: Text(
+                            "noassets".tr(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: fontsemibold,
+                              color: notifier.getblck,
+                            ),
+                          ),
+                        )),
+                  ),
                 ],
                 SizedBox(height: height / 20),
               ],
@@ -492,7 +537,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
                       child: Column(
                         children: [
-                          if (claimedAssets.length > 0) ...[
+                          if (otherTokens.length > 0) ...[
                             Container(
                               height: height / 1.76,
                               child: ReorderableListView(
@@ -502,16 +547,16 @@ class _WalletDetailsState extends State<WalletDetails>
                                     newIndex -= 1;
                                   }
                                   final Asset item =
-                                      claimedAssets.removeAt(oldIndex);
-                                  claimedAssets.insert(newIndex, item);
+                                      otherTokens.removeAt(oldIndex);
+                                  otherTokens.insert(newIndex, item);
                                   setState(() {});
                                 },
                                 children: [
                                   for (var i = 0;
-                                      i < claimedAssets.length;
+                                      i < otherTokens.length;
                                       i++) ...[
                                     GestureDetector(
-                                      key: Key(claimedAssets[i].assetIssuer!),
+                                      key: Key(otherTokens[i].assetIssuer!),
                                       onTap: () {
                                         appState.returnView = PageAction(
                                           state: PageState.addAll,
@@ -533,10 +578,9 @@ class _WalletDetailsState extends State<WalletDetails>
                                         }
 
                                         appState.viewData = {
-                                          'assetCode':
-                                              claimedAssets[i].assetCode,
+                                          'assetCode': otherTokens[i].assetCode,
                                           'assetIssuer':
-                                              claimedAssets[i].assetIssuer,
+                                              otherTokens[i].assetIssuer,
                                           'walletPublicKey': wallet.publicKey,
                                         };
                                         appState.currentAction = PageAction(
@@ -544,7 +588,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                           page: AssetDetailsViewPageConfig,
                                         );
                                       },
-                                      child: tiles(claimedAssets[i], i),
+                                      child: tiles(otherTokens[i], i),
                                     ),
                                   ],
                                 ],

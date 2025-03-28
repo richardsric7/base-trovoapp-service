@@ -172,18 +172,15 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                                 showSubscribePopup(
                                   context,
                                   asset: item,
-                                  onDone: (wallet) async {
+                                  onDone: (amount) async {
+                                    await subscribeTokenizedAsset(
+                                      amount: double.parse(amount),
+                                      tokenizedAssetID: item.id!,
+                                    );
                                     setState(() {
-                                      var wallet = wallets
-                                          .where((wallet) =>
-                                              wallet.publicKey ==
-                                              wallet.publicKey)
-                                          .first;
-                                      wallet.tokenizedAssets != null
-                                          ? wallet.tokenizedAssets!.add(item)
-                                          : wallet.tokenizedAssets = [item];
-
-                                      item.isSubscribed = true;
+                                      item.expressedInterest = true;
+                                      item.expressedInterestAmount =
+                                          double.parse(amount);
                                     });
                                   },
                                 );
@@ -235,27 +232,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
-  List<DropdownMenuItem<String>> getUnsubscribableWallets(
-      TokenizedAsset asset) {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWallets.where((wallet) {
-      return wallet.tokenizedAssets != null &&
-          wallet.tokenizedAssets!
-              .where((a) =>
-                  a.assetName == asset.assetName &&
-                  a.assetCode == asset.assetCode)
-              .isNotEmpty;
-    }).forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
