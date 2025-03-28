@@ -5530,6 +5530,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			if err != nil {
 				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] RawData: %s\n\nUnmarshalled: %#v\n\n", string(data), tInput)
+				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err)
 				var ex tErrors.GenericError
 				var ok bool
 
