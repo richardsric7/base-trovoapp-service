@@ -5530,14 +5530,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			if err != nil {
 				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] RawData: %s\n\nUnmarshalled: %#v\n\n", string(data), tInput)
-				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err)
+
 				var ex tErrors.GenericError
 				var ok bool
 
 				ex, ok = err.(tErrors.GenericError)
 				if ok {
+					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err)
 					c.JSON(ex.HTTPCode(), ex.JSONError())
 				} else {
+					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err.Error())
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 				}
 				return
