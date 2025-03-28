@@ -71,7 +71,7 @@ type TokenizedAsset struct {
 	AssetSubSector                              *string                         `json:"assetSubSector"`
 	AssetType                                   *string                         `json:"assetType"`
 	AssetName                                   *string                         `json:"assetName"`
-	ApprovedAssetCustodianID                    uint64                          `gorm:"not null" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodianID                    uint64                          `gorm:"not null;default:1" json:"approvedAssetCustodianId"`
 	ApprovedAssetCustodian                      ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
 	OfferingType                                *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                               *string                         `gorm:"null" json:"closedGroupId"`
@@ -91,7 +91,7 @@ type TokenizedAsset struct {
 	InitialOwnerPreferredWalletAddress          *string                         `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                              *string                         `json:"assetOwnerName"`
 	AssetOwnerAddress                           *string                         `json:"assetOwnerAddress"`
-	AssetManagerID                              uint64                          `json:"assetManagerId"`
+	AssetManagerID                              uint64                          `gorm:"default:1" json:"assetManagerId"`
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
 	AssetIssuingHouseID                         uint64                          `gorm:"not null;default:1" json:"assetIssuingHouseId"`
 	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
