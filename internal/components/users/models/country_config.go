@@ -31,6 +31,10 @@ func (c CountryCode) GetCustodyFee(custodianID uint64, gc *sharedconfig.GlobalCo
 	gc.DB.Where("id = ? AND Asset_Custodian_Country = ?", custodianID, string(c)).First(&cConfig)
 	return
 }
+func (c CountryCode) GetIssuingHouseFee(issuingHouseID uint64, gc *sharedconfig.GlobalConfig) (issuingHouse AssetIssuingHouse) {
+	gc.DB.Where("id = ? AND Asset_Issuing_House_Country = ?", issuingHouseID, string(c)).First(&issuingHouse)
+	return
+}
 func (c CountryCode) GetAssetMgtFee(assetManagerID uint64, gc *sharedconfig.GlobalConfig) (cConfig AssetManager) {
 	gc.DB.Where("id = ? AND Asset_Manager_Country = ?", assetManagerID, string(c)).First(&cConfig)
 	return

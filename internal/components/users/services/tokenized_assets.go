@@ -125,8 +125,27 @@ func GetAssetManagers(db *gorm.DB) (assetManagers []userModels.AssetManager) {
 
 	return
 }
+
+func GetAssetIssuingHouses(db *gorm.DB) (assetIssuingHouses []userModels.AssetIssuingHouse) {
+	assetIssuingHouses = make([]userModels.AssetIssuingHouse, 0)
+	db.Order("asset_issuing_House_country, Asset_Issuing_House_name").Find(&assetIssuingHouses)
+
+	return
+}
 func GetAssetManagerByID(id uint64, db *gorm.DB) (assetManager userModels.AssetManager) {
 	db.Where("id = ?", id).First(&assetManager)
+
+	return
+}
+
+func GetApprovedCustodianByID(id uint64, db *gorm.DB) (custodian userModels.ApprovedAssetCustodian) {
+	db.Where("id = ?", id).First(&custodian)
+
+	return
+}
+
+func GetAssetIssuingHouseByID(id uint64, db *gorm.DB) (assetIssuingHouse userModels.AssetIssuingHouse) {
+	db.Where("id = ?", id).First(&assetIssuingHouse)
 
 	return
 }
@@ -904,13 +923,44 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-asset-manager", ErrMessage: "Invalid Asset Manager."}
 		return
 	}
+	if input.ApprovedAssetCustodianID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid Custodian ID: %v\n%v\n", input.ApprovedAssetCustodianID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetManagerID", Err: "error-invalid-custodian", ErrMessage: "Invalid Asset Custodian. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	ac := GetApprovedCustodianByID(input.ApprovedAssetCustodianID, gc.DB)
+	if ac.ID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid custodian ID: %v\n%v\n", input.ApprovedAssetCustodianID, tokenizationID)
+		err = &tErrors.CustomError{Param: "approvedCustodianId", Err: "error-invalid-asset-custodian", ErrMessage: "Invalid Asset Custodian."}
+		return
+	}
+
+	if input.AssetIssuingHouseID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid Issuing House ID: %v\n%v\n", input.AssetIssuingHouseID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetIssuingHouseID", Err: "error-invalid-issuing house", ErrMessage: "Invalid Asset Issuing House. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	ai := GetAssetIssuingHouseByID(input.AssetIssuingHouseID, gc.DB)
+	if ai.ID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid assetIssuingHouseID ID: %v\n%v\n", input.AssetIssuingHouseID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetIssuingHouseId", Err: "error-invalid-asset-issuing house", ErrMessage: "Invalid Asset Issuing House."}
+		return
+	}
+
 	assetMgtConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetAssetMgtFee(input.AssetManagerID, gc)
 	assetCustodianConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetCustodyFee(input.ApprovedAssetCustodianID, gc)
+	assetIssuingHouseConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetCustodyFee(input.AssetIssuingHouseID, gc)
 
 	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
 	ato.CustodianFeePercent = assetCustodianConfig.FeePercent
 	ato.AssetManagerID = input.AssetManagerID
 	ato.AssetManagerFeePercent = assetMgtConfig.FeePercent
+	ato.AssetIssuingHouseID = input.AssetIssuingHouseID
+	ato.IssuingHouseFee = assetIssuingHouseConfig.FeePercent
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
 	}

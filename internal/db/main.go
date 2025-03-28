@@ -397,6 +397,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetManager: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.AssetIssuingHouse{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetIssuingHouse: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingApprover{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingApprover: ", errMigrate)
