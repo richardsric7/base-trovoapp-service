@@ -541,7 +541,6 @@ class _ImportWalletState extends State<ImportWallet> {
         if (responseData['statusCode'] == 200) {
           fetchNotifications(appState);
           getFiatRates(appState);
-          fetchCuratedSwapList(appState);
           storeUserInfo(responseData['data']);
           appState.currentAction =
               PageAction(state: PageState.addPage, page: FingerprintPageConfig);
@@ -596,6 +595,7 @@ class _ImportWalletState extends State<ImportWallet> {
     appState.setPassword = appState.tempPassword;
     appState.activeWallet = appState.userInfo!.wallets!
         .firstWhere((wallet) => wallet.primaryWallet == 1);
+    fetchCuratedSwapList(appState);
   }
 
   String? validatePassword(value) {

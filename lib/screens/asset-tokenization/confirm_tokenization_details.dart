@@ -44,6 +44,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   double tokenFee = 0;
   double trovUsdPrice = 0;
   String feeInfo = '';
+  String fiatCurrency = '';
   final Authenticator _authenticator = Authenticator();
 
   @override
@@ -51,12 +52,41 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
-    getFeeInfo(tokenizedAsset.tokenizationFeeId!);
     for (var asset in appState.primaryWallet.claimedAssets!) {
       if (asset.assetCode!.toUpperCase() == 'TROV') {
         trovUsdPrice = asset.usdPrice!;
       }
     }
+
+    var quoteCurrencyCode = '';
+
+    for (var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        quoteCurrencyCode =
+            appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+      }
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData['tokenizationCurrencies'].length;
+        i++) {
+      if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
+              .toString()
+              .toLowerCase() ==
+          quoteCurrencyCode.toString().toLowerCase()) {
+        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
+                ['label']
+            .toString()
+            .toUpperCase();
+      }
+    }
+
+    getFeeInfo(tokenizedAsset.tokenizationFeeId!);
   }
 
   @override
@@ -139,17 +169,17 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       if (tokenizedAsset.assetAlreadyExists == 1) ...[
                         item("originalassetvalue".tr(),
-                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ] else ...[
                         item("originaltotalprojectcost".tr(),
-                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ],
                       SizedBox(height: height / 90),
                       item(
                           tokenizedAsset.assetAlreadyExists == 1
                               ? "Amount retained".tr()
                               : "Amount contributed".tr(),
-                          '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                          '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}'),
                       SizedBox(height: height / 90),
                     ],
                   ),
@@ -189,10 +219,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item("Value of total tokens".tr(),
-                            '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("pricepertoken".tr(),
-                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${appState.defaultCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Tokens not for sale".tr(),
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee))} ${tokenizedAsset.assetCode}'),
@@ -201,7 +231,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item("totalamounttoberaised".tr(),
-                            '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${appState.defaultCurrency}'),
+                            '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("proposedtotaltokenstobeissued".tr(),
@@ -290,31 +320,37 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Asset tokenization fee".tr(), feeInfo),
+                        item("Asset tokenization fee", feeInfo),
                         SizedBox(height: height / 90),
-                        item("SEC Regulatory Fee".tr(),
-                            '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${appState.defaultCurrency}'),
+                        item("SEC Regulatory Fee",
+                            '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset Custody Fee".tr(),
-                            '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${appState.defaultCurrency}'),
+                        item("Asset Custody Fee",
+                            '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset Management Fee".tr(),
-                            '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${appState.defaultCurrency}'),
+                        item("Asset Management Fee",
+                            '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        // item("Issuing House Fee".tr(),
-                        //     '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${appState.defaultCurrency}'),
-                        // SizedBox(height: height / 90),
-                        // item("Legal Fee".tr(),
-                        //     '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${appState.defaultCurrency}'),
-                        // SizedBox(height: height / 90),
-                        // item("Rating Agency Fee".tr(),
-                        //     '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${appState.defaultCurrency}'),
-                        // SizedBox(height: height / 90),
-                        item("VAT".tr(),
-                            '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${appState.defaultCurrency}'),
+                        // if (tokenizedAsset.issuingHouseFee! > 0) ...[
+                        item("Issuing House Fee",
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFee!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Total".tr(),
-                            '${formatNumberShort(getTotal())} ${appState.defaultCurrency}'),
+                        // ],
+                        // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
+                        item("Legal Fee",
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFee!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // ],
+                        // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
+                        item("Rating Agency Fee",
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFee!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // ],
+                        item("VAT",
+                            '${formatNumberShort(tokenizedAsset.vat!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Total",
+                            '${formatNumberShort(getTotal())} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("applicationfee".tr(),
@@ -336,7 +372,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                     height: height / 30,
                   ),
                   Button(
-                    "Proceed to Pay".tr(),
+                    "Proceed to Pay",
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: () {
@@ -350,8 +386,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 ] else ...[
                   if (!isVetted) ...[
                     notifyAdditionalInfo(
-                        "Please note that other statutory fees will be added after vetting"
-                            .tr()),
+                        "Please note that other statutory fees will be added after vetting"),
                   ],
                   SizedBox(height: 20),
                   ButtonOutlined(
@@ -367,8 +402,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               ] else ...[
                 SizedBox(height: 10),
                 notifyAdditionalInfo(
-                    "Please note that other statutory fees will be added after vetting"
-                        .tr()),
+                    "Please note that other statutory fees will be added after vetting"),
                 SizedBox(height: 5),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -389,8 +423,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             SizedBox(
                               width: 300,
                               child: Text(
-                                "Please authorize the deduction of application fee to submit application."
-                                    .tr(),
+                                "Please authorize the deduction of application fee to submit application.",
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontSize: 13,
@@ -681,6 +714,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     return tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
+        tokenizedAsset.issuingHouseFee! +
+        tokenizedAsset.legalAndProfessionalFee! +
+        tokenizedAsset.ratingAgencyFee! +
+        tokenizedAsset.vat! +
         fiatFee;
   }
 
@@ -696,7 +733,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
     fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
     feeInfo =
-        "\$${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${tokenizedAsset.assetCode}";
+        "${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} ${fiatCurrency}";
   }
 
   Widget item(String key, String value) {

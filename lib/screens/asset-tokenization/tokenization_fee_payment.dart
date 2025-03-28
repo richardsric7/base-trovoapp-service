@@ -40,6 +40,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   late double tokenFee;
   late double fiatFee;
   late String tokenizationFee;
+  String fiatCurrency = '';
   PlatformFile? recieptFile;
   String errorMsg = '';
   String transactionReference = '';
@@ -81,6 +82,33 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ?? false;
     tokenizationFee =
         formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!));
+    var quoteCurrencyCode = '';
+
+    for (var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        quoteCurrencyCode =
+            appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+      }
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData['tokenizationCurrencies'].length;
+        i++) {
+      if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
+              .toString()
+              .toLowerCase() ==
+          quoteCurrencyCode.toString().toLowerCase()) {
+        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
+                ['label']
+            .toString()
+            .toUpperCase();
+      }
+    }
   }
 
   @override
@@ -364,18 +392,37 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         ),
                         SizedBox(height: height / 70),
                         item("Asset tokenization fee".tr(),
-                            '${tokenizationFee} ${appState.defaultCurrency}'),
+                            '${tokenizationFee} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("SEC regulatory fee".tr(),
-                            '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${appState.defaultCurrency}'),
+                            '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Asset custody fee".tr(),
-                            '${(formatNumberShort(tokenizedAsset.custodianFeeValue!))} ${appState.defaultCurrency}'),
+                            '${(formatNumberShort(tokenizedAsset.custodianFeeValue!))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Asset management fee".tr(),
-                            '${(formatNumber(tokenizedAsset.custodianFeeValue!))} ${appState.defaultCurrency}'),
+                            '${(formatNumber(tokenizedAsset.assetManagerFeeValue!))} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // if (tokenizedAsset.issuingHouseFee! > 0) ...[
+                        item("Issuing House Fee",
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFee!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // ],
+                        // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
+                        item("Legal Fee",
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFee!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // ],
+                        // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
+                        item("Rating Agency Fee",
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFee!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        // ],
+                        item("VAT",
+                            '${formatNumberShort(tokenizedAsset.vat!)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
                         item("Total fee".tr(),
-                            '${getTotalFee()} ${appState.defaultCurrency}'),
+                            '${getTotalFee()} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ],
                     ),
@@ -778,6 +825,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     var total = tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
+        tokenizedAsset.issuingHouseFee! +
+        tokenizedAsset.legalAndProfessionalFee! +
+        tokenizedAsset.ratingAgencyFee! +
+        tokenizedAsset.vat! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
     return "${formatNumber(total)}";

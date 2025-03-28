@@ -133,8 +133,11 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setAssetOrderings =
             await StoreData().storeGetData('assetOrderings');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        appState.curatedSwapList = appState.deserializeSwapList(
-            await StoreData().storeGetData('curatedSwapList'));
+        var swapList = await StoreData().storeGetData('curatedSwapList') ?? [];
+        print('swap list $swapList');
+        if (swapList.isNotEmpty) {
+          appState.curatedSwapList = appState.deserializeSwapList(swapList);
+        }
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
         print('fiatRates ${appState.fiatRate['NGN']}');
         appState.introducedSharedAccess =
@@ -276,11 +279,10 @@ class _SplashScreenState extends State<SplashScreen>
 
       fetchNotifications(appState);
       getFiatRates(appState);
-      fetchCuratedSwapList(appState);
       storeUserInfo(responseData['data'], appState);
       await StoreData()
           .storeInsertData('biometricsEnabled', appState.biometricEnabled);
-
+      fetchCuratedSwapList(appState);
       appState.currentAction =
           PageAction(state: PageState.addPage, page: LoginPageConfig);
     } else if (responseData['statusCode'] == 404) {

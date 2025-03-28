@@ -114,6 +114,12 @@ class TokenizedAsset {
   double? assetManagerFeeValue;
   double? assetManagerFeePercent;
   double? assetOwnerRetainedOrContributedValue;
+  double? issuingHouseFee;
+  double? legalAndProfessionalFee;
+  double? ratingAgencyFee;
+  double? tokenizationApplicationFee;
+  double? vat;
+  String? tokenizationApplicationFeeAsset;
 
   TokenizedAsset({
     this.id,
@@ -227,6 +233,12 @@ class TokenizedAsset {
     this.assetManagerFeeValue,
     this.assetManagerFeePercent,
     this.assetOwnerRetainedOrContributedValue,
+    this.issuingHouseFee,
+    this.legalAndProfessionalFee,
+    this.ratingAgencyFee,
+    this.tokenizationApplicationFee,
+    this.tokenizationApplicationFeeAsset,
+    this.vat,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -361,6 +373,15 @@ class TokenizedAsset {
           double.tryParse(m["assetManagerFeeValue"].toString()),
       assetManagerFeePercent:
           double.tryParse(m["assetManagerFeePercent"].toString()),
+      issuingHouseFee: double.tryParse(m["issuingHouseFee"].toString()),
+      legalAndProfessionalFee:
+          double.tryParse(m["legalAndProfessionalFee"].toString()),
+      ratingAgencyFee: double.tryParse(m["ratingAgencyFee"].toString()),
+      tokenizationApplicationFee:
+          double.tryParse(m["tokenizationApplicationFee"].toString()),
+      tokenizationApplicationFeeAsset:
+          m["tokenizationApplicationFeeAsset"].toString(),
+      vat: double.tryParse(m["vat"].toString()),
     );
   }
 

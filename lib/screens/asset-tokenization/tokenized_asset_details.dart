@@ -74,8 +74,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               .toString()
               .toLowerCase() ==
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
-        print(
-            '====================> got here ${appState.tokenizationData['countryConfigs'][i]}');
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
       }
@@ -613,6 +611,31 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             //     tokenizedAsset.assetOwnerName ?? '',
             //   ),
             // ],
+            infoTile(
+              notifier,
+              'Regulator',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Asset Custodian',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Asset Manager',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Issuing House',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Rating Agency',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
             infoTile(
               notifier,
               'Sales Window',

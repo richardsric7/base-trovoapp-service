@@ -29,12 +29,13 @@ class _AssetDashboardState extends State<AssetDashboard>
   late DataProvider appState;
   String assetType = '';
   late TokenizedAsset tokenizedAsset;
-  double _progress = 15000000;
-  double _maxValue = 0;
+  double _amountRaised = 0;
+  double totalAmountToBeRaised = 0;
   bool _showValue = false;
   int _daysProgress = 0;
   int _totalDays = 0;
   bool _showDaysValue = false;
+  String fiatCurrency = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -88,6 +89,34 @@ class _AssetDashboardState extends State<AssetDashboard>
     _daysProgress = tokenizedAsset.salesEnd!.difference(DateTime.now()).inDays;
     _totalDays =
         tokenizedAsset.salesEnd!.difference(tokenizedAsset.salesStart!).inDays;
+
+    var quoteCurrencyCode = '';
+
+    for (var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        quoteCurrencyCode =
+            appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+      }
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData['tokenizationCurrencies'].length;
+        i++) {
+      if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
+              .toString()
+              .toLowerCase() ==
+          quoteCurrencyCode.toString().toLowerCase()) {
+        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
+                ['label']
+            .toString()
+            .toUpperCase();
+      }
+    }
   }
 
   @override
@@ -96,11 +125,16 @@ class _AssetDashboardState extends State<AssetDashboard>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    _maxValue =
+    _amountRaised = tokenizedAsset.subscriptionAmount ?? 0;
+    totalAmountToBeRaised =
         tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!;
-    double normalizedProgress = _progress / _maxValue; // Convert to 0-1 range
-    double normalizedDaysProgress =
-        _daysProgress / _totalDays; // Convert to 0-1 range
+    double normalizedProgress =
+        _amountRaised / totalAmountToBeRaised; // Convert to 0-1 range
+    double normalizedDaysProgress = _daysProgress == _totalDays
+        ? 1
+        : _daysProgress / _totalDays; // Convert to 0-1 range
+
+    print('fasdfsd=>>>>>>>>>>>>>> $normalizedDaysProgress');
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -138,7 +172,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     notifier,
                     label: 'Asset Value',
                     value:
-                        '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${appState.defaultCurrency}',
+                        '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
                     extraValue: '\$4,390.23',
                   ),
                   SizedBox(
@@ -161,7 +195,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     notifier,
                     label: 'Amount to be Raised',
                     value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                        '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
                     extraValue: '',
                   ),
                   SizedBox(
@@ -193,7 +227,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     notifier,
                     label: 'Price Per Token',
                     value:
-                        '${getFiatValue(tokenizedAsset.pricePerToken!)} ${appState.defaultCurrency}',
+                        '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                     extraValue: '',
                   ),
                 ],
@@ -228,7 +262,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                     notifier,
                     label: 'Total Amount Raised',
                     value:
-                        '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                        '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
                     extraValue: '',
                   ),
                   SizedBox(
@@ -258,7 +292,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                   infoCard(
                     notifier,
                     label: '% of Amount Raised',
-                    value: '%10',
+                    value:
+                        '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
                     extraValue: '',
                   ),
                 ],
@@ -272,7 +307,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                            '${getFiatValue(_progress)} ${tokenizedAsset.assetQuoteCurrency}',
+                            '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
                             style: TextStyle(
                                 fontSize: 12,
                                 fontFamily: fontbody,
@@ -284,7 +319,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                               color: notifier.getbluewhitecolor,
                             )),
                         Text(
-                            '${getFiatValue(_maxValue)} ${tokenizedAsset.assetQuoteCurrency}',
+                            '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
                             style: TextStyle(
                               fontSize: 12,
                               fontFamily: fontbody,
@@ -312,7 +347,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
-
                           // Show progress value when tapped/long pressed
                           if (_showValue)
                             Container(
@@ -324,7 +358,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               child: Text(
-                                "${getFiatValue(_progress)} / ${getFiatValue(_maxValue)}",
+                                "${getFiatValue(_amountRaised)} / ${getFiatValue(totalAmountToBeRaised)}",
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold),
@@ -342,68 +376,70 @@ class _AssetDashboardState extends State<AssetDashboard>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text((_totalDays - _daysProgress).toString(),
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: fontbody,
-                                  color: notifier.getbluewhitecolor)),
-                          Text(' days remaining out of ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              )),
-                          Text('${_totalDays} days',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: fontbody,
-                                  color: notifier.getbluewhitecolor)),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      // Gesture Detector for Tapping the Progress Bar
-                      GestureDetector(
-                        onTap: _toggleDaysValueDisplay,
-                        onLongPress: _toggleDaysValueDisplay,
-                        child: Stack(
-                          alignment: Alignment.center,
+                      if (_daysProgress >= 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              width: 300,
-                              height: 20,
-                              child: LinearProgressIndicator(
-                                value:
-                                    normalizedDaysProgress, // Show progress (0 to 1)
-                                minHeight: 20,
-                                borderRadius: BorderRadius.circular(10),
-                                backgroundColor: Colors.grey[300],
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-
-                            // Show progress value when tapped/long pressed
-                            if (_showDaysValue)
+                            Text((_totalDays - _daysProgress).toString(),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor)),
+                            Text(' days remaining out of ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                )),
+                            Text('${_totalDays} days',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor)),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        // Gesture Detector for Tapping the Progress Bar
+                        GestureDetector(
+                          onTap: _toggleDaysValueDisplay,
+                          onLongPress: _toggleDaysValueDisplay,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
                               Container(
                                 width: 300,
                                 height: 20,
-                                decoration: BoxDecoration(
-                                    color: Colors.black54.withOpacity(
-                                        0.7), // Semi-transparent background
-                                    borderRadius: BorderRadius.circular(10)),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "${_daysProgress} / ${_totalDays}",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
+                                child: LinearProgressIndicator(
+                                  value:
+                                      normalizedDaysProgress, // Show progress (0 to 1)
+                                  minHeight: 20,
+                                  borderRadius: BorderRadius.circular(10),
+                                  backgroundColor: Colors.grey[300],
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
-                          ],
+
+                              // Show progress value when tapped/long pressed
+                              if (_showDaysValue)
+                                Container(
+                                  width: 300,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                      color: Colors.black54.withOpacity(
+                                          0.7), // Semi-transparent background
+                                      borderRadius: BorderRadius.circular(10)),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "${_daysProgress} / ${_totalDays}",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -466,6 +502,36 @@ class _AssetDashboardState extends State<AssetDashboard>
               ],
               infoTile(
                 notifier,
+                'Regulator',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Asset Custodian',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Asset Manager',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Issuing House',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Legal Adviser',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Rating Agency',
+                tokenizedAsset.assetOwnerName ?? '',
+              ),
+              infoTile(
+                notifier,
                 'Sales Window',
                 '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
               ),
@@ -482,7 +548,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoTile(
                 notifier,
                 'Cap Duration',
-                '${tokenizedAsset.assetLogo} days',
+                '${tokenizedAsset.capDurationInDays} days',
               ),
               infoTile(
                 notifier,
@@ -654,130 +720,136 @@ class _AssetDashboardState extends State<AssetDashboard>
                 'I confirm that this asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.',
                 '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
               ),
-              Card(
-                elevation: notifier.isDark ? 0 : 3,
-                shadowColor: Colors.black,
-                color: notifier.gettilewihitecolor,
-                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Proof of Existence',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                            for (var item in tokenizedAsset
-                                .assetTokenizationDocuments!) ...[
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size(50, 30),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    alignment: Alignment.centerLeft),
-                                onPressed: () {
-                                  var fileUrl = item.documentUrl;
-                                  if (fileUrl!.isNotEmpty &&
-                                      fileUrl.endsWith('.pdf')) {
-                                    appState.pdfUrl = fileUrl;
-                                    appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: PdfViewPageConfig);
-
-                                    return;
-                                  }
-
-                                  appState.goToWebView(fileUrl);
-                                },
-                                child: Text(
-                                  item.documentTitle ?? '',
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
+              if (tokenizedAsset.assetTokenizationDocuments != null &&
+                  tokenizedAsset.assetTokenizationDocuments!.isNotEmpty) ...[
+                Card(
+                  elevation: notifier.isDark ? 0 : 3,
+                  shadowColor: Colors.black,
+                  color: notifier.gettilewihitecolor,
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Proof of Existence',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
+                              for (var item in tokenizedAsset
+                                  .assetTokenizationDocuments!) ...[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size(50, 30),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      alignment: Alignment.centerLeft),
+                                  onPressed: () {
+                                    var fileUrl = item.documentUrl;
+                                    if (fileUrl!.isNotEmpty &&
+                                        fileUrl.endsWith('.pdf')) {
+                                      appState.pdfUrl = fileUrl;
+                                      appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page: PdfViewPageConfig);
+
+                                      return;
+                                    }
+
+                                    appState.goToWebView(fileUrl);
+                                  },
+                                  child: Text(
+                                    item.documentTitle ?? '',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 12,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Card(
-                elevation: notifier.isDark ? 0 : 3,
-                shadowColor: Colors.black,
-                color: notifier.gettilewihitecolor,
-                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Proof of Payment Documents',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                            for (var item
-                                in tokenizedAsset.proofOfPaymentDocuments!) ...[
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size(50, 30),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    alignment: Alignment.centerLeft),
-                                onPressed: () {
-                                  var fileUrl = item.documentUrl;
-                                  if (fileUrl!.isNotEmpty &&
-                                      fileUrl.endsWith('.pdf')) {
-                                    appState.pdfUrl = fileUrl;
-                                    appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: PdfViewPageConfig);
-
-                                    return;
-                                  }
-
-                                  appState.goToWebView(fileUrl);
-                                },
-                                child: Text(
-                                  truncateString(item.documentUrl) ?? '',
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
+              ],
+              if (tokenizedAsset.proofOfPaymentDocuments != null &&
+                  tokenizedAsset.proofOfPaymentDocuments!.isNotEmpty) ...[
+                Card(
+                  elevation: notifier.isDark ? 0 : 3,
+                  shadowColor: Colors.black,
+                  color: notifier.gettilewihitecolor,
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Proof of Payment Documents',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
+                              for (var item in tokenizedAsset
+                                  .proofOfPaymentDocuments!) ...[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size(50, 30),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      alignment: Alignment.centerLeft),
+                                  onPressed: () {
+                                    var fileUrl = item.documentUrl;
+                                    if (fileUrl!.isNotEmpty &&
+                                        fileUrl.endsWith('.pdf')) {
+                                      appState.pdfUrl = fileUrl;
+                                      appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page: PdfViewPageConfig);
+
+                                      return;
+                                    }
+
+                                    appState.goToWebView(fileUrl);
+                                  },
+                                  child: Text(
+                                    truncateString(item.documentUrl) ?? '',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 12,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
               SizedBox(
                 height: height / 30,
               ),
