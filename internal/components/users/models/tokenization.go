@@ -93,7 +93,7 @@ type TokenizedAsset struct {
 	AssetOwnerAddress                           *string                         `json:"assetOwnerAddress"`
 	AssetManagerID                              uint64                          `json:"assetManagerId"`
 	AssetManager                                AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetIssuingHouseID                         uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
+	AssetIssuingHouseID                         uint64                          `gorm:"not null;default:1" json:"assetIssuingHouseId"`
 	AssetIssuingHouse                           AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
 	AssetQuoteCurrency                          *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                           float64                         `gorm:"default:0" json:"assetCurrentValue"`
