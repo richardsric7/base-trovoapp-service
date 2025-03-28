@@ -1087,7 +1087,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	var feeCompo TokenizationFee
 	var feeInAsset float64
 	// /////
-	if t.AssetTokenizationStatus < 3 {
+	if t.AssetTokenizationStatus < 4 {
 		//Do not change fees for assets that have been approved
 
 		if ti.TokenizationFeeID > 0 {
@@ -1108,7 +1108,6 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		var custodyFee, assetMgtFee float64
 		if t.AssetCountryLocation != nil {
 			cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-
 		}
 		var secFee float64
 		if cConfig.SECTokenizationFeeType == 1 {
@@ -1117,10 +1116,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		} else {
 			//percent==0
 			secFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFee / 100)).Truncate(2).InexactFloat64()
-			t.SECTokenizationFeeValue = secFee
-			t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
-		}
 
+		}
+		t.SECTokenizationFeeValue = secFee
+		t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
 		if t.AssetCurrentValue > 0 {
 
 			custodyFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(2).InexactFloat64()
@@ -1128,6 +1127,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			assetMgtFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(2).InexactFloat64()
 			t.AssetManagerFeeValue = assetMgtFee
+
 		}
 		/**
 		  IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
@@ -1135,41 +1135,51 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		  	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
 		  	VAT                             float64 `gorm:"default:0" json:"vat"`
 		  **/
-		if t.AssetTokenizationStatus < 6 && t.TokenizationApplicationFee == 0 {
-			t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
-			t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
-		}
-
-		issuingHouseFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
-		legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
-		ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
-		totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFee + legalAndProfessionalFee + ratingAgencyFee
-		vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
-		t.IssuingHouseFee = cConfig.IssuingHouseFee
-		t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
-		t.RatingAgencyFee = cConfig.RatingAgencyFee
-		t.VAT = cConfig.VAT
-		t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
-
-		if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-
-			t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(2).InexactFloat64()
-			// auto calculate, token to be held is less the fee. token not to be sold
-			t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
-			{
-				//ensure correct the number of token to be sold.
-				maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
-				t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
-				t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
-
+		if t.AssetTokenizationStatus < 6 {
+			if t.TokenizationApplicationFee == 0 {
+				t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
+				t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
 			}
-		}
+			//  else {
+			//no need setting this since it is already set before and no need to change it.
+			// 	// t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
+			// 	// t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
+			// }
 
-		if len(ti.WalletToHoldAssetsNotForSale) > 0 {
+			issuingHouseFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
+			legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
+			ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
+			totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFee + legalAndProfessionalFee + ratingAgencyFee
+			vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
 
-			t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
-		} else {
-			t.WalletToHoldAssetsNotForSale = nil
+			t.IssuingHouseFee = cConfig.IssuingHouseFee
+			t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
+
+			t.RatingAgencyFee = cConfig.RatingAgencyFee
+			t.VAT = cConfig.VAT
+
+			t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
+
+			if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
+
+				t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(2).InexactFloat64()
+				// auto calculate, token to be held is less the fee. token not to be sold
+				t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
+				{
+					//ensure correct the number of token to be sold.
+					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
+					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
+					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+
+				}
+			}
+
+			if len(ti.WalletToHoldAssetsNotForSale) > 0 {
+
+				t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
+			} else {
+				t.WalletToHoldAssetsNotForSale = nil
+			}
 		}
 	}
 	///////
