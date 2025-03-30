@@ -1037,7 +1037,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 	if p.TransactionType == "TOKENIZE ASSET" {
 		tbyte := []byte(*p.TransactionInfoStr)
 		var tkInput userModels.TokenMinting
-
+		var ta userModels.TokenizedAsset
 		e := json.Unmarshal(tbyte, &tkInput)
 		if e != nil {
 			log.Println("[RejectTransaction] error decoding json for tokenized asset")
@@ -1050,70 +1050,72 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 		// if len(pts) > 0 {
 		// 	dbTX.Delete(&pts)
 		// }
-
-		// get tokenization obj
-		ta, _, e := GetTokenizedAssetByID(tkInput.TokenizedAssetID, dbTX)
-		if e != nil {
-			log.Println("[RejectTransaction] error retrieving tokenized asset")
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-
-		// nullify it.
-		ta.TokenizationTransaction = nil
-		// set it to 3 so as to assign a new wallet.
-		ta.AssetTokenizationStatus = 3
-		// remove the issuing wallet and marketting wallet(distributor)
-		ta.IssuingWalletAlias = nil
-		ta.IssuingWalletPublicKey = nil
-		ta.MarketMakingWallet = nil
-
-		e = dbTX.Omit(clause.Associations).Save(&ta).Error
-		if e != nil {
-			log.Println("[RejectTransaction]error saving/reverting to previous tokenized asset state:", e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-		var issuingWallet, distroWallet userModels.UserWallet
-		//now remove the wallets from the trovo ecosystem.
-		issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
-		distroWallet, e = userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(dbTX, gc)
-
-		e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
-		if e != nil {
-			log.Printf("[RejectTransaction]error removing distribution wallet: %v, %v", distroWallet.Alias, e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-
-		e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
-		if e != nil {
-			log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", *ta.IssuingWalletAlias, e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-
-		{
-			//remove it from payment engine also.
-			//send to monitoring service
-			trackPublicKey := userModels.TrackedPublicKey{
-				PublicKey: issuingWallet.ID,
+		if len(tkInput.TokenizedAssetID) > 0 {
+			// get tokenization obj
+			ta, _, e = GetTokenizedAssetByID(tkInput.TokenizedAssetID, dbTX)
+			if e != nil {
+				log.Println("[RejectTransaction] error retrieving tokenized asset")
+				return &tErrors.ErrorTemporaryServerError{}
 			}
-			errTrack := gc.RoachDB.Delete(&trackPublicKey).Error
-			if errTrack != nil {
-				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-				discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
 
-			}
-			trackPublicKey = userModels.TrackedPublicKey{
-				PublicKey: distroWallet.ID,
-			}
-			errTrack = gc.RoachDB.Delete(&trackPublicKey).Error
-			if errTrack != nil {
-				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-				discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
+			// nullify it.
+			ta.TokenizationTransaction = nil
+			// set it to 3 so as to assign a new wallet.
+			ta.AssetTokenizationStatus = 3
+			// remove the issuing wallet and marketting wallet(distributor)
+			ta.IssuingWalletAlias = nil
+			ta.IssuingWalletPublicKey = nil
+			ta.MarketMakingWallet = nil
 
+			e = dbTX.Omit(clause.Associations).Save(&ta).Error
+			if e != nil {
+				log.Println("[RejectTransaction]error saving/reverting to previous tokenized asset state:", e)
+				return &tErrors.ErrorTemporaryServerError{}
 			}
+			var issuingWallet, distroWallet userModels.UserWallet
+			//now remove the wallets from the trovo ecosystem.
+			issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
+			distroWallet, e = userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(dbTX, gc)
+
+			e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
+			if e != nil {
+				log.Printf("[RejectTransaction]error removing distribution wallet: %v, %v", distroWallet.Alias, e)
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+
+			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
+			if e != nil {
+				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", *ta.IssuingWalletAlias, e)
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+
+			{
+				//remove it from payment engine also.
+				//send to monitoring service
+				trackPublicKey := userModels.TrackedPublicKey{
+					PublicKey: issuingWallet.ID,
+				}
+				errTrack := gc.RoachDB.Delete(&trackPublicKey).Error
+				if errTrack != nil {
+					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
+
+				}
+				trackPublicKey = userModels.TrackedPublicKey{
+					PublicKey: distroWallet.ID,
+				}
+				errTrack = gc.RoachDB.Delete(&trackPublicKey).Error
+				if errTrack != nil {
+					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
+
+				}
+			}
+
+			issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
+			issuerOwner.InvalidateUserCache(gc)
+
 		}
-
-		issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
-		issuerOwner.InvalidateUserCache(gc)
 
 	}
 
