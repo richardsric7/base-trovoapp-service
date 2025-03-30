@@ -1112,6 +1112,9 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			}
 		}
 
+		issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
+		issuerOwner.InvalidateUserCache(gc)
+
 	}
 
 	e := dbTX.Omit(clause.Associations).Save(p).Error
@@ -1120,6 +1123,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	dbTX.Commit()
+
 	return nil
 
 }
