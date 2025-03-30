@@ -1044,12 +1044,6 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
-		// //get the signatures
-		// dbTX.Where("Pending_Auth_ID = ?", p.ID).Find(&pts)
-		// // delete the pending disnatures if exists.
-		// if len(pts) > 0 {
-		// 	dbTX.Delete(&pts)
-		// }
 		if len(tkInput.TokenizedAssetID) > 0 {
 			// get tokenization obj
 			ta, _, e = GetTokenizedAssetByID(tkInput.TokenizedAssetID, dbTX)
@@ -1057,15 +1051,6 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 				log.Println("[RejectTransaction] error retrieving tokenized asset")
 				return &tErrors.ErrorTemporaryServerError{}
 			}
-
-			// nullify it.
-			ta.TokenizationTransaction = nil
-			// set it to 3 so as to assign a new wallet.
-			ta.AssetTokenizationStatus = 3
-			// remove the issuing wallet and marketting wallet(distributor)
-			ta.IssuingWalletAlias = nil
-			ta.IssuingWalletPublicKey = nil
-			ta.MarketMakingWallet = nil
 
 			e = dbTX.Omit(clause.Associations).Save(&ta).Error
 			if e != nil {
@@ -1075,8 +1060,15 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			var issuingWallet, distroWallet userModels.UserWallet
 			//now remove the wallets from the trovo ecosystem.
 			issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
-			distroWallet, e = userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(dbTX, gc)
-
+			distroWallet, e = userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
+			// nullify it.
+			ta.TokenizationTransaction = nil
+			// set it to 3 so as to assign a new wallet.
+			ta.AssetTokenizationStatus = 3
+			// remove the issuing wallet and marketting wallet(distributor)
+			ta.IssuingWalletAlias = nil
+			ta.IssuingWalletPublicKey = nil
+			ta.MarketMakingWallet = nil
 			e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
 			if e != nil {
 				log.Printf("[RejectTransaction]error removing distribution wallet: %v, %v", distroWallet.Alias, e)
@@ -1085,7 +1077,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 
 			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
 			if e != nil {
-				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", *ta.IssuingWalletAlias, e)
+				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", issuingWallet.Alias, e)
 				return &tErrors.ErrorTemporaryServerError{}
 			}
 
