@@ -17,6 +17,7 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ecnepsnai/discord"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
@@ -1009,6 +1010,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 }
 
 func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, rejectionInfo *userModels.RejectPayload, gc *sharedconfig.GlobalConfig) (err error) {
+	// var pts []userModels.PendingTransactionSignature
 
 	if p.TransactionStatus == "COMPLETED" {
 		return &tErrors.ErrorCompletedRequest{ID: p.ID}
@@ -1031,6 +1033,87 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 	//signature exists
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
+
+	if p.TransactionType == "TOKENIZE ASSET" {
+		tbyte := []byte(*p.TransactionInfoStr)
+		var tkInput userModels.TokenMinting
+
+		e := json.Unmarshal(tbyte, &tkInput)
+		if e != nil {
+			log.Println("[RejectTransaction] error decoding json for tokenized asset")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		// //get the signatures
+		// dbTX.Where("Pending_Auth_ID = ?", p.ID).Find(&pts)
+		// // delete the pending disnatures if exists.
+		// if len(pts) > 0 {
+		// 	dbTX.Delete(&pts)
+		// }
+
+		// get tokenization obj
+		ta, _, e := GetTokenizedAssetByID(tkInput.TokenizedAssetID, dbTX)
+		if e != nil {
+			log.Println("[RejectTransaction] error retrieving tokenized asset")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		// nullify it.
+		ta.TokenizationTransaction = nil
+		// set it to 3 so as to assign a new wallet.
+		ta.AssetTokenizationStatus = 3
+		// remove the issuing wallet and marketting wallet(distributor)
+		ta.IssuingWalletAlias = nil
+		ta.IssuingWalletPublicKey = nil
+		ta.MarketMakingWallet = nil
+
+		e = dbTX.Omit(clause.Associations).Save(&ta).Error
+		if e != nil {
+			log.Println("[RejectTransaction]error saving/reverting to previous tokenized asset state:", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		var issuingWallet, distroWallet userModels.UserWallet
+		//now remove the wallets from the trovo ecosystem.
+		issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
+		distroWallet, e = userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(dbTX, gc)
+
+		e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
+		if e != nil {
+			log.Printf("[RejectTransaction]error removing distribution wallet: %v, %v", distroWallet.Alias, e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
+		if e != nil {
+			log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", *ta.IssuingWalletAlias, e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		{
+			//remove it from payment engine also.
+			//send to monitoring service
+			trackPublicKey := userModels.TrackedPublicKey{
+				PublicKey: issuingWallet.ID,
+			}
+			errTrack := gc.RoachDB.Delete(&trackPublicKey).Error
+			if errTrack != nil {
+				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+				discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
+
+			}
+			trackPublicKey = userModels.TrackedPublicKey{
+				PublicKey: distroWallet.ID,
+			}
+			errTrack = gc.RoachDB.Delete(&trackPublicKey).Error
+			if errTrack != nil {
+				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+				discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
+
+			}
+		}
+
+	}
+
 	e := dbTX.Omit(clause.Associations).Save(p).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
