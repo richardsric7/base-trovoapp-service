@@ -1069,12 +1069,31 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			ta.IssuingWalletAlias = nil
 			ta.IssuingWalletPublicKey = nil
 			ta.MarketMakingWallet = nil
+			// get wallet Permisions
+			pl := distroWallet.GetPermissionList(dbTX)
+
+			for _, v := range pl {
+				e = dbTX.Omit(clause.Associations).Delete(&v).Error
+				if e != nil {
+					log.Printf("[RejectTransaction]error removing wallet permission: %v, %v", v, e)
+					return &tErrors.ErrorTemporaryServerError{}
+				}
+			}
 			e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
 			if e != nil {
-				log.Printf("[RejectTransaction]error removing distribution wallet: %v, %v", distroWallet.Alias, e)
+				log.Printf("[RejectTransaction]error removing distribution wallet: %+v, %v", distroWallet.Alias, e)
 				return &tErrors.ErrorTemporaryServerError{}
 			}
+			// get wallet Permisions
+			pl = issuingWallet.GetPermissionList(dbTX)
 
+			for _, v := range pl {
+				e = dbTX.Omit(clause.Associations).Delete(&v).Error
+				if e != nil {
+					log.Printf("[RejectTransaction]error removing wallet permission: %+v, %v", v, e)
+					return &tErrors.ErrorTemporaryServerError{}
+				}
+			}
 			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
 			if e != nil {
 				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", issuingWallet.Alias, e)
