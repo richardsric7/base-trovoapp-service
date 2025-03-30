@@ -901,107 +901,169 @@ func (t *TokenizedAsset) UpdateBank(gc *sharedconfig.GlobalConfig) (bank Bank) {
 func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
 	titleCaser := cases.Title(language.English)
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
-	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
+	if t.AssetTokenizationStatus < 4 {
+		t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
 
-	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
+		if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
 
-		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
-	} else {
-		t.AdditionalKYCRequirements = nil
-		t.HasAdditionalKYCRequirements = 0
+			t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
+		} else {
+			t.AdditionalKYCRequirements = nil
+			t.HasAdditionalKYCRequirements = 0
+		}
+		//clear any DD failure flags
+		t.DueDiligenceFail = 0
+		t.DueDiligenceFailureReason = nil
+
+		if len(ti.AssetSector) > 0 {
+
+			t.AssetSector = &ti.AssetSector
+		}
+
+		if len(ti.AssetSubSector) > 0 {
+
+			t.AssetSubSector = &ti.AssetSubSector
+		}
+
+		if len(ti.AssetType) > 0 {
+
+			t.AssetType = &ti.AssetType
+		}
+
+		if len(ti.AssetWebsite) > 0 {
+			ti.AssetWebsite = strings.ToLower(ti.AssetWebsite)
+			t.AssetWebsite = &ti.AssetWebsite
+		} else {
+			t.AssetWebsite = nil
+		}
+
+		if len(ti.MintingApprovers) > 0 {
+			trimmed := replacer.Replace(ti.MintingApprovers)
+			ti.MintingApprovers = trimmed
+			t.MintingApprovers = &trimmed
+		} else {
+			//set default
+			csvStr := t.GetMintingApproversInCSV(gc)
+			t.MintingApprovers = &csvStr
+		}
+
+		if len(ti.MintingInitators) > 0 {
+			trimmed := replacer.Replace(ti.MintingInitators)
+			ti.MintingInitators = trimmed
+			t.MintingInitators = &trimmed
+		} else {
+			//set default
+			csvStr := t.GetMintingInitiatorsInCSV(gc)
+			t.MintingInitators = &csvStr
+		}
+
+		if t.AssetTokenizationStatus < 3 {
+			//after ccreting wallet, do not allow change of name and code.
+
+			if len(ti.AssetName) > 0 {
+				ti.AssetName = titleCaser.String(ti.AssetName)
+				t.AssetName = &ti.AssetName
+			}
+			if len(ti.AssetCode) > 0 {
+				ti.AssetCode = strings.ToUpper(ti.AssetCode)
+
+				t.AssetCode = &ti.AssetCode
+			}
+
+			if t.AssetTokenizationStatus < 2 {
+				//value and currency, asset manager and custodian and issuing house can change here.
+
+				if len(ti.AssetCountryLocation) > 0 {
+
+					t.AssetCountryLocation = &ti.AssetCountryLocation
+				}
+
+				if len(ti.AssetQuoteCurrency) > 0 {
+					ti.AssetQuoteCurrency = strings.ToUpper(ti.AssetQuoteCurrency)
+					t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
+				} else {
+					t.AssetQuoteCurrency = nil
+				}
+				t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
+				t.AssetIssuingHouseID = ti.AssetIssuingHouseID
+
+				t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
+				t.AssetManagerID = ti.AssetManagerID
+
+				t.AssetCurrentValue = ti.AssetCurrentValue
+				t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
+
+			}
+			///end change of currency and issuing house and custodian
+
+		}
+
+		if len(ti.OfferingType) > 0 {
+
+			t.OfferingType = &ti.OfferingType
+		}
+
+		if len(ti.ClosedGroupID) > 0 {
+
+			t.ClosedGroupID = &ti.ClosedGroupID
+		} else {
+			t.ClosedGroupID = nil
+		}
+
+		if len(ti.SecApprovalIdNumber) > 0 && ti.SecApproval > 0 {
+
+			t.SecApproval = ti.SecApproval
+
+			t.SecApprovalIdNumber = &ti.SecApprovalIdNumber
+		} else {
+			t.SecApproval = 0
+
+			t.SecApprovalIdNumber = nil
+		}
+
+		if len(ti.MarketMakingWallet) > 0 {
+
+			t.MarketMakingWallet = &ti.MarketMakingWallet
+		}
+
+		if len(ti.AssetDescription) > 0 {
+			ti.AssetDescription = titleCaser.String(ti.AssetDescription)
+			t.AssetDescription = &ti.AssetDescription
+		}
+
+		if len(ti.AssetLongitude) > 0 {
+
+			t.AssetLongitude = &ti.AssetLongitude
+		}
+
+		if len(ti.AssetLatitude) > 0 {
+
+			t.AssetLatitude = &ti.AssetLatitude
+		}
+
+		if len(ti.OwnershipType) > 0 {
+
+			t.OwnershipType = &ti.OwnershipType
+		}
+
+		if len(ti.OwnershipKind) > 0 {
+
+			t.OwnershipKind = &ti.OwnershipKind
+		}
+
+		if len(ti.AssetOwnerName) > 0 {
+			ti.AssetOwnerName = strings.ToUpper(ti.AssetOwnerName)
+
+			t.AssetOwnerName = &ti.AssetOwnerName
+		}
+		if len(ti.ProceedPayoutCurrency) > 0 {
+			ti.ProceedPayoutCurrency = strings.ToUpper(ti.ProceedPayoutCurrency)
+			t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
+		} else {
+			t.ProceedPayoutCurrency = nil
+		}
 	}
-
-	//clear any DD failure flags
-	t.DueDiligenceFail = 0
-	t.DueDiligenceFailureReason = nil
-
-	if len(ti.AssetSector) > 0 {
-
-		t.AssetSector = &ti.AssetSector
-	}
-
-	if len(ti.AssetSubSector) > 0 {
-
-		t.AssetSubSector = &ti.AssetSubSector
-	}
-
-	if len(ti.AssetType) > 0 {
-
-		t.AssetType = &ti.AssetType
-	}
-
-	if len(ti.AssetWebsite) > 0 {
-		ti.AssetWebsite = strings.ToLower(ti.AssetWebsite)
-		t.AssetWebsite = &ti.AssetWebsite
-	} else {
-		t.AssetWebsite = nil
-	}
-
-	if len(ti.MintingApprovers) > 0 {
-		trimmed := replacer.Replace(ti.MintingApprovers)
-		ti.MintingApprovers = trimmed
-		t.MintingApprovers = &trimmed
-	} else {
-		//set default
-		csvStr := t.GetMintingApproversInCSV(gc)
-		t.MintingApprovers = &csvStr
-	}
-
-	if len(ti.MintingInitators) > 0 {
-		trimmed := replacer.Replace(ti.MintingInitators)
-		ti.MintingInitators = trimmed
-		t.MintingInitators = &trimmed
-	} else {
-		//set default
-		csvStr := t.GetMintingInitiatorsInCSV(gc)
-		t.MintingInitators = &csvStr
-	}
-
-	if len(ti.AssetName) > 0 {
-		ti.AssetName = titleCaser.String(ti.AssetName)
-		t.AssetName = &ti.AssetName
-	}
-
-	t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
-	t.AssetIssuingHouseID = ti.AssetIssuingHouseID
-
-	if len(ti.OfferingType) > 0 {
-
-		t.OfferingType = &ti.OfferingType
-	}
-
-	if len(ti.ClosedGroupID) > 0 {
-
-		t.ClosedGroupID = &ti.ClosedGroupID
-	} else {
-		t.ClosedGroupID = nil
-	}
-
-	if len(ti.SecApprovalIdNumber) > 0 && ti.SecApproval > 0 {
-
-		t.SecApproval = ti.SecApproval
-
-		t.SecApprovalIdNumber = &ti.SecApprovalIdNumber
-	} else {
-		t.SecApproval = 0
-
-		t.SecApprovalIdNumber = nil
-	}
-
-	if len(ti.MarketMakingWallet) > 0 {
-
-		t.MarketMakingWallet = &ti.MarketMakingWallet
-	}
-
-	if len(ti.AssetDescription) > 0 {
-		ti.AssetDescription = titleCaser.String(ti.AssetDescription)
-		t.AssetDescription = &ti.AssetDescription
-	}
-
-	if len(ti.AssetCountryLocation) > 0 {
-
-		t.AssetCountryLocation = &ti.AssetCountryLocation
-	}
+	///end status < 4 here
 
 	if len(ti.AssetPhysicalAddress) > 0 {
 		ti.AssetPhysicalAddress = titleCaser.String(ti.AssetPhysicalAddress)
@@ -1009,49 +1071,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.AssetPhysicalAddress = &ti.AssetPhysicalAddress
 	}
 
-	if len(ti.AssetLongitude) > 0 {
-
-		t.AssetLongitude = &ti.AssetLongitude
-	}
-
-	if len(ti.AssetLatitude) > 0 {
-
-		t.AssetLatitude = &ti.AssetLatitude
-	}
-
-	if len(ti.OwnershipType) > 0 {
-
-		t.OwnershipType = &ti.OwnershipType
-	}
-
-	if len(ti.OwnershipKind) > 0 {
-
-		t.OwnershipKind = &ti.OwnershipKind
-	}
-
-	if len(ti.AssetOwnerName) > 0 {
-		ti.AssetOwnerName = strings.ToUpper(ti.AssetOwnerName)
-
-		t.AssetOwnerName = &ti.AssetOwnerName
-	}
-
 	if len(ti.AssetOwnerAddress) > 0 {
 		ti.AssetOwnerAddress = titleCaser.String(ti.AssetOwnerAddress)
 
 		t.AssetOwnerAddress = &ti.AssetOwnerAddress
 	}
-	t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
-	t.AssetManagerID = ti.AssetManagerID
-
-	if len(ti.AssetQuoteCurrency) > 0 {
-		ti.AssetQuoteCurrency = strings.ToUpper(ti.AssetQuoteCurrency)
-		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
-	} else {
-		t.AssetQuoteCurrency = nil
-	}
-
-	t.AssetCurrentValue = ti.AssetCurrentValue
-	t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
 
 	if len(ti.ProtectionMethods) > 0 {
 
@@ -1093,65 +1117,64 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.IsFreeFromLiensAndEncumbrances = ti.IsFreeFromLiensAndEncumbrances
 	t.AssetAlreadyExists = ti.AssetAlreadyExists
 
-	if len(ti.AssetCode) > 0 {
-		ti.AssetCode = strings.ToUpper(ti.AssetCode)
-
-		t.AssetCode = &ti.AssetCode
-	}
-	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
-
 	var feeCompo TokenizationFee
 	var feeInAsset float64
 	// /////
+	var cConfig Country
+	var custodyFee, assetMgtFee float64
+	var secFee float64
+	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat float64
+	if t.AssetCountryLocation != nil {
+		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
+	}
 	if t.AssetTokenizationStatus < 4 {
+
+		t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 		//Do not change fees for assets that have been approved
+		if t.AssetTokenizationStatus < 2 {
+			//only when fee has not been paid
+			if ti.TokenizationFeeID > 0 {
+				// fee has been selected
+				t.TokenizationFeeID = &ti.TokenizationFeeID
+				feeCompo = t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
 
-		if ti.TokenizationFeeID > 0 {
-			// fee has been selected
-			t.TokenizationFeeID = &ti.TokenizationFeeID
-			feeCompo = t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
-
-			// Calculate Fees
-			feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-			t.FeeInAsset = feeInAsset
-			t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(2).InexactFloat64()
-			if feeCompo.FeeFiatCap > t.FeeInFiat {
-				t.FeeInFiat = feeCompo.FeeFiatCap
+				// Calculate Fees
+				feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+				t.FeeInAsset = feeInAsset
+				t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(2).InexactFloat64()
+				if feeCompo.FeeFiatCap > t.FeeInFiat {
+					t.FeeInFiat = feeCompo.FeeFiatCap
+				}
 			}
-		}
-		// get SEC tokenization fee.
-		var cConfig Country
-		var custodyFee, assetMgtFee float64
-		if t.AssetCountryLocation != nil {
-			cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-		}
-		var secFee float64
-		if cConfig.SECTokenizationFeeType == 1 {
-			// fixed
-			secFee = cConfig.SECTokenizationFee
-		} else {
-			//percent==0
-			secFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFee / 100)).Truncate(2).InexactFloat64()
 
-		}
-		t.SECTokenizationFeeValue = secFee
-		t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
-		if t.AssetCurrentValue > 0 {
+			// get SEC tokenization fee.
 
-			custodyFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(2).InexactFloat64()
-			t.CustodianFeeValue = custodyFee
+			if cConfig.SECTokenizationFeeType == 1 {
+				// fixed
+				secFee = cConfig.SECTokenizationFee
+			} else {
+				//percent==0
+				secFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFee / 100)).Truncate(2).InexactFloat64()
 
-			assetMgtFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(2).InexactFloat64()
-			t.AssetManagerFeeValue = assetMgtFee
+			}
+			t.SECTokenizationFeeValue = secFee
+			t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
+			if t.AssetCurrentValue > 0 {
 
-		}
-		/**
-		  IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
-		  	LegalAndProfessionalFee         float64 `gorm:"default:0" json:"legalAndProfessionalFee"`
-		  	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
-		  	VAT                             float64 `gorm:"default:0" json:"vat"`
-		  **/
-		if t.AssetTokenizationStatus < 6 {
+				custodyFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(2).InexactFloat64()
+				t.CustodianFeeValue = custodyFee
+
+				assetMgtFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(2).InexactFloat64()
+				t.AssetManagerFeeValue = assetMgtFee
+
+			}
+			/**
+			  IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
+			  	LegalAndProfessionalFee         float64 `gorm:"default:0" json:"legalAndProfessionalFee"`
+			  	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
+			  	VAT                             float64 `gorm:"default:0" json:"vat"`
+			  **/
+
 			if t.TokenizationApplicationFee == 0 {
 				t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
 				t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
@@ -1162,11 +1185,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			// 	// t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
 			// }
 
-			issuingHouseFeeValue := decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
-			legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
-			ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
-			totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
-			vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
+			issuingHouseFeeValue = decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
+			legalAndProfessionalFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
+			ratingAgencyFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
+			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
+			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
 
 			t.AssetIssuingHouseFeeValue = issuingHouseFeeValue
 			t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
@@ -1196,7 +1219,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			} else {
 				t.WalletToHoldAssetsNotForSale = nil
 			}
+
 		}
+
 	}
 	///////
 	/**
@@ -1220,13 +1245,6 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.ProceedCycle = &ti.ProceedCycle
 	} else {
 		t.ProceedCycle = nil
-	}
-
-	if len(ti.ProceedPayoutCurrency) > 0 {
-		ti.ProceedPayoutCurrency = strings.ToUpper(ti.ProceedPayoutCurrency)
-		t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
-	} else {
-		t.ProceedPayoutCurrency = nil
 	}
 
 	if len(ti.ExemptedCountries) > 0 {
