@@ -139,10 +139,10 @@ type TokenizedAsset struct {
 	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
 	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
 	AssetIssuingHouseFeeValue                   float64                         `gorm:"default:0" json:"assetIssuingHouseFeeValue"`
-	IssuingHouseFee                             float64                         `gorm:"default:0" json:"issuingHouseFee"`
-	LegalAndProfessionalFee                     float64                         `gorm:"default:0" json:"legalAndProfessionalFee"`
-	RatingAgencyFee                             float64                         `gorm:"default:0" json:"ratingAgencyFee"`
-	VAT                                         float64                         `gorm:"default:0" json:"vat"`
+	IssuingHouseFeePercent                      float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	LegalAndProfessionalFeePercent              float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	RatingAgencyFeePercent                      float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	VATPercent                                  float64                         `gorm:"default:0" json:"vatPercent"`
 	ProceedPayoutCurrency                       *string                         `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           *string                         `json:"exemptedCountries"`
@@ -388,10 +388,10 @@ type TokenizedAssetJSON struct {
 	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
 	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
 	AssetIssuingHouseFeeValue                   float64                         `gorm:"default:0" json:"assetIssuingHouseFeeValue"`
-	IssuingHouseFee                             float64                         `gorm:"default:0" json:"issuingHouseFee"`
-	LegalAndProfessionalFee                     float64                         `gorm:"default:0" json:"legalAndProfessionalFee"`
-	RatingAgencyFee                             float64                         `gorm:"default:0" json:"ratingAgencyFee"`
-	VAT                                         float64                         `gorm:"default:0" json:"vat"`
+	IssuingHouseFeePercent                      float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	LegalAndProfessionalFeePercent              float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	RatingAgencyFeePercent                      float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	VATPercent                                  float64                         `gorm:"default:0" json:"vatPercent"`
 	ProceedPayoutCurrency                       string                          `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           string                          `json:"exemptedCountries"`
@@ -1188,17 +1188,17 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			// 	// t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
 			// }
 
-			issuingHouseFeeValue = decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
-			legalAndProfessionalFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
-			ratingAgencyFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
+			issuingHouseFeeValue = decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2).InexactFloat64()
+			legalAndProfessionalFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2).InexactFloat64()
+			ratingAgencyFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2).InexactFloat64()
 			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
-			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
+			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(2).InexactFloat64()
 
 			t.AssetIssuingHouseFeeValue = issuingHouseFeeValue
-			t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
+			t.LegalAndProfessionalFeePercent = cConfig.LegalAndProfessionalFeePercent
 
-			t.RatingAgencyFee = cConfig.RatingAgencyFee
-			t.VAT = cConfig.VAT
+			t.RatingAgencyFeePercent = cConfig.RatingAgencyFeePercent
+			t.VATPercent = cConfig.VATPercent
 
 			t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
@@ -1412,15 +1412,15 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
 		t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
 	}
-	issuingHouseFeeValue := decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFee / 100)).Truncate(2).InexactFloat64()
-	legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFee / 100)).Truncate(2).InexactFloat64()
-	ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFee / 100)).Truncate(2).InexactFloat64()
+	issuingHouseFeeValue := decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2).InexactFloat64()
+	legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2).InexactFloat64()
+	ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2).InexactFloat64()
 	totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
-	vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VAT / 100)).Truncate(2).InexactFloat64()
+	vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(2).InexactFloat64()
 	t.AssetIssuingHouseFeeValue = issuingHouseFeeValue
-	t.LegalAndProfessionalFee = cConfig.LegalAndProfessionalFee
-	t.RatingAgencyFee = cConfig.RatingAgencyFee
-	t.VAT = cConfig.VAT
+	t.LegalAndProfessionalFeePercent = cConfig.LegalAndProfessionalFeePercent
+	t.RatingAgencyFeePercent = cConfig.RatingAgencyFeePercent
+	t.VATPercent = cConfig.VATPercent
 	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
@@ -1492,14 +1492,14 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.AssetManagerFeePercent = ti.AssetManagerFeePercent
 	t.AssetManagerFeeValue = ti.AssetManagerFeeValue
 	t.AssetIssuingHouseFeeValue = ti.AssetIssuingHouseFeeValue
-	t.IssuingHouseFee = ti.IssuingHouseFee
+	t.AssetIssuingHouseFeeValue = ti.AssetIssuingHouseFeeValue
 	t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
 	t.CustodianFeePercent = ti.CustodianFeePercent
 	t.CustodianFeeValue = ti.CustodianFeeValue
-	t.IssuingHouseFee = ti.IssuingHouseFee
-	t.LegalAndProfessionalFee = ti.LegalAndProfessionalFee
-	t.RatingAgencyFee = ti.RatingAgencyFee
-	t.VAT = ti.VAT
+	t.IssuingHouseFeePercent = ti.IssuingHouseFeePercent
+	t.LegalAndProfessionalFeePercent = ti.LegalAndProfessionalFeePercent
+	t.RatingAgencyFeePercent = ti.RatingAgencyFeePercent
+	t.VATPercent = ti.VATPercent
 	t.VettingStatus = ti.VettingStatus
 	t.DueDiligenceFail = ti.DueDiligenceFail
 

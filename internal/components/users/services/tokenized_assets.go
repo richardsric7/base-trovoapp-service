@@ -960,7 +960,7 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	ato.AssetManagerID = input.AssetManagerID
 	ato.AssetManagerFeePercent = assetMgtConfig.FeePercent
 	ato.AssetIssuingHouseID = input.AssetIssuingHouseID
-	ato.IssuingHouseFee = assetIssuingHouseConfig.FeePercent
+	ato.IssuingHouseFeePercent = assetIssuingHouseConfig.FeePercent
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
 	}
