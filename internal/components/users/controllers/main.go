@@ -6411,7 +6411,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "logo-size-invalid", "message": "Logo cannot be more than 900kb in file size"})
 				return
 			}
 
@@ -6426,7 +6426,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			blobFile, err := fileHeader.Open()
 
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-validating-logo", "message": "Error occured while attempting to validate the logo uploaded"})
 
 				return
 			}
@@ -6438,7 +6438,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			{
 				//check for unsupported extension
 				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png and gif are supported"})
+					c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsupported-format", "message": "Unsupported format. Only jpg, jpeg, png and gif are supported"})
 
 					return
 				}
@@ -6447,7 +6447,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			t, _, _ := userServices.GetTokenizedAssetByID(tid, gc.DB)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-tokenized-asset", "message": "Tokenized Asset not valid"})
 				return
 			}
 			// if t.AssetTokenizationStatus > 0 {
