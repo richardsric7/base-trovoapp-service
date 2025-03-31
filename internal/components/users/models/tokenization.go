@@ -170,6 +170,7 @@ type TokenizedAsset struct {
 	OtherAssetProtection                        *string                         `gorm:"null" json:"otherAssetProtection"`
 	LegalAdvisor                                *string                         `gorm:"null" json:"legalAdvisor"`
 	FinancialAdvisor                            *string                         `gorm:"null" json:"financialAdvisor"`
+	RatingAgency                                *string                         `gorm:"null" json:"ratingAgency"`
 	UndertakingNoLien                           int                             `gorm:"default:0" json:"undertakingNoLien"`
 	UndertakingNotCollateral                    int                             `gorm:"default:0" json:"undertakingNotCollateral"`
 	UndertakingNoClaims                         int                             `gorm:"default:0" json:"undertakingNoClaims"`
@@ -270,6 +271,7 @@ type TokenizedAssetJSONInput struct {
 	OtherAssetProtection                        string    `gorm:"null" json:"otherAssetProtection"`
 	LegalAdvisor                                string    `gorm:"null" json:"legalAdvisor"`
 	FinancialAdvisor                            string    `gorm:"null" json:"financialAdvisor"`
+	RatingAgency                                string    `gorm:"null" json:"ratingAgency"`
 	UndertakingNoLien                           int       `gorm:"default:0" json:"undertakingNoLien"`
 	UndertakingNotCollateral                    int       `gorm:"default:0" json:"undertakingNotCollateral"`
 	UndertakingNoClaims                         int       `gorm:"default:0" json:"undertakingNoClaims"`
@@ -416,6 +418,7 @@ type TokenizedAssetJSON struct {
 	OtherAssetProtection                        string                          `gorm:"null" json:"otherAssetProtection"`
 	LegalAdvisor                                string                          `gorm:"null" json:"legalAdvisor"`
 	FinancialAdvisor                            string                          `gorm:"null" json:"financialAdvisor"`
+	RatingAgency                                string                          `gorm:"null" json:"ratingAgency"`
 	UndertakingNoLien                           int                             `gorm:"default:0" json:"undertakingNoLien"`
 	UndertakingNotCollateral                    int                             `gorm:"default:0" json:"undertakingNotCollateral"`
 	UndertakingNoClaims                         int                             `gorm:"default:0" json:"undertakingNoClaims"`
@@ -1308,6 +1311,14 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.FinancialAdvisor = nil
 	}
 
+	if len(ti.RatingAgency) > 0 {
+		ti.RatingAgency = strings.ToUpper(ti.RatingAgency)
+
+		t.RatingAgency = &ti.RatingAgency
+	} else {
+		t.RatingAgency = nil
+	}
+
 	if ti.BankID > 0 {
 
 		t.BankID = &ti.BankID
@@ -1732,6 +1743,11 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.FinancialAdvisor != nil {
 
 		t.FinancialAdvisor = strings.ToUpper(*ti.FinancialAdvisor)
+	}
+
+	if ti.RatingAgency != nil {
+
+		t.RatingAgency = strings.ToUpper(*ti.RatingAgency)
 	}
 	if ti.BankID != nil {
 
