@@ -621,17 +621,20 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
+		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+
+		if publicKeyPayment {
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
+				publicKeyPayment = false
 			}
 		}
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
 
-		if len(paymentInfo.Destination) != 56 && len(paymentInfo.Destination) != 69 {
+		if !publicKeyPayment {
 			//skip public key payments
 			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
