@@ -262,26 +262,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	//replace possible email and the rest
 	if (!strings.Contains(paymentInfo.Destination, destinationInfo.Username)) && !publicKeyPayment {
 		//email or phone or other ID used for payment. replace it.
-		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: [%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationInfo.Username))
+		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: [%v] belongs to the wallet alias [%v] and will be used as the destination.", paymentInfo.Destination, destinationInfo.Username))
 		paymentInfo.Destination = destinationInfo.Username
 	}
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 
-	// if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
-	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	// }
-
-	// if len(destinationInfo.Username) == 0 && len(paymentInfo.Destination) != 56 {
-	// 	log.Printf("[generatePaymentXdr]Could not get destination user for payment destination: %v\n", paymentInfo.Destination)
-
-	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	// }
-
-	// if len(destinationWallet.ID) == 0 && len(paymentInfo.Destination) != 56 {
-	// 	log.Printf("[generatePaymentXdr]Could not get destination wallet for payment destination: %v\n", paymentInfo.Destination)
-
-	// 	return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	// }
 	if len(destinationWallet.ID) == 0 && !publicKeyPayment {
 		log.Printf("[generatePaymentXdr]Could not get destination wallet for payment destination: %v\n", paymentInfo.Destination)
 
@@ -312,6 +297,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		//parse public key
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
+			log.Println("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
+
 			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}
 
@@ -339,7 +326,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			//custom asset
 			if !destinationAccountExists {
 
-				message := fmt.Sprintf("The wallet %v is unfunded. %v %v will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, nativeAssetCode, destinationWallet.Alias, destinationWallet.Alias)
+				message := fmt.Sprintf("The wallet %v is underfunded. %v %v will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, nativeAssetCode, destinationWallet.Alias, destinationWallet.Alias)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
@@ -1031,6 +1018,8 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		//parse public key
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
+			log.Println("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
+
 			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}
 
@@ -1039,12 +1028,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		paymentInfo.Messages = append(paymentInfo.Messages, message)
 		// log.Printf("[generatePaymentXdr]message for public key logged: %v\n", message)
 	}
-	// var destinationPublicKey string
-	// if publicKeyPayment {
-	// 	destinationPublicKey = paymentInfo.Destination
-	// } else {
-	// 	destinationPublicKey = destinationUser.PublicKey
-	// }
+
 	//perform ths checks to determine messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
 		network.BlockchainAccountProperties(gc.BantuExpansionClient, destinationPublicKey, asset)
