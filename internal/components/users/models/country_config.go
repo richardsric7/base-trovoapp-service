@@ -5,10 +5,10 @@ import "trovo-wallet-api/internal/sharedconfig"
 // Country holds country struct
 type Country struct {
 	CountryCode                     string  `gorm:"size:2;primaryKey" json:"countryCode"`
-	SECTokenizationFee              float64 `gorm:"default:0" json:"SECTokenizationFee"`
-	SECTokenizationFeeType          int     `gorm:"default:0" json:"SECTokenizationFeeType"` //0=percent,1 = fixed
-	SECTradeFee                     float64 `gorm:"default:0" json:"SECTradeFeePercent"`
-	SECTradeFeeType                 int     `gorm:"default:0" json:"SECTradeFeeType"` //0=percent,1 = fixed
+	SECTokenizationFeePercent       float64 `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed         float64 `gorm:"default:0" json:"SECTokenizationFeeFixed"`
+	SECTradeFeePercent              float64 `gorm:"default:0" json:"SECTradeFeePercent"`
+	SECTradeFeeFixed                float64 `gorm:"default:0" json:"SECTradeFeeFixed"`
 	RegulatorName                   string  `gorm:"default:'SECURITY AND EXCHANGE COMMISSION'" json:"regulatorName"`
 	RegionName                      string  `json:"regionName"`
 	CountryName                     string  `json:"countryName"`
@@ -17,7 +17,9 @@ type Country struct {
 	TokenizationApplicationFee      float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
 	TokenizationApplicationFeeAsset string  `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
 	LegalAndProfessionalFeePercent  float64 `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	LegalAndProfessionalFeeFixed    float64 `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
 	RatingAgencyFeePercent          float64 `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed            float64 `gorm:"default:0" json:"ratingAgencyFeeFixed"`
 	VATPercent                      float64 `gorm:"default:0" json:"vatPercent"`
 }
 

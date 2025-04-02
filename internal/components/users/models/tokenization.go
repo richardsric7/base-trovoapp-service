@@ -133,16 +133,25 @@ type TokenizedAsset struct {
 	TokenizationFeeID                           *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
 	TokenizationFee                             TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	SECTokenizationFeePercent                   float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed                     float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
 	SECTokenizationFeeValue                     float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
 	CustodianFeePercent                         float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeFixed                           float64                         `gorm:"default:0" json:"custodianFeeFixed"`
 	CustodianFeeValue                           float64                         `gorm:"default:0" json:"custodianFeeValue"`
 	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
 	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
-	AssetIssuingHouseFeeValue                   float64                         `gorm:"default:0" json:"assetIssuingHouseFeeValue"`
+	AssetManagerFeeFixed                        float64                         `gorm:"default:0" json:"assetManagerFeeFixed"`
+	IssuingHouseFeeValue                        float64                         `gorm:"default:0" json:"issuingHouseFeeValue"`
 	IssuingHouseFeePercent                      float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	IssuingHouseFeeFixed                        float64                         `gorm:"default:0" json:"issuingHouseFeeFixed"`
 	LegalAndProfessionalFeePercent              float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	LegalAndProfessionalFeeFixed                float64                         `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
+	LegalAndProfessionalFeeValue                float64                         `gorm:"default:0" json:"legalAndProfessionalFeeValue"`
 	RatingAgencyFeePercent                      float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed                        float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
+	RatingAgencyFeeValue                        float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
 	VATPercent                                  float64                         `gorm:"default:0" json:"vatPercent"`
+	VATValue                                    float64                         `gorm:"default:0" json:"vatValue"`
 	ProceedPayoutCurrency                       *string                         `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           *string                         `json:"exemptedCountries"`
@@ -382,16 +391,25 @@ type TokenizedAssetJSON struct {
 	TokenizationFee                             TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	CountryConfig                               Country                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"countryConfig"`
 	SECTokenizationFeePercent                   float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed                     float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
 	SECTokenizationFeeValue                     float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
 	CustodianFeePercent                         float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeFixed                           float64                         `gorm:"default:0" json:"custodianFeeFixed"`
 	CustodianFeeValue                           float64                         `gorm:"default:0" json:"custodianFeeValue"`
 	AssetManagerFeeValue                        float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
 	AssetManagerFeePercent                      float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
-	AssetIssuingHouseFeeValue                   float64                         `gorm:"default:0" json:"assetIssuingHouseFeeValue"`
+	AssetManagerFeeFixed                        float64                         `gorm:"default:0" json:"assetManagerFeeFixed"`
+	IssuingHouseFeeValue                        float64                         `gorm:"default:0" json:"issuingHouseFeeValue"`
 	IssuingHouseFeePercent                      float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	IssuingHouseFeeFixed                        float64                         `gorm:"default:0" json:"issuingHouseFeeFixed"`
 	LegalAndProfessionalFeePercent              float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	LegalAndProfessionalFeeFixed                float64                         `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
+	LegalAndProfessionalFeeValue                float64                         `gorm:"default:0" json:"legalAndProfessionalFeeValue"`
 	RatingAgencyFeePercent                      float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed                        float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
+	RatingAgencyFeeValue                        float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
 	VATPercent                                  float64                         `gorm:"default:0" json:"vatPercent"`
+	VATValue                                    float64                         `gorm:"default:0" json:"vatValue"`
 	ProceedPayoutCurrency                       string                          `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                           int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                           string                          `json:"exemptedCountries"`
@@ -522,6 +540,7 @@ type ApprovedAssetCustodian struct {
 	AssetCustodianCountry string  `gorm:"size:3" json:"assetCustodianCountry"`
 	RequirementDocument   string  `gorm:"" json:"requirementDocument"`
 	FeePercent            float64 `gorm:"default:0" json:"FeePercent"`
+	FeeFixed              float64 `gorm:"default:0" json:"FeeFixed"`
 }
 type AssetManager struct {
 	ID                  uint64  `gorm:"" json:"id"`
@@ -529,6 +548,7 @@ type AssetManager struct {
 	AssetManagerAddress string  `json:"assetManagerAddress"`
 	AssetManagerCountry string  `gorm:"size:3" json:"assetManagerCountry"`
 	FeePercent          float64 `gorm:"default:0" json:"FeePercent"`
+	FeeFixed            float64 `gorm:"default:0" json:"FeeFixed"`
 }
 
 type AssetIssuingHouse struct {
@@ -537,6 +557,7 @@ type AssetIssuingHouse struct {
 	AssetIssuingHouseAddress string  `json:"assetIssuingHouseAddress"`
 	AssetIssuingHouseCountry string  `gorm:"size:3" json:"assetIssuingHouseCountry"`
 	FeePercent               float64 `gorm:"default:0" json:"FeePercent"`
+	FeeFixed                 float64 `gorm:"default:0" json:"FeeFixed"`
 }
 
 type AssetProtectionOption struct {
@@ -1130,11 +1151,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 	}
-	if t.AssetTokenizationStatus < 4 {
+	if t.AssetTokenizationStatus < 4 && t.AssetCurrentValue > 0 {
 
-		t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
-		//Do not change fees for assets that have been approved
 		if t.AssetTokenizationStatus < 2 {
+			t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+			//Do not change fees for assets that have been approved
 			//only when fee has not been paid
 			if ti.TokenizationFeeID > 0 {
 				// fee has been selected
@@ -1150,55 +1171,54 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				}
 			}
 
-			// get SEC tokenization fee.
+			// get tokenization fees.
 
-			if cConfig.SECTokenizationFeeType == 1 {
-				// fixed
-				secFee = cConfig.SECTokenizationFee
-			} else {
-				//percent==0
-				secFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFee / 100)).Truncate(2).InexactFloat64()
-
-			}
+			t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
+			t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
+			secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(2)).InexactFloat64()
 			t.SECTokenizationFeeValue = secFee
-			t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
-			if t.AssetCurrentValue > 0 {
 
-				custodyFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(2).InexactFloat64()
+			if ti.ApprovedAssetCustodianID > 0 {
+				t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
+				custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
+				t.CustodianFeeFixed = custodian.FeeFixed
+				t.CustodianFeePercent = custodian.FeePercent
+				custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(2)).InexactFloat64()
 				t.CustodianFeeValue = custodyFee
 
-				assetMgtFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(2).InexactFloat64()
+			}
+
+			if ti.AssetManagerID > 0 {
+				t.AssetManagerID = ti.AssetManagerID
+				assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
+				t.AssetManagerFeePercent = assetManager.FeePercent
+				t.AssetManagerFeeFixed = assetManager.FeeFixed
+				assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(2)).InexactFloat64()
 				t.AssetManagerFeeValue = assetMgtFee
 
 			}
-			/**
-			  IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
-			  	LegalAndProfessionalFee         float64 `gorm:"default:0" json:"legalAndProfessionalFee"`
-			  	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
-			  	VAT                             float64 `gorm:"default:0" json:"vat"`
-			  **/
 
-			if t.TokenizationApplicationFee == 0 {
-				t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
-				t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
+			if ti.AssetIssuingHouseID > 0 {
+				t.AssetIssuingHouseID = ti.AssetIssuingHouseID
+				issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
+				t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
+				t.IssuingHouseFeePercent = issuingHouse.FeePercent
+				issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(2)).InexactFloat64()
+				t.IssuingHouseFeeValue = issuingHouseFeeValue
 			}
-			//  else {
-			//no need setting this since it is already set before and no need to change it.
-			// 	// t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
-			// 	// t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
-			// }
-
-			issuingHouseFeeValue = decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2).InexactFloat64()
-			legalAndProfessionalFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2).InexactFloat64()
-			ratingAgencyFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2).InexactFloat64()
+			legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.LegalAndProfessionalFeeFixed).Truncate(2)).InexactFloat64()
+			ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.RatingAgencyFeeFixed).Truncate(2)).InexactFloat64()
 			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
 			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(2).InexactFloat64()
-
-			t.AssetIssuingHouseFeeValue = issuingHouseFeeValue
 			t.LegalAndProfessionalFeePercent = cConfig.LegalAndProfessionalFeePercent
+			t.LegalAndProfessionalFeeFixed = cConfig.LegalAndProfessionalFeeFixed
+			t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
 
 			t.RatingAgencyFeePercent = cConfig.RatingAgencyFeePercent
+			t.RatingAgencyFeeFixed = cConfig.RatingAgencyFeeFixed
+			t.RatingAgencyFeeValue = ratingAgencyFee
 			t.VATPercent = cConfig.VATPercent
+			t.VATValue = vat
 
 			t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
@@ -1226,14 +1246,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		}
 
 	}
-	///////
-	/**
+	if t.AssetTokenizationStatus < 5 {
+		t.SalesStart = ti.SalesStart
+	}
 
-
-
-	**/
-
-	t.SalesStart = ti.SalesStart
 	t.SalesEnd = ti.SalesEnd
 	t.CapOnPurchase = ti.CapOnPurchase
 	t.CapQuantity = ti.CapQuantity
@@ -1357,8 +1373,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	//TODO: set the SEC fee, Custody fee, Asset manager fee and recover feeInFiat from total asset value
-	if t.AssetTokenizationStatus > 2 {
-		//do not modify when it is already passed stage for fees
+	if t.AssetTokenizationStatus > 2 || t.AssetCurrentValue == 0 {
+		//do not modify when it is already passed stage for fees or if currenct value is not set
 		return
 	}
 	var feeCompo TokenizationFee
@@ -1377,50 +1393,63 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 	}
 	// get SEC tokenization fee.
+	// /////
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
+	var secFee float64
+	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 
 	}
-	var secFee float64
-	if cConfig.SECTokenizationFeeType == 1 {
-		// fixed
-		secFee = cConfig.SECTokenizationFee
-	} else {
-		//percent==0
-		secFee = decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFee / 100)).Truncate(2).InexactFloat64()
-		t.SECTokenizationFeeValue = secFee
-		t.SECTokenizationFeePercent = cConfig.SECTokenizationFee
-	}
 
 	if t.AssetCurrentValue > 0 {
 
-		custodyFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(2).InexactFloat64()
-		t.CustodianFeeValue = custodyFee
+		t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
+		t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
+		secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(2)).InexactFloat64()
+		t.SECTokenizationFeeValue = secFee
 
-		assetMgtFee = decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(2).InexactFloat64()
-		t.AssetManagerFeeValue = assetMgtFee
+		if t.ApprovedAssetCustodianID > 0 {
+			custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
+			t.CustodianFeeFixed = custodian.FeeFixed
+			t.CustodianFeePercent = custodian.FeePercent
+			custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(2)).InexactFloat64()
+			t.CustodianFeeValue = custodyFee
+
+		}
+
+		if t.AssetManagerID > 0 {
+			assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
+			t.AssetManagerFeePercent = assetManager.FeePercent
+			t.AssetManagerFeeFixed = assetManager.FeeFixed
+			assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(2)).InexactFloat64()
+			t.AssetManagerFeeValue = assetMgtFee
+
+		}
+
+		if t.AssetIssuingHouseID > 0 {
+			issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
+			t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
+			t.IssuingHouseFeePercent = issuingHouse.FeePercent
+			issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(2)).InexactFloat64()
+			t.IssuingHouseFeeValue = issuingHouseFeeValue
+		}
+		legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.LegalAndProfessionalFeeFixed).Truncate(2)).InexactFloat64()
+		ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2)).Add(decimal.NewFromFloat(cConfig.RatingAgencyFeeFixed).Truncate(2)).InexactFloat64()
+		totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
+		vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(2).InexactFloat64()
+		t.LegalAndProfessionalFeePercent = cConfig.LegalAndProfessionalFeePercent
+		t.LegalAndProfessionalFeeFixed = cConfig.LegalAndProfessionalFeeFixed
+		t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
+
+		t.RatingAgencyFeePercent = cConfig.RatingAgencyFeePercent
+		t.RatingAgencyFeeFixed = cConfig.RatingAgencyFeeFixed
+		t.RatingAgencyFeeValue = ratingAgencyFee
+		t.VATPercent = cConfig.VATPercent
+		t.VATValue = vat
 	}
-	/**
-	  IssuingHouseFee                 float64 `gorm:"default:0" json:"issuingHouseFee"`
-	  	LegalAndProfessionalFee         float64 `gorm:"default:0" json:"legalAndProfessionalFee"`
-	  	RatingAgencyFee                 float64 `gorm:"default:0" json:"ratingAgencyFee"`
-	  	VAT                             float64 `gorm:"default:0" json:"vat"`
-	  **/
-	if t.AssetTokenizationStatus < 6 && t.TokenizationApplicationFee == 0 {
-		t.TokenizationApplicationFee = cConfig.TokenizationApplicationFee
-		t.TokenizationApplicationFeeAsset = cConfig.TokenizationApplicationFeeAsset
-	}
-	issuingHouseFeeValue := decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(2).InexactFloat64()
-	legalAndProfessionalFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.LegalAndProfessionalFeePercent / 100)).Truncate(2).InexactFloat64()
-	ratingAgencyFee := decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.RatingAgencyFeePercent / 100)).Truncate(2).InexactFloat64()
-	totalChargedFeesForVat := secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
-	vat := decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(2).InexactFloat64()
-	t.AssetIssuingHouseFeeValue = issuingHouseFeeValue
-	t.LegalAndProfessionalFeePercent = cConfig.LegalAndProfessionalFeePercent
-	t.RatingAgencyFeePercent = cConfig.RatingAgencyFeePercent
-	t.VATPercent = cConfig.VATPercent
+
 	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
 
 	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
@@ -1487,19 +1516,27 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.FeeInAsset = ti.FeeInAsset
 	t.FeeInFiat = ti.FeeInFiat
 	t.SECTokenizationFeePercent = ti.SECTokenizationFeePercent
+	t.SECTokenizationFeeFixed = ti.SECTokenizationFeeFixed
 	t.SECTokenizationFeeValue = ti.SECTokenizationFeeValue
 	t.AssetManagerID = ti.AssetManagerID
 	t.AssetManagerFeePercent = ti.AssetManagerFeePercent
+	t.AssetManagerFeeFixed = ti.AssetManagerFeeFixed
 	t.AssetManagerFeeValue = ti.AssetManagerFeeValue
-	t.AssetIssuingHouseFeeValue = ti.AssetIssuingHouseFeeValue
-	t.AssetIssuingHouseFeeValue = ti.AssetIssuingHouseFeeValue
+	t.IssuingHouseFeeFixed = ti.IssuingHouseFeeFixed
+	t.IssuingHouseFeePercent = ti.IssuingHouseFeePercent
+	t.IssuingHouseFeeValue = ti.IssuingHouseFeeValue
 	t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
 	t.CustodianFeePercent = ti.CustodianFeePercent
+	t.CustodianFeeFixed = ti.CustodianFeeFixed
 	t.CustodianFeeValue = ti.CustodianFeeValue
-	t.IssuingHouseFeePercent = ti.IssuingHouseFeePercent
 	t.LegalAndProfessionalFeePercent = ti.LegalAndProfessionalFeePercent
+	t.LegalAndProfessionalFeeFixed = ti.LegalAndProfessionalFeeFixed
+	t.LegalAndProfessionalFeeValue = ti.LegalAndProfessionalFeeValue
 	t.RatingAgencyFeePercent = ti.RatingAgencyFeePercent
+	t.RatingAgencyFeeFixed = ti.RatingAgencyFeeFixed
+	t.RatingAgencyFeeValue = ti.RatingAgencyFeeValue
 	t.VATPercent = ti.VATPercent
+	t.VATValue = ti.VATValue
 	t.VettingStatus = ti.VettingStatus
 	t.DueDiligenceFail = ti.DueDiligenceFail
 
@@ -1905,4 +1942,26 @@ func (tma TokenizationMintingInitiators) ToCSV() string {
 
 	// Return the CSV string
 	return buf.String()
+}
+
+type AssetManagerID uint64
+type ApprovedCustodianID uint64
+type IssuingHouseID uint64
+
+func (a AssetManagerID) GetAssetManager(gc *sharedconfig.GlobalConfig) (assetManager AssetManager) {
+	gc.DB.Where("id = ?", uint64(a)).First(&assetManager)
+
+	return
+}
+
+func (a ApprovedCustodianID) GetApprovedCustodian(gc *sharedconfig.GlobalConfig) (custodian ApprovedAssetCustodian) {
+	gc.DB.Where("id = ?", uint64(a)).First(&custodian)
+
+	return
+}
+
+func (a IssuingHouseID) GetAssetIssuingHouse(gc *sharedconfig.GlobalConfig) (assetIssuingHouse AssetIssuingHouse) {
+	gc.DB.Where("id = ?", uint64(a)).First(&assetIssuingHouse)
+
+	return
 }
