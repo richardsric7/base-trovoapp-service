@@ -316,7 +316,7 @@ type VetTokenizedAssetJSONInput struct {
 	CountryCode              string   `json:"CountryCode"`
 	ProceedPayoutCurrency    string   `json:"proceedPayoutCurrency"`
 	AssetQuoteCurrency       string   `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
-	Messages                 []string `json:"messages"`
+	// Messages                 []string `json:"messages"`
 }
 
 type TokenizedAssetJSON struct {

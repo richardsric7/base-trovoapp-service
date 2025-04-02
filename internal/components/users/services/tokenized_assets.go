@@ -908,7 +908,7 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	}
 
 	// initialize message array
-	input.Messages = make([]string, 0)
+	// input.Messages = make([]string, 0)
 	// check asset manager ID
 	if input.AssetManagerID == 0 {
 		log.Printf("[VetTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
