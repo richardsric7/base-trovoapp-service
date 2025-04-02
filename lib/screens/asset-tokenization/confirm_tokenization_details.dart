@@ -333,21 +333,21 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         SizedBox(height: height / 90),
                         // if (tokenizedAsset.issuingHouseFee! > 0) ...[
                         item("Issuing House Fee",
-                            '${formatNumberShort(tokenizedAsset.issuingHouseFee!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFeePercent!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
                         item("Legal Fee",
-                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFee!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeePercent!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
                         item("Rating Agency Fee",
-                            '${formatNumberShort(tokenizedAsset.ratingAgencyFee!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeePercent!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         item("VAT",
-                            '${formatNumberShort(tokenizedAsset.vat!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.vatPercent!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Total",
                             '${formatNumberShort(getTotal())} ${fiatCurrency}'),
@@ -714,10 +714,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     return tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
-        tokenizedAsset.issuingHouseFee! +
-        tokenizedAsset.legalAndProfessionalFee! +
-        tokenizedAsset.ratingAgencyFee! +
-        tokenizedAsset.vat! +
+        tokenizedAsset.issuingHouseFeePercent! +
+        tokenizedAsset.legalAndProfessionalFeePercent! +
+        tokenizedAsset.ratingAgencyFeePercent! +
+        tokenizedAsset.vatPercent! +
         fiatFee;
   }
 

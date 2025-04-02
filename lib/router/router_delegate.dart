@@ -22,6 +22,7 @@ import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
+import 'package:trovo_app/screens/kyc_screen.dart';
 import 'package:trovo_app/screens/send_and_recieve/asset_token_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdraw_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_asset.dart';
@@ -502,6 +503,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.BuyTokensReceiptView:
           _addPageData(BuyTokensReceipt(), BuyTokensReceiptViewPageConfig);
           break;
+        case Pages.KycScreenView:
+          _addPageData(KYCScreen(), KycScreenViewPageConfig);
+          break;
         default:
           break;
       }
@@ -825,6 +829,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.BuyTokensReceiptView:
         BuyTokensReceiptViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.KycScreenView:
+        KycScreenViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

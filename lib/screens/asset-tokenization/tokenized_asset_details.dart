@@ -34,6 +34,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   String assetType = '';
   String fiatCurrency = '';
   late TokenizedAsset tokenizedAsset;
+  String regulatorName = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -76,6 +77,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+        regulatorName =
+            appState.tokenizationData['countryConfigs'][i]['regulatorName'];
       }
     }
 
@@ -614,22 +617,26 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Regulator',
-              tokenizedAsset.assetOwnerName ?? '',
+              regulatorName.toLowerCase().capitalizeEachWord(),
             ),
             infoTile(
               notifier,
               'Asset Custodian',
-              tokenizedAsset.assetOwnerName ?? '',
+              tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName ??
+                  '',
             ),
             infoTile(
               notifier,
               'Asset Manager',
-              tokenizedAsset.assetOwnerName ?? '',
+              tokenizedAsset.assetManagerInfo?.assetManagerName ?? '',
             ),
             infoTile(
               notifier,
               'Issuing House',
-              tokenizedAsset.assetOwnerName ?? '',
+              tokenizedAsset.assetIssuingHouseInfo?.assetIssuingHouseName
+                      ?.toLowerCase()
+                      .capitalizeEachWord() ??
+                  '',
             ),
             infoTile(
               notifier,
@@ -661,7 +668,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Proceed Payout Cycle',
-              tokenizedAsset.proceedCycle ?? '',
+              tokenizedAsset.proceedCycle?.toLowerCase().capitalizeEachWord() ??
+                  '',
             ),
             infoTile(
               notifier,

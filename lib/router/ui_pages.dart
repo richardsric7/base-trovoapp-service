@@ -113,6 +113,7 @@ const String ConfirmBuyXBNWithFiatViewPath = '/ConfirmBuyXBNWithFiatView';
 const String SeeAllTokenizedAssetsViewPath = '/SeeAllTokenizedAssetsView';
 const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
 const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
+const String KycScreenViewPath = '/KycScreenView';
 
 enum Pages {
   Splash,
@@ -227,6 +228,7 @@ enum Pages {
   SeeAllTokenizedAssetsView,
   BuyTokensSuccessView,
   BuyTokensReceiptView,
+  KycScreenView
 }
 
 class PageConfiguration {
@@ -773,4 +775,9 @@ PageConfiguration BuyTokensReceiptViewPageConfig = PageConfiguration(
     key: 'BuyTokensReceiptView',
     path: BuyTokensReceiptViewPath,
     uiPage: Pages.BuyTokensReceiptView,
+    currentPageAction: null);
+PageConfiguration KycScreenViewPageConfig = PageConfiguration(
+    key: 'KycScreenView',
+    path: KycScreenViewPath,
+    uiPage: Pages.KycScreenView,
     currentPageAction: null);

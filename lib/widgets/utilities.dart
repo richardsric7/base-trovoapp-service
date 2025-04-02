@@ -1537,7 +1537,11 @@ Widget getDrawer(
             ),
           ),
           onTap: () {
-            launchSDK(context, appState);
+            // launchSDK(context, appState);
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: KycScreenViewPageConfig,
+            );
             Navigator.pop(context);
           },
         ),

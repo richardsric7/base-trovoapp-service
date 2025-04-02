@@ -36,6 +36,7 @@ class _AssetDashboardState extends State<AssetDashboard>
   int _totalDays = 0;
   bool _showDaysValue = false;
   String fiatCurrency = '';
+  String regulatorName = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -101,6 +102,8 @@ class _AssetDashboardState extends State<AssetDashboard>
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+        regulatorName =
+            appState.tokenizationData['countryConfigs'][i]['regulatorName'];
       }
     }
 
@@ -503,27 +506,36 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoTile(
                 notifier,
                 'Regulator',
-                tokenizedAsset.assetOwnerName ?? '',
+                regulatorName.toLowerCase().capitalizeEachWord(),
               ),
               infoTile(
                 notifier,
                 'Asset Custodian',
-                tokenizedAsset.assetOwnerName ?? '',
+                tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName ??
+                    '',
               ),
               infoTile(
                 notifier,
                 'Asset Manager',
-                tokenizedAsset.assetOwnerName ?? '',
+                tokenizedAsset.assetManagerInfo?.assetManagerName ?? '',
               ),
               infoTile(
                 notifier,
                 'Issuing House',
-                tokenizedAsset.assetOwnerName ?? '',
+                tokenizedAsset.assetIssuingHouseInfo?.assetIssuingHouseName
+                        ?.toLowerCase()
+                        .capitalizeEachWord() ??
+                    '',
               ),
               infoTile(
                 notifier,
                 'Legal Adviser',
-                tokenizedAsset.assetOwnerName ?? '',
+                tokenizedAsset.legalAdvisor ?? '',
+              ),
+              infoTile(
+                notifier,
+                'Financial Adviser',
+                tokenizedAsset.financialAdvisor ?? '',
               ),
               infoTile(
                 notifier,
@@ -553,7 +565,10 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoTile(
                 notifier,
                 'Proceed Payout Cycle',
-                tokenizedAsset.proceedCycle ?? '',
+                tokenizedAsset.proceedCycle
+                        ?.toLowerCase()
+                        .capitalizeEachWord() ??
+                    '',
               ),
               infoTile(
                 notifier,
