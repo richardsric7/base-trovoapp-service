@@ -2137,7 +2137,7 @@ func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB)
 func (u Username) GetOpenTokenizedAssetByInitiatorUsername(db *gorm.DB) (tokenizedAsset TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
 	initiatorUsername := u.String()
-	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("asset_tokenization_status < 2 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("asset_tokenization_status < 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {

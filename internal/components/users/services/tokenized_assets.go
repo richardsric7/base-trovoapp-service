@@ -248,29 +248,29 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 // GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
 func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
-	err = db.Preload(clause.Associations).Where("asset_tokenization_status < 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+	// err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("asset_tokenization_status < 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
-	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			//critical database error occured
-			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
-			return
+	// if err != nil {
+	// 	if !errors.Is(err, gorm.ErrRecordNotFound) {
+	// 		//critical database error occured
+	// 		log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+	// 		return
 
-		} else {
-			//record not found
-			NotFound = true
-			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
-			return
-		}
-	}
+	// 	} else {
+	// 		//record not found
+	// 		NotFound = true
+	// 		err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+	// 		return
+	// 	}
+	// }
+	return userModels.Username(initiatorUsername).GetOpenTokenizedAssetByInitiatorUsername(db)
 
-	return
 }
 
 // GetFeeReadyTokenizedAssetApplicationByInitiatorUsername get the tokenization that has status 1 and initiated by the initiator username
 func GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
 	// var ta userModels.TokenizedAsset
-	err = db.Preload(clause.Associations).Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+	err = db.Preload(clause.Associations).Order("Created_At DESC").Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
 
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -564,7 +564,6 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	// initialize message array
 	input.Messages = make([]string, 0)
-
 
 	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
