@@ -564,13 +564,18 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	// initialize message array
 	input.Messages = make([]string, 0)
-	if len(GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB).AssetCode) == 0 {
-		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
-		return
-	}
+
 
 	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
+		return
+	}
+	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
+	if len(input.ProceedPayoutCurrency) == 0 {
+		input.ProceedPayoutCurrency = strings.ToUpper(input.AssetQuoteCurrency)
+	}
+	if len(GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB).AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
 		return
 	}
 
@@ -639,19 +644,23 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
 		return
 	}
-	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
-	tc := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
-	if len(tc.AssetCode) == 0 {
-		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: payout currency is invalid: %v, received object: %+v\n\n", tc.AssetCode, input)
-		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: fmt.Sprintf("Proceed Payout currency code [%v] you supplied is invalid.", input.ProceedPayoutCurrency)}
-		return
-	}
 	input.AssetQuoteCurrency = strings.ToUpper(input.AssetQuoteCurrency)
 	ac := GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB)
 	if len(ac.AssetCode) == 0 {
 		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: quote currency is invalid: %v, received object: %+v\n\n", ac.AssetCode, input)
 
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: fmt.Sprintf("Asset quote currency [%v] you supplied is invalid.", input.AssetQuoteCurrency)}
+		return
+	}
+
+	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
+	if len(input.ProceedPayoutCurrency) == 0 {
+		input.ProceedPayoutCurrency = strings.ToUpper(input.AssetQuoteCurrency)
+	}
+	tc := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
+	if len(tc.AssetCode) == 0 {
+		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: payout currency is invalid: %v, received object: %+v\n\n", tc.AssetCode, input)
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: fmt.Sprintf("Proceed Payout currency code [%v] you supplied is invalid.", input.ProceedPayoutCurrency)}
 		return
 	}
 	//referesh issuing wallet profile
@@ -963,6 +972,9 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	ato.IssuingHouseFeePercent = assetIssuingHouseConfig.FeePercent
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
+	}
+	if len(input.ProceedPayoutCurrency) == 0 {
+		input.ProceedPayoutCurrency = input.AssetQuoteCurrency
 	}
 	if len(input.ProceedPayoutCurrency) > 0 {
 		input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
