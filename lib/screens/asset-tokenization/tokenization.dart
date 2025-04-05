@@ -469,14 +469,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     } else if (snapshot.hasData) {
                       // records =
                       //     snapshot.data!['records'] as List<TokenizedAsset>;
+                      canCreateNewTokenization = true;
                       if (records.length > 0) {
                         var assets = <Widget>[];
-
                         for (var i = 0; i < records.length; i++) {
                           var asset = records[i];
                           if (asset.tokenizationStatus! == 0) {
-                            print(
-                                "${asset.assetName} ===> ${asset.tokenizationStatus}");
                             canCreateNewTokenization = false;
                           }
                           assets.add(GestureDetector(

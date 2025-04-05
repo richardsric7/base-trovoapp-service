@@ -39,6 +39,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
   bool assetExisting = false;
+  String proceedPayoutCurrency = '';
+  String assetQuoteCurrency = '';
   String selectedAssetSectorId = '';
   String selectedAssetSubSectorId = '';
   String selectedAssetTypeId = '';
@@ -87,6 +89,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
+      for (var i = 0;
+          i < appState.tokenizationData['countryConfigs'].length;
+          i++) {
+        if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+                .toString()
+                .toLowerCase() ==
+            selectedCountry.toString().toLowerCase()) {
+          proceedPayoutCurrency = appState.tokenizationData['countryConfigs'][i]
+              ['quoteCurrencyCode'];
+          assetQuoteCurrency = appState.tokenizationData['countryConfigs'][i]
+              ['quoteCurrencyCode'];
+        }
+      }
     }
   }
 
@@ -164,6 +179,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         onSelect: (Country country) {
           setState(() {
             selectedCountry = country.countryCode;
+            for (var i = 0;
+                i < appState.tokenizationData['countryConfigs'].length;
+                i++) {
+              if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+                      .toString()
+                      .toLowerCase() ==
+                  selectedCountry.toString().toLowerCase()) {
+                proceedPayoutCurrency = appState
+                    .tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+                assetQuoteCurrency = appState.tokenizationData['countryConfigs']
+                    [i]['quoteCurrencyCode'];
+              }
+            }
           });
         },
       );
@@ -893,112 +921,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data["secApproval"] = hasSecApproval ? 1 : 0;
       data["secApprovalIdNumber"] = secApprovalId;
       data["assetCountryLocation"] = selectedCountry;
+      data['proceedPayoutCurrency'] = proceedPayoutCurrency;
+      data['assetQuoteCurrency'] = assetQuoteCurrency;
 
-      // Map map = {
-      //   "assetSector": selectedAssetSectorId,
-      //   "assetSubSector": selectedAssetSubSectorId,
-      //   "assetType": selectedAssetTypeId,
-      //   "offeringType": offeringType == 1 ? 'private' : 'public',
-      //   "approvedAssetCustodianId": selectedAssetCustodian.length > 0
-      //       ? int.parse(selectedAssetCustodian)
-      //       : 1,
-      //   "assetManagerId": selectedAssetManager.length > 0
-      //       ? int.parse(selectedAssetManager)
-      //       : 1,
-      //   "agreeTransferTitleToCustodian": agreeTransferTitleToCustodian ? 1 : 0,
-      //   "assetAlreadyExists": assetExisting ? 1 : 0,
-      //   "secApproval": hasSecApproval ? 1 : 0,
-      //   "secApprovalIdNumber": secApprovalId,
-      //   "assetCountryLocation": selectedCountry,
-      //   "numberOfTokenToBeSold": newData['numberOfTokenToBeSold'],
-      //   "numberOfTokenToBeIssued": newData['numberOfTokenToBeIssued'],
-      //   "totalTokenHeldByManager": newData['totalTokenHeldByManager'],
-      //   "pricePerToken": newData['pricePerToken'],
-      //   "proceedPayoutType": newData['proceedPayoutType'],
-      //   "assetCode": newData['assetCode'],
-      //   "assetName": newData['assetName'],
-      //   "salesStart": newData['salesStart'],
-      //   "salesEnd": newData['salesEnd'],
-      //   "capOnPurchase": newData['capOnPurchase'],
-      //   "capQuantity": newData['capQuantity'],
-      //   "capDurationInDays": newData['capDurationInDays'],
-      //   "proceedCycle": newData['proceedCycle'],
-      //   "walletToHoldAssetsNotForSale": newData['walletToHoldAssetsNotForSale'],
-      //   "assetLogo": newData['assetLogo'],
-      //   "exemptedCountries": newData['exemptedCountries'],
-      //   "hasAdditionalKYCRequirements": newData['hasAdditionalKYCRequirements'],
-      //   "assetQuoteCurrency": newData['assetQuoteCurrency'],
-      //   "proceedPayoutCurrency": newData['proceedPayoutCurrency'],
-      //   "additionalKYCRequirements": newData['additionalKYCRequirements'],
-      //   "investorAccreditationRequired":
-      //       newData['investorAccreditationRequired'],
-      //   "tokenizationFeeId": newData['tokenizationFeeId'],
-      //   "ownershipType": newData['ownershipType'],
-      //   "ownershipKind": newData['ownershipKind'],
-      //   "assetDescription": newData['assetDescription'],
-      //   "assetPhysicalAddress": newData['assetPhysicalAddress'],
-      //   "assetLatitude": newData['assetLatitude'],
-      //   "assetLongitude": newData['assetLongitude'],
-      //   "assetOwnerName": newData['assetOwnerName'],
-      //   "assetOwnerAddress": newData['assetOwnerAddress'],
-      //   "assetManagerName": newData['assetManagerName'],
-      //   "assetManagerAddress": newData['assetManagerAddress'],
-      //   "assetCurrentValue": newData['assetCurrentValue'],
-      //   "valueOfTokenizedAsset": newData['valueOfTokenizedAsset'],
-      //   "protectionMethods": newData['protectionMethods'],
-      //   "insuranceCompanyName": newData['insuranceCompanyName'],
-      //   "insurance_policy_number": newData['insurance_policy_number'],
-      //   "insurancePolicyHolder": newData['insurancePolicyHolder'],
-      //   "assetOwnerRetainedOrContributedValue":
-      //       newData['assetOwnerRetainedOrContributedValue'],
-      //   "percentageValueOfInsurance": newData['percentageValueOfInsurance'],
-      //   "IsFreeFromLiensAndEncumbrances":
-      //       newData['IsFreeFromLiensAndEncumbrances'],
-      //   "contractualProtectionRevGuarantees":
-      //       newData['contractualProtectionRevGuarantees'],
-      //   "contractualProtectionPerfBond":
-      //       newData['contractualProtectionPerfBond'],
-      //   "contractualProtectionSLA": newData['contractualProtectionSLA'],
-      //   "riskSharingMechanismPPPs": newData['riskSharingMechanismPPPs'],
-      //   "riskSharingMechanismHedgeInstruments":
-      //       newData['riskSharingMechanismHedgeInstruments'],
-      //   "riskSharingMechanismCompletionGuarantees":
-      //       newData['riskSharingMechanismCompletionGuarantees'],
-      //   "independentMonitoringList": newData['independentMonitoringList'],
-      //   "eSGSafeguardsSusCerts": newData['eSGSafeguardsSusCerts'],
-      //   "eSGSafeguardsCommEngPlans": newData['eSGSafeguardsCommEngPlans'],
-      //   "securityMeasuresAccessControl":
-      //       newData['securityMeasuresAccessControl'],
-      //   "securityMeasuresSurveilanceSystems":
-      //       newData['securityMeasuresSurveilanceSystems'],
-      //   "securityMeasuresOnSiteSecurityPersonnel":
-      //       newData['securityMeasuresOnSiteSecurityPersonnel'],
-      //   "securityMeasuresPerimeterSecurity":
-      //       newData['securityMeasuresPerimeterSecurity'],
-      //   "securityMeasuresCriticalInfraProtections":
-      //       newData['securityMeasuresCriticalInfraProtections'],
-      //   "otherAssetProtection": newData['otherAssetProtection'],
-      //   "legalAdvisor": newData['legalAdvisor'],
-      //   "financialAdvisor": newData['financialAdvisor'],
-      //   "undertakingNoLien": newData['undertakingNoLien'],
-      //   "undertakingNotCollateral": newData['undertakingNotCollateral'],
-      //   "undertakingNoClaims": newData['undertakingNoClaims'],
-      //   "undertakingNoForeclosure": newData['undertakingNoForeclosure'],
-      //   "complianceNoViolation": newData['complianceNoViolation'],
-      //   "complianceAllPermits": newData['complianceAllPermits'],
-      //   "outstandingFinancialRespNoDebts":
-      //       newData['outstandingFinancialRespNoDebts'],
-      //   "outstandingFinancialRespNoHiddenLiabilities":
-      //       newData['outstandingFinancialRespNoHiddenLiabilities'],
-      //   "riskManagementFullyInsured": newData['riskManagementFullyInsured'],
-      //   "riskManagementDeclaredValue": newData['riskManagementDeclaredValue'],
-      //   "physicalConditionSound": newData['physicalConditionSound'],
-      //   "physicalConditionNolease": newData['physicalConditionNolease'],
-      //   "physicalConditionNoUndisclosedEasements":
-      //       newData['physicalConditionNoUndisclosedEasements'],
-      //   "assetMscCostOutisdeOfValuation":
-      //       newData['assetMscCostOutisdeOfValuation'],
-      // };
       String requestBody = jsonEncode(data);
 
       print('requestBody =======> $requestBody');

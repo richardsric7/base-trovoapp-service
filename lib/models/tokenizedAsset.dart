@@ -3,7 +3,6 @@ import 'dart:developer';
 class TokenizedAsset {
   String? id;
   String? shadowId;
-  // double? amount;
   double? usdPrice;
   String? assetIssuer;
   String? assetCode;
@@ -110,22 +109,32 @@ class TokenizedAsset {
   double? assetMscCostOutisdeOfValuation;
   double? SECTokenizationFeePercent;
   double? SECTokenizationFeeValue;
+  double? SECTokenizationFeeFixed;
   double? custodianFeeValue;
   double? custodianFeePercent;
+  double? custodianFeeFixed;
   double? assetManagerFeeValue;
   double? assetManagerFeePercent;
+  double? assetManagerFeeFixed;
   double? assetOwnerRetainedOrContributedValue;
+  double? issuingHouseFeeValue;
   double? issuingHouseFeePercent;
+  double? issuingHouseFeeFixed;
+  double? legalAndProfessionalFeeValue;
   double? legalAndProfessionalFeePercent;
+  double? legalAndProfessionalFeeFixed;
+  double? ratingAgencyFeeValue;
   double? ratingAgencyFeePercent;
+  double? ratingAgencyFeeFixed;
   double? tokenizationApplicationFee;
+  double? vatValue;
   double? vatPercent;
+  double? vatFixed;
   String? tokenizationApplicationFeeAsset;
 
   TokenizedAsset({
     this.id,
     this.shadowId,
-    // this.amount,
     this.usdPrice,
     this.assetIssuer,
     this.assetCode,
@@ -230,17 +239,28 @@ class TokenizedAsset {
     this.assetMscCostOutisdeOfValuation,
     this.SECTokenizationFeePercent,
     this.SECTokenizationFeeValue,
+    this.SECTokenizationFeeFixed,
     this.custodianFeeValue,
     this.custodianFeePercent,
+    this.custodianFeeFixed,
     this.assetManagerFeeValue,
     this.assetManagerFeePercent,
+    this.assetManagerFeeFixed,
     this.assetOwnerRetainedOrContributedValue,
     this.issuingHouseFeePercent,
+    this.issuingHouseFeeValue,
+    this.issuingHouseFeeFixed,
     this.legalAndProfessionalFeePercent,
+    this.legalAndProfessionalFeeValue,
+    this.legalAndProfessionalFeeFixed,
     this.ratingAgencyFeePercent,
+    this.ratingAgencyFeeValue,
+    this.ratingAgencyFeeFixed,
     this.tokenizationApplicationFee,
     this.tokenizationApplicationFeeAsset,
+    this.vatValue,
     this.vatPercent,
+    this.vatFixed,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -249,7 +269,6 @@ class TokenizedAsset {
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],
-      // amount: m["amount"],
       usdPrice: m["usdPrice"],
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
@@ -371,23 +390,42 @@ class TokenizedAsset {
           double.tryParse(m["SECTokenizationFeePercent"].toString()),
       SECTokenizationFeeValue:
           double.tryParse(m["SECTokenizationFeeValue"].toString()),
+      SECTokenizationFeeFixed:
+          double.tryParse(m["SECTokenizationFeeFixed"].toString()),
       custodianFeeValue: double.tryParse(m["custodianFeeValue"].toString()),
       custodianFeePercent: double.tryParse(m["custodianFeePercent"].toString()),
+      custodianFeeFixed: double.tryParse(m["custodianFeeFixed"].toString()),
       assetManagerFeeValue:
           double.tryParse(m["assetManagerFeeValue"].toString()),
       assetManagerFeePercent:
           double.tryParse(m["assetManagerFeePercent"].toString()),
+      assetManagerFeeFixed:
+          double.tryParse(m["assetManagerFeeFixed"].toString()),
       issuingHouseFeePercent:
           double.tryParse(m["issuingHouseFeePercent"].toString()),
+      issuingHouseFeeValue:
+          double.tryParse(m["issuingHouseFeeValue"].toString()),
+      issuingHouseFeeFixed:
+          double.tryParse(m["issuingHouseFeeFixed"].toString()),
       legalAndProfessionalFeePercent:
           double.tryParse(m["legalAndProfessionalFeePercent"].toString()),
+      legalAndProfessionalFeeValue:
+          double.tryParse(m["legalAndProfessionalFeeValue"].toString()),
+      legalAndProfessionalFeeFixed:
+          double.tryParse(m["legalAndProfessionalFeeFixed"].toString()),
       ratingAgencyFeePercent:
           double.tryParse(m["ratingAgencyFeePercent"].toString()),
+      ratingAgencyFeeValue:
+          double.tryParse(m["ratingAgencyFeeValue"].toString()),
+      ratingAgencyFeeFixed:
+          double.tryParse(m["ratingAgencyFeeFixed"].toString()),
       tokenizationApplicationFee:
           double.tryParse(m["tokenizationApplicationFee"].toString()),
       tokenizationApplicationFeeAsset:
           m["tokenizationApplicationFeeAsset"].toString(),
       vatPercent: double.tryParse(m["vatPercent"].toString()),
+      vatValue: double.tryParse(m["vatValue"].toString()),
+      vatFixed: double.tryParse(m["vatFixed"].toString()),
     );
   }
 

@@ -143,198 +143,264 @@ class _AssetDashboardState extends State<AssetDashboard>
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            CustomAppBar(
-              context,
-              notifier.getwihitecolor,
-              tokenizedAsset.assetName ?? 'Asset',
-              notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
-            SizedBox(height: height / 50),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                // 'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. ',
-                tokenizedAsset.assetDescription!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
+        child: Column(children: [
+          CustomAppBar(
+            context,
+            notifier.getwihitecolor,
+            tokenizedAsset.assetName ?? 'Asset',
+            notifier.getbluewhitecolor,
+            height: height / 15,
+          ).getBar(),
+          SizedBox(height: height / 50),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              // 'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. ',
+              tokenizedAsset.assetDescription!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
               ),
             ),
-            SizedBox(height: height / 50),
-            if (tokenizedAsset.tokenizationStatus! >= 4) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'Asset Value',
-                    value:
-                        '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                    extraValue: '\$4,390.23',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Total Supply',
-                    value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
-                    extraValue: '',
-                  ),
-                ],
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'Asset Value',
+                value:
+                    '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
+                extraValue: '\$4,390.23',
               ),
-              SizedBox(height: height / 70),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'Amount to be Raised',
-                    value:
-                        '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
-                    extraValue: '',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Tokens for Sale',
-                    value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
-                    extraValue: '',
-                  ),
-                ],
+              SizedBox(
+                width: width / 50,
               ),
-              SizedBox(height: height / 70),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'Funding Currency',
-                    value: 'CNGN',
-                    extraValue: '',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Price Per Token',
-                    value:
-                        '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                    extraValue: '',
-                  ),
-                ],
+              infoCard(
+                notifier,
+                label: 'Total Supply',
+                value:
+                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
+                extraValue: '',
               ),
-              SizedBox(height: height / 70),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'Interest Expressed Amount',
-                    value:
-                        '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
-                    extraValue: '',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Number of Interest Expressed',
-                    value: '10 Users',
-                    extraValue: '',
-                  ),
-                ],
+            ],
+          ),
+          SizedBox(height: height / 70),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'Amount to be Raised',
+                value: '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
+                extraValue: '',
               ),
-              SizedBox(height: height / 70),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'Total Amount Raised',
-                    value:
-                        '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
-                    extraValue: '',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Total Quantity Sold',
-                    value: '${'20'} ${tokenizedAsset.assetCode}',
-                    extraValue: '',
-                  ),
-                ],
+              SizedBox(
+                width: width / 50,
               ),
-              SizedBox(height: height / 70),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  infoCard(
-                    notifier,
-                    label: 'No. of Users Bought',
-                    value: '10 Users',
-                    extraValue: '',
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
-                  infoCard(
-                    notifier,
-                    label: '% of Amount Raised',
-                    value:
-                        '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
-                    extraValue: '',
-                  ),
-                ],
+              infoCard(
+                notifier,
+                label: 'Tokens for Sale',
+                value:
+                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
+                extraValue: '',
               ),
-              SizedBox(height: height / 50),
-              Center(
-                child: Column(
+            ],
+          ),
+          SizedBox(height: height / 70),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'Funding Currency',
+                value: 'CNGN',
+                extraValue: '',
+              ),
+              SizedBox(
+                width: width / 50,
+              ),
+              infoCard(
+                notifier,
+                label: 'Price Per Token',
+                value:
+                    '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                extraValue: '',
+              ),
+            ],
+          ),
+          SizedBox(height: height / 70),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'Interest Expressed Amount',
+                value:
+                    '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                extraValue: '',
+              ),
+              SizedBox(
+                width: width / 50,
+              ),
+              infoCard(
+                notifier,
+                label: 'Number of Interest Expressed',
+                value: '10 Users',
+                extraValue: '',
+              ),
+            ],
+          ),
+          SizedBox(height: height / 70),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'Total Amount Raised',
+                value:
+                    '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                extraValue: '',
+              ),
+              SizedBox(
+                width: width / 50,
+              ),
+              infoCard(
+                notifier,
+                label: 'Total Quantity Sold',
+                value: '${'20'} ${tokenizedAsset.assetCode}',
+                extraValue: '',
+              ),
+            ],
+          ),
+          SizedBox(height: height / 70),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              infoCard(
+                notifier,
+                label: 'No. of Users Bought',
+                value: '10 Users',
+                extraValue: '',
+              ),
+              SizedBox(
+                width: width / 50,
+              ),
+              infoCard(
+                notifier,
+                label: '% of Amount Raised',
+                value: '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
+                extraValue: '',
+              ),
+            ],
+          ),
+          SizedBox(height: height / 50),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                        '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor)),
+                    Text('raised out of ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        )),
+                    Text(
+                        '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        )),
+                  ],
+                ),
+                SizedBox(height: 5),
+                // Gesture Detector for Tapping the Progress Bar
+                GestureDetector(
+                  onTap: _toggleValueDisplay,
+                  onLongPress: _toggleValueDisplay,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 300,
+                        height: 20,
+                        child: LinearProgressIndicator(
+                          value: normalizedProgress, // Show progress (0 to 1)
+                          minHeight: 20,
+                          borderRadius: BorderRadius.circular(10),
+                          backgroundColor: Colors.grey[300],
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      // Show progress value when tapped/long pressed
+                      if (_showValue)
+                        Container(
+                          width: 300,
+                          height: 20,
+                          decoration: BoxDecoration(
+                              color: Colors.black54.withOpacity(
+                                  0.7), // Semi-transparent background
+                              borderRadius: BorderRadius.circular(10)),
+                          alignment: Alignment.center,
+                          child: Text(
+                            "${getFiatValue(_amountRaised)} / ${getFiatValue(totalAmountToBeRaised)}",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: height / 50),
+          if (tokenizedAsset.tokenizationStatus == 5) ...[
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_daysProgress >= 0) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                            '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
+                        Text((_totalDays - _daysProgress).toString(),
                             style: TextStyle(
                                 fontSize: 12,
                                 fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor)),
-                        Text('raised out of ',
+                        Text(' days remaining out of ',
                             style: TextStyle(
                               fontSize: 12,
                               fontFamily: fontbody,
                               color: notifier.getbluewhitecolor,
                             )),
-                        Text(
-                            '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                        Text('${_totalDays} days',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            )),
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor)),
                       ],
                     ),
                     SizedBox(height: 5),
                     // Gesture Detector for Tapping the Progress Bar
                     GestureDetector(
-                      onTap: _toggleValueDisplay,
-                      onLongPress: _toggleValueDisplay,
+                      onTap: _toggleDaysValueDisplay,
+                      onLongPress: _toggleDaysValueDisplay,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -343,15 +409,16 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: 20,
                             child: LinearProgressIndicator(
                               value:
-                                  normalizedProgress, // Show progress (0 to 1)
+                                  normalizedDaysProgress, // Show progress (0 to 1)
                               minHeight: 20,
                               borderRadius: BorderRadius.circular(10),
                               backgroundColor: Colors.grey[300],
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
+
                           // Show progress value when tapped/long pressed
-                          if (_showValue)
+                          if (_showDaysValue)
                             Container(
                               width: 300,
                               height: 20,
@@ -361,7 +428,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               child: Text(
-                                "${getFiatValue(_amountRaised)} / ${getFiatValue(totalAmountToBeRaised)}",
+                                "${_daysProgress} / ${_totalDays}",
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold),
@@ -371,533 +438,456 @@ class _AssetDashboardState extends State<AssetDashboard>
                       ),
                     ),
                   ],
+                ],
+              ),
+            ),
+            SizedBox(height: height / 50),
+          ],
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: Text(
+                  'Details of Asset',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
                 ),
               ),
-              SizedBox(height: height / 50),
-              if (tokenizedAsset.tokenizationStatus == 5) ...[
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+          infoTile(
+            notifier,
+            'Asset Code',
+            tokenizedAsset.assetCode ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Sector',
+            tokenizedAsset.assetSector ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Sub-Sector',
+            tokenizedAsset.assetSubSector ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Type',
+            assetType,
+          ),
+          infoTile(notifier, 'Asset Country',
+              tokenizedAsset.assetCountryLocation ?? ''),
+          infoTile(
+            notifier,
+            'Address',
+            tokenizedAsset.assetPhysicalAddress ?? '',
+          ),
+          if (tokenizedAsset.assetAlreadyExists == 1) ...[
+            infoTile(
+              notifier,
+              'Original Asset Owner',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+          ] else ...[
+            infoTile(
+              notifier,
+              'Project Sponsor',
+              tokenizedAsset.assetOwnerName ?? '',
+            ),
+          ],
+          infoTile(
+            notifier,
+            'Regulator',
+            regulatorName.toLowerCase().capitalizeEachWord(),
+          ),
+          infoTile(
+            notifier,
+            'Asset Custodian',
+            tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Asset Manager',
+            tokenizedAsset.assetManagerInfo?.assetManagerName ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Issuing House',
+            tokenizedAsset.assetIssuingHouseInfo?.assetIssuingHouseName
+                    ?.toLowerCase()
+                    .capitalizeEachWord() ??
+                '',
+          ),
+          infoTile(
+            notifier,
+            'Legal Adviser',
+            tokenizedAsset.legalAdvisor ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Financial Adviser',
+            tokenizedAsset.financialAdvisor ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Rating Agency',
+            tokenizedAsset.assetOwnerName ?? '',
+          ),
+          infoTile(
+            notifier,
+            'Sales Window',
+            '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
+          ),
+          infoTile(
+            notifier,
+            'Cap Amount',
+            '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode}',
+          ),
+          infoTile(
+            notifier,
+            'Cap Quantity',
+            '${getFiatValue(double.parse(tokenizedAsset.capQuantity!.toString()))} ${tokenizedAsset.assetCode}',
+          ),
+          infoTile(
+            notifier,
+            'Cap Duration',
+            '${tokenizedAsset.capDurationInDays} days',
+          ),
+          infoTile(
+            notifier,
+            'Proceed Payout Cycle',
+            tokenizedAsset.proceedCycle?.toLowerCase().capitalizeEachWord() ??
+                '',
+          ),
+          infoTile(
+            notifier,
+            'Exempted Countries',
+            '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: SizedBox(
+                  width: width / 1.2,
+                  child: Text(
+                    'Ownership and Legal Independence',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is free of all liens, mortgages, and outstanding loans.',
+            '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is not pledged as collateral for any debts and has no use restrictions.',
+            '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that no third party has any claims, rights, or interests in this asset.',
+            '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.',
+            '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: SizedBox(
+                  width: width / 1.2,
+                  child: Text(
+                    'Regulatory Compliance and Approvals',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset complies with all environmental and land use regulations and is free of violations.',
+            '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that all necessary permits, licenses, and approvals for the use and ownership of this asset are in place.',
+            '${tokenizedAsset.complianceAllPermits == 1 ? 'Yes' : 'No'}',
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: SizedBox(
+                  width: width / 1.2,
+                  child: Text(
+                    'Outstanding Financial Responsibilities',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          infoTile(
+            notifier,
+            'I confirm that there are no unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.',
+            '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset does not have any hidden liabilities or obligations that have not been disclosed.',
+            '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: SizedBox(
+                  width: width / 1.2,
+                  child: Text(
+                    'Risk Management and Insurance Coverage',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is adequately insured against risks such as fire, theft, and natural disasters.',
+            '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that the declared value of this asset reflects its current market value and condition.',
+            '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
+          ),
+          SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: SizedBox(
+                  width: width / 1.2,
+                  child: Text(
+                    'Physical Condition and Legal Status',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.',
+            '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is structurally sound and has no unresolved maintenance or safety issues.',
+            '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
+          ),
+          infoTile(
+            notifier,
+            'I confirm that this asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.',
+            '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
+          ),
+          if (tokenizedAsset.assetTokenizationDocuments != null &&
+              tokenizedAsset.assetTokenizationDocuments!.isNotEmpty) ...[
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
                     children: [
-                      if (_daysProgress >= 0) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text((_totalDays - _daysProgress).toString(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proof of Existence',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          for (var item in tokenizedAsset
+                              .assetTokenizationDocuments!) ...[
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(50, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  alignment: Alignment.centerLeft),
+                              onPressed: () {
+                                var fileUrl = item.documentUrl;
+                                if (fileUrl!.isNotEmpty &&
+                                    fileUrl.endsWith('.pdf')) {
+                                  appState.pdfUrl = fileUrl;
+                                  appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig);
+
+                                  return;
+                                }
+
+                                appState.goToWebView(fileUrl);
+                              },
+                              child: Text(
+                                item.documentTitle ?? '',
                                 style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor)),
-                            Text(' days remaining out of ',
-                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
                                   fontSize: 12,
                                   fontFamily: fontbody,
                                   color: notifier.getbluewhitecolor,
-                                )),
-                            Text('${_totalDays} days',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor)),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        // Gesture Detector for Tapping the Progress Bar
-                        GestureDetector(
-                          onTap: _toggleDaysValueDisplay,
-                          onLongPress: _toggleDaysValueDisplay,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 300,
-                                height: 20,
-                                child: LinearProgressIndicator(
-                                  value:
-                                      normalizedDaysProgress, // Show progress (0 to 1)
-                                  minHeight: 20,
-                                  borderRadius: BorderRadius.circular(10),
-                                  backgroundColor: Colors.grey[300],
-                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
-
-                              // Show progress value when tapped/long pressed
-                              if (_showDaysValue)
-                                Container(
-                                  width: 300,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                      color: Colors.black54.withOpacity(
-                                          0.7), // Semi-transparent background
-                                      borderRadius: BorderRadius.circular(10)),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    "${_daysProgress} / ${_totalDays}",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(height: height / 50),
-              ],
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Text(
-                      'Details of Asset',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
               ),
-              infoTile(
-                notifier,
-                'Asset Code',
-                tokenizedAsset.assetCode ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Sector',
-                tokenizedAsset.assetSector ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Sub-Sector',
-                tokenizedAsset.assetSubSector ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Type',
-                assetType,
-              ),
-              infoTile(notifier, 'Asset Country',
-                  tokenizedAsset.assetCountryLocation ?? ''),
-              infoTile(
-                notifier,
-                'Address',
-                tokenizedAsset.assetPhysicalAddress ?? '',
-              ),
-              if (tokenizedAsset.assetAlreadyExists == 1) ...[
-                infoTile(
-                  notifier,
-                  'Original Asset Owner',
-                  tokenizedAsset.assetOwnerName ?? '',
-                ),
-              ] else ...[
-                infoTile(
-                  notifier,
-                  'Project Sponsor',
-                  tokenizedAsset.assetOwnerName ?? '',
-                ),
-              ],
-              infoTile(
-                notifier,
-                'Regulator',
-                regulatorName.toLowerCase().capitalizeEachWord(),
-              ),
-              infoTile(
-                notifier,
-                'Asset Custodian',
-                tokenizedAsset.approvedAssetCustodianInfo?.assetCustodianName ??
-                    '',
-              ),
-              infoTile(
-                notifier,
-                'Asset Manager',
-                tokenizedAsset.assetManagerInfo?.assetManagerName ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Issuing House',
-                tokenizedAsset.assetIssuingHouseInfo?.assetIssuingHouseName
-                        ?.toLowerCase()
-                        .capitalizeEachWord() ??
-                    '',
-              ),
-              infoTile(
-                notifier,
-                'Legal Adviser',
-                tokenizedAsset.legalAdvisor ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Financial Adviser',
-                tokenizedAsset.financialAdvisor ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Rating Agency',
-                tokenizedAsset.assetOwnerName ?? '',
-              ),
-              infoTile(
-                notifier,
-                'Sales Window',
-                '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
-              ),
-              infoTile(
-                notifier,
-                'Cap Amount',
-                '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode}',
-              ),
-              infoTile(
-                notifier,
-                'Cap Quantity',
-                '${getFiatValue(double.parse(tokenizedAsset.capQuantity!.toString()))} ${tokenizedAsset.assetCode}',
-              ),
-              infoTile(
-                notifier,
-                'Cap Duration',
-                '${tokenizedAsset.capDurationInDays} days',
-              ),
-              infoTile(
-                notifier,
-                'Proceed Payout Cycle',
-                tokenizedAsset.proceedCycle
-                        ?.toLowerCase()
-                        .capitalizeEachWord() ??
-                    '',
-              ),
-              infoTile(
-                notifier,
-                'Exempted Countries',
-                '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: SizedBox(
-                      width: width / 1.2,
-                      child: Text(
-                        'Ownership and Legal Independence',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is free of all liens, mortgages, and outstanding loans.',
-                '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is not pledged as collateral for any debts and has no use restrictions.',
-                '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that no third party has any claims, rights, or interests in this asset.',
-                '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.',
-                '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: SizedBox(
-                      width: width / 1.2,
-                      child: Text(
-                        'Regulatory Compliance and Approvals',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset complies with all environmental and land use regulations and is free of violations.',
-                '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that all necessary permits, licenses, and approvals for the use and ownership of this asset are in place.',
-                '${tokenizedAsset.complianceAllPermits == 1 ? 'Yes' : 'No'}',
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: SizedBox(
-                      width: width / 1.2,
-                      child: Text(
-                        'Outstanding Financial Responsibilities',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              infoTile(
-                notifier,
-                'I confirm that there are no unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.',
-                '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset does not have any hidden liabilities or obligations that have not been disclosed.',
-                '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: SizedBox(
-                      width: width / 1.2,
-                      child: Text(
-                        'Risk Management and Insurance Coverage',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is adequately insured against risks such as fire, theft, and natural disasters.',
-                '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that the declared value of this asset reflects its current market value and condition.',
-                '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: SizedBox(
-                      width: width / 1.2,
-                      child: Text(
-                        'Physical Condition and Legal Status',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.',
-                '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is structurally sound and has no unresolved maintenance or safety issues.',
-                '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
-              ),
-              infoTile(
-                notifier,
-                'I confirm that this asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.',
-                '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
-              ),
-              if (tokenizedAsset.assetTokenizationDocuments != null &&
-                  tokenizedAsset.assetTokenizationDocuments!.isNotEmpty) ...[
-                Card(
-                  elevation: notifier.isDark ? 0 : 3,
-                  shadowColor: Colors.black,
-                  color: notifier.gettilewihitecolor,
-                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Proof of Existence',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                              ),
-                              for (var item in tokenizedAsset
-                                  .assetTokenizationDocuments!) ...[
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size(50, 30),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      alignment: Alignment.centerLeft),
-                                  onPressed: () {
-                                    var fileUrl = item.documentUrl;
-                                    if (fileUrl!.isNotEmpty &&
-                                        fileUrl.endsWith('.pdf')) {
-                                      appState.pdfUrl = fileUrl;
-                                      appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page: PdfViewPageConfig);
-
-                                      return;
-                                    }
-
-                                    appState.goToWebView(fileUrl);
-                                  },
-                                  child: Text(
-                                    item.documentTitle ?? '',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      fontSize: 12,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              if (tokenizedAsset.proofOfPaymentDocuments != null &&
-                  tokenizedAsset.proofOfPaymentDocuments!.isNotEmpty) ...[
-                Card(
-                  elevation: notifier.isDark ? 0 : 3,
-                  shadowColor: Colors.black,
-                  color: notifier.gettilewihitecolor,
-                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Proof of Payment Documents',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                              ),
-                              for (var item in tokenizedAsset
-                                  .proofOfPaymentDocuments!) ...[
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size(50, 30),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      alignment: Alignment.centerLeft),
-                                  onPressed: () {
-                                    var fileUrl = item.documentUrl;
-                                    if (fileUrl!.isNotEmpty &&
-                                        fileUrl.endsWith('.pdf')) {
-                                      appState.pdfUrl = fileUrl;
-                                      appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page: PdfViewPageConfig);
-
-                                      return;
-                                    }
-
-                                    appState.goToWebView(fileUrl);
-                                  },
-                                  child: Text(
-                                    truncateString(item.documentUrl) ?? '',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      fontSize: 12,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              SizedBox(
-                height: height / 30,
-              ),
-              Button(
-                'Payout Proceeds',
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: ProceedsPayOutViewPageConfig,
-                  );
-                },
-              ),
-              // SizedBox(height: height / 70),
-              // ButtonOutlined(
-              //   'Liquidate Asset',
-              //   notifier.getwihitecolor,
-              //   Colors.red,
-              //   borderColor: Colors.red,
-              //   onTap: () {
-              //     appState.currentAction = PageAction(
-              //       state: PageState.addPage,
-              //       page: LiquidateAssetViewPageConfig,
-              //     );
-              //   },
-              // ),
-              SizedBox(
-                height: height / 10,
-              ),
-            ]
+            ),
           ],
-        ),
+          if (tokenizedAsset.proofOfPaymentDocuments != null &&
+              tokenizedAsset.proofOfPaymentDocuments!.isNotEmpty) ...[
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proof of Payment Documents',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          for (var item
+                              in tokenizedAsset.proofOfPaymentDocuments!) ...[
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(50, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  alignment: Alignment.centerLeft),
+                              onPressed: () {
+                                var fileUrl = item.documentUrl;
+                                if (fileUrl!.isNotEmpty &&
+                                    fileUrl.endsWith('.pdf')) {
+                                  appState.pdfUrl = fileUrl;
+                                  appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig);
+
+                                  return;
+                                }
+
+                                appState.goToWebView(fileUrl);
+                              },
+                              child: Text(
+                                truncateString(item.documentUrl) ?? '',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+          SizedBox(
+            height: height / 30,
+          ),
+          Button(
+            'Payout Proceeds',
+            notifier.getbluecolor,
+            wihitecolor,
+            onTap: () {
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: ProceedsPayOutViewPageConfig,
+              );
+            },
+          ),
+          // SizedBox(height: height / 70),
+          // ButtonOutlined(
+          //   'Liquidate Asset',
+          //   notifier.getwihitecolor,
+          //   Colors.red,
+          //   borderColor: Colors.red,
+          //   onTap: () {
+          //     appState.currentAction = PageAction(
+          //       state: PageState.addPage,
+          //       page: LiquidateAssetViewPageConfig,
+          //     );
+          //   },
+          // ),
+          SizedBox(
+            height: height / 10,
+          ),
+        ]),
       ),
     );
   }

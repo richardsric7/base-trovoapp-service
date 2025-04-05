@@ -262,7 +262,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                 });
                               },
                               getItems,
-                              null,
+                              listMode,
                               "assettokens".tr(),
                               context,
                               null,

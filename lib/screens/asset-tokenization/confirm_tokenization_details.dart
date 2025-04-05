@@ -333,21 +333,21 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         SizedBox(height: height / 90),
                         // if (tokenizedAsset.issuingHouseFee! > 0) ...[
                         item("Issuing House Fee",
-                            '${formatNumberShort(tokenizedAsset.issuingHouseFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
                         item("Legal Fee",
-                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
                         item("Rating Agency Fee",
-                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         item("VAT",
-                            '${formatNumberShort(tokenizedAsset.vatPercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Total",
                             '${formatNumberShort(getTotal())} ${fiatCurrency}'),
@@ -496,13 +496,27 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                     },
                   ),
                 ],
-                // Button(
-                //   "submitapplication".tr(),
-                //   notifier.getbluecolor,
-                //   wihitecolor,
-                //   onTap: () => submitForm(),
-                // ),
               ],
+              SizedBox(height: 8),
+              TextButton(
+                child: Text(
+                  'View Asset Details',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    decoration: TextDecoration.underline,
+                    fontFamily: fontbody,
+                    fontWeight: FontWeight.bold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+                onPressed: () {
+                  appState.tokenizedAsset = tokenizedAsset;
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: AssetDashboardViewPageConfig,
+                  );
+                },
+              ),
               SizedBox(
                 height: height / 20,
               ),
@@ -714,10 +728,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     return tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
-        tokenizedAsset.issuingHouseFeePercent! +
-        tokenizedAsset.legalAndProfessionalFeePercent! +
-        tokenizedAsset.ratingAgencyFeePercent! +
-        tokenizedAsset.vatPercent! +
+        tokenizedAsset.issuingHouseFeeValue! +
+        tokenizedAsset.legalAndProfessionalFeeValue! +
+        tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.vatValue! +
         fiatFee;
   }
 

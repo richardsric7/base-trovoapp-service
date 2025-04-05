@@ -1056,13 +1056,15 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         documentTitle: documentTitle.toLowerCase().replaceAll(' ', '-'),
         documentType: documentType,
       );
-
+      print('=================> document upload response ${responseData}');
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
         hideLoader(context);
       } else {
         popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+            title: "error".tr(),
+            message: responseData['data']['message'] ??
+                responseData['data']['error']);
         hideLoader(context);
       }
     } catch (e) {

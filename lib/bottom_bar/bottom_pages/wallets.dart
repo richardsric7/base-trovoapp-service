@@ -415,7 +415,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                 });
                               },
                               getItems,
-                              null,
+                              listMode,
                               "othertokens".tr(),
                               context,
                               null,

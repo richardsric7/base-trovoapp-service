@@ -1229,7 +1229,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
+      // print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         List<TokenizedAsset> tokenizedAssets = [];
         var assets = responseData['data']['records'];

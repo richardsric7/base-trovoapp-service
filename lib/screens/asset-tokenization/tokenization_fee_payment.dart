@@ -405,21 +405,21 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         SizedBox(height: height / 90),
                         // if (tokenizedAsset.issuingHouseFee! > 0) ...[
                         item("Issuing House Fee",
-                            '${formatNumberShort(tokenizedAsset.issuingHouseFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
                         item("Legal Fee",
-                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
                         item("Rating Agency Fee",
-                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeePercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         item("VAT",
-                            '${formatNumberShort(tokenizedAsset.vatPercent!)} ${fiatCurrency}'),
+                            '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Total fee".tr(),
                             '${getTotalFee()} ${fiatCurrency}'),
@@ -698,137 +698,16 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         ),
       ],
     );
-    // return Padding(
-    //   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-    //   child: Container(
-    //     decoration: BoxDecoration(
-    //       border: Border.all(color: notifier.getbluewhitecolor, width: 1),
-    //       borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-    //       color: notifier.isDark
-    //           ? darktilewhitecolor
-    //           : notifier.getaddsubwalletgrey,
-    //     ),
-    //     child: Row(
-    //       mainAxisAlignment: MainAxisAlignment.center,
-    //       children: [
-    //         Padding(
-    //           padding: const EdgeInsets.all(5.0),
-    //           child: Column(
-    //             children: [
-    //               SizedBox(height: height / 70),
-    //               Icon(
-    //                 Icons.file_present_rounded,
-    //                 color: notifier.getbluewhitecolor,
-    //                 size: 35,
-    //               ),
-    //               SizedBox(height: height / 70),
-
-    //               SizedBox(height: 10),
-    //               Row(
-    //                 children: [
-    //                   OutlinedButton(
-    //                     onPressed: () async {
-    //                       if (url.isNotEmpty && url.endsWith('.pdf')) {
-    //                         appState.pdfUrl = url;
-    //                         appState.currentAction = PageAction(
-    //                             state: PageState.addPage,
-    //                             page: PdfViewPageConfig);
-
-    //                         return;
-    //                       }
-
-    //                       appState.goToWebView(url);
-    //                     },
-    //                     style: ButtonStyle(
-    //                       side: MaterialStateProperty.all(
-    //                         BorderSide(
-    //                             color: notifier.getbluewhitecolor,
-    //                             width: 2), // Example of BorderSide
-    //                       ),
-    //                       shape:
-    //                           MaterialStateProperty.all<RoundedRectangleBorder>(
-    //                         const RoundedRectangleBorder(
-    //                           borderRadius: BorderRadius.all(
-    //                             Radius.circular(10),
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     ),
-    //                     child: Row(
-    //                       children: [
-    //                         Icon(
-    //                           Icons.file_present,
-    //                         ),
-    //                         SizedBox(width: 5),
-    //                         Text(
-    //                           "viewfile".tr(),
-    //                           style: TextStyle(
-    //                             fontSize: 12,
-    //                             fontFamily: fontsemibold,
-    //                           ),
-    //                         ),
-    //                       ],
-    //                     ),
-    //                   ),
-    //                   SizedBox(width: 10),
-    //                   OutlinedButton(
-    //                     onPressed: () async {
-    //                       await deleteFile(docId);
-    //                       setState(() {});
-    //                     },
-    //                     style: ButtonStyle(
-    //                       side: MaterialStateProperty.all(
-    //                         BorderSide(
-    //                             color: Colors.red,
-    //                             width: 2), // Example of BorderSide
-    //                       ),
-    //                       shape:
-    //                           MaterialStateProperty.all<RoundedRectangleBorder>(
-    //                         const RoundedRectangleBorder(
-    //                           borderRadius: BorderRadius.all(
-    //                             Radius.circular(10),
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     ),
-    //                     child: Row(
-    //                       children: [
-    //                         Icon(
-    //                           Icons.cancel_outlined,
-    //                           color: Colors.red,
-    //                         ),
-    //                         SizedBox(width: 5),
-    //                         Text(
-    //                           "removefile".tr(),
-    //                           style: TextStyle(
-    //                             fontFamily: fontsemibold,
-    //                             fontSize: 12,
-    //                             color: Colors.red,
-    //                           ),
-    //                         ),
-    //                       ],
-    //                     ),
-    //                   ),
-    //                 ],
-    //               ),
-    //               SizedBox(height: height / 70),
-    //             ],
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 
   String getTotalFee() {
     var total = tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
-        tokenizedAsset.issuingHouseFeePercent! +
-        tokenizedAsset.legalAndProfessionalFeePercent! +
-        tokenizedAsset.ratingAgencyFeePercent! +
-        tokenizedAsset.vatPercent! +
+        tokenizedAsset.issuingHouseFeeValue! +
+        tokenizedAsset.legalAndProfessionalFeeValue! +
+        tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.vatValue! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
     return "${formatNumber(total)}";
