@@ -42,6 +42,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 	//check if destination is a wallet with memo
 	if publicKeyPayment {
+		paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 		memoWalletSlices28byte := strings.Split(os.Getenv("WALLETS_REQUIRE_28_BYTE_MEMO"), ",")
 
 		for _, w := range memoWalletSlices28byte {
@@ -82,6 +83,8 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 			}
 		}
 
+	} else {
+		paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 	}
 	paymentInfo.AmountToPay = paymentInfo.Amount
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
@@ -230,6 +233,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	//check if it is public key payment
 
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+	if publicKeyPayment {
+		paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
+	} else {
+		paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
+	}
+
 	var err error
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
 
@@ -295,9 +304,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	} else {
 		//parse public key
+		paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
-			log.Println("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
+			log.Printf("[generatePaymentXdr] error validating payment address [%v], %v\n", paymentInfo.Destination, err)
 
 			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}

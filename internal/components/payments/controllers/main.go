@@ -243,12 +243,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		paymentInfo.Messages = make([]string, 0)
 		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 		if publicKeyPayment {
+			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
 				publicKeyPayment = false
 			}
+		} else {
+			paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 		}
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
@@ -624,12 +627,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 
 		if publicKeyPayment {
+			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
 				publicKeyPayment = false
 			}
+		} else {
+			paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 		}
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
