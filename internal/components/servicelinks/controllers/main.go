@@ -1521,6 +1521,69 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
+	//service payment request
+	router.GET("/v1/servicelinks/tokenized-asset/:assetCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		assetCode := strings.TrimSpace(strings.ToLower(c.Param("assetCode")))
+
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/tokenized-asset/:assetCode/%v", assetCode)
+
+		{
+			//search cache
+
+			ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
+
+			if ok {
+				// log.Printf("[%v], served from cache\n", cacheKey)
+				c.JSON(status, response)
+				return
+			}
+		}
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET SERVICE TOKENIZED ASSET DATA] error for SERVICE error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if mInfo.PaymentPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		gcta := gc.GetTokenizedAssetByCode(assetCode)
+		rgcta := &gcta
+		data := rgcta.ToJSON()
+		{
+			cacheDurationInSeconds := 20 * 60 //2 minutes
+
+			gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, data, cacheDurationInSeconds)
+		}
+		c.JSON(http.StatusOK, data)
+
+	})
+
 	//SERVICELINK USER INFO request
 	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 

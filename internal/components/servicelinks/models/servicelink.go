@@ -16,6 +16,7 @@ type ServiceLink struct {
 	LongName                   string    `json:"longName" gorm:"size:100"`
 	LoginPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	PaymentPermission          int       `json:"-" gorm:"type:integer;not null;default:0"`
+	TokenInfoPermission        int       `json:"-" gorm:"type:integer;not null;default:0"`
 	AuthorizationPermission    int       `json:"-" gorm:"type:integer;not null;default:0"`
 	EventPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	AllowUserInfo              int       `json:"-" gorm:"type:integer;not null;default:0"`
