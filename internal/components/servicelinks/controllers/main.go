@@ -1564,10 +1564,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if mInfo.PaymentPermission == 0 {
+		if mInfo.TokenInfoPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this service"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Token information permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
