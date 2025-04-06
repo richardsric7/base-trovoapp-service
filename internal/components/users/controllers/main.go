@@ -6823,6 +6823,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			c.JSON(http.StatusOK, url)
+
 			if initiator.PushNotificationToken != nil && len(url) > 0 {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = ""
