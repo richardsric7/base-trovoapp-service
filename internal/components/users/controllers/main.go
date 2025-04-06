@@ -6821,6 +6821,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
+// bear any resoinsibility tio waive retrieast
 
 			c.JSON(http.StatusOK, url)
 
