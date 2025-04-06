@@ -6808,6 +6808,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
 
 			if err != nil {
+				log.Printf("[UploadTokenizationDocument]error  [%v]\n", err)
+
 				var ex tErrors.GenericError
 				var ok bool
 

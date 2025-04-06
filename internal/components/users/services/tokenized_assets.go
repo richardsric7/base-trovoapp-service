@@ -369,6 +369,8 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 
 	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, "")
 	if err != nil {
+		log.Printf("[UploadTokenizationFeeProofOfPaymentDocument]error uploading proof of payment document for %v: %v\n", user.Username, err)
+
 		return "", err
 	}
 
