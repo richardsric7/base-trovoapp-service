@@ -6822,6 +6822,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
+			c.JSON(http.StatusOK, url)
 			if initiator.PushNotificationToken != nil && len(url) > 0 {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = ""
@@ -6834,7 +6835,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			//At this point, there was no error.
 
-			c.JSON(http.StatusOK, url)
 		})
 
 		router.DELETE("/v1/tokenization/document/:documentID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
