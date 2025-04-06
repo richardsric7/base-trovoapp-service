@@ -6689,6 +6689,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			ta, err := userServices.ConfirmTokenizationFeePaymentByInitiator(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
+				log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", err)
 
 				var ex tErrors.GenericError
 				var ok bool

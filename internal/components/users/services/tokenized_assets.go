@@ -1376,11 +1376,15 @@ func ConfirmTokenizationFeePaymentByInitiator(initiator *userModels.User, tokeni
 		}
 
 		if ato.ID != tokenizationID {
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator] Error tokenization invalid tokenization ID: %v\n", tokenizationID)
+
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-id-not-valid", ErrMessage: "Invalid tokenization specified."}
 			return
 		}
 
 		if ato.VettingStatus == 0 {
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator] Error Tokenization request is still being vetted by the team. Please wait until vetting has completed. tokenization ID: %v\n", tokenizationID)
+
 			err = &tErrors.CustomError{Param: "vettingStatus", Err: "error-tokenization-not-vetted", ErrMessage: "Tokenization request is still being vetted by the team. Please wait until vetting has completed."}
 			return
 		}

@@ -1014,10 +1014,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.AssetOwnerRetainedOrContributedValue = ti.AssetOwnerRetainedOrContributedValue
 				t.AssetManagerID = ti.AssetManagerID
 
+				t.AssetCurrentValue = ti.AssetCurrentValue
+				t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
 
 			}
-
-
 			///end change of currency and issuing house and custodian
 
 		}
@@ -1153,9 +1153,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 	if t.AssetTokenizationStatus < 4 && t.AssetCurrentValue > 0 {
 
-		if t.AssetTokenizationStatus <= 2 {
-			t.AssetCurrentValue = ti.AssetCurrentValue
-			t.AssetMscCostOutisdeOfValuation = ti.AssetMscCostOutisdeOfValuation
+		if t.AssetTokenizationStatus < 2 {
 			t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 			//Do not change fees for assets that have been approved
 			//only when fee has not been paid
