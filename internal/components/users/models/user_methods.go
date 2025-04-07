@@ -2156,6 +2156,27 @@ func (u Username) GetOpenTokenizedAssetByInitiatorUsername(db *gorm.DB) (tokeniz
 	return
 }
 
+// GetFeeReadyTokenizedAssetApplicationByInitiatorUsername get the tokenization that has status 1 and initiated by the initiator username
+func (u Username) GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(db *gorm.DB) (tokenizedAsset TokenizedAsset, NotFound bool, err error) {
+	initiatorUsername := u.String()
+	err = db.Preload(clause.Associations).Order("Created_At DESC").Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			NotFound = true
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
 func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 	// walletPermissions := u.Fetch3rdPartyWalletPermissions(gc)
 	// if len(walletPermissions) == 0 {

@@ -6713,7 +6713,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
 			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
 				var ex tErrors.GenericError
 				var ok bool
@@ -6730,15 +6730,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			if err = r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR PARSING MULTIPART FORM, error: [%v]\n", err)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-size", "message": "Document cannot be more than 900kb in file size"})
 				return
 			}
 
 			f, fileHeader, err := r.FormFile("documentFile")
-
 			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error Getting Uploaded file with param DocumentFile:%v\n", err)
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
 				return
 			}
@@ -6746,7 +6747,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			blobFile, err := fileHeader.Open()
 
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error opening file with param DocumentFile:%v\n", err)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-unable-to-validate", "message": "error attempting to validate the document uploaded"})
 
 				return
 			}
@@ -6758,7 +6761,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			{
 				//check for unsupported extension
 				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+					log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error unsorported file format file:%v\n", fileExtension)
+
+					c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsurported-format", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
 
 					return
 				}
@@ -6773,33 +6778,57 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			var invalidJSON tErrors.ErrorInvalidJSON
 
 			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+				log.Printf("Error binding to fileds:%+v\n error: %v", r.Body, err)
 
 				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 				return
 			}
 			if tokenizationInput.TokenizationFeePaymentMethodID == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "payment type not specified", "message": "payment type not specified"})
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error payment method not specified:%+v\n", tokenizationInput)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "payment-type-not-specified", "message": "payment type not specified"})
 				return
 			}
 			//c.Param("tokenizedAssetID")
-			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+			t, _, err := userModels.Username(initiator.Username).GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(gc.DB)
+			if err != nil {
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING TOKENIZED ASSERT FROM DB [%v], error: [%v]\n", initiator.Username, err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
 
 			if t.InitiatorUsername != initiator.Username {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid for you."})
 				return
 			}
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid"})
 				return
 			}
 			if t.AssetTokenizationStatus < 1 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error status still open:%+v\n", tokenizationInput)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
 				return
 			}
 
 			if t.VettingStatus == 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request is still being vetted by the team, therefore cannot be modified or updated at this time. Please excercise patience."})
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error. still not vetted:%+v\n", tokenizationInput)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "tokenization Request is still being vetted by the team, therefore cannot be modified or updated at this time. Please excercise patience."})
 				return
 			}
 
@@ -6808,7 +6837,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
 
 			if err != nil {
-				log.Printf("[UploadTokenizationDocument]error  [%v]\n", err)
+				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Erroruploading document:%+v\n", err)
 
 				var ex tErrors.GenericError
 				var ok bool
@@ -6821,7 +6850,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
-// bear any resoinsibility tio waive retrieast
 
 			c.JSON(http.StatusOK, url)
 
@@ -6834,8 +6862,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
 
 		})
 
