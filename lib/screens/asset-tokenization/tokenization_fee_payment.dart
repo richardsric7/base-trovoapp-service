@@ -166,7 +166,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   "payto".tr(args: [
-                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? 'CNGN' : tokenizedAsset.proceedPayoutCurrency}"
+                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency : fiatCurrency}"
                   ]),
                   style: TextStyle(
                     fontSize: 18,
@@ -709,13 +709,9 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   double getFeeInfo(int index) {
     var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
         ['feeFiatPercentage'];
-    // var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
-    //     ['feeAssetPercentage'];
     var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
             [index]['feeFiatCap']
         .toString());
-    // var tokenFee =
-    //     (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
     var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
     return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }

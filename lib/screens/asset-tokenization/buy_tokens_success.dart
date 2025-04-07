@@ -32,17 +32,17 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
   String transactionId = '';
   String memo = '';
   DateTime date = DateTime.now();
-  late TokenizedAsset tokenizedAsset;
+  late TokenizedAsset? tokenizedAsset;
 
   @override
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    tokenizedAsset = appState.tokenizedAsset!;
+    tokenizedAsset = appState.tokenizedAsset;
     inspect(appState.viewData);
-    amount = double.parse(appState.viewData!['amount'].toString());
-    quantity = appState.viewData!['swappedEstimate'].toString();
-    transactionId = appState.viewData!['transactionId'];
+    amount = double.parse(appState.viewData?['amount'].toString() ?? '0');
+    quantity = appState.viewData?['swappedEstimate']?.toString() ?? "";
+    transactionId = appState.viewData?['transactionId'];
     memo = appState.viewData!['memo'];
   }
 
@@ -75,7 +75,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
               ),
               SizedBox(height: height / 30),
               Text(
-                '+ $quantity',
+                '+ ${formatNumber(double.parse(quantity))}',
                 style: TextStyle(
                     color: Colors.green,
                     fontFamily: fontsemibold,
@@ -176,7 +176,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
-                          '${formatNumber(amount)} ${tokenizedAsset.assetQuoteCurrency}',
+                          '${formatNumber(amount)} ${tokenizedAsset?.assetQuoteCurrency}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,

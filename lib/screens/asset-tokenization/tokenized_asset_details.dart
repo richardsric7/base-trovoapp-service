@@ -109,7 +109,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    inspect(appState.tokenizationData);
+    inspect(appState.tokenizedAsset);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -652,12 +652,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               infoTile(
                 notifier,
                 'Cap Amount',
-                '${getFiatValue(double.parse(tokenizedAsset.capQuantity!.toString()))} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                '${getFiatValue(double.parse(tokenizedAsset.capAmountInFiat!.toString()))} ${fiatCurrency}',
               ),
               infoTile(
                 notifier,
                 'Cap Quantity',
-                '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
               ),
               infoTile(
                 notifier,

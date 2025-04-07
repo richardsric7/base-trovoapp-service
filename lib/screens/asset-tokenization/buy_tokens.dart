@@ -107,7 +107,8 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                       300.sp,
                       onChanged: (value) {
                         setState(() {
-                          var a = int.tryParse(value);
+                          var a = double.tryParse(value);
+                          print('===============> $a');
                           if (a != null) {
                             var pricePerToken = tokenizedAsset.pricePerToken!;
                             quantity = a / pricePerToken;
@@ -116,8 +117,6 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                           }
                         });
                       },
-                      autoFormatNumber: true,
-                      isFiat: true,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {

@@ -122,13 +122,14 @@ class CustomTextFormField {
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           initialValue: initialValue,
           cursorColor: lablecolor,
-          onChanged: (value) {
-            if (onChanged != null) {
-              var newVal =
-                  value.toString().replaceAll('.', '').replaceAll(',', '');
-              onChanged(newVal);
-            }
-          },
+          // onChanged: (value) {
+          //   // if (onChanged != null) {
+          //   //   var newVal =
+          //   //       value.toString().replaceAll('.', '').replaceAll(',', '');
+          //   //   onChanged(newVal);
+          //   // }
+          // },
+          onChanged: onChanged,
           decoration: InputDecoration(
             counterStyle: TextStyle(
               fontFamily: fontbody,

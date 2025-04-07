@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
-import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -249,7 +247,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               infoCard(
                 notifier,
                 label: 'Number of Interest Expressed',
-                value: '10 Users',
+                value: '???? users',
                 extraValue: '',
               ),
             ],
@@ -544,7 +542,7 @@ class _AssetDashboardState extends State<AssetDashboard>
           infoTile(
             notifier,
             'Cap Amount',
-            '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${tokenizedAsset.assetCode}',
+            '${getFiatValue(tokenizedAsset.capAmountInFiat!)} ${fiatCurrency}',
           ),
           infoTile(
             notifier,

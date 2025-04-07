@@ -66,8 +66,8 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     tokenizedAsset = appState.tokenizedAsset!;
-    amount = appState.viewData!['amount'];
-    quantity = appState.viewData!['quantity'];
+    amount = appState.viewData?['amount'];
+    quantity = appState.viewData?['quantity'];
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,

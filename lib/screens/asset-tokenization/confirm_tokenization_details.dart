@@ -45,6 +45,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   double trovUsdPrice = 0;
   String feeInfo = '';
   String fiatCurrency = '';
+  double tokenizationApplicationFee = 0;
+  String tokenizationApplicationFeeAsset = '';
   final Authenticator _authenticator = Authenticator();
 
   @override
@@ -69,6 +71,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+        tokenizationApplicationFee = appState.tokenizationData['countryConfigs']
+            [i]['tokenizationApplicationFee'];
+        tokenizationApplicationFeeAsset = appState
+            .tokenizationData['countryConfigs'][i]
+                ['tokenizationApplicationFeeAsset']
+            .toString()
+            .split(':')[0];
       }
     }
 
@@ -86,7 +95,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       }
     }
 
-    getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+    feeInfo = formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!));
   }
 
   @override
@@ -320,7 +329,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Asset tokenization fee", feeInfo),
+                        item("Asset tokenization fee",
+                            '${feeInfo} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("SEC Regulatory Fee",
                             '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}'),
@@ -349,12 +359,11 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("VAT",
                             '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Total",
-                            '${formatNumberShort(getTotal())} ${fiatCurrency}'),
+                        item("Total", '${getTotalFee()} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
                         item("applicationfee".tr(),
-                            '${formatNumber(500 / trovUsdPrice)} TROV ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
+                            '${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
                         SizedBox(height: height / 90),
                         item("tokenizationfee".tr(), feeInfo),
                         SizedBox(height: height / 90),
@@ -724,30 +733,27 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     }
   }
 
-  double getTotal() {
-    return tokenizedAsset.SECTokenizationFeeValue! +
+  String getTotalFee() {
+    var total = tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.custodianFeeValue! +
         tokenizedAsset.assetManagerFeeValue! +
         tokenizedAsset.issuingHouseFeeValue! +
         tokenizedAsset.legalAndProfessionalFeeValue! +
         tokenizedAsset.ratingAgencyFeeValue! +
         tokenizedAsset.vatValue! +
-        fiatFee;
+        getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+
+    return "${formatNumber(total)}";
   }
 
-  getFeeInfo(int index) {
+  double getFeeInfo(int index) {
     var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
         ['feeFiatPercentage'];
-    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeAssetPercentage'];
     var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
             [index]['feeFiatCap']
         .toString());
-    tokenFee =
-        (tokenizedAsset.numberOfTokenToBeIssued! * assetPercentage) / 100;
     fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
-    feeInfo =
-        "${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} ${fiatCurrency}";
+    return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }
 
   Widget item(String key, String value) {
