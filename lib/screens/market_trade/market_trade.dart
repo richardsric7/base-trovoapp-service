@@ -150,7 +150,7 @@ class _MarketTradeState extends State<MarketTrade>
               CustomAppBar(
                 context,
                 notifier.getwihitecolor,
-                'Market Trade',
+                'DEX Trade',
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),

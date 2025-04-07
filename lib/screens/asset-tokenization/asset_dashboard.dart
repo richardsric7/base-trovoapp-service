@@ -860,17 +860,17 @@ class _AssetDashboardState extends State<AssetDashboard>
           SizedBox(
             height: height / 30,
           ),
-          Button(
-            'Payout Proceeds',
-            notifier.getbluecolor,
-            wihitecolor,
-            onTap: () {
-              appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: ProceedsPayOutViewPageConfig,
-              );
-            },
-          ),
+          // Button(
+          //   'Payout Proceeds',
+          //   notifier.getbluecolor,
+          //   wihitecolor,
+          //   onTap: () {
+          //     appState.currentAction = PageAction(
+          //       state: PageState.addPage,
+          //       page: ProceedsPayOutViewPageConfig,
+          //     );
+          //   },
+          // ),
           // SizedBox(height: height / 70),
           // ButtonOutlined(
           //   'Liquidate Asset',

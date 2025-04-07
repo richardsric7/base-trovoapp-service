@@ -6464,8 +6464,9 @@ confirmTokenizationDeletePopup(
 
 uploadTokenizationFeePopup(
   context, {
-  required void Function(PlatformFile file, String transactionReference)
+  required void Function(PlatformFile? file, String transactionReference)
       onSubmit,
+  bool requireFile = true,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -6497,6 +6498,19 @@ uploadTokenizationFeePopup(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      SizedBox(height: height / 50),
+                      if (errorMsg.isNotEmpty) ...[
+                        Text(
+                          errorMsg,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.red,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ],
                       SizedBox(height: height / 50),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -6573,18 +6587,6 @@ uploadTokenizationFeePopup(
                           ),
                         ),
                       ),
-                      if (errorMsg.isNotEmpty) ...[
-                        Text(
-                          errorMsg,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.red,
-                            fontFamily: fontsemibold,
-                          ),
-                        ),
-                      ],
                       SizedBox(height: height / 50),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -6624,19 +6626,25 @@ uploadTokenizationFeePopup(
                         padding: const EdgeInsets.all(10.0),
                         child: ElevatedButton(
                           onPressed: () {
-                            if (recieptFile != null) {
-                              onSubmit(recieptFile!, transactionReference);
+                            if (recieptFile != null ||
+                                (!requireFile &&
+                                    transactionReference.isNotEmpty)) {
+                              onSubmit(recieptFile, transactionReference);
                               Navigator.of(context).pop();
+                              return;
                             }
+
+                            errorMsg = requireFile
+                                ? 'Please upload a proof of payment document to proceed.'
+                                : 'You must enter a transaction reference or upload a proof of payment document to proceed.';
+                            setStateForDialog(() {});
                           },
                           style: ButtonStyle(
                             fixedSize: MaterialStateProperty.all(
                               Size(width / 1.5, height / 20),
                             ),
                             backgroundColor: MaterialStateProperty.all<Color>(
-                              recieptFile != null
-                                  ? notifier.getbluecolor
-                                  : notifier.getbluecolor80,
+                              notifier.getbluecolor,
                             ),
                             shape: MaterialStateProperty.all<
                                 RoundedRectangleBorder>(

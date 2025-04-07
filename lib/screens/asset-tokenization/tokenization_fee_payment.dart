@@ -484,7 +484,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         onSubmit: (file, transactionReference) async {
                       transactionReference = transactionReference;
                       await uploadFile(file, transactionReference);
-                    });
+                    }, requireFile: preferredPaymentMethod != 'STABLE COIN');
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -513,24 +513,17 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
               ),
               Button(
                 "confirmpayment".tr(),
-                tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ?? false
-                    ? notifier.getbluecolor
-                    : notifier.getbluecolor80,
+                notifier.getbluecolor,
                 wihitecolor,
                 onTap: () async {
-                  if (tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ??
-                      false) {
-                    confirmPayments();
-                  }
+                  confirmPayments();
                 },
               ),
               SizedBox(height: 10),
               ButtonOutlined(
                 "Go to homepage".tr(),
                 wihitecolor,
-                tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ?? false
-                    ? notifier.getbluecolor
-                    : notifier.getbluecolor80,
+                notifier.getbluecolor,
                 onTap: () async {
                   appState.currentAction = PageAction(
                       state: PageState.replaceAll, page: BottomHomePageConfig);
@@ -728,7 +721,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   }
 
   Future<void> uploadFile(
-    PlatformFile file,
+    PlatformFile? file,
     String? transactionReference,
   ) async {
     try {
@@ -750,8 +743,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
       } else {
+        var mapData = jsonDecode(responseData['data']);
         popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+            title: "error".tr(),
+            message: mapData['message'] ?? mapData['error']);
       }
     } catch (e) {
       print(e);

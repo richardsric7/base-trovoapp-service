@@ -612,7 +612,7 @@ Future<Map> makePutRequestForFeeRecieptUpload({
   required String signer,
   required String secretKey,
   required String publicKey,
-  required PlatformFile file,
+  required PlatformFile? file,
   required String tokenizationFeePaymentMethodID,
   required String transactionReference,
 }) async {
@@ -633,14 +633,16 @@ Future<Map> makePutRequestForFeeRecieptUpload({
     print('mappppppppppp $map');
     request.headers.addAll(headers);
     request.fields.addAll(map);
-    final mimeType = lookupMimeType(file.path!);
-    final contentType = mimeType != null ? MediaType.parse(mimeType) : null;
-    request.files.add(await http.MultipartFile.fromPath(
-      'documentFile',
-      file.path!,
-      contentType: contentType,
-    ));
-    inspect(request);
+    if (file != null) {
+      final mimeType = lookupMimeType(file.path!);
+      final contentType = mimeType != null ? MediaType.parse(mimeType) : null;
+      request.files.add(await http.MultipartFile.fromPath(
+        'documentFile',
+        file.path!,
+        contentType: contentType,
+      ));
+      inspect(request);
+    }
     var response = await request.send();
     var responseString = await response.stream.bytesToString();
     print("The statucode is: ${response.statusCode}");

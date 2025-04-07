@@ -1551,7 +1551,7 @@ Widget getDrawer(
             color: notifier.getgrey.withOpacity(.80),
           ),
           title: Text(
-            "markettrade".tr(),
+            'DEX Trade',
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
