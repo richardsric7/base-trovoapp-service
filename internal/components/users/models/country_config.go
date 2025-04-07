@@ -13,6 +13,8 @@ type Country struct {
 	RegionName                      string  `json:"regionName"`
 	CountryName                     string  `json:"countryName"`
 	QuoteCurrencyCode               string  `json:"quoteCurrencyCode"`
+	FiatLabel                       string  `json:"fiatLabel"`
+	FiatGlyph                       string  `json:"fiatGlyph"`
 	MinTokenizationFee              float64 `gorm:"default:0" json:"minTokenizationFee"`
 	TokenizationApplicationFee      float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
 	TokenizationApplicationFeeAsset string  `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
