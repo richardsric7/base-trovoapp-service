@@ -195,20 +195,27 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	// fmt.Printf("Offer Request: %+v\n", oRequest)
 	oSummary, err := client.OrderBook(oRequest)
 	if err != nil {
+		log.Println("[client.OrderBookRequest]error:", err)
 		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[client.OrderBookRequest]", err)
 			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
 		}
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
-		log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
-		log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
-		log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
-		log.Println("[client.OrderBookRequest] Error submitting:", err)
-		return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		// hError := err.(*horizonclient.Error)
+		if hError, ok := err.(*horizonclient.Error); ok {
+			// Assertion succeeded
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
+			log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
+			log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
+			log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
+			log.Println("[client.OrderBookRequest] Error submitting:", err)
+			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		} else {
+			// Assertion failed
+			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		}
 
 	}
 
