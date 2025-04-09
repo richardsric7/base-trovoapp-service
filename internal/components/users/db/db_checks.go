@@ -18,7 +18,7 @@ import (
 // UserRegistrationInfoToUser populates user information with registration information
 func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *usermodels.User) {
 	user.PublicKey = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
-	user.PrimarySigner = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
+	user.PrimarySigner = strings.TrimSpace(strings.ToUpper(userInfo.PrimarySigner))
 	user.Username = strings.TrimSpace(strings.ToLower(userInfo.Username))
 	user.Email = strings.TrimSpace(strings.ToLower(userInfo.Email))
 	user.ID = uuid.NewString()

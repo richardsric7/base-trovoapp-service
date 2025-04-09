@@ -202,6 +202,7 @@ type UserRegistrationInfo struct {
 	Mobile                string `json:"mobile"`
 	MobileCountryCode     string `json:"mobileCountryCode"`
 	PublicKey             string `json:"publicKey"`
+	PrimarySigner         string `json:"primarySigner"`
 	Referrer              string `json:"referrer"`
 	PushNotificationToken string `json:"pushNotificationToken"`
 	Corporate             uint   `json:"corporate"`

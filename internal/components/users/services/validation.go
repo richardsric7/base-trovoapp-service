@@ -20,6 +20,7 @@ func NormalizeUserRegistrationInfo(user *usermodels.UserRegistrationInfo) {
 	user.Referrer = strings.TrimSpace(strings.ToLower(user.Referrer))
 	user.Mobile = strings.ReplaceAll(strings.TrimSpace(user.Mobile), " ", "")
 	user.PublicKey = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(user.PublicKey), " ", ""))
+	user.PrimarySigner = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(user.PrimarySigner), " ", ""))
 	if len(user.Mobile) > 0 {
 		// geoData, _ := usermodels.GetGeoInfo(user.PublicIP)
 		num, err := phonenumbers.Parse(user.Mobile, user.MobileCountryCode)

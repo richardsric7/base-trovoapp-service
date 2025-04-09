@@ -382,7 +382,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		userRegistrationInfo.PublicKey = middleware.ExtractSigner(c)
+		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
+		userRegistrationInfo.PrimarySigner = middleware.ExtractSigner(c)
 		userRegistrationInfo.PublicIP = c.ClientIP()
 
 		var invalidJSON tErrors.ErrorInvalidJSON
