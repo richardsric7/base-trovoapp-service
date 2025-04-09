@@ -135,16 +135,20 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 			log.Println("[getTradeAggregate]", err)
 			return tds, &bantupayerrors.ErrorTemporaryServerError{}
 		}
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("\n[getTradeAggregate] Problem in Request:", hError.Problem)
-		log.Println("\n[getTradeAggregate] Result Codes in Request:", rCode)
-		log.Println("\n[getTradeAggregate] Result String in Request:", rS)
-		log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
-		log.Println("[getTradeAggregate] Error submitting:", err)
-		return tds, &bantupayerrors.ErrorTemporaryServerError{}
+		if hError, ok := err.(*horizonclient.Error); ok {
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("\n[getTradeAggregate] Problem in Request:", hError.Problem)
+			log.Println("\n[getTradeAggregate] Result Codes in Request:", rCode)
+			log.Println("\n[getTradeAggregate] Result String in Request:", rS)
+			log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
+			log.Println("[getTradeAggregate] Error submitting:", err)
+			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+		} else {
+			log.Println("[getTradeAggregate] Error submitting:", err)
+			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+		}
 
 	}
 
@@ -200,7 +204,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 			log.Println("[client.OrderBookRequest]", err)
 			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
 		}
-		// hError := err.(*horizonclient.Error)
+		// if hError, ok := err.(*horizonclient.Error); ok {} else {}
 		if hError, ok := err.(*horizonclient.Error); ok {
 			// Assertion succeeded
 			//something went wrong, verify stage and check approprate action

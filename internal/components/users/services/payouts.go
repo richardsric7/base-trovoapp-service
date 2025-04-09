@@ -131,7 +131,7 @@ func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc
 
 	// var payout userModels.ProceedPayout
 	bal := decimal.RequireFromString(balance).InexactFloat64()
-	amountToReceive := decimal.NewFromFloat(payout.AmountPerTokenizedAssetHeld * bal).Truncate(2)
+	amountToReceive := decimal.NewFromFloat(payout.AmountPerTokenizedAssetHeld * bal).Truncate(7)
 	if amountToReceive.IsZero() {
 		return
 	}

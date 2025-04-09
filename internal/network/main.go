@@ -93,7 +93,8 @@ func BlockchainAccountProperties(client *horizonclient.Client, destinationPublic
 	destinationAccountDetail, destinationHorizonError := client.AccountDetail(destinationAccountRequest)
 
 	if destinationHorizonError != nil {
-		log.Print(destinationHorizonError)
+		// log.Print(destinationHorizonError)
+		log.Print("[BlockchainAccountProperties] error is ", destinationHorizonError)
 		userNotFoundError := false
 
 		horizonException, ok := destinationHorizonError.(*horizonclient.Error)

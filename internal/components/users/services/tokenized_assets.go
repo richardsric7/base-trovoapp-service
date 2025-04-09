@@ -1241,7 +1241,11 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 			if u.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "assetSubscription"
-				u.SendPushMessage(fmt.Sprintf("The asset %v is now live on sale!", *t.AssetCode), fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v)", *t.AssetCode, *t.AssetName), *t.AssetLogo, dataPayload, gc)
+				msgBody := fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v). Only %v units @ %v %v are available for the primary sale. So, hurry now!", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency)
+				if t.CapAmountInFiat > 0 {
+					msgBody = fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v). Only %v units @ %v%v are  available for the primary sale, capped at %v %v per person.", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency, t.CapAmountInFiat, *t.AssetQuoteCurrency)
+				}
+				u.SendPushMessage(fmt.Sprintf("The asset %v is now live on sale @ %v%v per unit!", *t.AssetCode, t.PricePerToken, *t.AssetQuoteCurrency), msgBody, *t.AssetLogo, dataPayload, gc)
 			}
 
 		}
@@ -1938,10 +1942,10 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	input.TokenizedAssetID = ta.ID
 	input.WalletPublicKey = subscriberWallet.ID
 	input.SubscriberUsername = subscriber.Username
-	input.Amount = decimal.NewFromFloat(input.Amount).Truncate(2).InexactFloat64()
+	input.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	var swapInfo swapModels.SwapSendInfo
 	swapInfo.Messages = make([]string, 0)
-	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
+	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
 	swapInfo.SwapAmount = swapInfo.SourceAmount
 	// get wallet owner
 	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
@@ -1993,8 +1997,8 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 	//begin transaction xdr
 
-	// swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(2).String()
-	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(2)
+	// swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
+	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(7)
 
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
@@ -2016,7 +2020,29 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, &swapInfo, gc)
 		if e != nil {
 			log.Printf("[SubscribeToTokenizedAsset] error generating tokenized asset subscription xdr [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
+			if strings.Contains(e.Error(), "liquid") || strings.Contains(e.Error(), "market") {
+				destAsset := os.Getenv("NATIVE_ASSET_CODE")
+				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+				if len(swapInfo.SourceAssetCode) > 0 {
+					sourceAsset = swapInfo.SourceAssetCode
+				}
+				if len(swapInfo.DestinationAssetCode) > 0 {
+					destAsset = swapInfo.DestinationAssetCode
+				}
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
 
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+				}
+				err = &tErrors.CustomError{
+					Param:      "destinationAssetCode",
+					Err:        "error-low-liquidity",
+					ErrMessage: emsg,
+				}
+				return
+			}
 			err = e
 			return
 		}
@@ -2054,11 +2080,20 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
+
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+				}
+
 				err = &tErrors.CustomError{
 					Param:      "destinationAssetCode",
 					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					ErrMessage: emsg,
 				}
+
 				return
 			}
 		}
@@ -2138,7 +2173,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
-	// newAmountToSwap := amountToSwap.Truncate(2).String()
+	// newAmountToSwap := amountToSwap.Truncate(7).String()
 
 	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -2729,7 +2764,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	n := int32(fraction.Num().Int64())
 	ops = append(ops, &txnbuild.ManageSellOffer{
 		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
-		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeSold).StringFixed(7),
+		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
 		Selling:       txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
 		SourceAccount: distributionWallet.ID,

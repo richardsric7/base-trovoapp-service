@@ -479,7 +479,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 			SourceAmount:      requiredUsdWorth,
 		}
 
-		path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
+		path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc)
 		log.Printf(" %v %v converts to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, estimatedTrov, "TROV")
 		if errGetEstimate != nil && estimatedTrov == "" {
 			log.Printf("[generatePatronSubscriptionXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)

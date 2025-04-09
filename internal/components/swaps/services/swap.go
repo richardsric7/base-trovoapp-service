@@ -104,10 +104,17 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+				}
 				return &tErrors.CustomError{
 					Param:      "destinationAssetCode",
 					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					ErrMessage: emsg,
 				}
 			}
 		}
@@ -235,10 +242,17 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+				}
 				return &tErrors.CustomError{
 					Param:      "destinationAssetCode",
 					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					ErrMessage: emsg,
 				}
 			}
 		}
@@ -460,9 +474,23 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
 		SourceAmount:      newAmountToSwap,
 	}
-	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
+	path, swappedEstimate, err := GetStrictSendPaths(pathInput, gc)
 	if err != nil {
 		log.Println("[generateSwapXdr]error fetching valid swap Path ", err)
+		if strings.Contains(err.Error(), "liquid") || strings.Contains(err.Error(), "market") {
+			_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+			emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+			if b != "0" {
+				emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+			}
+			return "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: emsg,
+			}
+		}
 		return "", err
 	}
 
@@ -873,7 +901,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 }
 
 // GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, gc *sharedconfig.GlobalConfig) (paths []txnbuild.Asset, swappedEstimate string, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -913,7 +941,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 		SourceAmount:       pathInput.SourceAmount,
 	}
 
-	swapPaths, err = client.StrictSendPaths(sspr)
+	swapPaths, err = gc.BantuExpansionClient.StrictSendPaths(sspr)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
@@ -923,6 +951,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 			return paths, "", &tErrors.ErrorTemporaryServerError{}
 		}
 		if strings.Contains(err.Error(), "liquid") {
+
 			destAsset := os.Getenv("NATIVE_ASSET_CODE")
 			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
 			if len(pathInput.SourceAssetCode) > 0 {

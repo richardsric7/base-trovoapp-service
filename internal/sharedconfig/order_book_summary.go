@@ -1,11 +1,11 @@
-package users
+package sharedconfig
 
 import (
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	bantupayerrors "trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
 	"github.com/shopspring/decimal"
@@ -69,7 +69,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	if err != nil {
 		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[client.OrderBookRequest]", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
 		if hError, ok := err.(*horizonclient.Error); ok {
 			//something went wrong, verify stage and check approprate action
@@ -80,10 +80,10 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 			log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
 			log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
 			log.Println("[client.OrderBookRequest] Error submitting:", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		} else {
 			log.Println("[client.OrderBookRequest] Error submitting:", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
 
 	}
@@ -93,7 +93,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 }
 
 // GetDollarAskPrice dollar ask price using USDB
-func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice string, err error) {
+func (gc *GlobalConfig) GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice string, err error) {
 	var input OrderBookRequestInput
 	var errAssetCode string
 	if sellingAssetCode == "" {
@@ -115,11 +115,11 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 	orderBook, err := getBantuOrderBookSummary(input)
 	if err != nil {
 		log.Println("[GetDollarAskPrice] Error fetching dollar price:", err)
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", &tErrors.ErrorTemporaryServerError{}
 	}
 	if len(orderBook.Asks) == 0 {
 		log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", &tErrors.ErrorTemporaryServerError{}
 	}
 	usdPrice = orderBook.Asks[0].Price
 	// else if len(orderBook.Bids) > 0 {
@@ -131,7 +131,7 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 }
 
 // GetAvalableMarketQuantity
-func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAssetCode, buyingAssetIssuer string) (sellingQuantity, buyingQuantity string, err error) {
+func (gc *GlobalConfig) GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAssetCode, buyingAssetIssuer string) (sellingQuantity, buyingQuantity string, err error) {
 	var input OrderBookRequestInput
 	sellingQuantity = "0"
 	buyingQuantity = "0"
@@ -155,11 +155,10 @@ func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAsset
 	orderBook, err := getBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetAvalableMarketQuantity] Error fetching %v/%v market: %v\n", errBuyingAssetCode, errAssetCode, err)
-		return "0", "0", &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", "0", &tErrors.ErrorTemporaryServerError{}
 	}
 	if len(orderBook.Asks) == 0 {
 		log.Printf("[GetAvalableMarketQuantity] Error fetching %v asks for %v: %v\n", errBuyingAssetCode, errAssetCode, err)
-		// return "0","0", &bantupayerrors.ErrorTemporaryServerError{}
 		sellingQuantity = "0"
 	} else {
 		//asks exists
@@ -172,7 +171,6 @@ func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAsset
 	}
 	if len(orderBook.Bids) == 0 {
 		log.Printf("[GetAvalableMarketQuantity] Error fetching %v bids for %v: %v\n", errBuyingAssetCode, errAssetCode, err)
-		// return "0","0", &bantupayerrors.ErrorTemporaryServerError{}
 		buyingQuantity = "0"
 	} else {
 		//asks exists
