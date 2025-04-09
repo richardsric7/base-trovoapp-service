@@ -84,6 +84,13 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 
 			return &x
 		}
+		if len(user.PrimarySigner) == 0 {
+			var x tErrors.ErrorMissingParameter
+			x.Parameter = "primarySigner"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
+			return &x
+		}
 
 		if len(user.Email) == 0 {
 			var x tErrors.ErrorMissingParameter
