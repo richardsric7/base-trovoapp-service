@@ -118,6 +118,8 @@ type TokenizedAsset struct {
 	NumberOfTokenToBeIssued                     float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
 	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
 	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInAssetPercent                           float64                         `gorm:"default:0" json:"feeInAssetPercent"`
+	FeeInAssetFiatEquivalent                    float64                         `gorm:"default:0" json:"feeInAssetFiatEquivalent"`
 	FeeInFiat                                   float64                         `gorm:"default:0" json:"feeInFiat"`
 	NumberOfTokenToBeSold                       float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
@@ -375,6 +377,8 @@ type TokenizedAssetJSON struct {
 	NumberOfTokenToBeIssued                     float64                         `json:"numberOfTokenToBeIssued"`
 	MaxNumberOfTokenAvailableForSale            float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
 	FeeInAsset                                  float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInAssetPercent                           float64                         `gorm:"default:0" json:"feeInAssetPercent"`
+	FeeInAssetFiatEquivalent                    float64                         `gorm:"default:0" json:"feeInAssetFiatEquivalent"`
 	FeeInFiat                                   float64                         `gorm:"default:0" json:"feeInFiat"`
 	NumberOfTokenToBeSold                       float64                         `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                     float64                         `json:"totalTokenHeldByManager"`
@@ -1177,7 +1181,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				// Calculate Fees
 				feeInAssetFiatEquivalent = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 				// feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-				// t.FeeInAsset = feeInAsset
+				t.FeeInAssetFiatEquivalent = feeInAssetFiatEquivalent
+				t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 
 				t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 				if feeCompo.FeeFiatCap > t.FeeInFiat {
@@ -1407,6 +1412,8 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		feeInAssetFiatEquivalent = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		// feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		// t.FeeInAsset = feeInAsset
+		t.FeeInAssetFiatEquivalent = feeInAssetFiatEquivalent
+		t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 		if feeCompo.FeeFiatCap > t.FeeInFiat {
 			t.FeeInFiat = feeCompo.FeeFiatCap
