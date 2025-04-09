@@ -27,10 +27,22 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	// if banned, errBanned := users.PublicKeyIsBanned(userInfo.PublicKey, gc.DB); banned {
 	// 	return userInfo, false, errBanned
 	// }
-	if _, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, gc.DB); errExists != nil {
+	keyExists, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, gc.DB)
+	if errExists != nil && !keyExists {
+		//server error
 		return userInfo, false, errExists
 	}
-	if _, errExists := users.PrimarySignerAlreadyExists(userInfo.PublicKey, gc.DB); errExists != nil {
+	if keyExists {
+
+		return userInfo, false, errExists
+	}
+	exists, errExists := users.PrimarySignerAlreadyExists(userInfo.PublicKey, gc.DB)
+	if errExists != nil && !exists {
+		//system error
+		return userInfo, false, errExists
+	}
+	if exists {
+
 		return userInfo, false, errExists
 	}
 	if len(userInfo.Mobile) > 0 {

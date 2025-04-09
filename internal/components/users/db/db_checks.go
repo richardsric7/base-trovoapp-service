@@ -155,14 +155,16 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	// }
 	publicKey = strings.TrimSpace(publicKey)
 	var userWallet usermodels.UserWallet
-	if err := db.Where("id = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userWallet).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("[PublicKeyAlreadyExists] error checking if public key exists: %v", err)
-			return true, &tErrors.ErrorTemporaryServerError{}
+	e := db.Where("id = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userWallet).Error
+	if e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
+			log.Printf("[PublicKeyAlreadyExists] error checking if public key exists: %v\n", e)
+			return false, &tErrors.ErrorTemporaryServerError{}
 		}
 		return false, nil
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+	log.Printf("[PublicKeyAlreadyExists]Bantu Address [%v] already exists with another active wallet %v. [%+v]", publicKey, userWallet.Alias, userWallet)
 
 	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", publicKey)}
 
@@ -176,14 +178,18 @@ func PrimarySignerAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err
 	// }
 	publicKey = strings.TrimSpace(publicKey)
 	var user usermodels.User
-	if err := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return true, &tErrors.ErrorTemporaryServerError{}
+	e := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error
+	if e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
+			log.Printf("[PrimarySignerAlreadyExists] Error fetching record from database: %v\n", e)
+
+			return false, &tErrors.ErrorTemporaryServerError{}
 		}
+
 		return false, nil
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
-
+	log.Printf("[PrimarySignerAlreadyExists]Bantu Address [%v] already exists as a primary signer with another active account %v. [%+v]", publicKey, user.Username, user)
 	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-primary-signer-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists as a primary signer with another active account", publicKey)}
 
 }

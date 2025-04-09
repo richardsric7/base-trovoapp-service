@@ -156,16 +156,19 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 	}
 	publicKey = strings.TrimSpace(publicKey)
 	// var user usermodels.User
-	if err := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error
+	if e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return user, &tErrors.ErrorTemporaryServerError{}
 		}
+
 		return user, &tErrors.CustomError{Param: "primarySigner",
 			Err:        "error primary signer does not exist",
 			ErrMessage: "PrimarySigner does not exist",
 			Code:       http.StatusNotFound,
 		}
 	}
+
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
