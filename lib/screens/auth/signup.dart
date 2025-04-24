@@ -852,6 +852,7 @@ class _SignUpState extends State<SignUp> {
       };
 
       String jsonBody = jsonEncode(map);
+      print(jsonBody);
       Account? creds = null;
 
       if (!usePassPhrase && secretKey.isNotEmpty) {

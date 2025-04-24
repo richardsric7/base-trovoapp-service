@@ -1037,8 +1037,10 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     try {
       await appState.refreshData();
       _refreshController.refreshCompleted();
+      setState(() {});
     } catch (e) {
       _refreshController.refreshFailed();
+      setState(() {});
     }
   }
 

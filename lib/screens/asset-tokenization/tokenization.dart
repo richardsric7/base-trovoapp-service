@@ -39,6 +39,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   DateTime? filterEndDate;
   double filterMinAmount = 0;
   double filterMaxAmount = 0;
+  double tokenizationApplicationFee = 0;
+  String tokenizationApplicationFeeAsset = '';
   List<TokenizedAsset> records = [];
   bool showFilter = false;
   late List<Wallet> wallets;
@@ -188,12 +190,29 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     listOfTokenizations = fetchTokenizationList();
     wallets = appState.userInfo!.allWallets;
     for (var asset in appState.primaryWallet.claimedAssets!) {
-      if (asset.assetCode!.toUpperCase() == 'TROV') {
+      if (asset.assetCode!.toUpperCase() == tokenizationApplicationFeeAsset) {
         trovUsdPrice = asset.usdPrice!;
-        if (asset.amount! >= (500 / asset.usdPrice!)) {
+        if (asset.amount! >= (tokenizationApplicationFee / asset.usdPrice!)) {
           hasEnoughTrov = true;
           break;
         }
+      }
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          appState.userInfo?.countryCode?.toLowerCase()) {
+        tokenizationApplicationFee = appState.tokenizationData['countryConfigs']
+            [i]['tokenizationApplicationFee'];
+        tokenizationApplicationFeeAsset = appState
+            .tokenizationData['countryConfigs'][i]
+                ['tokenizationApplicationFeeAsset']
+            .toString()
+            .split(':')[0];
       }
     }
   }
@@ -229,7 +248,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       popup(context,
           title: "error".tr(),
           message:
-              "You must have at least ${formatNumber(500 / trovUsdPrice)} TROV (\$500 worth) tokens in your wallet ${appState.primaryWallet.alias!.toUpperCase()} to begin a new tokenization process.");
+              "You must have at least ${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset tokens (\$500 worth) in your wallet ${appState.primaryWallet.alias!.toUpperCase()} to begin a new tokenization process.");
       return;
     }
 

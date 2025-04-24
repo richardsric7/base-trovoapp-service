@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -237,7 +238,7 @@ class _VeryficationState extends State<Veryfication> {
       fetchNotifications(state);
       getFiatRates(state);
       await storeUserInfo(responseData['data']);
-      fetchCuratedSwapList(state);
+      // fetchCuratedSwapList(state);
       hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
       hideLoader(context);
@@ -254,7 +255,10 @@ class _VeryficationState extends State<Veryfication> {
 
   storeUserInfo(userInfoMap) async {
     print('userInfoMap: ${userInfoMap['userData']}');
+    print('tempPublickey: ${state.tempPublicKey}');
+    print('tempSecretKey: ${state.tempSecretKey}');
     var userInfo = userInfoMap['userData'] ?? {};
+    inspect(userInfo);
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
     var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
@@ -282,6 +286,8 @@ class _VeryficationState extends State<Veryfication> {
     // save useInfo to appstate
     state.setUser = UserInfo()
         .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+    print('state.userinfo ${state.userInfo}');
+    inspect(state.userInfo);
     state.setNFTs = nfts;
     state.setSharedWallets = walletsSharedWithUser;
     state.setassetBalances = assetBalances;

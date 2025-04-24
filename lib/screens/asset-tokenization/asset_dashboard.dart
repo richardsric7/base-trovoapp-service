@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -85,7 +86,8 @@ class _AssetDashboardState extends State<AssetDashboard>
       }
     }
 
-    _daysProgress = tokenizedAsset.salesEnd!.difference(DateTime.now()).inDays;
+    _daysProgress =
+        DateTime.now().difference(tokenizedAsset.salesStart!).inDays;
     _totalDays =
         tokenizedAsset.salesEnd!.difference(tokenizedAsset.salesStart!).inDays;
 
@@ -135,7 +137,7 @@ class _AssetDashboardState extends State<AssetDashboard>
         ? 1
         : _daysProgress / _totalDays; // Convert to 0-1 range
 
-    print('fasdfsd=>>>>>>>>>>>>>> $normalizedDaysProgress');
+    print('fasdfsd=>>>>>$_daysProgress>>>>>>>>> $normalizedDaysProgress');
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -477,7 +479,7 @@ class _AssetDashboardState extends State<AssetDashboard>
             assetType,
           ),
           infoTile(notifier, 'Asset Country',
-              tokenizedAsset.assetCountryLocation ?? ''),
+              iso2Countries[tokenizedAsset.assetCountryLocation] ?? ""),
           infoTile(
             notifier,
             'Address',

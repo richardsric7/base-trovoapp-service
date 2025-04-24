@@ -37,7 +37,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  late Wallet wallet;
+  late Wallet? wallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
@@ -211,7 +211,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                       viewData['rejectedBy']
                           .toString()
                           .contains(appState.userInfo?.username ?? '')) &&
-                  wallet.isApprover) ...[
+                  (wallet?.isApprover ?? false)) ...[
                 SizedBox(
                   height: height / 20,
                 ),
@@ -461,7 +461,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
 
       String requestBody = jsonEncode({});
 
-      print("wallet signer: ${wallet.publicKey}");
+      print("wallet signer: ${wallet?.publicKey}");
 
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
@@ -592,7 +592,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
           '/v1/users/${appState.userInfo?.username?.trim().replaceAll(' ', '')}',
       signer: appState.primaryWallet.signer ?? "",
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: wallet.publicKey ?? "",
+      publicKey: wallet?.publicKey ?? "",
     );
 
     print('secretkey: ${appState.secretKeys[0]}');

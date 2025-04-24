@@ -127,7 +127,7 @@ class _AssetInformation extends State<AssetInformation>
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-    inspect(appState.tokenizationData);
+    inspect(data);
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
             ? data['ownershipType']
@@ -1353,8 +1353,7 @@ class _AssetInformation extends State<AssetInformation>
                                               267,
                                               validator: (value) {
                                                 if (value.isEmpty) {
-                                                  return "enterassetdescription"
-                                                      .tr();
+                                                  return "Please enter percentage";
                                                 }
                                                 return null;
                                               },

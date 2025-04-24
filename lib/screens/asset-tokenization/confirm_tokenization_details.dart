@@ -180,7 +180,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("originalassetvalue".tr(),
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ] else ...[
-                        item("originaltotalprojectcost".tr(),
+                        item("originalassetvalue".tr(),
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ],
                       SizedBox(height: height / 90),
@@ -224,22 +224,22 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Total tokens".tr(),
+                        item("Total token",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("Value of total tokens".tr(),
+                        item("Final Value of tokenized asset",
                             '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("pricepertoken".tr(),
+                        item("Price per token",
                             '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Tokens not for sale".tr(),
+                        item("Tokens not for sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("Tokens for sale".tr(),
+                        item("Tokens for sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("totalamounttoberaised".tr(),
+                        item("Amount to be raised",
                             '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
@@ -329,34 +329,34 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Asset tokenization fee",
+                        item("Tokenization fee in fiat",
                             '${feeInfo} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("SEC Regulatory Fee",
+                        item("SEC fee",
                             '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset Custody Fee",
+                        item("Custody fee",
                             '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset Management Fee",
+                        item("Asset management fee",
                             '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // if (tokenizedAsset.issuingHouseFee! > 0) ...[
-                        item("Issuing House Fee",
+                        item("Issuing house fee",
                             '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
-                        item("Legal Fee",
+                        item("Legal & professional fee",
                             '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
                         // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
-                        item("Rating Agency Fee",
+                        item("Rating agency fee",
                             '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         // ],
-                        item("VAT",
+                        item("VAT (Fiat)",
                             '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Total", '${getTotalFee()} ${fiatCurrency}'),
@@ -365,7 +365,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("applicationfee".tr(),
                             '${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
                         SizedBox(height: height / 90),
-                        item("tokenizationfee".tr(), feeInfo),
+                        item(
+                            "tokenizationfee".tr(), "$feeInfo ${fiatCurrency}"),
                         SizedBox(height: height / 90),
                         // item("otherstatutoryfees".tr(), ''),
                         // SizedBox(height: height / 90),
@@ -374,6 +375,48 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   ),
                 ),
               ),
+              if (isVetted) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(10.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 15),
+                          child: Text(
+                            "Fees in Asset",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                        ),
+                        item("Tokenization fee in asset",
+                            '${formatNumberShort(0)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                        SizedBox(height: height / 90),
+                        item("VAT (Asset)",
+                            '${0} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                        SizedBox(height: height / 90),
+                        item("Total",
+                            '${0} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                        SizedBox(height: height / 90),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               if (isAlreadySubmitted) ...[
                 if (tokenizedAsset.vettingStatus == 1 &&
                     tokenizedAsset.tokenizationStatus == 1) ...[

@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -595,7 +596,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               assetType,
             ),
             infoTile(notifier, 'Asset Country',
-                tokenizedAsset.assetCountryLocation ?? ''),
+                iso2Countries[tokenizedAsset.assetCountryLocation] ?? ""),
             infoTile(
               notifier,
               'Address',

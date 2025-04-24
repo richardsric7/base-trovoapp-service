@@ -8,6 +8,7 @@ import 'package:trovo_app/screens/page_view/onboarding_one.dart';
 import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_app/widgets/loader.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
 import '../button/custtom_button.dart';
@@ -67,6 +68,7 @@ class _SwiperState extends State<Swiper> {
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: false);
     var appState = Provider.of<DataProvider>(context, listen: false);
+    hideLoader(context);
     return Scaffold(
       backgroundColor: notifier.getwihitecolor,
       body: Column(

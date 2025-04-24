@@ -34,201 +34,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   late ColorNotifier notifier;
   late DataProvider appState;
 
-  Map<String, Map<String, dynamic>> get initDocTypeAndCodes => {
-        "proofOfAssetExistence": {
-          'name': 'Proof of Asset Existence',
-          'documentType': '1',
-          'options': <String>[
-            "Purchase Receipt",
-            "Proof of Address",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfAssetOwnership": {
-          'name': 'Proof Of Asset Ownership',
-          'documentType': '2',
-          'options': <String>[
-            "Title Deed",
-            "Bill of sale",
-            "Signed transfer of ownership",
-            "Certificate of ownership",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfAssetStatusVerification": {
-          'name': 'Proof Of Asset Status Verification',
-          'documentType': '3',
-          'options': <String>[
-            "Inspection reports",
-            "Maintenance/repair reports",
-            "Photos",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "assetCustodianAgreement": {
-          'name': 'Asset Custodian Agreement',
-          'documentType': '4',
-          'options': <String>[
-            "Asset Custodian Agreement",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfAssetManager": {
-          'name': 'Proof of Asset Manager',
-          'documentType': '5',
-          'options': <String>[
-            "Asset Management Agreement",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "assetProtectionDocument": {
-          'name': 'Asset Protection Document',
-          'documentType': '6',
-          'options': <String>[
-            "Insurance Policy Document",
-            "Bill of sale",
-            "Premium payment receipts",
-            "Inspection/maintenance report",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "assetValuationCertificate": {
-          'name': 'Asset Valuation Certificate',
-          'documentType': '7',
-          'options': <String>[
-            "Asset valaution report",
-            "Asset valaution certificate",
-            "Other",
-          ],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "additionalCostOutsideValuation": {
-          'name': 'Proof of Additional Cost Outside Valuation',
-          'documentType': '8',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfAssetCondition": {
-          'name': 'Proof of Asset\'s Condition',
-          'documentType': '9',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "thirdPartyTokenizationAgreement": {
-          'name': 'Third Party Tokenization Agreement',
-          'documentType': '10',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "thirdPartyAssetOwnerBusinessRegistration": {
-          'name': 'Third Party Asset Owner Business Registration',
-          'documentType': '11',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "thirdPartyAssetOwnerProofOfAddress": {
-          'name': 'Third Party Asset Owner Proof Of Address',
-          'documentType': '12',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "secApproval": {
-          'name': 'SEC Registration/Tokenization Approval',
-          'documentType': '13',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfCompliance": {
-          'name': 'Proof of Compliance with Local Laws and Regulations',
-          'documentType': '14',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfEnvCompliance": {
-          'name': 'Proof of Compliance with Environmental Standards',
-          'documentType': '15',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "envImpactAssessmentReport": {
-          'name': 'Environmental Impact Assessment Report',
-          'documentType': '16',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfLegalCounsel": {
-          'name': 'Proof of Legal/Financial Counsel',
-          'documentType': '17',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "legalAdvisorsContact": {
-          'name': 'Legal/Financial Advisors Contact',
-          'documentType': '18',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofofMortgagesorLiens": {
-          'name': 'Proof of Mortgages or Liens',
-          'documentType': '19',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofofOutstandingLoans": {
-          'name': 'Proof of Outstanding Loans',
-          'documentType': '20',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofofLegalDisputesOnAsset": {
-          'name': 'Proof of Legal Disputes on Asset',
-          'documentType': '21',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "approvedProjectBudget": {
-          'name': 'Approved Project Budget',
-          'documentType': '22',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-        "proofOfContributionFromSponsor": {
-          'name': 'Proof of Contribution from Sponsor',
-          'documentType': '23',
-          'options': <String>[],
-          'files': <String, dynamic>{},
-          'selectedFileOption': '',
-        },
-      };
-
   Map<String, Map<String, dynamic>> documentTypeAndCodes = {};
 
   List<DropdownMenuItem<String>> getDocumentOptions(
@@ -253,32 +58,34 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     List<DropdownMenuItem<String>> documentOptions = [];
 
     documentTypeAndCodes.forEach((key, value) {
-      documentOptions.add(
-        DropdownMenuItem(
-          child: Row(
-            children: [
-              Container(
-                constraints: BoxConstraints(maxWidth: 250),
-                child: Text(
-                  value['name'].toString(),
-                  overflow: TextOverflow.visible,
+      if (value['required'] == 1) {
+        documentOptions.add(
+          DropdownMenuItem(
+            child: Row(
+              children: [
+                Container(
+                  constraints: BoxConstraints(maxWidth: 250),
+                  child: Text(
+                    value['name'].toString(),
+                    overflow: TextOverflow.visible,
+                  ),
                 ),
-              ),
-              if (selectedDocuments[value['documentType']] != null) ...[
-                SizedBox(
-                  width: 3,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
+                if (selectedDocuments[value['documentType']] != null) ...[
+                  SizedBox(
+                    width: 3,
+                  ),
+                  Icon(
+                    Icons.check,
+                    size: 18,
+                    color: notifier.getbluecolor,
+                  )
+                ],
               ],
-            ],
+            ),
+            value: key,
           ),
-          value: key,
-        ),
-      );
+        );
+      }
     });
 
     return documentOptions;
@@ -541,9 +348,201 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   }
 
   void initializeData() {
-    documentTypeAndCodes = initDocTypeAndCodes;
     selectedDocuments.clear();
-    // inspect(appState.viewData!['AssetTokenizationDocuments']);
+    var assetAlreadyExists = appState.viewData!['assetAlreadyExists'];
+    var assetOwnership = appState.viewData!['ownershipType'];
+    var requiredProofOfContributedValue = assetAlreadyExists == 1 &&
+            appState.viewData!['assetOwnerRetainedOrContributedValue'] > 0
+        ? 1
+        : 0;
+    documentTypeAndCodes = {
+      "proofOfAssetExistence": {
+        'name': 'Proof of Asset Existence',
+        'documentType': '1',
+        'options': <String>[
+          "Purchase Receipt",
+          "Proof of Address",
+          "Other",
+        ],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetAlreadyExists == 1 ? 1 : 0,
+      },
+      "proofOfAssetOwnership": {
+        'name': 'Proof Of Asset Ownership',
+        'documentType': '2',
+        'options': <String>[
+          "Title Deed",
+          "Bill of sale",
+          "Signed transfer of ownership",
+          "Certificate of ownership",
+          "Other",
+        ],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetAlreadyExists == 1 ? 1 : 0,
+      },
+      "proofOfAssetStatusVerification": {
+        'name': 'Proof Of Asset Status Verification',
+        'documentType': '3',
+        'options': <String>[
+          "Inspection reports",
+          "Maintenance/repair reports",
+          "Photos",
+          "Other",
+        ],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "assetProtectionDocument": {
+        'name': 'Asset Protection Document',
+        'documentType': '6',
+        'options': <String>[
+          "Insurance Policy Document",
+          "Bill of sale",
+          "Premium payment receipts",
+          "Inspection/maintenance report",
+          "Other",
+        ],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "assetValuationCertificate": {
+        'name': 'Asset Valuation Certificate',
+        'documentType': '7',
+        'options': <String>[
+          "Asset valaution report",
+          "Asset valaution certificate",
+          "Other",
+        ],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "additionalCostOutsideValuation": {
+        'name': 'Proof of Additional Cost Outside Valuation',
+        'documentType': '8',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetAlreadyExists == 1 ? 1 : 0,
+      },
+      "proofOfAssetCondition": {
+        'name': 'Proof of Asset\'s Condition',
+        'documentType': '9',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetAlreadyExists == 1 ? 1 : 0,
+      },
+      "thirdPartyTokenizationAgreement": {
+        'name': 'Third Party Tokenization Agreement',
+        'documentType': '10',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetOwnership == 'THIRD-PARTY' ? 1 : 0,
+      },
+      "thirdPartyAssetOwnerBusinessRegistration": {
+        'name': 'Third Party Asset Owner Business Registration',
+        'documentType': '11',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetOwnership == 'THIRD-PARTY' ? 1 : 0,
+      },
+      "thirdPartyAssetOwnerProofOfAddress": {
+        'name': 'Third Party Asset Owner Proof Of Address',
+        'documentType': '12',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetOwnership == 'THIRD-PARTY' ? 1 : 0,
+      },
+      "proofOfCompliance": {
+        'name': 'Proof of Compliance with Local Laws and Regulations',
+        'documentType': '14',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "proofOfEnvCompliance": {
+        'name': 'Proof of Compliance with Environmental Standards',
+        'documentType': '15',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "envImpactAssessmentReport": {
+        'name': 'Environmental Impact Assessment Report',
+        'documentType': '16',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "proofOfLegalCounsel": {
+        'name': 'Proof of Legal/Financial Counsel',
+        'documentType': '17',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "legalAdvisorsContact": {
+        'name': 'Legal/Financial Advisors Contact',
+        'documentType': '18',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 1,
+      },
+      "proofofMortgagesorLiens": {
+        'name': 'Proof of Mortgages or Liens',
+        'documentType': '19',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 0,
+      },
+      "proofofOutstandingLoans": {
+        'name': 'Proof of Outstanding Loans',
+        'documentType': '20',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 0,
+      },
+      "proofofLegalDisputesOnAsset": {
+        'name': 'Proof of Legal Disputes on Asset',
+        'documentType': '21',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': 0,
+      },
+      "approvedProjectBudget": {
+        'name': 'Approved Project Budget',
+        'documentType': '22',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': assetAlreadyExists == 0 ? 1 : 0,
+      },
+      "proofOfContributionFromSponsor": {
+        'name': 'Proof of Contribution from Sponsor',
+        'documentType': '23',
+        'options': <String>[],
+        'files': <String, dynamic>{},
+        'selectedFileOption': '',
+        'required': requiredProofOfContributedValue,
+      },
+    };
+
     print(selectedDocuments);
     documents = appState.viewData!['AssetTokenizationDocuments'] ?? [];
     for (var item in documents) {

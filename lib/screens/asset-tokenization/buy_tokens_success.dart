@@ -27,7 +27,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  double amount = 0;
+  double amount = 0.0;
   String quantity = '0';
   String transactionId = '';
   String memo = '';
@@ -40,7 +40,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = appState.tokenizedAsset;
     inspect(appState.viewData);
-    amount = double.parse(appState.viewData?['amount'].toString() ?? '0');
+    amount = double.parse(appState.viewData?['amount'].toString() ?? '0.0');
     quantity = appState.viewData?['swappedEstimate']?.toString() ?? "";
     transactionId = appState.viewData?['transactionId'];
     memo = appState.viewData!['memo'];

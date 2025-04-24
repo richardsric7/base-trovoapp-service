@@ -1,3 +1,4 @@
+import 'package:get/get_utils/get_utils.dart';
 import 'package:trovo_app/models/patronMembership.dart';
 import 'package:trovo_app/models/referral_info.dart';
 
@@ -178,9 +179,9 @@ class UserInfo {
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
 
-  Wallet getWalletByAlias(String alias) {
+  Wallet? getWalletByAlias(String alias) {
     var combinedList = [...wallets!, ...sharedWallets!];
-    return combinedList.firstWhere((wallet) => wallet.alias == alias);
+    return combinedList.firstWhereOrNull((wallet) => wallet.alias == alias);
   }
 
   List<Wallet> get allWallets {

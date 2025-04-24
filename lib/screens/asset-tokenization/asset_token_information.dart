@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
@@ -1446,7 +1447,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         children: [
                           Text(
                             exemptedCountries.length > 0
-                                ? exemptedCountries.last
+                                ? iso2Countries[exemptedCountries.last] ?? ""
                                 : 'Select countries',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -1491,7 +1492,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                                       for (var country
                                           in exemptedCountries) ...[
                                         userItem(
-                                          country,
+                                          iso2Countries[country] ?? "",
                                           () {
                                             setState(() {
                                               exemptedCountries.remove(country);
@@ -1727,7 +1728,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         context: context,
         onSelect: (Country country) {
           setState(() {
-            exemptedCountries.add(country.name);
+            exemptedCountries.add(country.countryCode);
           });
         },
       );
