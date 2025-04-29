@@ -132,6 +132,27 @@ class TokenizedAsset {
   double? vatFixed;
   String? tokenizationApplicationFeeAsset;
 
+  String? projectStrategicObjectives;
+  String? projectDevelopmentTimeline;
+  String? projectKeyMilestoneAndDates;
+  String? projectScope;
+  String? projectEconomicBenefits;
+  String? projectExpectedNoOfJobs;
+  String? projectIntendedSocialBenefits;
+  String? projectTechnicalPartners;
+  String? projectFinancialPartners;
+
+  double? estimatedProjectIRR;
+  double? estimatedProjectROI;
+  double? estimatedProjectNPV;
+  String? estimatedProjectPaybackPeriodsInMonths;
+  String? keyAssumptionsList;
+  String? projectIdentifiedLegalRisks;
+  String? projectIdentifiedRegulatoryRisks;
+  String? projectIdentifiedOperationalOrExecutionRisks;
+  String? projectIdentifiedMarketRisks;
+  String? projectIdentifiedOtherRelevantRisks;
+
   TokenizedAsset({
     this.id,
     this.shadowId,
@@ -261,6 +282,25 @@ class TokenizedAsset {
     this.vatValue,
     this.vatPercent,
     this.vatFixed,
+    this.projectStrategicObjectives,
+    this.projectDevelopmentTimeline,
+    this.projectKeyMilestoneAndDates,
+    this.projectScope,
+    this.projectEconomicBenefits,
+    this.projectExpectedNoOfJobs,
+    this.projectIntendedSocialBenefits,
+    this.projectTechnicalPartners,
+    this.projectFinancialPartners,
+    this.estimatedProjectIRR,
+    this.estimatedProjectROI,
+    this.estimatedProjectNPV,
+    this.estimatedProjectPaybackPeriodsInMonths,
+    this.keyAssumptionsList,
+    this.projectIdentifiedLegalRisks,
+    this.projectIdentifiedRegulatoryRisks,
+    this.projectIdentifiedOperationalOrExecutionRisks,
+    this.projectIdentifiedMarketRisks,
+    this.projectIdentifiedOtherRelevantRisks,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -426,6 +466,31 @@ class TokenizedAsset {
       vatPercent: double.tryParse(m["vatPercent"].toString()),
       vatValue: double.tryParse(m["vatValue"].toString()),
       vatFixed: double.tryParse(m["vatFixed"].toString()),
+      projectStrategicObjectives: m["projectStrategicObjectives"].toString(),
+      projectDevelopmentTimeline: m["projectDevelopmentTimeline"].toString(),
+      projectKeyMilestoneAndDates: m["projectKeyMilestoneAndDates"].toString(),
+      projectScope: m["projectScope"].toString(),
+      projectEconomicBenefits: m["projectEconomicBenefits"].toString(),
+      projectExpectedNoOfJobs: m["projectExpectedNoOfJobs"].toString(),
+      projectIntendedSocialBenefits:
+          m["projectIntendedSocialBenefits"].toString(),
+      projectTechnicalPartners: m["projectTechnicalPartners"].toString(),
+      projectFinancialPartners: m["projectFinancialPartners"].toString(),
+      estimatedProjectIRR: double.tryParse(m["estimatedProjectIRR"].toString()),
+      estimatedProjectROI: double.tryParse(m["estimatedProjectROI"].toString()),
+      estimatedProjectNPV: double.tryParse(m["estimatedProjectNPV"].toString()),
+      estimatedProjectPaybackPeriodsInMonths:
+          m["estimatedProjectPaybackPeriodsInMonths"].toString(),
+      keyAssumptionsList: m["keyAssumptionsList"].toString(),
+      projectIdentifiedLegalRisks: m["projectIdentifiedLegalRisks"].toString(),
+      projectIdentifiedRegulatoryRisks:
+          m["projectIdentifiedRegulatoryRisks"].toString(),
+      projectIdentifiedOperationalOrExecutionRisks:
+          m["projectIdentifiedOperationalOrExecutionRisks"].toString(),
+      projectIdentifiedMarketRisks:
+          m["projectIdentifiedMarketRisks"].toString(),
+      projectIdentifiedOtherRelevantRisks:
+          m["projectIdentifiedOtherRelevantRisks"].toString(),
     );
   }
 

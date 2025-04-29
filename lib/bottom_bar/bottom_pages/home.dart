@@ -525,23 +525,32 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               notifier: notifier,
                               asset: item,
                               onSubscribe: () {
-                                showSubscribePopup(
-                                  context,
-                                  asset: item,
-                                  onDone: (amount) async {
-                                    await subscribeTokenizedAsset(
-                                      amount: double.parse(amount),
-                                      tokenizedAssetID: item.id!,
-                                    );
-                                    setState(() {
-                                      item.expressedInterest = true;
-                                      item.expressedInterestAmount =
-                                          double.parse(amount);
-                                    });
-                                  },
-                                );
+                                if (userInfo.kycVerified == null ||
+                                    userInfo.kycVerified == 0) {
+                                  kycUnverifiedErrorPop(context);
+                                  return;
+                                }
+
+                                showSubscribePopup(context, asset: item,
+                                    onDone: (amount) async {
+                                  await subscribeTokenizedAsset(
+                                    amount: double.parse(amount),
+                                    tokenizedAssetID: item.id!,
+                                  );
+                                  setState(() {
+                                    item.expressedInterest = true;
+                                    item.expressedInterestAmount =
+                                        double.parse(amount);
+                                  });
+                                });
                               },
                               onBuyToken: () {
+                                if (userInfo.kycVerified == null ||
+                                    userInfo.kycVerified == 0) {
+                                  kycUnverifiedErrorPop(context);
+                                  return;
+                                }
+
                                 showBuyTokenPopup(context,
                                     assetCode: item.assetCode!,
                                     onDone: (wallet) {

@@ -218,6 +218,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 children: [
                   ElevatedButton(
                     onPressed: () {
+                      if (appState.userInfo?.kycVerified == null ||
+                          appState.userInfo?.kycVerified == 0) {
+                        kycUnverifiedErrorPop(context);
+                        return;
+                      }
                       showBuyTokenPopup(context,
                           assetCode: tokenizedAsset.assetCode!.toUpperCase(),
                           onDone: (wallet) {
@@ -278,6 +283,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 children: [
                   ElevatedButton(
                     onPressed: () {
+                      if (appState.userInfo?.kycVerified == null ||
+                          appState.userInfo?.kycVerified == 0) {
+                        kycUnverifiedErrorPop(context);
+                        return;
+                      }
+
                       showSubscribePopup(
                         context,
                         asset: tokenizedAsset,
@@ -602,19 +613,147 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               'Address',
               tokenizedAsset.assetPhysicalAddress ?? '',
             ),
-            // if (tokenizedAsset.assetAlreadyExists == 1) ...[
-            //   infoTile(
-            //     notifier,
-            //     'Original Asset Owner',
-            //     tokenizedAsset.assetOwnerName ?? '',
-            //   ),
-            // ] else ...[
-            //   infoTile(
-            //     notifier,
-            //     'Project Sponsor',
-            //     tokenizedAsset.assetOwnerName ?? '',
-            //   ),
-            // ],
+            if (tokenizedAsset.assetAlreadyExists == 0) ...[
+              infoTile(
+                notifier,
+                "Project Strategic Objectives",
+                tokenizedAsset.projectStrategicObjectives ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Project Development Timeline",
+                tokenizedAsset.projectDevelopmentTimeline ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Key Milestones & Dates",
+                tokenizedAsset.projectKeyMilestoneAndDates ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Project Scope",
+                tokenizedAsset.projectScope ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Project Economic Benefits",
+                tokenizedAsset.projectEconomicBenefits ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Expected No. of Job to be Created",
+                tokenizedAsset.projectExpectedNoOfJobs ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Project Intended Social Benefits",
+                tokenizedAsset.projectIntendedSocialBenefits ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Technical Partners",
+                tokenizedAsset.projectTechnicalPartners ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Financial Partners",
+                tokenizedAsset.projectFinancialPartners ?? "",
+              ),
+              infoTile(
+                notifier,
+                "Project Intended Social Benefits",
+                tokenizedAsset.projectIntendedSocialBenefits ?? "",
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    child: SizedBox(
+                      width: width / 1.2,
+                      child: Text(
+                        "Asset Financial Performance",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              infoTile(
+                notifier,
+                "Estimated Project IRR",
+                formatNumber(tokenizedAsset.estimatedProjectIRR ?? 0),
+              ),
+              infoTile(
+                notifier,
+                "Estimated Project ROI",
+                formatNumber(tokenizedAsset.estimatedProjectROI ?? 0),
+              ),
+              infoTile(
+                notifier,
+                "Estimated Project NPV at Launch (Day 1)",
+                formatNumber(tokenizedAsset.estimatedProjectNPV ?? 0),
+              ),
+              infoTile(
+                notifier,
+                "Estimated Project Payback Periods (in Months)",
+                tokenizedAsset.estimatedProjectPaybackPeriodsInMonths ?? '',
+              ),
+              infoTile(
+                notifier,
+                "All Key Assumptions Including Values Assumed",
+                tokenizedAsset.keyAssumptionsList ?? '',
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    child: SizedBox(
+                      width: width / 1.2,
+                      child: Text(
+                        "Project Risk Assessment",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              infoTile(
+                notifier,
+                "Legal Risks Identified",
+                tokenizedAsset.projectIdentifiedLegalRisks ?? '',
+              ),
+              infoTile(
+                notifier,
+                "Regulatory Risks Identified",
+                tokenizedAsset.projectIdentifiedRegulatoryRisks ?? '',
+              ),
+              infoTile(
+                notifier,
+                "Operational/Execution Risks Identified",
+                tokenizedAsset.projectIdentifiedOperationalOrExecutionRisks ??
+                    '',
+              ),
+              infoTile(
+                notifier,
+                "Market Risks Identified",
+                tokenizedAsset.projectIdentifiedMarketRisks ?? '',
+              ),
+              infoTile(
+                notifier,
+                "Other Relevant Risks Identified",
+                tokenizedAsset.projectIdentifiedOtherRelevantRisks ?? '',
+              ),
+            ],
             infoTile(
               notifier,
               'Regulator',

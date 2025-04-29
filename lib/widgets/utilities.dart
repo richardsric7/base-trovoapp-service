@@ -588,7 +588,6 @@ Widget dropdown(
           validator: validator,
           onTap: onTap,
           hint: Container(
-            // width: 150, //and here
             child: hint != null
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

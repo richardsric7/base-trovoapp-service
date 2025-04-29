@@ -52,6 +52,27 @@ class _AssetInformation extends State<AssetInformation>
   bool formHasError = false;
   late dynamic data = {};
 
+  String projectStrategicObjectives = "";
+  String projectDevelopmentTimeline = "";
+  String projectKeyMilestoneAndDates = "";
+  String projectScope = "";
+  String projectEconomicBenefits = "";
+  String projectExpectedNoOfJobs = "";
+  String projectIntendedSocialBenefits = "";
+  String projectTechnicalPartners = "";
+  String projectFinancialPartners = "";
+
+  double estimatedProjectIRR = 0;
+  double estimatedProjectROI = 0;
+  double estimatedProjectNPV = 0;
+  String estimatedProjectPaybackPeriodsInMonths = "";
+  String keyAssumptionsList = "";
+  String projectIdentifiedLegalRisks = "";
+  String projectIdentifiedRegulatoryRisks = "";
+  String projectIdentifiedOperationalOrExecutionRisks = "";
+  String projectIdentifiedMarketRisks = "";
+  String projectIdentifiedOtherRelevantRisks = "";
+
   String independentMonitoringList = "";
   String otherAssetProtection = "";
   String legalAdvisor = "";
@@ -373,6 +394,512 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
+              if (!assetAlreadyExists) ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Strategic Objectives",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter objectives",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectStrategicObjectives,
+                        onChanged: (value) {
+                          setState(() {
+                            projectStrategicObjectives = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectStrategicObjectives = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Development Timeline",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Time to go live in months",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectDevelopmentTimeline,
+                        onChanged: (value) {
+                          setState(() {
+                            projectDevelopmentTimeline = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectDevelopmentTimeline = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Key Milestones & Dates",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "5 key milestones & dates",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectKeyMilestoneAndDates,
+                        onChanged: (value) {
+                          setState(() {
+                            projectKeyMilestoneAndDates = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectKeyMilestoneAndDates = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Scope",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter project scope",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectScope,
+                        onChanged: (value) {
+                          setState(() {
+                            projectScope = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectScope = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Economic Benefits",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Intended Economic Benefits of the Project to the Country",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectEconomicBenefits,
+                        onChanged: (value) {
+                          setState(() {
+                            projectEconomicBenefits = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectEconomicBenefits = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Expected No. of Job to be Created",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter expected number of jobs created when in full production",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectExpectedNoOfJobs,
+                        onChanged: (value) {
+                          setState(() {
+                            projectExpectedNoOfJobs = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectExpectedNoOfJobs = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Intended Social Benefits",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter intended social benefits of the project",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectIntendedSocialBenefits,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIntendedSocialBenefits = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectIntendedSocialBenefits = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Technical Partners (if any)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Name of Technical Partners (if any)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectTechnicalPartners,
+                        onChanged: (value) {
+                          setState(() {
+                            projectTechnicalPartners = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectTechnicalPartners = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Financial Partners (if any)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Name of Financial Partners (if any)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        300.sp,
+                        initialValue: projectFinancialPartners,
+                        onChanged: (value) {
+                          setState(() {
+                            projectFinancialPartners = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            projectFinancialPartners = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(
                 height: height / 50,
               ),
@@ -1066,6 +1593,644 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
+              if (!assetAlreadyExists) ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Asset Financial Performance",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Text(
+                          "???? ????? ????? ????? ???? ?????",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Estimated Project IRR (in %)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Estimated Project IRR (in %)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            estimatedProjectIRR =
+                                double.parse(value!.toString());
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          estimatedProjectIRR = double.parse(value!.toString());
+                        },
+                        // autoFormatNumber: true,
+                        // isFiat: true,
+                        // controller: valueOfAssetController,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Estimated Project ROI (in %)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Estimated Project ROI (in %)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            estimatedProjectROI =
+                                double.parse(value!.toString());
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          estimatedProjectROI = double.parse(value!.toString());
+                        },
+                        // autoFormatNumber: true,
+                        // isFiat: true,
+                        // controller: valueOfAssetController,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Estimated Project NPV at Launch (Day 1)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter Estimated Project NPV at Launch (Day 1)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            estimatedProjectNPV =
+                                double.parse(value!.toString());
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          estimatedProjectNPV = double.parse(value!.toString());
+                        },
+                        // autoFormatNumber: true,
+                        // isFiat: true,
+                        // controller: valueOfAssetController,
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Estimated Project NPV at Launch (Day 1)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Estimated Project Payback Periods (in Months)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            estimatedProjectPaybackPeriodsInMonths =
+                                value!.toString();
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          estimatedProjectPaybackPeriodsInMonths =
+                              value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SizedBox(
+                        width: 255,
+                        child: Text(
+                          "List all Key Assumptions Including Values Assumed (If any)",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "List all key assumptions",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            keyAssumptionsList = value.toString();
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          keyAssumptionsList = value.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Project Risk Assessment",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Text(
+                          "???? ????? ????? ????? ???? ?????",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Legal Risks Identified (Provide Details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter legal risks identified ",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIdentifiedLegalRisks = value!.toString();
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          projectIdentifiedLegalRisks = value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Regulatory Risks Identified (Provide Details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter regulatory risks identified ",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIdentifiedRegulatoryRisks =
+                                value!.toString();
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          projectIdentifiedRegulatoryRisks = value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Operational/Execution Risks Identified (Provide Details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter operational/execution risks identified ",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIdentifiedOperationalOrExecutionRisks =
+                                value!.toString();
+                          });
+                        },
+                        // validator: (value) {
+                        //   if (value.isEmpty) {
+                        //     return "fieldcannotbeempty".tr();
+                        //   }
+                        //   return null;
+                        // },
+                        onSaved: (value) {
+                          projectIdentifiedOperationalOrExecutionRisks =
+                              value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Market Risks Identified (Provide Details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter market risks identified ",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIdentifiedMarketRisks = value!.toString();
+                          });
+                        },
+                        // validator: (value) {
+                        //   if (value.isEmpty) {
+                        //     return "fieldcannotbeempty".tr();
+                        //   }
+                        //   return null;
+                        // },
+                        onSaved: (value) {
+                          projectIdentifiedMarketRisks = value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Other Relevant Risks Identified (Provide Details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "Enter other relevant risks identified ",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            projectIdentifiedOtherRelevantRisks =
+                                value!.toString();
+                          });
+                        },
+                        // validator: (value) {
+                        //   if (value.isEmpty) {
+                        //     return "fieldcannotbeempty".tr();
+                        //   }
+                        //   return null;
+                        // },
+                        onSaved: (value) {
+                          projectIdentifiedOtherRelevantRisks =
+                              value!.toString();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(
                 height: height / 50,
               ),
