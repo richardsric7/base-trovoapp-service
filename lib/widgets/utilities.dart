@@ -1124,12 +1124,63 @@ Widget infoCard(ColorNotifier notifier,
   );
 }
 
+Widget categoryTile(
+  ColorNotifier notifier, {
+  required String label,
+  required String imageUrl,
+  required void Function() onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Card(
+      elevation: notifier.isDark ? 0 : 3,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      child: ListTile(
+        title: Row(
+          children: [
+            Image.asset('assets/images/airtel.jpg', width: 30),
+            SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: notifier.getbluewhitecolor,
+          size: 20,
+        ),
+      ),
+    ),
+  );
+}
+
 Widget infoTile(ColorNotifier notifier, String key, String value) {
   return Card(
-    elevation: notifier.isDark ? 0 : 3,
+    // elevation: notifier.isDark ? 0 : 3,
     shadowColor: Colors.black,
-    color: notifier.gettilewihitecolor,
-    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+    color: notifier.isDark
+        ? notifier.getbluecolor90
+        : notifier.getaddsubwalletgrey,
+    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
