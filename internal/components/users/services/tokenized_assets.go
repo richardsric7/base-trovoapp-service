@@ -132,6 +132,20 @@ func GetAssetIssuingHouses(db *gorm.DB) (assetIssuingHouses []userModels.AssetIs
 
 	return
 }
+
+func GetLegalAndProfesionalPartners(db *gorm.DB) (lpp []userModels.LegalAndProfesionalPartner) {
+	lpp = make([]userModels.LegalAndProfesionalPartner, 0)
+	db.Order("Partner_Country_country, Partner_name").Find(&lpp)
+
+	return
+}
+
+func GetRatingAgencies(db *gorm.DB) (ras []userModels.RatingAgency) {
+	ras = make([]userModels.RatingAgency, 0)
+	db.Order("Agency_Country, Agency_name").Find(&ras)
+
+	return
+}
 func GetAssetManagerByID(id uint64, db *gorm.DB) (assetManager userModels.AssetManager) {
 	db.Where("id = ?", id).First(&assetManager)
 
@@ -146,6 +160,18 @@ func GetApprovedCustodianByID(id uint64, db *gorm.DB) (custodian userModels.Appr
 
 func GetAssetIssuingHouseByID(id uint64, db *gorm.DB) (assetIssuingHouse userModels.AssetIssuingHouse) {
 	db.Where("id = ?", id).First(&assetIssuingHouse)
+
+	return
+}
+
+func GetLegalAndProfesionalPartnerByID(id uint64, db *gorm.DB) (lpp userModels.LegalAndProfesionalPartner) {
+	db.Where("id = ?", id).First(&lpp)
+
+	return
+}
+
+func GetRatingAgencyByID(id uint64, db *gorm.DB) (ra userModels.RatingAgency) {
+	db.Where("id = ?", id).First(&ra)
 
 	return
 }
@@ -917,8 +943,6 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 
 	}
 
-	// initialize message array
-	// input.Messages = make([]string, 0)
 	// check asset manager ID
 	if input.AssetManagerID == 0 {
 		log.Printf("[VetTokenizationAssetInfo] Error Invalid Asset Manager ID: %v\n%v\n", input.AssetManagerID, tokenizationID)
@@ -957,20 +981,52 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	ai := GetAssetIssuingHouseByID(input.AssetIssuingHouseID, gc.DB)
 	if ai.ID == 0 {
 		log.Printf("[VetTokenizationAssetInfo] Error Invalid assetIssuingHouseID ID: %v\n%v\n", input.AssetIssuingHouseID, tokenizationID)
-		err = &tErrors.CustomError{Param: "assetIssuingHouseId", Err: "error-invalid-asset-issuing house", ErrMessage: "Invalid Asset Issuing House."}
+		err = &tErrors.CustomError{Param: "assetIssuingHouseId", Err: "error-invalid-asset-issuing-house", ErrMessage: "Invalid Asset Issuing House."}
 		return
 	}
 
-	assetMgtConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetAssetMgtFee(input.AssetManagerID, gc)
-	assetCustodianConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetCustodyFee(input.ApprovedAssetCustodianID, gc)
-	assetIssuingHouseConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetCustodyFee(input.AssetIssuingHouseID, gc)
+	if input.LegalAndProfesionalPartnerID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid Legal and  Professional Partner: %v\n%v\n", input.LegalAndProfesionalPartnerID, tokenizationID)
+		err = &tErrors.CustomError{Param: "legalAndProfesionalPartnerID", Err: "error-invalid-legalAndProfesionalPartnerId", ErrMessage: "Invalid Legal And ProfesionalPartner. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	lpp := GetLegalAndProfesionalPartnerByID(input.LegalAndProfesionalPartnerID, gc.DB)
+	if lpp.ID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid LegalAndProfesionalPartnerID: %v\n%v\n", input.LegalAndProfesionalPartnerID, tokenizationID)
+		err = &tErrors.CustomError{Param: "assetIssuingHouseId", Err: "error-invalid-legalAndProfesionalPartnerId", ErrMessage: "Invalid Legal And ProfesionalPartner."}
+		return
+	}
+
+	if input.RatingAgencyID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid RatingAgencyID: %v\n%v\n", input.RatingAgencyID, tokenizationID)
+		err = &tErrors.CustomError{Param: "ratingAgencyID", Err: "error-invalid-rating-agency", ErrMessage: "Invalid Rating Agency. None specified."}
+		return
+	}
+
+	// check asset manager ID
+	ra := GetRatingAgencyByID(input.RatingAgencyID, gc.DB)
+	if ra.ID == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid rating agency: %v\n%v\n", input.RatingAgencyID, tokenizationID)
+		err = &tErrors.CustomError{Param: "ratingAgency", Err: "error-invalid-rating-agency", ErrMessage: "Invalid Rating Agency."}
+		return
+	}
 
 	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
-	ato.CustodianFeePercent = assetCustodianConfig.FeePercent
+	ato.CustodianFeePercent = ac.FeePercent
 	ato.AssetManagerID = input.AssetManagerID
-	ato.AssetManagerFeePercent = assetMgtConfig.FeePercent
+	ato.AssetManagerFeePercent = am.FeePercent
 	ato.AssetIssuingHouseID = input.AssetIssuingHouseID
-	ato.IssuingHouseFeePercent = assetIssuingHouseConfig.FeePercent
+	ato.IssuingHouseFeePercent = ai.FeePercent
+	ato.IssuingHouseFeeFixed = ai.FeeFixed
+	ato.LegalAndProfesionalPartnerID = input.LegalAndProfesionalPartnerID
+	ato.LegalAndProfessionalFeePercent = lpp.FeePercent
+	ato.LegalAndProfessionalFeeFixed = lpp.FeeFixed
+	ato.RatingAgencyID = input.RatingAgencyID
+	ato.RatingAgencyFeePercent = ra.FeePercent
+	ato.RatingAgencyFeeFixed = ra.FeeFixed
+
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
 	}

@@ -402,6 +402,16 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetIssuingHouse: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.LegalAndProfesionalPartner{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating LegalAndProfesionalPartner: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.RatingAgency{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating RatingAgency: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingApprover{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingApprover: ", errMigrate)
