@@ -2069,6 +2069,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.ProjectTechnicalPartners != nil {
 		t.ProjectTechnicalPartners = *ti.ProjectTechnicalPartners
 	}
+	// asNN(ti.ProjectFinancialPartners, &t.ProjectFinancialPartners)
+	if ti.ProjectFinancialPartners != nil {
+		t.ProjectFinancialPartners = *ti.ProjectFinancialPartners
+	}
 
 	t.EstimatedProjectIRR = ti.EstimatedProjectIRR
 	t.EstimatedProjectROI = ti.EstimatedProjectROI
