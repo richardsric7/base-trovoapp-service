@@ -1487,29 +1487,78 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
 	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
 
-	asNE(ti.ProjectStrategicObjectives, t.ProjectStrategicObjectives)
-	asNE(ti.ProjectDevelopmentTimeline, t.ProjectDevelopmentTimeline)
-	asNE(ti.ProjectKeyMilestoneAndDates, t.ProjectKeyMilestoneAndDates)
-	asNE(ti.ProjectScope, t.ProjectScope)
-	asNE(ti.ProjectEconomicBenefits, t.ProjectEconomicBenefits)
+	// asNE(ti.ProjectStrategicObjectives, t.ProjectStrategicObjectives)
+	if ne(ti.ProjectStrategicObjectives) {
+		t.ProjectStrategicObjectives = &ti.ProjectStrategicObjectives
+	}
+
+	// asNE(ti.ProjectDevelopmentTimeline, t.ProjectDevelopmentTimeline)
+	if ne(ti.ProjectDevelopmentTimeline) {
+		t.ProjectDevelopmentTimeline = &ti.ProjectDevelopmentTimeline
+	}
+
+	// asNE(ti.ProjectKeyMilestoneAndDates, t.ProjectKeyMilestoneAndDates)
+	if ne(ti.ProjectKeyMilestoneAndDates) {
+		t.ProjectKeyMilestoneAndDates = &ti.ProjectKeyMilestoneAndDates
+	}
+
+	// asNE(ti.ProjectScope, t.ProjectScope)
+	if ne(ti.ProjectScope) {
+		t.ProjectScope = &ti.ProjectScope
+	}
+
+	// asNE(ti.ProjectEconomicBenefits, t.ProjectEconomicBenefits)
+	if ne(ti.ProjectEconomicBenefits) {
+		t.ProjectEconomicBenefits = &ti.ProjectEconomicBenefits
+	}
 
 	t.ProjectExpectedNoOfJobs = ti.ProjectExpectedNoOfJobs
 
-	asNE(ti.ProjectIntendedSocialBenefits, t.ProjectIntendedSocialBenefits)
-	asNE(ti.ProjectTechnicalPartners, t.ProjectTechnicalPartners)
-	asNE(ti.ProjectFinancialPartners, t.ProjectFinancialPartners)
+	// asNE(ti.ProjectIntendedSocialBenefits, t.ProjectIntendedSocialBenefits)
+	if ne(ti.ProjectIntendedSocialBenefits) {
+		t.ProjectIntendedSocialBenefits = &ti.ProjectIntendedSocialBenefits
+	}
+
+	// asNE(ti.ProjectTechnicalPartners, t.ProjectTechnicalPartners)
+	if ne(ti.ProjectTechnicalPartners) {
+		t.ProjectTechnicalPartners = &ti.ProjectTechnicalPartners
+	}
+
+	// asNE(ti.ProjectFinancialPartners, t.ProjectFinancialPartners)
+	if ne(ti.ProjectFinancialPartners) {
+		t.ProjectFinancialPartners = &ti.ProjectFinancialPartners
+	}
 
 	t.EstimatedProjectIRR = ti.EstimatedProjectIRR
 	t.EstimatedProjectROI = ti.EstimatedProjectROI
 	t.EstimatedProjectNPV = ti.EstimatedProjectNPV
 	t.EstimatedProjectPaybackPeriodsInMonths = ti.EstimatedProjectPaybackPeriodsInMonths
 
-	asNE(ti.KeyAssumptionsList, t.KeyAssumptionsList)
-	asNE(ti.ProjectIdentifiedLegalRisks, t.ProjectIdentifiedLegalRisks)
-	asNE(ti.ProjectIdentifiedRegulatoryRisks, t.ProjectIdentifiedRegulatoryRisks)
-	asNE(ti.ProjectIdentifiedOperationalOrExecutionRisks, t.ProjectIdentifiedOperationalOrExecutionRisks)
-	asNE(ti.ProjectIdentifiedMarketRisks, t.ProjectIdentifiedMarketRisks)
-	asNE(ti.ProjectIdentifiedOtherRelevantRisks, t.ProjectIdentifiedOtherRelevantRisks)
+	// asNE(ti.KeyAssumptionsList, t.KeyAssumptionsList)
+	if ne(ti.KeyAssumptionsList) {
+		t.KeyAssumptionsList = &ti.KeyAssumptionsList
+	}
+	// asNE(ti.ProjectIdentifiedLegalRisks, t.ProjectIdentifiedLegalRisks)
+	if ne(ti.ProjectIdentifiedLegalRisks) {
+		t.ProjectIdentifiedLegalRisks = &ti.ProjectIdentifiedLegalRisks
+	}
+	// asNE(ti.ProjectIdentifiedRegulatoryRisks, t.ProjectIdentifiedRegulatoryRisks)
+	if ne(ti.ProjectIdentifiedRegulatoryRisks) {
+		t.ProjectIdentifiedRegulatoryRisks = &ti.ProjectIdentifiedRegulatoryRisks
+	}
+
+	// asNE(ti.ProjectIdentifiedOperationalOrExecutionRisks, t.ProjectIdentifiedOperationalOrExecutionRisks)
+	if ne(ti.ProjectIdentifiedOperationalOrExecutionRisks) {
+		t.ProjectIdentifiedOperationalOrExecutionRisks = &ti.ProjectIdentifiedOperationalOrExecutionRisks
+	}
+	// asNE(ti.ProjectIdentifiedMarketRisks, t.ProjectIdentifiedMarketRisks)
+	if ne(ti.ProjectIdentifiedMarketRisks) {
+		t.ProjectIdentifiedMarketRisks = &ti.ProjectIdentifiedMarketRisks
+	}
+	// asNE(ti.ProjectIdentifiedOtherRelevantRisks, t.ProjectIdentifiedOtherRelevantRisks)
+	if ne(ti.ProjectIdentifiedOtherRelevantRisks) {
+		t.ProjectIdentifiedOtherRelevantRisks = &ti.ProjectIdentifiedOtherRelevantRisks
+	}
 
 	return *t
 
@@ -1982,28 +2031,79 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
 	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
 
-	asNN(ti.ProjectStrategicObjectives, &t.ProjectStrategicObjectives)
-	asNN(ti.ProjectDevelopmentTimeline, &t.ProjectDevelopmentTimeline)
-	asNN(ti.ProjectKeyMilestoneAndDates, &t.ProjectKeyMilestoneAndDates)
-	asNN(ti.ProjectScope, &t.ProjectScope)
-	asNN(ti.ProjectEconomicBenefits, &t.ProjectEconomicBenefits)
+	if ti.ProjectStrategicObjectives != nil {
+		t.ProjectStrategicObjectives = *ti.ProjectStrategicObjectives
+	}
+
+	// asNN(ti.ProjectStrategicObjectives, &t.ProjectStrategicObjectives)
+
+	// asNN(ti.ProjectDevelopmentTimeline, &t.ProjectDevelopmentTimeline)
+
+	if ti.ProjectDevelopmentTimeline != nil {
+		t.ProjectDevelopmentTimeline = *ti.ProjectDevelopmentTimeline
+	}
+
+	// asNN(ti.ProjectKeyMilestoneAndDates, &t.ProjectKeyMilestoneAndDates)
+	if ti.ProjectKeyMilestoneAndDates != nil {
+		t.ProjectKeyMilestoneAndDates = *ti.ProjectKeyMilestoneAndDates
+	}
+
+	// asNN(ti.ProjectScope, &t.ProjectScope)
+
+	if ti.ProjectScope != nil {
+		t.ProjectScope = *ti.ProjectScope
+	}
+	// asNN(ti.ProjectEconomicBenefits, &t.ProjectEconomicBenefits)
+	if ti.ProjectEconomicBenefits != nil {
+		t.ProjectEconomicBenefits = *ti.ProjectEconomicBenefits
+	}
 
 	t.ProjectExpectedNoOfJobs = ti.ProjectExpectedNoOfJobs
 
-	asNN(ti.ProjectIntendedSocialBenefits, &t.ProjectIntendedSocialBenefits)
-	asNN(ti.ProjectTechnicalPartners, &t.ProjectTechnicalPartners)
+	// asNN(ti.ProjectIntendedSocialBenefits, &t.ProjectIntendedSocialBenefits)
+	if ti.ProjectIntendedSocialBenefits != nil {
+		t.ProjectIntendedSocialBenefits = *ti.ProjectIntendedSocialBenefits
+	}
+
+	// asNN(ti.ProjectTechnicalPartners, &t.ProjectTechnicalPartners)
+	if ti.ProjectTechnicalPartners != nil {
+		t.ProjectTechnicalPartners = *ti.ProjectTechnicalPartners
+	}
 
 	t.EstimatedProjectIRR = ti.EstimatedProjectIRR
 	t.EstimatedProjectROI = ti.EstimatedProjectROI
 	t.EstimatedProjectNPV = ti.EstimatedProjectNPV
 	t.EstimatedProjectPaybackPeriodsInMonths = ti.EstimatedProjectPaybackPeriodsInMonths
 
-	asNN(ti.KeyAssumptionsList, &t.KeyAssumptionsList)
-	asNN(ti.ProjectIdentifiedLegalRisks, &t.ProjectIdentifiedLegalRisks)
-	asNN(ti.ProjectIdentifiedRegulatoryRisks, &t.ProjectIdentifiedRegulatoryRisks)
-	asNN(ti.ProjectIdentifiedOperationalOrExecutionRisks, &t.ProjectIdentifiedOperationalOrExecutionRisks)
-	asNN(ti.ProjectIdentifiedMarketRisks, &t.ProjectIdentifiedMarketRisks)
-	asNN(ti.ProjectIdentifiedOtherRelevantRisks, &t.ProjectIdentifiedOtherRelevantRisks)
+	// asNN(ti.KeyAssumptionsList, &t.KeyAssumptionsList)
+	if ti.KeyAssumptionsList != nil {
+		t.KeyAssumptionsList = *ti.KeyAssumptionsList
+	}
+
+	// asNN(ti.ProjectIdentifiedLegalRisks, &t.ProjectIdentifiedLegalRisks)
+
+	if ti.ProjectIdentifiedLegalRisks != nil {
+		t.ProjectIdentifiedLegalRisks = *ti.ProjectIdentifiedLegalRisks
+	}
+
+	// asNN(ti.ProjectIdentifiedRegulatoryRisks, &t.ProjectIdentifiedRegulatoryRisks)
+	if ti.ProjectIdentifiedRegulatoryRisks != nil {
+		t.ProjectIdentifiedRegulatoryRisks = *ti.ProjectIdentifiedRegulatoryRisks
+	}
+
+	// asNN(ti.ProjectIdentifiedOperationalOrExecutionRisks, &t.ProjectIdentifiedOperationalOrExecutionRisks)
+	if ti.ProjectIdentifiedOperationalOrExecutionRisks != nil {
+		t.ProjectIdentifiedOperationalOrExecutionRisks = *ti.ProjectIdentifiedOperationalOrExecutionRisks
+	}
+
+	// asNN(ti.ProjectIdentifiedMarketRisks, &t.ProjectIdentifiedMarketRisks)
+	if ti.ProjectIdentifiedMarketRisks != nil {
+		t.ProjectIdentifiedMarketRisks = *ti.ProjectIdentifiedMarketRisks
+	}
+	// asNN(ti.ProjectIdentifiedOtherRelevantRisks, &t.ProjectIdentifiedOtherRelevantRisks)
+	if ti.ProjectIdentifiedOtherRelevantRisks != nil {
+		t.ProjectIdentifiedOtherRelevantRisks = *ti.ProjectIdentifiedOtherRelevantRisks
+	}
 
 	return t
 
@@ -2184,29 +2284,29 @@ func nn(s *string) bool {
 
 }
 
-// asNN assigns the source to destination if source is not nil and empties destination if source is nil
-func asNN(source *string, destination *string) (r bool) {
-	if destination != nil {
-		r = false
-	}
-	if nn(source) {
-		destination = source
-	} else {
-		empty := ""
-		destination = &empty
-	}
-	return destination == nil
-}
+// // asNN assigns the source to destination if source is not nil and empties destination if source is nil
+// func asNN(source *string, destination *string) (r bool) {
+// 	if destination != nil {
+// 		r = false
+// 	}
+// 	if nn(source) {
+// 		destination = source
+// 	} else {
+// 		empty := ""
+// 		destination = &empty
+// 	}
+// 	return destination == nil
+// }
 
-// asNE assigns the source to destination if source is not empty and nils destination if source is empty
-func asNE(source string, destination *string) (r bool) {
-	if destination != nil {
-		r = false
-	}
-	if ne(source) {
-		destination = &source
-	} else {
-		destination = nil
-	}
-	return destination == nil
-}
+// // asNE assigns the source to destination if source is not empty and nils destination if source is empty
+// func asNE(source string, destination *string) (r bool) {
+// 	if destination != nil {
+// 		r = false
+// 	}
+// 	if ne(source) {
+// 		destination = &source
+// 	} else {
+// 		destination = nil
+// 	}
+// 	return destination == nil
+// }
