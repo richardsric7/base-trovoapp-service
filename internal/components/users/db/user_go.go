@@ -31,7 +31,10 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 			// log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &user)
-			return
+			if len(user.UserWallets) > 0 {
+				return
+			}
+
 		}
 
 	}
