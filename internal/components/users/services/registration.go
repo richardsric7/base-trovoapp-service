@@ -126,14 +126,24 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	// build user wallet
 	user.BuildPrimaryWallet()
 	//save the user
-
-	errCreate := gc.DB.Omit(clause.Associations).Create(user).Error
+	//begin db transactiond
+	dbTx := gc.DB.Begin()
+	defer dbTx.Rollback()
+	errCreate := dbTx.Omit(clause.Associations).Create(user).Error
 	if errCreate != nil {
 
 		discord.Say(fmt.Sprintf("[RegisterUser] user creation failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errCreate, userInfo))
 		return userInfo, false, errors.New("unable to create user due to error in information")
 	}
+	userWallets := user.UserWallets
+	errCreate = dbTx.Omit(clause.Associations).Create(&userWallets).Error
+	if errCreate != nil {
 
+		discord.Say(fmt.Sprintf("[RegisterUser] user wallets creation failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errCreate, userWallets))
+		return userInfo, false, errors.New("unable to create user due to error in information")
+	}
+	//commit record to DB
+	dbTx.Commit()
 	{
 		//send to monitoring service
 		trackPublicKey := userModels.TrackedPublicKey{
