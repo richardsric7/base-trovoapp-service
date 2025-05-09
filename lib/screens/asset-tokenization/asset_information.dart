@@ -57,7 +57,7 @@ class _AssetInformation extends State<AssetInformation>
   String projectKeyMilestoneAndDates = "";
   String projectScope = "";
   String projectEconomicBenefits = "";
-  String projectExpectedNoOfJobs = "";
+  int projectExpectedNoOfJobs = 0;
   String projectIntendedSocialBenefits = "";
   String projectTechnicalPartners = "";
   String projectFinancialPartners = "";
@@ -65,7 +65,7 @@ class _AssetInformation extends State<AssetInformation>
   double estimatedProjectIRR = 0;
   double estimatedProjectROI = 0;
   double estimatedProjectNPV = 0;
-  String estimatedProjectPaybackPeriodsInMonths = "";
+  int estimatedProjectPaybackPeriodsInMonths = 0;
   String keyAssumptionsList = "";
   String projectIdentifiedLegalRisks = "";
   String projectIdentifiedRegulatoryRisks = "";
@@ -246,6 +246,35 @@ class _AssetInformation extends State<AssetInformation>
     hasOtherAssetProtection =
         data['otherAssetProtection'].toString().isNotEmpty;
 
+    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
+    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
+    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
+    projectScope = data['projectScope'] ?? "";
+    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
+    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
+    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
+    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
+    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
+
+    estimatedProjectPaybackPeriodsInMonths =
+        data['estimatedProjectPaybackPeriodsInMonths'];
+    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
+    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
+    projectIdentifiedRegulatoryRisks =
+        data['projectIdentifiedRegulatoryRisks'] ?? "";
+    projectIdentifiedOperationalOrExecutionRisks =
+        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
+    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
+    projectIdentifiedOtherRelevantRisks =
+        data['projectIdentifiedOtherRelevantRisks'] ?? "";
+
+    estimatedProjectIRR =
+        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
+    estimatedProjectROI =
+        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
+    estimatedProjectNPV =
+        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
+
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -297,7 +326,7 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "enterassetname".tr(),
+                      "assetname".tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -515,7 +544,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        "Key Milestones & Dates",
+                        "Project Estimated Payback Period (in Months)",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -533,7 +562,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "5 key milestones & dates",
+                        "Enter estimate",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -542,6 +571,64 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         300.sp,
+                        initialValue:
+                            estimatedProjectPaybackPeriodsInMonths.toString(),
+                        onChanged: (value) {
+                          setState(() {
+                            estimatedProjectPaybackPeriodsInMonths =
+                                int.tryParse(value) ?? 0;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            estimatedProjectPaybackPeriodsInMonths =
+                                int.tryParse(value) ?? 0;
+                          });
+                        },
+                        keyboardtype: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "Key Milestones & Dates",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: multilineInput(
+                        "5 key milestones & dates",
+                        notifier.getbluecolor,
+                        notifier.getgrey,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectKeyMilestoneAndDates,
                         onChanged: (value) {
                           setState(() {
@@ -559,6 +646,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectKeyMilestoneAndDates = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -644,16 +734,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
-                        "Enter Intended Economic Benefits of the Project to the Country",
+                      child: multilineInput(
+                        "Enter intended economic benefits",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectEconomicBenefits,
                         onChanged: (value) {
                           setState(() {
@@ -671,6 +759,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectEconomicBenefits = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -701,7 +792,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter expected number of jobs created when in full production",
+                        "Enter number of jobs",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -710,10 +801,10 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        initialValue: projectExpectedNoOfJobs,
+                        initialValue: projectExpectedNoOfJobs.toString(),
                         onChanged: (value) {
                           setState(() {
-                            projectExpectedNoOfJobs = value;
+                            projectExpectedNoOfJobs = int.tryParse(value) ?? 0;
                           });
                         },
                         validator: (value) {
@@ -724,9 +815,10 @@ class _AssetInformation extends State<AssetInformation>
                         },
                         onSaved: (value) {
                           setState(() {
-                            projectExpectedNoOfJobs = value!;
+                            projectExpectedNoOfJobs = int.tryParse(value) ?? 0;
                           });
                         },
+                        keyboardtype: TextInputType.number,
                       ),
                     ),
                   ],
@@ -756,16 +848,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
-                        "Enter intended social benefits of the project",
+                      child: multilineInput(
+                        "Enter intended social benefits",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectIntendedSocialBenefits,
                         onChanged: (value) {
                           setState(() {
@@ -783,6 +873,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectIntendedSocialBenefits = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -813,7 +906,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter Name of Technical Partners (if any)",
+                        "Enter name of technical partners",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -869,7 +962,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter Name of Financial Partners (if any)",
+                        "Enter name of financial partners",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -1659,7 +1752,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter Estimated Project IRR (in %)",
+                        "Enter estimate",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -1668,6 +1761,7 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         width / 1.12,
+                        initialValue: estimatedProjectIRR.toString(),
                         onChanged: (value) {
                           setState(() {
                             estimatedProjectIRR =
@@ -1718,7 +1812,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter Estimated Project ROI (in %)",
+                        "Enter estimate",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -1727,6 +1821,7 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         width / 1.12,
+                        initialValue: estimatedProjectROI.toString(),
                         onChanged: (value) {
                           setState(() {
                             estimatedProjectROI =
@@ -1777,7 +1872,7 @@ class _AssetInformation extends State<AssetInformation>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomTextFormField.textField(
-                        "Enter Estimated Project NPV at Launch (Day 1)",
+                        "Enter estimate",
                         notifier.getbluecolor,
                         null,
                         notifier.getgrey,
@@ -1786,6 +1881,7 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         width / 1.12,
+                        initialValue: estimatedProjectNPV.toString(),
                         onChanged: (value) {
                           setState(() {
                             estimatedProjectNPV =
@@ -1806,61 +1902,6 @@ class _AssetInformation extends State<AssetInformation>
                         // controller: valueOfAssetController,
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "Estimated Project NPV at Launch (Day 1)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
-                        "Estimated Project Payback Periods (in Months)",
-                        notifier.getbluecolor,
-                        null,
-                        notifier.getgrey,
-                        null,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        85,
-                        width / 1.12,
-                        onChanged: (value) {
-                          setState(() {
-                            estimatedProjectPaybackPeriodsInMonths =
-                                value!.toString();
-                          });
-                        },
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return "fieldcannotbeempty".tr();
-                          }
-                          return null;
-                        },
-                        onSaved: (value) {
-                          estimatedProjectPaybackPeriodsInMonths =
-                              value!.toString();
-                        },
                       ),
                     ),
                   ],
@@ -1893,16 +1934,15 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "List all key assumptions",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue: keyAssumptionsList,
                         onChanged: (value) {
                           setState(() {
                             keyAssumptionsList = value.toString();
@@ -1917,6 +1957,9 @@ class _AssetInformation extends State<AssetInformation>
                         onSaved: (value) {
                           keyAssumptionsList = value.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -1985,16 +2028,15 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter legal risks identified ",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue: projectIdentifiedLegalRisks,
                         onChanged: (value) {
                           setState(() {
                             projectIdentifiedLegalRisks = value!.toString();
@@ -2009,6 +2051,9 @@ class _AssetInformation extends State<AssetInformation>
                         onSaved: (value) {
                           projectIdentifiedLegalRisks = value!.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -2038,16 +2083,15 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter regulatory risks identified ",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue: projectIdentifiedRegulatoryRisks,
                         onChanged: (value) {
                           setState(() {
                             projectIdentifiedRegulatoryRisks =
@@ -2063,6 +2107,9 @@ class _AssetInformation extends State<AssetInformation>
                         onSaved: (value) {
                           projectIdentifiedRegulatoryRisks = value!.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -2092,32 +2139,35 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter operational/execution risks identified ",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue:
+                            projectIdentifiedOperationalOrExecutionRisks,
                         onChanged: (value) {
                           setState(() {
                             projectIdentifiedOperationalOrExecutionRisks =
                                 value!.toString();
                           });
                         },
-                        // validator: (value) {
-                        //   if (value.isEmpty) {
-                        //     return "fieldcannotbeempty".tr();
-                        //   }
-                        //   return null;
-                        // },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
                         onSaved: (value) {
                           projectIdentifiedOperationalOrExecutionRisks =
                               value!.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -2147,30 +2197,32 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter market risks identified ",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue: projectIdentifiedMarketRisks,
                         onChanged: (value) {
                           setState(() {
                             projectIdentifiedMarketRisks = value!.toString();
                           });
                         },
-                        // validator: (value) {
-                        //   if (value.isEmpty) {
-                        //     return "fieldcannotbeempty".tr();
-                        //   }
-                        //   return null;
-                        // },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
                         onSaved: (value) {
                           projectIdentifiedMarketRisks = value!.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -2200,32 +2252,34 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter other relevant risks identified ",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
+                        100.sp,
                         width / 1.12,
+                        initialValue: projectIdentifiedOtherRelevantRisks,
                         onChanged: (value) {
                           setState(() {
                             projectIdentifiedOtherRelevantRisks =
                                 value!.toString();
                           });
                         },
-                        // validator: (value) {
-                        //   if (value.isEmpty) {
-                        //     return "fieldcannotbeempty".tr();
-                        //   }
-                        //   return null;
-                        // },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
                         onSaved: (value) {
                           projectIdentifiedOtherRelevantRisks =
                               value!.toString();
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -3909,6 +3963,32 @@ class _AssetInformation extends State<AssetInformation>
       newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
       newData['hasInsurance'] = hasInsurance ? 1 : 0;
 
+      newData['projectStrategicObjectives'] = projectStrategicObjectives;
+      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
+      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
+      newData['projectScope'] = projectScope;
+      newData['projectEconomicBenefits'] = projectEconomicBenefits;
+      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
+      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
+      newData['projectTechnicalPartners'] = projectTechnicalPartners;
+      newData['projectFinancialPartners'] = projectFinancialPartners;
+
+      newData['estimatedProjectPaybackPeriodsInMonths'] =
+          estimatedProjectPaybackPeriodsInMonths;
+      newData['keyAssumptionsList'] = keyAssumptionsList;
+      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
+      newData['projectIdentifiedRegulatoryRisks'] =
+          projectIdentifiedRegulatoryRisks;
+      newData['projectIdentifiedOperationalOrExecutionRisks'] =
+          projectIdentifiedOperationalOrExecutionRisks;
+      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
+      newData['projectIdentifiedOtherRelevantRisks'] =
+          projectIdentifiedOtherRelevantRisks;
+
+      newData['estimatedProjectIRR'] = estimatedProjectIRR;
+      newData['estimatedProjectROI'] = estimatedProjectROI;
+      newData['estimatedProjectNPV'] = estimatedProjectNPV;
+
       String requestBody = jsonEncode(newData);
       print('requestBody =======> $requestBody');
       inspect(newData);
@@ -3947,6 +4027,7 @@ class _AssetInformation extends State<AssetInformation>
         publicKey: appState.primaryWallet.signer!,
       );
       print('===============> response ${responseData}');
+      inspect(responseData);
       if (responseData['statusCode'] == 200) {
         print('success');
         appState.viewData = responseData['data'];

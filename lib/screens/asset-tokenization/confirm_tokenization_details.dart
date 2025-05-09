@@ -318,7 +318,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         padding: const EdgeInsets.symmetric(
                             vertical: 10.0, horizontal: 15),
                         child: Text(
-                          'fees'.tr(),
+                          'Fees in Fiat',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,

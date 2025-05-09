@@ -878,7 +878,10 @@ Widget tokenizedAssetTile({
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Countdown(startDate: asset.salesStart!),
+                    SizedBox(
+                      width: 160,
+                      child: Countdown(startDate: asset.salesStart!),
+                    ),
                     ElevatedButton(
                       onPressed: () async {
                         onSubscribe();
@@ -909,30 +912,35 @@ Widget tokenizedAssetTile({
                           ),
                         ),
                       ),
-                      child: Container(
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              if (asset.expressedInterest ?? false) ...[
-                                Text(
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            if (asset.expressedInterest ?? false) ...[
+                              Container(
+                                width: 70,
+                                child: Text(
                                   'Interest Expressed',
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
                                     fontSize: 12,
+                                    overflow: TextOverflow.visible,
                                     color: asset.expressedInterest ?? false
                                         ? notifier.getwihitecolor
                                         : notifier.getbluewhitecolor,
                                   ),
                                 ),
-                                Icon(
-                                  Icons.check_circle_rounded,
-                                  size: 20,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ] else ...[
-                                Text(
+                              ),
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 20,
+                                color: asset.expressedInterest ?? false
+                                    ? notifier.getwihitecolor
+                                    : notifier.getbluewhitecolor,
+                              ),
+                            ] else ...[
+                              Container(
+                                width: 53,
+                                child: Text(
                                   'Express Interest',
                                   style: TextStyle(
                                     fontFamily: fontsemibold,
@@ -942,16 +950,16 @@ Widget tokenizedAssetTile({
                                         : notifier.getbluewhitecolor,
                                   ),
                                 ),
-                                Icon(
-                                  Icons.add_circle_rounded,
-                                  size: 20,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ]
-                            ]),
-                      ),
+                              ),
+                              Icon(
+                                Icons.add_circle_rounded,
+                                size: 20,
+                                color: asset.expressedInterest ?? false
+                                    ? notifier.getwihitecolor
+                                    : notifier.getbluewhitecolor,
+                              ),
+                            ]
+                          ]),
                     ),
                   ],
                 ),
@@ -1049,7 +1057,7 @@ Widget infoCard(ColorNotifier notifier,
     {required String label, required String value, String? extraValue}) {
   return Container(
     width: width / 2.2,
-    // height: height / 5.5,
+    height: 120,
     child: Card(
       shadowColor: Colors.black,
       shape: RoundedRectangleBorder(
@@ -1059,12 +1067,7 @@ Widget infoCard(ColorNotifier notifier,
           ? notifier.getbluecolor90
           : notifier.getaddsubwalletgrey,
       child: TextButton(
-        onPressed: () {
-          // appState.currentAction = PageAction(
-          //   state: PageState.addPage,
-          //   page: TotalSalesViewPageConfig,
-          // );
-        },
+        onPressed: () {},
         child: Row(
           children: [
             Column(

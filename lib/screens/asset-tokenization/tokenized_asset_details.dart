@@ -604,9 +604,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         categoryTile(
                           notifier,
                           label: 'Asset Information',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/asset-info.png',
                           onTap: () {
                             var details = {
+                              'Status': tokenizedAsset.assetAlreadyExists == 1
+                                  ? 'Existing'
+                                  : 'Not Existing',
                               'Sector': tokenizedAsset.assetSector ?? '',
                               'Sub-Sector': tokenizedAsset.assetSubSector ?? '',
                               'Type': assetType,
@@ -645,7 +648,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         categoryTile(
                           notifier,
                           label: 'Asset Token & Sale Information',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/token-info.png',
                           onTap: () {
                             var details = {
                               'Sales Window':
@@ -790,7 +793,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         categoryTile(
                           notifier,
                           label: 'Verification Documents',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/documents.png',
                           onTap: () {
                             displayDocuments('Verification Documents');
                           },

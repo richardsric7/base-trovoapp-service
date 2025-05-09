@@ -479,6 +479,9 @@ class _AssetDashboardState extends State<AssetDashboard>
                         imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
                         onTap: () {
                           var details = {
+                            'Status': tokenizedAsset.assetAlreadyExists == 1
+                                ? 'Existing'
+                                : 'Not Existing',
                             'Sector': tokenizedAsset.assetSector ?? '',
                             'Sub-Sector': tokenizedAsset.assetSubSector ?? '',
                             'Type': assetType,
@@ -520,7 +523,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Asset Token & Sale Information',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/token-info.png',
                         onTap: () {
                           var details = {
                             'Sales Window':

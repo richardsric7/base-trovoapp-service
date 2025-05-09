@@ -787,17 +787,22 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                ],
+              ),
+              Row(
+                children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      DateFormat('MMMM dd, yyyy hh:mm a').format(createdAt),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
+                    child: Container(
+                      width: width / 1.5,
+                      child: Text(
+                        DateFormat('MMMM dd, yyyy hh:mm a').format(createdAt),
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
                   ),
@@ -954,6 +959,8 @@ class _SharedAccessState extends State<SharedAccess>
                     filteredWallets.add(wallet);
                   }
                 }
+                filteredWallets.sort((walletA, walletB) =>
+                    walletA.alias!.compareTo(walletB.alias!));
                 return Column(
                   children: [
                     if (filteredWallets.length > 0) ...[
@@ -1048,6 +1055,7 @@ class _SharedAccessState extends State<SharedAccess>
         }
       }
     }
+    walletKeys.sort((walletA, walletB) => walletA.compareTo(walletB));
 
     return Column(
       children: [
