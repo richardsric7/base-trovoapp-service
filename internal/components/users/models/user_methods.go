@@ -130,7 +130,7 @@ func (u *User) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.Globa
 
 // GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
-	balances = make(map[string]Balance)
+	balances = make(map[string]Balance, 0)
 	depositAddresses := make([]CryptoWalletDepositAddress, 0)
 	var nativeCode, nativeIssuer, nativeUsdPrice string
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
@@ -156,6 +156,32 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 			// log.Printf("GetBalance[%v], served from cache\n", cacheKey)
 			json.Unmarshal(rawdata, &balances)
+			if len(balances) < 1 {
+				//ensure native balance is returned even if wrong one was stored.
+				qrCode := ""
+				if !temp {
+
+					p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+					if e == nil {
+						qrCode = p.QRCode
+					}
+
+				}
+				balances[":"] = Balance{
+					AssetIssuer: "",
+					AssetCode:   "",
+					Amount:      decimal.Zero,
+					QRCode:      qrCode,
+					ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+					UsdPrice:    xbnUsdPrice,
+					NativePrice: xbnNativePrice,
+					InTrade: TradeLiabilties{
+						SellingLiabilities: "0",
+						BuyingLiabilities:  "0",
+					},
+					CryptoWalletDepositAddresses: depositAddresses,
+				}
+			}
 			return
 		}
 
@@ -192,6 +218,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 			//save to cache
 			gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 60)
+			//check if the cached result is nil then build default native placeholder
+
 			return balances, nil
 		}
 		if !temp {
@@ -437,6 +465,31 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	//GetBalance
 	unsortedBalances, err := u.GetBalance(temp, gc)
 	if err != nil {
+		qrCode := ""
+		if !temp {
+
+			p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+			if e == nil {
+				qrCode = p.QRCode
+			}
+
+		}
+		xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
+		xbnNativePrice := "1"
+		unsortedBalances[":"] = Balance{
+			AssetIssuer: "",
+			AssetCode:   "",
+			Amount:      decimal.Zero,
+			QRCode:      qrCode,
+			ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+			UsdPrice:    xbnUsdPrice,
+			NativePrice: xbnNativePrice,
+			InTrade: TradeLiabilties{
+				SellingLiabilities: "0",
+				BuyingLiabilities:  "0",
+			},
+			CryptoWalletDepositAddresses: nil,
+		}
 		return
 	}
 	// log.Printf("unsorted balance for [%v]:[%+v]", u.ID, unsortedBalances)
@@ -454,7 +507,33 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 		balances = append(balances, balance)
 
 	}
+	if len(balances) < 1 {
+		qrCode := ""
+		if !temp {
 
+			p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+			if e == nil {
+				qrCode = p.QRCode
+			}
+
+		}
+		xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
+		xbnNativePrice := "1"
+		balances = append(balances, Balance{
+			AssetIssuer: "",
+			AssetCode:   "",
+			Amount:      decimal.Zero,
+			QRCode:      qrCode,
+			ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+			UsdPrice:    xbnUsdPrice,
+			NativePrice: xbnNativePrice,
+			InTrade: TradeLiabilties{
+				SellingLiabilities: "0",
+				BuyingLiabilities:  "0",
+			},
+			CryptoWalletDepositAddresses: nil,
+		})
+	}
 	return balances, nil
 }
 
@@ -535,7 +614,15 @@ func (u *User) GetUserWalletAssetBalances(gc *sharedconfig.GlobalConfig) (userWa
 				assetBalances.Unclaimed = unclaimedBalance
 				ml.Unlock()
 
-			}
+			} 
+			// else {
+			// 	//default asset is returned on error
+			// 	//Unclaimed Assets
+			// 	ml.Lock()
+			// 	assetBalances.Unclaimed = unclaimedBalance
+			// 	ml.Unlock()
+			// }
+
 		}(wallet, &wg, &m)
 		wg.Add(1)
 		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
