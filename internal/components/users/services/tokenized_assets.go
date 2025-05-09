@@ -1216,7 +1216,7 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 					gc.ChannelOfTokenizedAssetIDs <- asset.ID
 				}
 
-				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+				e := tx.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
 					//saving model failed
 					log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
@@ -1258,7 +1258,7 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 					assets[i].AssetTokenizationStatus = 6
 				}
 
-				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+				e := tx.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
 					//saving model failed
 					log.Printf("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
