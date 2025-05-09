@@ -780,6 +780,12 @@ func main() {
 
 				userServices.ActivatePrimarySalesRoutine(&globalConfig)
 				time.Sleep(5 * time.Second)
+			}
+		}()
+		//Start processing Sales
+		go func() {
+
+			for {
 				userServices.ActivateSecondarySalesRoutine(&globalConfig)
 				time.Sleep(5 * time.Second)
 			}
