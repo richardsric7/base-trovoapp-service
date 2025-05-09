@@ -778,7 +778,9 @@ func main() {
 
 			for {
 
-				userServices.ActivateSalesRoutine(&globalConfig)
+				userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				time.Sleep(5 * time.Second)
+				userServices.ActivateSecondarySalesRoutine(&globalConfig)
 				time.Sleep(5 * time.Second)
 			}
 		}()

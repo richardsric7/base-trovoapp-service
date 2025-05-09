@@ -1190,9 +1190,9 @@ func UpdateTokenizedAssetSalesDates(tokenizationID string, trovoManagerUser *use
 	return ato, nil
 }
 
-// ActivateSalesRoutine used by automation routine to update tokenized assets to begin sales
-func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
-	log.Println("##[ActivateSalesRoutine][CHECK SALES DATES] started routine to update asset sales status")
+// ActivatePrimarySalesRoutine used by automation routine to update tokenized assets to begin sales
+func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
+	log.Println("##[ActivatePrimarySalesRoutine][CHECK SALES DATES] started routine to update asset sales status")
 
 	batchSize := 1
 	var assets []userModels.TokenizedAsset
@@ -1219,7 +1219,7 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
 					//saving model failed
-					log.Printf("[ActivateSalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
+					log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
 				}
 				time.Sleep(200 * time.Millisecond)
 
@@ -1227,7 +1227,7 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 			})
 			if result.Error != nil {
 				if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-					log.Println("[ActivateSalesRoutine][CHECK PRIMARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+					log.Println("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
 
 				}
 
@@ -1235,6 +1235,17 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 		}
 
 	}
+
+	time.Sleep(15 * time.Minute)
+
+}
+
+// ActivateSecondarySalesRoutine used by automation routine to update tokenized assets to begin sales
+func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
+	log.Println("##[ActivateSecondarySalesRoutine][CHECK SALES DATES] started routine to update asset sales status")
+
+	batchSize := 1
+	var assets []userModels.TokenizedAsset
 
 	{
 		//start secondary sales
@@ -1244,13 +1255,13 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 			result := gc.DB.Where("Sales_End::date <= now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, _ := range assets {
 
-					assets[i].AssetTokenizationStatus = 5
+					assets[i].AssetTokenizationStatus = 6
 				}
 
 				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
 					//saving model failed
-					log.Printf("[ActivateSalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
+					log.Printf("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
 				}
 				time.Sleep(200 * time.Millisecond)
 
@@ -1258,7 +1269,7 @@ func ActivateSalesRoutine(gc *sharedconfig.GlobalConfig) {
 			})
 			if result.Error != nil {
 				if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-					log.Println("[ActivateSalesRoutine][CHECK SECONDARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+					log.Println("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
 
 				}
 
