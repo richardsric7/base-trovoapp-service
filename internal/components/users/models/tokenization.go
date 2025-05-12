@@ -157,6 +157,7 @@ type TokenizedAsset struct {
 	RatingAgencyFeeValue                     float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
 	VATPercent                               float64                         `gorm:"default:0" json:"vatPercent"`
 	VATValue                                 float64                         `gorm:"default:0" json:"vatValue"`
+	VATInAsset                               float64                         `gorm:"default:0" json:"vatInAsset"`
 	ProceedPayoutCurrency                    *string                         `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                        int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                        *string                         `json:"exemptedCountries"`
@@ -461,6 +462,7 @@ type TokenizedAssetJSON struct {
 	RatingAgencyFeeValue                         float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
 	VATPercent                                   float64                         `gorm:"default:0" json:"vatPercent"`
 	VATValue                                     float64                         `gorm:"default:0" json:"vatValue"`
+	VATInAsset                                   float64                         `gorm:"default:0" json:"vatInAsset"`
 	ProceedPayoutCurrency                        string                          `json:"proceedPayoutCurrency"`
 	ProceedPayoutType                            int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
 	ExemptedCountries                            string                          `json:"exemptedCountries"`
@@ -527,6 +529,7 @@ type TokenizedAssetJSON struct {
 	ProjectIdentifiedOperationalOrExecutionRisks string                          `json:"projectIdentifiedOperationalOrExecutionRisks"`
 	ProjectIdentifiedMarketRisks                 string                          `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          string                          `json:"projectIdentifiedOtherRelevantRisks"`
+	NumberOfExpressedInterests                   int64                           `json:"numberOfExpressedInterests"`
 }
 
 type TokenizedAssetSector struct {
@@ -966,6 +969,16 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 
 	return
 }
+func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) (count int64) {
+	if t == nil {
+		log.Println("[TokenizedAsset::CountExpressedInterests] Error tokenized asset is nil")
+		return
+	}
+
+	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ?", t.ID).Count(&count)
+
+	return
+}
 func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
 	if t == nil {
 		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
@@ -1286,7 +1299,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 					t.FeeInFiat = feeCompo.FeeFiatCap
 				}
 				VATAsset = decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
-
+				t.VATInAsset = VATAsset
 			}
 
 			// get tokenization fees.
@@ -1620,7 +1633,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 	}
 	VATAsset := decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
-
+	t.VATInAsset = VATAsset
 	if t.AssetCurrentValue > 0 {
 
 		t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
@@ -1770,6 +1783,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.RatingAgencyFeeValue = ti.RatingAgencyFeeValue
 	t.VATPercent = ti.VATPercent
 	t.VATValue = ti.VATValue
+	t.VATInAsset = ti.VATInAsset
+
 	t.VettingStatus = ti.VettingStatus
 	t.DueDiligenceFail = ti.DueDiligenceFail
 
@@ -2129,6 +2144,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.ProjectIdentifiedOtherRelevantRisks != nil {
 		t.ProjectIdentifiedOtherRelevantRisks = *ti.ProjectIdentifiedOtherRelevantRisks
 	}
+
+	t.NumberOfExpressedInterests = ti.CountExpressedInterests(gc)
 
 	return t
 
