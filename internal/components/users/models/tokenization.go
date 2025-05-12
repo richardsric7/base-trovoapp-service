@@ -124,7 +124,7 @@ type TokenizedAsset struct {
 	FeeInAsset                               float64                         `gorm:"default:0" json:"feeInAsset"`
 	FeeInAssetPercent                        float64                         `gorm:"default:0" json:"feeInAssetPercent"`
 	FeeInAssetFiatEquivalent                 float64                         `gorm:"default:0" json:"feeInAssetFiatEquivalent"`
-	FeeInFiat                                float64                         `gorm:"default:0" json:"feeInFiat"`
+	FeeInFiat                                float64                         `gorm:"default:0" json:"feeInFiat"` //tokenization fee in fiat
 	NumberOfTokenToBeSold                    float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                  float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale             *string                         `json:"walletToHoldAssetsNotForSale"`
@@ -1251,9 +1251,12 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.PercentageValueOfInsurance = ti.PercentageValueOfInsurance
 	t.IsFreeFromLiensAndEncumbrances = ti.IsFreeFromLiensAndEncumbrances
 	t.AssetAlreadyExists = ti.AssetAlreadyExists
-
+	if t.AssetTokenizationStatus < 2 {
+		t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+	}
 	var feeCompo TokenizationFee
-	var feeInAsset, feeInAssetFiatEquivalent float64
+	var feeInAsset, VATAsset float64
+
 	// /////
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
@@ -1262,10 +1265,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 	}
+
 	if t.AssetTokenizationStatus < 4 && t.AssetCurrentValue > 0 {
 
 		if t.AssetTokenizationStatus < 2 {
-			t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+			// t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 			//Do not change fees for assets that have been approved
 			//only when fee has not been paid
 			if ti.TokenizationFeeID > 0 {
@@ -1274,15 +1278,17 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				feeCompo = t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
 
 				// Calculate Fees
-				feeInAssetFiatEquivalent = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-				// feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-				t.FeeInAssetFiatEquivalent = feeInAssetFiatEquivalent
+				feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+				t.FeeInAsset = feeInAsset
+
 				t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 
 				t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 				if feeCompo.FeeFiatCap > t.FeeInFiat {
 					t.FeeInFiat = feeCompo.FeeFiatCap
 				}
+				VATAsset = decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
+
 			}
 
 			// get tokenization fees.
@@ -1343,16 +1349,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			t.VATPercent = cConfig.VATPercent
 			t.VATValue = vat
 
-			t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat + feeInAssetFiatEquivalent).InexactFloat64() //adding feeInAssetFiatEquivalent ensures the asset portion of fee is recovered
+			initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
 
-			if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-
-				t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+			if t.NumberOfTokenToBeIssued > 0 {
+				// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+				t.PricePerToken = decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset))).Truncate(7).InexactFloat64()
 				// auto calculate, token to be held is less the fee. token not to be sold
 				t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
-
-				feeInAsset = decimal.NewFromFloat(feeInAssetFiatEquivalent / t.PricePerToken).Truncate(7).InexactFloat64()
-				t.FeeInAsset = feeInAsset
 
 				{
 					//ensure correct the number of token to be sold.
@@ -1361,6 +1364,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
 
 				}
+				t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken).InexactFloat64()
 			}
 
 			if len(ti.WalletToHoldAssetsNotForSale) > 0 {
@@ -1571,7 +1575,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		return
 	}
 	var feeCompo TokenizationFee
-	var feeInAsset, feeInAssetFiatEquivalent float64
+	var feeInAsset float64
 
 	if *t.TokenizationFeeID > 0 {
 		// fee has been selected
@@ -1579,10 +1583,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		// Calculate Fees
 
-		feeInAssetFiatEquivalent = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-		// feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
-		// t.FeeInAsset = feeInAsset
-		t.FeeInAssetFiatEquivalent = feeInAssetFiatEquivalent
+		feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+		t.FeeInAsset = feeInAsset
+
 		t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 		if feeCompo.FeeFiatCap > t.FeeInFiat {
@@ -1591,6 +1594,25 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	}
 	// get SEC tokenization fee.
 	// /////
+
+	/**
+	Let Initial value of Tokenized Asset before considering fee in asset be
+	t.InitialValueOfTokenizedAsset - *this is not to be shown on the App*
+
+	and let Final Value of Tokenized Asset  considering the fee in asset be.
+	t.FinalValueOfTokenizedAsset - *This is what is shown on the App*
+
+
+	t.InitialValueOfTokenizedAsset = (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) - *this is not to be shown on the App*
+
+	t.PricePerToken =(t.InitialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued – feeInAsset-VATAsset))
+
+	t.TotalTokenHeldByManager = (t.AssetOwnerRetainedOrContributedValue / t.PricePerToken) -*This is Token Not for Sale*
+
+	maxTokenToBeSold := (t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+
+	t.FinalValueOfTokenizedAsset = (t.NumberOfTokenToBeIssued * t.PricePerToken) – *This is what is shown on the App*
+		**/
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
 	var secFee float64
@@ -1599,6 +1621,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 
 	}
+	VATAsset := decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 
 	if t.AssetCurrentValue > 0 {
 
@@ -1656,17 +1679,15 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		t.VATValue = vat
 	}
 
-	// t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat).InexactFloat64()
-	t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat + feeInAssetFiatEquivalent).InexactFloat64() //adding feeInAssetFiatEquivalent ensures the asset portion of fee is recovered
+	initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
 
-	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-
-		t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-
+	if t.NumberOfTokenToBeIssued > 0 {
+		// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+		t.PricePerToken = decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset))).Truncate(7).InexactFloat64()
 		// auto calculate, token to be held is less the fee. token not to be sold
 		t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
 
-		feeInAsset = decimal.NewFromFloat(feeInAssetFiatEquivalent / t.PricePerToken).Truncate(7).InexactFloat64()
+		// feeInAsset = decimal.NewFromFloat(feeInAssetFiatEquivalent / t.PricePerToken).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
 
 		{
@@ -1676,6 +1697,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
 
 		}
+		t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken).InexactFloat64()
 	}
 
 	if t.CapOnPurchase == 1 && t.PricePerToken > 0 && t.CapAmountInFiat > 0 {
