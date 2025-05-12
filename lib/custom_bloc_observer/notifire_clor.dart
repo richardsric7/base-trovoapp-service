@@ -109,6 +109,7 @@ class ColorNotifier with ChangeNotifier {
   get getfavorites => isDark ? darkfavorites : favorites;
 
   get getaddsubwalletgrey => addsubwalletgrey;
+  get getpillbg => pillbg;
   get getplatinumcolor => platinum;
   get getdiamondcolor => diamond;
   get getgoldcolor => gold;

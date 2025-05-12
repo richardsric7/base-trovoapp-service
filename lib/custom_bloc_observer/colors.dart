@@ -6,7 +6,7 @@ Color darktilewhitecolor = const Color(0xff00296c);
 
 Color forecolorblue = Color(0xFF00225A);
 
-Color trovoblue = Color(0xFF004988);
+Color trovoblue = Color(0xFF00225A);
 Color trovoblue90 = Color(0xFF336DA0);
 Color trovoblue80 = Color(0xFF6692B8);
 Color trovoblue70 = Color(0xFF99B6CF);
@@ -27,6 +27,7 @@ Color grey = const Color(0xff9EA3AE);
 Color darkgrey = Color(0xFF5B5E61);
 Color splashgrey = Color(0xFFC3C6CC);
 Color addsubwalletgrey = Color(0xFFE8ECF4);
+Color pillbg = Color(0xFFF2F6F9);
 Color diamond = Color(0xFF5DADEC);
 Color platinum = const Color(0xff00a859);
 Color gold = Color(0xFFCA8503);

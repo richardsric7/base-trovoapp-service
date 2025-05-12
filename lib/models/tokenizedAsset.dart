@@ -40,6 +40,8 @@ class TokenizedAsset {
   int? tokenizationFeeId;
   int? vettingStatus;
   double? numberOfTokenToBeSold;
+  double? feeInAsset;
+  double? feeInAssetPercent;
   double? numberOfTokenToBeIssued;
   String? walletToHoldAssetsNotForSale;
   double? totalTokenHeldByManager;
@@ -301,6 +303,8 @@ class TokenizedAsset {
     this.projectIdentifiedOperationalOrExecutionRisks,
     this.projectIdentifiedMarketRisks,
     this.projectIdentifiedOtherRelevantRisks,
+    this.feeInAsset,
+    this.feeInAssetPercent,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -491,6 +495,8 @@ class TokenizedAsset {
           m["projectIdentifiedMarketRisks"].toString(),
       projectIdentifiedOtherRelevantRisks:
           m["projectIdentifiedOtherRelevantRisks"].toString(),
+      feeInAsset: double.tryParse(m["feeInAsset"].toString()),
+      feeInAssetPercent: double.tryParse(m["feeInAssetPercent"].toString()),
     );
   }
 

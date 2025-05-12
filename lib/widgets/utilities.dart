@@ -1056,16 +1056,13 @@ String getFiatValue(double amount) {
 Widget infoCard(ColorNotifier notifier,
     {required String label, required String value, String? extraValue}) {
   return Container(
-    width: width / 2.2,
-    height: 120,
+    width: width / 2.1,
     child: Card(
       shadowColor: Colors.black,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
-      color: notifier.isDark
-          ? notifier.getbluecolor90
-          : notifier.getaddsubwalletgrey,
+      color: notifier.isDark ? notifier.getbluecolor90 : notifier.getpillbg,
       child: TextButton(
         onPressed: () {},
         child: Row(
@@ -1074,50 +1071,33 @@ Widget infoCard(ColorNotifier notifier,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: height / 70,
-                ),
-                SizedBox(
-                  width: width / 2.6,
+                  width: width / 2.5,
                   child: Text(
                     label,
                     textAlign: TextAlign.start,
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ),
                 SizedBox(
-                  height: height / 70,
+                  height: 6,
                 ),
                 SizedBox(
-                  width: 130,
+                  width: width / 2.5,
                   child: Text(
                     value,
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ),
-                if (extraValue != null) ...[
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  Text(
-                    extraValue,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
               ],
             ),
           ],

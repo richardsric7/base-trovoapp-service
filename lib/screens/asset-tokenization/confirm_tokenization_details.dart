@@ -41,7 +41,6 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   late TokenizedAsset tokenizedAsset;
   String password = '';
   double fiatFee = 0;
-  double tokenFee = 0;
   double trovUsdPrice = 0;
   String feeInfo = '';
   String fiatCurrency = '';
@@ -179,6 +178,9 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       if (tokenizedAsset.assetAlreadyExists == 1) ...[
                         item("originalassetvalue".tr(),
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Additional Cost Outside Valuation",
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ] else ...[
                         item("originalassetvalue".tr(),
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
@@ -234,7 +236,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Tokens not for sale",
-                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee))} ${tokenizedAsset.assetCode}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenizedAsset.feeInAsset!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
                         item("Tokens for sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
@@ -404,13 +406,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           ),
                         ),
                         item("Tokenization fee in asset",
-                            '${formatNumberShort(0)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                            '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
                         SizedBox(height: height / 90),
                         item("VAT (Asset)",
-                            '${0} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                            '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
                         SizedBox(height: height / 90),
                         item("Total",
-                            '${0} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                            '${formatNumberShort((tokenizedAsset.feeInAsset! * 0.075) + tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
                         SizedBox(height: height / 90),
                       ],
                     ),
@@ -786,7 +788,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         tokenizedAsset.vatValue! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
-    return "${formatNumber(total)}";
+    return "${formatNumberShort(total)}";
   }
 
   double getFeeInfo(int index) {
@@ -797,6 +799,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         .toString());
     fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
     return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
+  }
+
+  double getFeeInAsset(int index) {
+    var assetFeePercentage = appState.tokenizationData["tokenizationFees"]
+        [index]['feeAssetPercentage'];
+
+    return (tokenizedAsset.numberOfTokenToBeIssued! * assetFeePercentage) / 100;
   }
 
   Widget item(String key, String value) {

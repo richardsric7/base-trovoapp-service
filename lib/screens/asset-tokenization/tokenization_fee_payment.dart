@@ -703,7 +703,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         tokenizedAsset.vatValue! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
-    return "${formatNumber(total)}";
+    return "${formatNumberShort(total)}";
   }
 
   double getFeeInfo(int index) {

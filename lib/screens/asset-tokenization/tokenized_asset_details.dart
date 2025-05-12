@@ -170,7 +170,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 color: notifier.getbluewhitecolor,
               ),
             ),
-            SizedBox(height: height / 70),
+            SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -441,7 +441,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 child: Center(
                   child: Column(
                     children: [
-                      SizedBox(height: height / 70),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -480,95 +479,91 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                infoCard(
-                  notifier,
-                  label: 'Asset Value',
-                  value:
-                      '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                  extraValue: '\$4,390.23',
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                infoCard(
-                  notifier,
-                  label: 'Total Supply',
-                  value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                  extraValue: '',
-                ),
-              ],
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  infoCard(
+                    notifier,
+                    label: 'Asset Value',
+                    value:
+                        '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
+                    extraValue: '\$4,390.23',
+                  ),
+                  infoCard(
+                    notifier,
+                    label: 'Total Supply',
+                    value:
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    extraValue: '',
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: height / 70),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                infoCard(
-                  notifier,
-                  label: 'Amount to be Raised',
-                  value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                  extraValue: '',
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                infoCard(
-                  notifier,
-                  label: 'Tokens for Sale',
-                  value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                  extraValue: '',
-                ),
-              ],
+            SizedBox(height: 5),
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  infoCard(
+                    notifier,
+                    label: 'Amount to be Raised',
+                    value:
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                    extraValue: '',
+                  ),
+                  infoCard(
+                    notifier,
+                    label: 'Tokens for Sale',
+                    value:
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    extraValue: '',
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: height / 70),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                infoCard(
-                  notifier,
-                  label: 'Funding Currency',
-                  value: 'CNGN',
-                  extraValue: '',
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                infoCard(
-                  notifier,
-                  label: 'Price Per Token',
-                  value:
-                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                  extraValue: '',
-                ),
-              ],
+            SizedBox(height: 5),
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  infoCard(
+                    notifier,
+                    label: 'Funding Currency',
+                    value: 'CNGN',
+                    extraValue: '',
+                  ),
+                  infoCard(
+                    notifier,
+                    label: 'Price Per Token',
+                    value:
+                        '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                    extraValue: '',
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: height / 70),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                infoCard(
-                  notifier,
-                  label: 'Total Quantity Held',
-                  value:
-                      '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                  extraValue: '',
-                ),
-                SizedBox(
-                  width: width / 50,
-                ),
-                infoCard(
-                  notifier,
-                  label: 'Value of Quantity Held',
-                  value:
-                      '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                  extraValue: '',
-                ),
-              ],
+            SizedBox(height: 5),
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  infoCard(
+                    notifier,
+                    label: 'Total Quantity Held',
+                    value:
+                        '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    extraValue: '',
+                  ),
+                  infoCard(
+                    notifier,
+                    label: 'Value of Quantity Held',
+                    value:
+                        '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                    extraValue: '',
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: height / 50),
             Row(

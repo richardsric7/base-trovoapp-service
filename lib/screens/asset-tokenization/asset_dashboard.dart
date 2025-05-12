@@ -36,6 +36,7 @@ class _AssetDashboardState extends State<AssetDashboard>
   bool _showDaysValue = false;
   String fiatCurrency = '';
   String regulatorName = '';
+  double tokenFee = 0;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -166,283 +167,278 @@ class _AssetDashboardState extends State<AssetDashboard>
             ),
           ),
           SizedBox(height: height / 50),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'Asset Value',
-                value:
-                    '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                extraValue: '\$4,390.23',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: 'Total Supply',
-                value:
-                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 70),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'Amount to be Raised',
-                value: '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
-                extraValue: '',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: 'Tokens for Sale',
-                value:
-                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 70),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'Funding Currency',
-                value: 'CNGN',
-                extraValue: '',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: 'Price Per Token',
-                value:
-                    '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 70),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'Interest Expressed Amount',
-                value:
-                    '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
-                extraValue: '',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: 'Number of Interest Expressed',
-                value: '???? users',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 70),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'Total Amount Raised',
-                value:
-                    '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
-                extraValue: '',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: 'Total Quantity Sold',
-                value: '${'20'} ${tokenizedAsset.assetCode}',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 70),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              infoCard(
-                notifier,
-                label: 'No. of Users Bought',
-                value: '10 Users',
-                extraValue: '',
-              ),
-              SizedBox(
-                width: width / 50,
-              ),
-              infoCard(
-                notifier,
-                label: '% of Amount Raised',
-                value: '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
-                extraValue: '',
-              ),
-            ],
-          ),
-          SizedBox(height: height / 50),
-          Center(
-            child: Column(
+          IntrinsicHeight(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                        '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor)),
-                    Text('raised out of ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        )),
-                    Text(
-                        '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        )),
-                  ],
+                infoCard(
+                  notifier,
+                  label: 'Asset Value',
+                  value:
+                      '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
                 ),
-                SizedBox(height: 5),
-                // Gesture Detector for Tapping the Progress Bar
-                GestureDetector(
-                  onTap: _toggleValueDisplay,
-                  onLongPress: _toggleValueDisplay,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 300,
-                        height: 20,
-                        child: LinearProgressIndicator(
-                          value: normalizedProgress, // Show progress (0 to 1)
-                          minHeight: 20,
-                          borderRadius: BorderRadius.circular(10),
-                          backgroundColor: Colors.grey[300],
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      // Show progress value when tapped/long pressed
-                      if (_showValue)
-                        Container(
-                          width: 300,
-                          height: 20,
-                          decoration: BoxDecoration(
-                              color: Colors.black54.withOpacity(
-                                  0.7), // Semi-transparent background
-                              borderRadius: BorderRadius.circular(10)),
-                          alignment: Alignment.center,
-                          child: Text(
-                            "${getFiatValue(_amountRaised)} / ${getFiatValue(totalAmountToBeRaised)}",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                    ],
-                  ),
+                infoCard(
+                  notifier,
+                  label: 'Total Supply',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'Amount Retained',
+                  value:
+                      '${getFiatValue((tokenizedAsset.assetOwnerRetainedOrContributedValue ?? 0))} ${fiatCurrency}',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Tokens not for Sale',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee)} ${tokenizedAsset.assetCode}',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'Amount to be Raised',
+                  value:
+                      '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
+                  extraValue: '',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Tokens for Sale',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'Funding Currency',
+                  value: 'CNGN',
+                  extraValue: '',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Price Per Token',
+                  value:
+                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'Purchase Commitments',
+                  value:
+                      '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                  extraValue: '',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'No. of Interest Expressed',
+                  value: '???? users',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'Total Amount Raised',
+                  value:
+                      '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                  extraValue: '',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Total Quantity Sold',
+                  value: '${'20'} ${tokenizedAsset.assetCode}',
+                  extraValue: '',
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 5),
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  notifier,
+                  label: 'No. of Users Bought',
+                  value: '10 Users',
+                  extraValue: '',
+                ),
+                infoCard(
+                  notifier,
+                  label: '% of Amount Raised',
+                  value: '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
+                  extraValue: '',
                 ),
               ],
             ),
           ),
           SizedBox(height: height / 50),
-          if (tokenizedAsset.tokenizationStatus == 5) ...[
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_daysProgress >= 0) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text((_totalDays - _daysProgress).toString(),
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor)),
-                        Text(' days remaining out of ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            )),
-                        Text('${_totalDays} days',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor)),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    // Gesture Detector for Tapping the Progress Bar
-                    GestureDetector(
-                      onTap: _toggleDaysValueDisplay,
-                      onLongPress: _toggleDaysValueDisplay,
-                      child: Stack(
-                        alignment: Alignment.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+            child: Container(
+              child: Card(
+                shadowColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                color: notifier.isDark
+                    ? notifier.getbluecolor90
+                    : notifier.getpillbg,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 15),
+                      Row(
                         children: [
-                          Container(
-                            width: 300,
-                            height: 20,
-                            child: LinearProgressIndicator(
-                              value:
-                                  normalizedDaysProgress, // Show progress (0 to 1)
-                              minHeight: 20,
-                              borderRadius: BorderRadius.circular(10),
-                              backgroundColor: Colors.grey[300],
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-
-                          // Show progress value when tapped/long pressed
-                          if (_showDaysValue)
-                            Container(
-                              width: 300,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                  color: Colors.black54.withOpacity(
-                                      0.7), // Semi-transparent background
-                                  borderRadius: BorderRadius.circular(10)),
-                              alignment: Alignment.center,
-                              child: Text(
-                                "${_daysProgress} / ${_totalDays}",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
+                          Text('Amount Raised',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              )),
                         ],
                       ),
-                    ),
-                  ],
-                ],
+                      SizedBox(height: 5),
+                      // Gesture Detector for Tapping the Progress Bar
+                      Container(
+                        height: 10,
+                        child: LinearProgressIndicator(
+                          value: normalizedProgress, // Show progress (0 to 1)
+                          minHeight: 10,
+                          borderRadius: BorderRadius.circular(10),
+                          backgroundColor: Colors.grey[300],
+                          color: notifier.getgreencolor,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                              '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor)),
+                          Text('raised out of ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              )),
+                          Text(
+                              '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              )),
+                        ],
+                      ),
+                      SizedBox(height: height / 50),
+                      if (tokenizedAsset.tokenizationStatus == 5) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('Days Remaining',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    )),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            if (_daysProgress >= 0) ...[
+                              // Gesture Detector for Tapping the Progress Bar
+                              Container(
+                                height: 10,
+                                child: LinearProgressIndicator(
+                                  value:
+                                      normalizedDaysProgress, // Show progress (0 to 1)
+                                  minHeight: 10,
+                                  borderRadius: BorderRadius.circular(10),
+                                  backgroundColor: Colors.grey[300],
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Row(
+                                children: [
+                                  Text((_totalDays - _daysProgress).toString(),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor)),
+                                  Text(' days remaining out of ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      )),
+                                  Text('${_totalDays} days',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor)),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
-            SizedBox(height: height / 50),
-          ],
+          ),
           Row(
             children: [
               Padding(
@@ -468,7 +464,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                 ),
                 color: notifier.isDark
                     ? notifier.getbluecolor90
-                    : notifier.getaddsubwalletgrey,
+                    : notifier.getpillbg,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: Column(
