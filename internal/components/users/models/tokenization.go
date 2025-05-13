@@ -71,7 +71,7 @@ type TokenizedAsset struct {
 	AssetSubSector                           *string                         `json:"assetSubSector"`
 	AssetType                                *string                         `json:"assetType"`
 	AssetName                                *string                         `json:"assetName"`
-	ApprovedAssetCustodianID                 uint64                          `gorm:"not null;default:1" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodianID                 uint64                          `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
 	ApprovedAssetCustodian                   ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
 	OfferingType                             *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                            *string                         `gorm:"null" json:"closedGroupId"`
@@ -91,13 +91,13 @@ type TokenizedAsset struct {
 	InitialOwnerPreferredWalletAddress       *string                         `json:"initialOwnerPreferredWalletAddress"`
 	AssetOwnerName                           *string                         `json:"assetOwnerName"`
 	AssetOwnerAddress                        *string                         `json:"assetOwnerAddress"`
-	AssetManagerID                           uint64                          `gorm:"default:1" json:"assetManagerId"`
+	AssetManagerID                           uint64                          `gorm:"default:0" json:"assetManagerId"`
 	AssetManager                             AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetIssuingHouseID                      uint64                          `gorm:"not null;default:1" json:"assetIssuingHouseId"`
+	AssetIssuingHouseID                      uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
 	AssetIssuingHouse                        AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
-	LegalAndProfesionalPartnerID             uint64                          `gorm:"not null;default:1" json:"legalAndProfesionalPartnerId"`
+	LegalAndProfesionalPartnerID             uint64                          `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
 	LegalAndProfesionalPartner               LegalAndProfesionalPartner      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
-	RatingAgencyID                           uint64                          `gorm:"not null;default:1" json:"ratingAgencyID"`
+	RatingAgencyID                           uint64                          `gorm:"not null;default:0" json:"ratingAgencyID"`
 	RatingAgency                             RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
 	AssetQuoteCurrency                       *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                        float64                         `gorm:"default:0" json:"assetCurrentValue"`
