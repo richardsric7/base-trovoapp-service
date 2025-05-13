@@ -179,18 +179,24 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("originalassetvalue".tr(),
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Additional Cost Outside Valuation",
+                        item("Percentage Retained",
+                            '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%'),
+                        SizedBox(height: height / 90),
+                        item("Value Retained",
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Additional Cost",
                             '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}'),
                       ] else ...[
-                        item("originalassetvalue".tr(),
+                        item("Project Budget",
                             '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}'),
+                        SizedBox(height: height / 90),
+                        item("Equity Contribution",
+                            '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%'),
+                        SizedBox(height: height / 90),
+                        item("Value of Equity",
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}'),
                       ],
-                      SizedBox(height: height / 90),
-                      item(
-                          tokenizedAsset.assetAlreadyExists == 1
-                              ? "Amount retained".tr()
-                              : "Amount contributed".tr(),
-                          '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}'),
                       SizedBox(height: height / 90),
                     ],
                   ),
@@ -226,22 +232,22 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Total token",
+                        item("Total Token",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("Final Value of tokenized asset",
+                        item("Final Value",
                             '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Price per token",
+                        item("Price per Token",
                             '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Tokens not for sale",
+                        item("Tokens not for Sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenizedAsset.feeInAsset!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("Tokens for sale",
+                        item("Tokens for Sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold!))} ${tokenizedAsset.assetCode}'),
                         SizedBox(height: height / 90),
-                        item("Amount to be raised",
+                        item("Amount to be Raised",
                             '${truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!, decimalPlaces: 2)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                       ] else ...[
@@ -320,7 +326,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         padding: const EdgeInsets.symmetric(
                             vertical: 10.0, horizontal: 15),
                         child: Text(
-                          'Fees in Fiat',
+                          isVetted ? 'Fees in Fiat' : 'Application Fee',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
@@ -367,9 +373,9 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("applicationfee".tr(),
                             '${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset ${tokenizedAsset.tokenizationStatus == 1 ? '(Paid)' : ''}'),
                         SizedBox(height: height / 90),
-                        item(
-                            "tokenizationfee".tr(), "$feeInfo ${fiatCurrency}"),
-                        SizedBox(height: height / 90),
+                        // item(
+                        //     "tokenizationfee".tr(), "$feeInfo ${fiatCurrency}"),
+                        // SizedBox(height: height / 90),
                         // item("otherstatutoryfees".tr(), ''),
                         // SizedBox(height: height / 90),
                       ]
@@ -440,7 +446,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 ] else ...[
                   if (!isVetted) ...[
                     notifyAdditionalInfo(
-                        "Please note that other statutory fees will be added after vetting"),
+                        "Please note that tokenization fee and other statutory fees will be displayed after vetting"),
                   ],
                   SizedBox(height: 20),
                   ButtonOutlined(
@@ -456,7 +462,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               ] else ...[
                 SizedBox(height: 10),
                 notifyAdditionalInfo(
-                    "Please note that other statutory fees will be added after vetting"),
+                    "Please note that tokenization fee and other statutory fees will be displayed after vetting"),
                 SizedBox(height: 5),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),

@@ -173,7 +173,9 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
-                  label: 'Asset Value',
+                  label: tokenizedAsset.assetAlreadyExists == 1
+                      ? 'Asset Value'
+                      : 'Total Project Budget',
                   value:
                       '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
                 ),
@@ -194,7 +196,9 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
-                  label: 'Amount Retained',
+                  label: tokenizedAsset.assetAlreadyExists == 1
+                      ? 'Amount Retained'
+                      : 'Equity Contributed',
                   value:
                       '${getFiatValue((tokenizedAsset.assetOwnerRetainedOrContributedValue ?? 0))} ${fiatCurrency}',
                 ),

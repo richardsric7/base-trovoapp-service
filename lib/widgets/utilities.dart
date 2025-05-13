@@ -1077,7 +1077,7 @@ Widget infoCard(ColorNotifier notifier,
                     textAlign: TextAlign.start,
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),

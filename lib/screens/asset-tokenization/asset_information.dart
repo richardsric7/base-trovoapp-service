@@ -62,6 +62,7 @@ class _AssetInformation extends State<AssetInformation>
   String projectTechnicalPartners = "";
   String projectFinancialPartners = "";
 
+  double percentageFromPromoters = 0;
   double estimatedProjectIRR = 0;
   double estimatedProjectROI = 0;
   double estimatedProjectNPV = 0;
@@ -113,6 +114,7 @@ class _AssetInformation extends State<AssetInformation>
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
+  final percentageFromPromotersController = TextEditingController();
   final assetOwnerRetainedOrContributedValueController =
       TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
@@ -274,6 +276,11 @@ class _AssetInformation extends State<AssetInformation>
         double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
     estimatedProjectNPV =
         double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
+
+    percentageFromPromoters =
+        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
+    percentageFromPromotersController.text =
+        formatNumberShort(percentageFromPromoters);
 
     super.initState();
     getdarkmodepreviousstate();
@@ -1492,7 +1499,7 @@ class _AssetInformation extends State<AssetInformation>
                     child: Text(
                       assetAlreadyExists
                           ? "assetcurrentvalue".tr(args: ['NGN'])
-                          : "totalcostofproject".tr(),
+                          : "Total Estimated Project Budget",
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -1547,6 +1554,151 @@ class _AssetInformation extends State<AssetInformation>
                       autoFormatNumber: true,
                       isFiat: true,
                       controller: valueOfAssetController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      assetAlreadyExists
+                          ? "What percentage do you want to retain? (%)"
+                          : 'How much equity is contributed by promoters (%)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "How much (%)",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      width / 1.12,
+                      onChanged: (value) {
+                        if (value.toString().isEmpty) {
+                          percentageFromPromoters = 0;
+                          return;
+                        }
+
+                        percentageFromPromoters =
+                            double.parse(value!.toString().replaceAll(',', ''));
+
+                        assetOwnerRetainedOrContributedValue =
+                            ((currentValueOfAsset * percentageFromPromoters) /
+                                100);
+                        assetOwnerRetainedOrContributedValueController.text =
+                            truncateToDecimalPlaces(
+                                assetOwnerRetainedOrContributedValue,
+                                decimalPlaces: 10);
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        percentageFromPromoters =
+                            double.parse(value!.toString());
+                      },
+                      autoFormatNumber: true,
+                      isFiat: true,
+                      controller: percentageFromPromotersController,
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: width - 60,
+                      child: Text(
+                        assetAlreadyExists
+                            ? "Value of the Asset retained"
+                            : "Value of the equity contributed by the promoter(s)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "howmuch".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      width / 1.12,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value.toString().isEmpty) {
+                            assetOwnerRetainedOrContributedValue = 0;
+                            return;
+                          }
+
+                          assetOwnerRetainedOrContributedValue = double.parse(
+                              value!.toString().replaceAll(',', ''));
+                        });
+
+                        percentageFromPromoters =
+                            ((assetOwnerRetainedOrContributedValue /
+                                    currentValueOfAsset) *
+                                100);
+                        percentageFromPromotersController.text =
+                            formatNumberShort(percentageFromPromoters);
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        assetOwnerRetainedOrContributedValue =
+                            double.parse(value!.toString());
+                      },
+                      autoFormatNumber: true,
+                      isFiat: true,
+                      controller:
+                          assetOwnerRetainedOrContributedValueController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                     ),
@@ -1618,74 +1770,6 @@ class _AssetInformation extends State<AssetInformation>
                   ],
                 ),
               ],
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: width - 60,
-                      child: Text(
-                        assetAlreadyExists
-                            ? "howmuchtoretain".tr()
-                            : "sponsorcontribution".tr(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "howmuch".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      width / 1.12,
-                      onChanged: (value) {
-                        setState(() {
-                          if (value.toString().isEmpty) {
-                            assetOwnerRetainedOrContributedValue = 0;
-                            return;
-                          }
-
-                          assetOwnerRetainedOrContributedValue = double.parse(
-                              value!.toString().replaceAll(',', ''));
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        assetOwnerRetainedOrContributedValue =
-                            double.parse(value!.toString());
-                      },
-                      autoFormatNumber: true,
-                      isFiat: true,
-                      controller:
-                          assetOwnerRetainedOrContributedValueController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                ],
-              ),
               if (!assetAlreadyExists) ...[
                 SizedBox(
                   height: height / 50,
@@ -1715,7 +1799,7 @@ class _AssetInformation extends State<AssetInformation>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
-                          "???? ????? ????? ????? ???? ?????",
+                          "Provide projections of your project’s future financial performance to help assess the viability and potential growth trajectory of your project",
                           style: TextStyle(
                             fontSize: 13,
                             fontFamily: fontbody,
@@ -1992,7 +2076,7 @@ class _AssetInformation extends State<AssetInformation>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
-                          "???? ????? ????? ????? ???? ?????",
+                          "Outline the types of risks you anticipate, their likelihood and potential impact, This assessment will help us understand your risk management approach and consider how these factors may influence project outcomes.",
                           style: TextStyle(
                             fontSize: 13,
                             fontFamily: fontbody,
