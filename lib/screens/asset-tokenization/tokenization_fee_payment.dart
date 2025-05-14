@@ -391,35 +391,30 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                           ),
                         ),
                         SizedBox(height: height / 70),
-                        item("Asset tokenization fee".tr(),
+                        item("Tokenization Fee".tr(),
                             '${tokenizationFee} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("SEC regulatory fee".tr(),
+                        item("SEC Fee".tr(),
                             '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset custody fee".tr(),
-                            '${(formatNumberShort(tokenizedAsset.custodianFeeValue!))} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        item("Asset management fee".tr(),
-                            '${(formatNumber(tokenizedAsset.assetManagerFeeValue!))} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // if (tokenizedAsset.issuingHouseFee! > 0) ...[
-                        item("Issuing House Fee",
-                            '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
-                        // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
-                        item("Legal Fee",
-                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
-                        // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
-                        item("Rating Agency Fee",
-                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
+                        if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
+                          item("Issuing House Fee",
+                              '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.legalAndProfessionalFeeValue! >
+                            0) ...[
+                          item("Legal/Professional Fee",
+                              '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.ratingAgencyFeeValue! > 0) ...[
+                          item("Rating Agency Fee",
+                              '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
                         item("VAT",
-                            '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
+                            '${formatNumberShort(getVat())} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Total fee".tr(),
                             '${getTotalFee()} ${fiatCurrency}'),
@@ -693,14 +688,22 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     );
   }
 
+  double getVat() {
+    return (tokenizedAsset.SECTokenizationFeeValue! +
+            tokenizedAsset.issuingHouseFeeValue! +
+            tokenizedAsset.legalAndProfessionalFeeValue! +
+            tokenizedAsset.ratingAgencyFeeValue! +
+            getFeeInfo(tokenizedAsset.tokenizationFeeId!)) *
+        tokenizedAsset.vatPercent! /
+        100;
+  }
+
   String getTotalFee() {
     var total = tokenizedAsset.SECTokenizationFeeValue! +
-        tokenizedAsset.custodianFeeValue! +
-        tokenizedAsset.assetManagerFeeValue! +
         tokenizedAsset.issuingHouseFeeValue! +
         tokenizedAsset.legalAndProfessionalFeeValue! +
         tokenizedAsset.ratingAgencyFeeValue! +
-        tokenizedAsset.vatValue! +
+        getVat() +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
     return "${formatNumberShort(total)}";

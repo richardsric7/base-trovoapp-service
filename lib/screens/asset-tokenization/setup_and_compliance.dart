@@ -834,7 +834,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 Container(
                   width: width / 1.2,
                   child: Text(
-                    "confirmshouldtransferasset".tr(),
+                    "Tokenizing your asset requires ownership transfer of the asset to a licensed nominee/trustee/custodian. Agree?",
                     overflow: TextOverflow.visible,
                     style: TextStyle(
                         fontSize: 15,

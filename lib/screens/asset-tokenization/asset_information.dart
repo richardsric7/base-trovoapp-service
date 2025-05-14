@@ -279,8 +279,9 @@ class _AssetInformation extends State<AssetInformation>
 
     percentageFromPromoters =
         ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text =
-        formatNumberShort(percentageFromPromoters);
+    percentageFromPromotersController.text = percentageFromPromoters.isNaN
+        ? '0'
+        : formatNumberShort(percentageFromPromoters);
 
     super.initState();
     getdarkmodepreviousstate();
@@ -685,16 +686,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter project scope",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectScope,
                         onChanged: (value) {
                           setState(() {
@@ -712,6 +711,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectScope = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -912,16 +914,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter name of technical partners",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectTechnicalPartners,
                         onChanged: (value) {
                           setState(() {
@@ -939,6 +939,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectTechnicalPartners = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -968,16 +971,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
-                        "Enter name of financial partners",
+                      child: multilineInput(
+                        "Enter details of financial partners",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectFinancialPartners,
                         onChanged: (value) {
                           setState(() {
@@ -995,6 +996,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectFinancialPartners = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],
@@ -2922,17 +2926,14 @@ class _AssetInformation extends State<AssetInformation>
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 20.0),
-                                              child:
-                                                  CustomTextFormField.textField(
-                                                "eg John Doe, Anna Harry",
+                                              child: multilineInput(
+                                                "List details of independent monitors",
                                                 notifier.getbluecolor,
-                                                null,
                                                 notifier.getgrey,
-                                                null,
                                                 notifier.getblck,
                                                 notifier.getgrey,
-                                                85,
-                                                267,
+                                                100.sp,
+                                                250.sp,
                                                 initialValue:
                                                     independentMonitoringList,
                                                 validator: (value) {
@@ -2949,6 +2950,10 @@ class _AssetInformation extends State<AssetInformation>
                                                         value!;
                                                   });
                                                 },
+                                                minLines: 3,
+                                                maxLines: null,
+                                                keyboardtype:
+                                                    TextInputType.multiline,
                                               ),
                                             ),
                                           ],
@@ -3221,17 +3226,14 @@ class _AssetInformation extends State<AssetInformation>
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                            child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
-                                              null,
                                               notifier.getgrey,
-                                              null,
                                               notifier.getblck,
                                               notifier.getgrey,
-                                              85,
-                                              267,
+                                              100.sp,
+                                              250.sp,
                                               initialValue: legalAdvisor,
                                               validator: (value) {
                                                 if (value.isEmpty) {
@@ -3245,6 +3247,10 @@ class _AssetInformation extends State<AssetInformation>
                                                   legalAdvisor = value!;
                                                 });
                                               },
+                                              minLines: 3,
+                                              maxLines: null,
+                                              keyboardtype:
+                                                  TextInputType.multiline,
                                             ),
                                           ),
                                         ],
@@ -3304,17 +3310,14 @@ class _AssetInformation extends State<AssetInformation>
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                            child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
-                                              null,
                                               notifier.getgrey,
-                                              null,
                                               notifier.getblck,
                                               notifier.getgrey,
-                                              85,
-                                              267,
+                                              100.sp,
+                                              250.sp,
                                               initialValue: financialAdvisor,
                                               validator: (value) {
                                                 if (value.isEmpty) {
@@ -3328,6 +3331,10 @@ class _AssetInformation extends State<AssetInformation>
                                                   financialAdvisor = value!;
                                                 });
                                               },
+                                              minLines: 3,
+                                              maxLines: null,
+                                              keyboardtype:
+                                                  TextInputType.multiline,
                                             ),
                                           ),
                                         ],
@@ -3428,17 +3435,14 @@ class _AssetInformation extends State<AssetInformation>
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                            child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
-                                              null,
                                               notifier.getgrey,
-                                              null,
                                               notifier.getblck,
                                               notifier.getgrey,
-                                              85,
-                                              267,
+                                              100.sp,
+                                              250.sp,
                                               initialValue:
                                                   otherAssetProtection,
                                               validator: (value) {
@@ -3453,6 +3457,10 @@ class _AssetInformation extends State<AssetInformation>
                                                   otherAssetProtection = value!;
                                                 });
                                               },
+                                              minLines: 3,
+                                              maxLines: null,
+                                              keyboardtype:
+                                                  TextInputType.multiline,
                                             ),
                                           ),
                                         ],

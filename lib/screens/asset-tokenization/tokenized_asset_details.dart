@@ -128,49 +128,100 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             SizedBox(
               height: height / 50,
             ),
-            // if (tokenizedAsset.assetLogo != null) ...[
-            //   Image.memory(
-            //     base64Decode(tokenizedAsset.assetLogo!),
-            //     height: 50,
-            //     width: 50,
-            //     errorBuilder: (context, error, stackTrace) {
-            //       return Image.asset(
-            //         'assets/images/trovo.png',
-            //         height: 50,
-            //         width: 50,
-            //       );
-            //     },
-            //   ),
-            // ] else ...[
-            //   Image.asset(
-            //     'assets/images/trovo.png',
-            //     height: 45,
-            //     width: 45,
-            //   ),
-            // ],
-            // SizedBox(
-            //   height: height / 70,
-            // ),
-            Text(
-              tokenizedAsset.assetName!.capitalizeEachWord(),
-              style: TextStyle(
-                fontSize: 20,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
+            if (tokenizedAsset.assetLogo != null) ...[
+              Container(
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 6.8,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            if (tokenizedAsset.assetLogo == null) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                height: 50,
+                                width: 50,
+                              );
+                            }
+                            return Image.network(
+                              tokenizedAsset.assetLogo!,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/trovo.png',
+                                  height: 50,
+                                  width: 50,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
             SizedBox(
               height: height / 70,
             ),
             Text(
               tokenizedAsset.assetCode!.toUpperCase(),
               style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
+                fontSize: 16,
+                fontFamily: fontsemibold,
                 color: notifier.getbluewhitecolor,
               ),
             ),
             SizedBox(height: 5),
+            Text(
+              tokenizedAsset.assetName!.capitalizeEachWord(),
+              style: TextStyle(
+                fontSize: 14,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            SizedBox(height: height / 70),
+            Container(
+              width: width / 2.9,
+              child: Card(
+                shadowColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                color: notifier.isDark
+                    ? notifier.getbluecolor90
+                    : notifier.getpillbg,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        tokenizedAsset.assetAlreadyExists == 1
+                            ? 'Existing Asset'
+                            : 'Upcoming Asset',
+                        textAlign: TextAlign.start,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: height / 70),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -479,16 +530,32 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
               ),
             ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Text(
+                    'Statistics',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             IntrinsicHeight(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   infoCard(
                     notifier,
-                    label: 'Asset Value',
+                    label: tokenizedAsset.assetAlreadyExists == 1
+                        ? 'Asset Value'
+                        : 'Total Project Budget',
                     value:
                         '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                    extraValue: '\$4,390.23',
                   ),
                   infoCard(
                     notifier,
@@ -551,8 +618,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   infoCard(
                     notifier,
                     label: 'Total Quantity Held',
-                    value:
-                        '${getFiatValue(tokenizedAsset.subscriptionAmount ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    value: '???? ${tokenizedAsset.assetCode!.toUpperCase()}',
                     extraValue: '',
                   ),
                   infoCard(
@@ -571,7 +637,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: Text(
-                    'Details of Asset',
+                    'Details',
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -604,7 +670,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             var details = {
                               'Status': tokenizedAsset.assetAlreadyExists == 1
                                   ? 'Existing'
-                                  : 'Not Existing',
+                                  : 'Upcoming',
                               'Sector': tokenizedAsset.assetSector ?? '',
                               'Sub-Sector': tokenizedAsset.assetSubSector ?? '',
                               'Type': assetType,
@@ -741,9 +807,14 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                       ?.toLowerCase()
                                       .capitalizeEachWord() ??
                                   '',
+                              'Legal/Professional Advisor': tokenizedAsset
+                                      .legalAdvisor
+                                      ?.toLowerCase()
+                                      .capitalizeEachWord() ??
+                                  '',
                               'Rating Agency': '',
                             };
-                            displayDetails("Project Risk Assessment", details);
+                            displayDetails("Stakeholders Information", details);
                           },
                         ),
                         SizedBox(height: 10),

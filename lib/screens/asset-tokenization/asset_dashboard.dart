@@ -138,8 +138,6 @@ class _AssetDashboardState extends State<AssetDashboard>
         ? 1
         : _daysProgress / _totalDays; // Convert to 0-1 range
 
-    print('fasdfsd=>>>>>$_daysProgress>>>>>>>>> $normalizedDaysProgress');
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -148,25 +146,193 @@ class _AssetDashboardState extends State<AssetDashboard>
           CustomAppBar(
             context,
             notifier.getwihitecolor,
-            tokenizedAsset.assetName ?? 'Asset',
+            'Asset Details',
             notifier.getbluewhitecolor,
             height: height / 15,
           ).getBar(),
           SizedBox(height: height / 50),
+          if (tokenizedAsset.assetLogo != null) ...[
+            Container(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.0),
+                      child: Image.network(
+                        appState.userInfo!.imageThumbnailURL!,
+                        width: width / 6.8,
+                        // height: width / 10,
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) {
+                          if (tokenizedAsset.assetLogo == null) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              height: 50,
+                              width: 50,
+                            );
+                          }
+                          return Image.network(
+                            tokenizedAsset.assetLogo!,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                height: 50,
+                                width: 50,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          SizedBox(
+            height: height / 70,
+          ),
+          Text(
+            tokenizedAsset.assetCode!.toUpperCase(),
+            style: TextStyle(
+              fontSize: 16,
+              fontFamily: fontsemibold,
+              color: notifier.getbluewhitecolor,
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: width / 2.9,
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getpillbg,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          tokenizedAsset.assetAlreadyExists == 1
+                              ? 'Existing Asset'
+                              : 'Upcoming Asset',
+                          textAlign: TextAlign.start,
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                width: width / 2.9,
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getpillbg,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          getTokenizationStatus(
+                              tokenizedAsset.tokenizationStatus!),
+                          textAlign: TextAlign.start,
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontbody,
+                            color: notifier.getgreencolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: height / 70),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Text(
-              // 'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. ',
-              tokenizedAsset.assetDescription!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
+            child: Container(
+              child: Center(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                          child: Text(
+                            'Description',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        tokenizedAsset.assetDescription!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           SizedBox(height: height / 50),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: Text(
+                  'Statistics',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ],
+          ),
           IntrinsicHeight(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -448,7 +614,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Text(
-                  'Details of Asset',
+                  'Details',
                   style: TextStyle(
                     fontSize: 15,
                     fontFamily: fontsemibold,
@@ -481,7 +647,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                           var details = {
                             'Status': tokenizedAsset.assetAlreadyExists == 1
                                 ? 'Existing'
-                                : 'Not Existing',
+                                : 'Upcoming',
                             'Sector': tokenizedAsset.assetSector ?? '',
                             'Sub-Sector': tokenizedAsset.assetSubSector ?? '',
                             'Type': assetType,
@@ -619,9 +785,14 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     ?.toLowerCase()
                                     .capitalizeEachWord() ??
                                 '',
+                            'Legal/Professional Advisor': tokenizedAsset
+                                    .legalAdvisor
+                                    ?.toLowerCase()
+                                    .capitalizeEachWord() ??
+                                '',
                             'Rating Agency': '',
                           };
-                          displayDetails("Project Risk Assessment", details);
+                          displayDetails("Stakeholders Information", details);
                         },
                       ),
                       SizedBox(height: 10),
@@ -1003,5 +1174,26 @@ class _AssetDashboardState extends State<AssetDashboard>
         );
       },
     );
+  }
+
+  String getTokenizationStatus(int status) {
+    switch (status) {
+      case 0:
+        return 'Continue';
+      case 1:
+        return 'Awaiting Fee';
+      case 4:
+        return 'Approved';
+      case 5:
+        return 'Primary Sales';
+      case 6:
+        return 'Secondary Market';
+      case 7:
+        return 'Liquidated';
+      case 8:
+        return 'Refunded';
+      default:
+        return 'Processing';
+    }
   }
 }

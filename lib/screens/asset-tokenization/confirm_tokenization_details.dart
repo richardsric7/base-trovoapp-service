@@ -337,33 +337,33 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ),
                       ),
                       if (isVetted) ...[
-                        item("Tokenization fee in fiat",
-                            '${feeInfo} ${fiatCurrency}'),
+                        item("Tokenization Fee", '${feeInfo} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("SEC fee",
+                        item("SEC Fee",
                             '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Custody fee",
+                        item("Custody Fee *",
                             '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Asset management fee",
+                        item("Management Fee *",
                             '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        // if (tokenizedAsset.issuingHouseFee! > 0) ...[
-                        item("Issuing house fee",
-                            '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
-                        // if (tokenizedAsset.legalAndProfessionalFee! > 0) ...[
-                        item("Legal & professional fee",
-                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
-                        // if (tokenizedAsset.ratingAgencyFee! > 0) ...[
-                        item("Rating agency fee",
-                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
-                        SizedBox(height: height / 90),
-                        // ],
+                        if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
+                          item("Issuing house Fee",
+                              '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.legalAndProfessionalFeeValue! >
+                            0) ...[
+                          item("Legal/Professional Fee",
+                              '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.ratingAgencyFeeValue! > 0) ...[
+                          item("Rating agency Fee",
+                              '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
+                          SizedBox(height: height / 90),
+                        ],
                         item("VAT (Fiat)",
                             '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
@@ -411,10 +411,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             ),
                           ),
                         ),
-                        item("Tokenization fee in asset",
+                        item("Tokenization Fee *",
                             '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
                         SizedBox(height: height / 90),
-                        item("VAT (Asset)",
+                        item("VAT (Asset) *",
                             '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
                         SizedBox(height: height / 90),
                         item("Total",
@@ -428,6 +428,8 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               if (isAlreadySubmitted) ...[
                 if (tokenizedAsset.vettingStatus == 1 &&
                     tokenizedAsset.tokenizationStatus == 1) ...[
+                  notifyAdditionalInfo(
+                      "Items marked in asterisks (*) are not to be paid upfront."),
                   SizedBox(
                     height: height / 30,
                   ),
@@ -824,6 +826,9 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
             constraints: BoxConstraints(
               maxWidth: width / 2.36,
             ),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
             child: Text(
               key,
               textAlign: TextAlign.start,
