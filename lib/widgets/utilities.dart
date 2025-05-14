@@ -815,17 +815,20 @@ Widget tokenizedAssetTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (asset.assetLogo != null) ...[
-                  Image.network(
-                    asset.assetLogo!,
-                    height: 35,
-                    width: 35,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'assets/images/trovo.png',
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: asset.assetAlreadyExists == 1
+                        ? notifier.getgreencolor
+                        : notifier.getbluecolor90,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.0),
+                      child: Image.network(
+                        asset.assetLogo!,
                         height: 35,
                         width: 35,
-                      );
-                    },
+                        fit: BoxFit.fill,
+                      ),
+                    ),
                   ),
                 ] else ...[
                   Image.asset(

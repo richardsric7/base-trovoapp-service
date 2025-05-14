@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trovo_app/custom_bloc_observer/constants.dart';
@@ -30,10 +28,8 @@ class _AssetDashboardState extends State<AssetDashboard>
   late TokenizedAsset tokenizedAsset;
   double _amountRaised = 0;
   double totalAmountToBeRaised = 0;
-  bool _showValue = false;
   int _daysProgress = 0;
   int _totalDays = 0;
-  bool _showDaysValue = false;
   String fiatCurrency = '';
   String regulatorName = '';
   double tokenFee = 0;
@@ -46,32 +42,6 @@ class _AssetDashboardState extends State<AssetDashboard>
     } else {
       notifier.setIsDark = previusstate;
     }
-  }
-
-  void _toggleValueDisplay() {
-    setState(() {
-      _showValue = !_showValue;
-    });
-
-    // Hide value after 2 seconds
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _showValue = false;
-      });
-    });
-  }
-
-  void _toggleDaysValueDisplay() {
-    setState(() {
-      _showDaysValue = !_showDaysValue;
-    });
-
-    // Hide value after 2 seconds
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _showDaysValue = false;
-      });
-    });
   }
 
   @override
@@ -152,43 +122,24 @@ class _AssetDashboardState extends State<AssetDashboard>
           ).getBar(),
           SizedBox(height: height / 50),
           if (tokenizedAsset.assetLogo != null) ...[
-            Container(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: notifier.getbluecolor70,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        appState.userInfo!.imageThumbnailURL!,
-                        width: width / 6.8,
-                        // height: width / 10,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          if (tokenizedAsset.assetLogo == null) {
-                            return Image.asset(
-                              'assets/images/trovo.png',
-                              height: 50,
-                              width: 50,
-                            );
-                          }
-                          return Image.network(
-                            tokenizedAsset.assetLogo!,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/trovo.png',
-                                height: 50,
-                                width: 50,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: notifier.getbluecolor70,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100.0),
+                child: Image.network(
+                  tokenizedAsset.assetLogo!,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.fill,
+                ),
               ),
+            ),
+          ] else ...[
+            Image.asset(
+              'assets/images/trovo.png',
+              height: 35,
+              width: 35,
             ),
           ],
           SizedBox(
@@ -241,7 +192,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                 ),
               ),
               Container(
-                width: width / 2.9,
                 child: Card(
                   shadowColor: Colors.black,
                   shape: RoundedRectangleBorder(

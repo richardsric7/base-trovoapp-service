@@ -34,6 +34,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   late DataProvider appState;
   String assetType = '';
   String fiatCurrency = '';
+  double assetBalance = 0;
   late TokenizedAsset tokenizedAsset;
   String regulatorName = '';
 
@@ -102,6 +103,15 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         assetType = assetTypes[i]['assetType'];
       }
     }
+
+    appState.userInfo!.wallets!.forEach((wallet) {
+      wallet.claimedAssets!.forEach((asset) {
+        if (asset.assetCode!.toLowerCase() ==
+            tokenizedAsset.assetCode!.toLowerCase()) {
+          assetBalance += asset.amount!;
+        }
+      });
+    });
   }
 
   @override
@@ -129,43 +139,24 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 50,
             ),
             if (tokenizedAsset.assetLogo != null) ...[
-              Container(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: notifier.getbluecolor70,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100.0),
-                        child: Image.network(
-                          appState.userInfo!.imageThumbnailURL!,
-                          width: width / 6.8,
-                          // height: width / 10,
-                          fit: BoxFit.fill,
-                          errorBuilder: (context, error, stackTrace) {
-                            if (tokenizedAsset.assetLogo == null) {
-                              return Image.asset(
-                                'assets/images/trovo.png',
-                                height: 50,
-                                width: 50,
-                              );
-                            }
-                            return Image.network(
-                              tokenizedAsset.assetLogo!,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/trovo.png',
-                                  height: 50,
-                                  width: 50,
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: notifier.getbluecolor70,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100.0),
+                  child: Image.network(
+                    tokenizedAsset.assetLogo!,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.fill,
+                  ),
                 ),
+              ),
+            ] else ...[
+              Image.asset(
+                'assets/images/trovo.png',
+                height: 35,
+                width: 35,
               ),
             ],
             SizedBox(
@@ -618,7 +609,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   infoCard(
                     notifier,
                     label: 'Total Quantity Held',
-                    value: '???? ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    value:
+                        '${getFiatValue(assetBalance)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                     extraValue: '',
                   ),
                   infoCard(

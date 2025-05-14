@@ -342,11 +342,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         item("SEC Fee",
                             '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
-                        item("Custody Fee *",
-                            '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}'),
+                        item("Custody Fee",
+                            '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}',
+                            isNotUpfront: true),
                         SizedBox(height: height / 90),
-                        item("Management Fee *",
-                            '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}'),
+                        item("Management Fee",
+                            '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}',
+                            isNotUpfront: true),
                         SizedBox(height: height / 90),
                         if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
                           item("Issuing house Fee",
@@ -411,11 +413,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             ),
                           ),
                         ),
-                        item("Tokenization Fee *",
-                            '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                        item("Tokenization Fee",
+                            '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}',
+                            isNotUpfront: true),
                         SizedBox(height: height / 90),
-                        item("VAT (Asset) *",
-                            '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
+                        item("VAT (Asset)",
+                            '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}',
+                            isNotUpfront: true),
                         SizedBox(height: height / 90),
                         item("Total",
                             '${formatNumberShort((tokenizedAsset.feeInAsset! * 0.075) + tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}'),
@@ -816,7 +820,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     return (tokenizedAsset.numberOfTokenToBeIssued! * assetFeePercentage) / 100;
   }
 
-  Widget item(String key, String value) {
+  Widget item(String key, String value, {isNotUpfront = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
       child: Row(
@@ -829,15 +833,31 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
             color: notifier.isDark
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
-            child: Text(
-              key,
-              textAlign: TextAlign.start,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: notifier.getbluewhitecolor,
-                fontSize: 13.sp,
-                fontFamily: fontbody,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  key,
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 13.sp,
+                    fontFamily: fontbody,
+                  ),
+                ),
+                if (isNotUpfront) ...[
+                  Text(
+                    ' *',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                      fontSize: 13.sp,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ]
+              ],
             ),
           ),
           Container(
