@@ -53,7 +53,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     paymentMethods.forEach((item) {
       cycles.add(DropdownMenuItem(
           child: Text(
-            item,
+            item.replaceAll(' ', ''),
             overflow: TextOverflow.ellipsis,
           ),
           value: item));
@@ -166,7 +166,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   "payto".tr(args: [
-                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency : fiatCurrency}"
+                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency!.replaceAll(' ', '') : fiatCurrency}"
                   ]),
                   style: TextStyle(
                     fontSize: 18,

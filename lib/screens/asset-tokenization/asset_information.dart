@@ -1134,329 +1134,329 @@ class _AssetInformation extends State<AssetInformation>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "assetownership".tr(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  children: [
-                    CheckItem(
-                      "directownership".tr(),
-                      () {
-                        setState(() {
-                          assetOwnership = 'DIRECT';
-                        });
-                      },
-                      borderColor: notifier.getbluewhitecolor,
-                      foreColor: notifier.getbluewhitecolor,
-                      backColor: assetOwnership == 'DIRECT'
-                          ? notifier.getbluecolor60
-                          : notifier.getwihitecolor,
-                    ),
-                    CheckItem(
-                      "thirdparty".tr(),
-                      () {
-                        setState(() {
-                          assetOwnership = 'THIRD-PARTY';
-                        });
-                      },
-                      borderColor: notifier.getbluewhitecolor,
-                      foreColor: notifier.getbluewhitecolor,
-                      backColor: assetOwnership == 'THIRD-PARTY'
-                          ? notifier.getbluecolor60
-                          : notifier.getwihitecolor,
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (assetOwnership == 'THIRD-PARTY') ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Container(
-                        width: width / 1.17,
-                        child: Text(
-                          "whatbestdescribesthirdparty".tr(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 70,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: Row(
-                    children: [
-                      CheckItem(
-                        "individual".tr(),
-                        () {
-                          setState(() {
-                            thirdPartyOwnerType = 'INDIVIDUAL';
-                          });
-                        },
-                        borderColor: notifier.getbluewhitecolor,
-                        foreColor: notifier.getbluewhitecolor,
-                        backColor: thirdPartyOwnerType == 'INDIVIDUAL'
-                            ? notifier.getbluecolor60
-                            : notifier.getwihitecolor,
-                      ),
-                      CheckItem(
-                        "organization".tr(),
-                        () {
-                          setState(() {
-                            thirdPartyOwnerType = 'CORPORATE';
-                          });
-                        },
-                        borderColor: notifier.getbluewhitecolor,
-                        foreColor: notifier.getbluewhitecolor,
-                        backColor: thirdPartyOwnerType == 'CORPORATE'
-                            ? notifier.getbluecolor60
-                            : notifier.getwihitecolor,
-                      )
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                if (thirdPartyOwnerType == 'INDIVIDUAL') ...[
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "nameofowner".tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          "nameofowner".tr(),
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          width / 1.12,
-                          initialValue: nameOfOwner,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return "fieldcannotbeempty".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              nameOfOwner = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "addressofowner".tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          "addressofowner".tr(),
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          width / 1.12,
-                          initialValue: addressOfOwner,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return "fieldcannotbeempty".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              addressOfOwner = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                ] else ...[
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "nameoforg".tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          "nameoforg".tr(),
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          width / 1.12,
-                          initialValue: nameOfOwner,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return "fieldcannotbeempty".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              nameOfOwner = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "addressoforg".tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          "addressoforg".tr(),
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          width / 1.12,
-                          initialValue: addressOfOwner,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return "fieldcannotbeempty".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              addressOfOwner = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                ],
-              ],
+              // SizedBox(
+              //   height: height / 70,
+              // ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "assetownership".tr(),
+              //         style: TextStyle(
+              //           fontSize: 18,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(
+              //   height: height / 70,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              //   child: Row(
+              //     children: [
+              //       CheckItem(
+              //         "directownership".tr(),
+              //         () {
+              //           setState(() {
+              //             assetOwnership = 'DIRECT';
+              //           });
+              //         },
+              //         borderColor: notifier.getbluewhitecolor,
+              //         foreColor: notifier.getbluewhitecolor,
+              //         backColor: assetOwnership == 'DIRECT'
+              //             ? notifier.getbluecolor60
+              //             : notifier.getwihitecolor,
+              //       ),
+              //       CheckItem(
+              //         "thirdparty".tr(),
+              //         () {
+              //           setState(() {
+              //             assetOwnership = 'THIRD-PARTY';
+              //           });
+              //         },
+              //         borderColor: notifier.getbluewhitecolor,
+              //         foreColor: notifier.getbluewhitecolor,
+              //         backColor: assetOwnership == 'THIRD-PARTY'
+              //             ? notifier.getbluecolor60
+              //             : notifier.getwihitecolor,
+              //       )
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // if (assetOwnership == 'THIRD-PARTY') ...[
+              //   Row(
+              //     children: [
+              //       Padding(
+              //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //         child: Container(
+              //           width: width / 1.17,
+              //           child: Text(
+              //             "whatbestdescribesthirdparty".tr(),
+              //             style: TextStyle(
+              //               fontSize: 13,
+              //               fontFamily: fontbody,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              //   SizedBox(
+              //     height: height / 70,
+              //   ),
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              //     child: Row(
+              //       children: [
+              //         CheckItem(
+              //           "individual".tr(),
+              //           () {
+              //             setState(() {
+              //               thirdPartyOwnerType = 'INDIVIDUAL';
+              //             });
+              //           },
+              //           borderColor: notifier.getbluewhitecolor,
+              //           foreColor: notifier.getbluewhitecolor,
+              //           backColor: thirdPartyOwnerType == 'INDIVIDUAL'
+              //               ? notifier.getbluecolor60
+              //               : notifier.getwihitecolor,
+              //         ),
+              //         CheckItem(
+              //           "organization".tr(),
+              //           () {
+              //             setState(() {
+              //               thirdPartyOwnerType = 'CORPORATE';
+              //             });
+              //           },
+              //           borderColor: notifier.getbluewhitecolor,
+              //           foreColor: notifier.getbluewhitecolor,
+              //           backColor: thirdPartyOwnerType == 'CORPORATE'
+              //               ? notifier.getbluecolor60
+              //               : notifier.getwihitecolor,
+              //         )
+              //       ],
+              //     ),
+              //   ),
+              //   SizedBox(
+              //     height: height / 50,
+              //   ),
+              //   if (thirdPartyOwnerType == 'INDIVIDUAL') ...[
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: Text(
+              //             "nameofowner".tr(),
+              //             style: TextStyle(
+              //               fontSize: 12,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: CustomTextFormField.textField(
+              //             "nameofowner".tr(),
+              //             notifier.getbluecolor,
+              //             null,
+              //             notifier.getgrey,
+              //             null,
+              //             notifier.getblck,
+              //             notifier.getgrey,
+              //             70.sp,
+              //             width / 1.12,
+              //             initialValue: nameOfOwner,
+              //             validator: (value) {
+              //               if (value.isEmpty) {
+              //                 return "fieldcannotbeempty".tr();
+              //               }
+              //               return null;
+              //             },
+              //             onSaved: (value) {
+              //               setState(() {
+              //                 nameOfOwner = value!;
+              //               });
+              //             },
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: Text(
+              //             "addressofowner".tr(),
+              //             style: TextStyle(
+              //               fontSize: 12,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: CustomTextFormField.textField(
+              //             "addressofowner".tr(),
+              //             notifier.getbluecolor,
+              //             null,
+              //             notifier.getgrey,
+              //             null,
+              //             notifier.getblck,
+              //             notifier.getgrey,
+              //             70.sp,
+              //             width / 1.12,
+              //             initialValue: addressOfOwner,
+              //             validator: (value) {
+              //               if (value.isEmpty) {
+              //                 return "fieldcannotbeempty".tr();
+              //               }
+              //               return null;
+              //             },
+              //             onSaved: (value) {
+              //               setState(() {
+              //                 addressOfOwner = value!;
+              //               });
+              //             },
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //   ] else ...[
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: Text(
+              //             "nameoforg".tr(),
+              //             style: TextStyle(
+              //               fontSize: 12,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: CustomTextFormField.textField(
+              //             "nameoforg".tr(),
+              //             notifier.getbluecolor,
+              //             null,
+              //             notifier.getgrey,
+              //             null,
+              //             notifier.getblck,
+              //             notifier.getgrey,
+              //             70.sp,
+              //             width / 1.12,
+              //             initialValue: nameOfOwner,
+              //             validator: (value) {
+              //               if (value.isEmpty) {
+              //                 return "fieldcannotbeempty".tr();
+              //               }
+              //               return null;
+              //             },
+              //             onSaved: (value) {
+              //               setState(() {
+              //                 nameOfOwner = value;
+              //               });
+              //             },
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: Text(
+              //             "addressoforg".tr(),
+              //             style: TextStyle(
+              //               fontSize: 12,
+              //               fontFamily: fontsemibold,
+              //               color: notifier.getbluewhitecolor,
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //     Row(
+              //       children: [
+              //         Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //           child: CustomTextFormField.textField(
+              //             "addressoforg".tr(),
+              //             notifier.getbluecolor,
+              //             null,
+              //             notifier.getgrey,
+              //             null,
+              //             notifier.getblck,
+              //             notifier.getgrey,
+              //             70.sp,
+              //             width / 1.12,
+              //             initialValue: addressOfOwner,
+              //             validator: (value) {
+              //               if (value.isEmpty) {
+              //                 return "fieldcannotbeempty".tr();
+              //               }
+              //               return null;
+              //             },
+              //             onSaved: (value) {
+              //               setState(() {
+              //                 addressOfOwner = value;
+              //               });
+              //             },
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //     SizedBox(
+              //       height: height / 50,
+              //     ),
+              //   ],
+              // ],
               Row(
                 children: [
                   Padding(

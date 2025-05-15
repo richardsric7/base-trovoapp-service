@@ -582,7 +582,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ),
                               SizedBox(height: 10),
                               Text(
-                                "notokenizedasset2".tr(),
+                                "There are no tokenized assets in primary offering yet. Keep an eye out for future listings!"
+                                    .tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 16,

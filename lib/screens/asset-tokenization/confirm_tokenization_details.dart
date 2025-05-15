@@ -239,7 +239,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                             '${(truncateToDecimalPlaces(tokenizedAsset.valueOfTokenizedAsset!, decimalPlaces: 2))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Price per Token",
-                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!, decimalPlaces: 2))} ${fiatCurrency}'),
+                            '${(truncateToDecimalPlaces(tokenizedAsset.pricePerToken!))} ${fiatCurrency}'),
                         SizedBox(height: height / 90),
                         item("Tokens not for Sale",
                             '${(truncateToDecimalPlaces(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenizedAsset.feeInAsset!))} ${tokenizedAsset.assetCode}'),

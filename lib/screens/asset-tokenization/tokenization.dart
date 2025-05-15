@@ -189,15 +189,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     _refreshController = RefreshController(initialRefresh: false);
     listOfTokenizations = fetchTokenizationList();
     wallets = appState.userInfo!.allWallets;
-    for (var asset in appState.primaryWallet.claimedAssets!) {
-      if (asset.assetCode!.toUpperCase() == tokenizationApplicationFeeAsset) {
-        trovUsdPrice = asset.usdPrice!;
-        if (asset.amount! >= (tokenizationApplicationFee / asset.usdPrice!)) {
-          hasEnoughTrov = true;
-          break;
-        }
-      }
-    }
 
     for (var i = 0;
         i < appState.tokenizationData['countryConfigs'].length;
@@ -205,14 +196,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       if (appState.tokenizationData['countryConfigs'][i]['countryCode']
               .toString()
               .toLowerCase() ==
-          appState.userInfo?.countryCode?.toLowerCase()) {
+          "ng") {
         tokenizationApplicationFee = appState.tokenizationData['countryConfigs']
             [i]['tokenizationApplicationFee'];
         tokenizationApplicationFeeAsset = appState
             .tokenizationData['countryConfigs'][i]
                 ['tokenizationApplicationFeeAsset']
             .toString()
-            .split(':')[0];
+            .split(':')[0]
+            .toUpperCase();
+      }
+    }
+
+    for (var asset in appState.primaryWallet.claimedAssets!) {
+      if (asset.assetCode!.toUpperCase() == tokenizationApplicationFeeAsset) {
+        trovUsdPrice = asset.usdPrice!;
+        if (asset.amount! >= (tokenizationApplicationFee / asset.usdPrice!)) {
+          hasEnoughTrov = true;
+          break;
+        }
       }
     }
   }
@@ -241,6 +243,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
           title: "error".tr(),
           message:
               "You must complete the active tokenization process before starting a new one.");
+      return;
+    }
+
+    if (appState.userInfo!.kycVerified == 0) {
+      popup(context,
+          title: "error".tr(),
+          message:
+              "You must complete your KYC verification before you can proceed.");
       return;
     }
 
