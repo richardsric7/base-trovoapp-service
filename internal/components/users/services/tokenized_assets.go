@@ -593,6 +593,11 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	// initialize message array
 	input.Messages = make([]string, 0)
 
+	if initiator.KYCVerified == 0 {
+		err = &tErrors.CustomError{Param: "initiatorUsername", Err: "error-invalid-kyc-status", ErrMessage: "You have not met the minimum KYC requirement."}
+		return
+	}
+
 	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
 		return
@@ -649,6 +654,17 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	if len(*ato.AssetCountryLocation) != 2 {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error Location/country not in acceptable format.")
 		err = &tErrors.CustomError{Err: "error country not provided", ErrMessage: "country of location not provided in corect format. Expects 2-character formart, eg. NG"}
+		return
+	}
+	//check Trov balance
+	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
+	_, _, _, sourceAccountCustomBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+
+	if sourceAccountCustomBalance.InexactFloat64() < countryConfig.MinTROVBalanceForTokenizationApplication {
+
+		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error Not enough TROV balance to initiate operation.")
+
+		err = &tErrors.CustomError{Err: "error-not-enough-trov", ErrMessage: fmt.Sprintf("%v TROV is required in your primary wallet with alias [%v] to initiate tokenization application. You have %v TROV.", countryConfig.MinTROVBalanceForTokenizationApplication, initiator.Username, sourceAccountCustomBalance.String())}
 		return
 	}
 

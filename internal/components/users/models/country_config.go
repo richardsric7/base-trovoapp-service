@@ -4,25 +4,22 @@ import "trovo-wallet-api/internal/sharedconfig"
 
 // Country holds country struct
 type Country struct {
-	CountryCode                     string  `gorm:"size:2;primaryKey" json:"countryCode"`
-	SECTokenizationFeePercent       float64 `gorm:"default:0" json:"SECTokenizationFeePercent"`
-	SECTokenizationFeeFixed         float64 `gorm:"default:0" json:"SECTokenizationFeeFixed"`
-	SECTradeFeePercent              float64 `gorm:"default:0" json:"SECTradeFeePercent"`
-	SECTradeFeeFixed                float64 `gorm:"default:0" json:"SECTradeFeeFixed"`
-	RegulatorName                   string  `gorm:"default:'SECURITY AND EXCHANGE COMMISSION'" json:"regulatorName"`
-	RegionName                      string  `json:"regionName"`
-	CountryName                     string  `json:"countryName"`
-	QuoteCurrencyCode               string  `json:"quoteCurrencyCode"`
-	FiatLabel                       string  `json:"fiatLabel"`
-	FiatGlyph                       string  `json:"fiatGlyph"`
-	MinTokenizationFee              float64 `gorm:"default:0" json:"minTokenizationFee"`
-	TokenizationApplicationFee      float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
-	TokenizationApplicationFeeAsset string  `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
-	LegalAndProfessionalFeePercent  float64 `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
-	LegalAndProfessionalFeeFixed    float64 `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
-	RatingAgencyFeePercent          float64 `gorm:"default:0" json:"ratingAgencyFeePercent"`
-	RatingAgencyFeeFixed            float64 `gorm:"default:0" json:"ratingAgencyFeeFixed"`
-	VATPercent                      float64 `gorm:"default:0" json:"vatPercent"`
+	CountryCode                              string  `gorm:"size:2;primaryKey" json:"countryCode"`
+	SECTokenizationFeePercent                float64 `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed                  float64 `gorm:"default:0" json:"SECTokenizationFeeFixed"`
+	SECTradeFeePercent                       float64 `gorm:"default:0" json:"SECTradeFeePercent"`
+	SECTradeFeeFixed                         float64 `gorm:"default:0" json:"SECTradeFeeFixed"`
+	RegulatorName                            string  `gorm:"default:'SECURITY AND EXCHANGE COMMISSION'" json:"regulatorName"`
+	RegionName                               string  `json:"regionName"`
+	CountryName                              string  `json:"countryName"`
+	QuoteCurrencyCode                        string  `json:"quoteCurrencyCode"`
+	FiatLabel                                string  `json:"fiatLabel"`
+	FiatGlyph                                string  `json:"fiatGlyph"`
+	MinTokenizationFee                       float64 `gorm:"default:0" json:"minTokenizationFee"`
+	MinTROVBalanceForTokenizationApplication float64 `gorm:"default:600" json:"minTROVBalanceForTokenizationApplication"`
+	TokenizationApplicationFee               float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
+	TokenizationApplicationFeeAsset          string  `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	VATPercent                               float64 `gorm:"default:0" json:"vatPercent"`
 }
 
 type CountryCode string
