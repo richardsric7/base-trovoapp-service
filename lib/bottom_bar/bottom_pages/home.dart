@@ -54,8 +54,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
   var noXbnBalance = false;
-  Map expressedInterests = {};
-  Map subscriptions = {};
   late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
@@ -1228,9 +1226,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   Future<List<TokenizedAsset>> fetchTokenizationList(
       {required int status}) async {
     try {
-      await fetchTokenizationData();
-      await fetchExpressedInterests();
-      await fetchSubscriptions();
+      Future.wait([
+        if (appState.tokenizationData == null) fetchTokenizationData(),
+        if (appState.expressedInterests.isEmpty) fetchExpressedInterests(),
+        if (appState.expressedInterests.isEmpty) fetchSubscriptions(),
+      ]);
       var uri =
           '/v1/tokenization/list?onlyWithUserPermission=0&salesList=$status';
       Map responseData = await makeGetRequest(
@@ -1247,16 +1247,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           for (int i = 0; i < assets.length; i++) {
             var a = TokenizedAsset().deserializeJson(assets[i]);
             a.usdPrice = 1.47;
-            if (expressedInterests[a.id] != null) {
-              a.expressedInterest = expressedInterests[a.id] != null;
-              a.expressedInterestAmount =
-                  double.parse(expressedInterests[a.id]['amount'].toString());
+            if (appState.expressedInterests[a.id] != null) {
+              a.expressedInterest = appState.expressedInterests[a.id] != null;
+              a.expressedInterestAmount = double.parse(
+                  appState.expressedInterests[a.id]['amount'].toString());
             }
 
-            if (subscriptions[a.id] != null) {
-              a.isSubscribed = subscriptions[a.id] != null;
-              a.subscriptionAmount =
-                  double.parse(subscriptions[a.id]['amount'].toString());
+            if (appState.subscriptions[a.id] != null) {
+              a.isSubscribed = appState.subscriptions[a.id] != null;
+              a.subscriptionAmount = double.parse(
+                  appState.subscriptions[a.id]['amount'].toString());
             }
             tokenizedAssets.add(a);
           }
@@ -1284,10 +1284,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         setState(() {
-          expressedInterests = {};
+          appState.expressedInterests = {};
           var records = responseData['data']['records'];
           for (var i = 0; i < records.length; i++) {
-            expressedInterests[records[i]['tokenizedAssetId']] = records[i];
+            appState.expressedInterests[records[i]['tokenizedAssetId']] =
+                records[i];
           }
         });
       } else {
@@ -1311,11 +1312,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       );
       print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
-        subscriptions = {};
+        appState.subscriptions = {};
         setState(() {
           var records = responseData['data']['records'];
           for (var i = 0; i < records.length; i++) {
-            subscriptions[records[i]['tokenizedAssetId']] = records[i];
+            appState.subscriptions[records[i]['tokenizedAssetId']] = records[i];
           }
         });
       } else {

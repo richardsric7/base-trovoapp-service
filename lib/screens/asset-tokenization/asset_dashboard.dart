@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trovo_app/custom_bloc_observer/constants.dart';
@@ -50,6 +52,7 @@ class _AssetDashboardState extends State<AssetDashboard>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = appState.tokenizedAsset!;
+    inspect(appState.viewData);
     var assetTypes = appState.tokenizationData['assetTypes'];
     for (var i = 0; i < assetTypes.length; i++) {
       if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
@@ -124,7 +127,9 @@ class _AssetDashboardState extends State<AssetDashboard>
           if (tokenizedAsset.assetLogo != null) ...[
             CircleAvatar(
               radius: 30,
-              backgroundColor: notifier.getbluecolor70,
+              backgroundColor: tokenizedAsset.assetAlreadyExists == 1
+                  ? notifier.getgreencolor
+                  : notifier.getbluecolor90,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(100.0),
                 child: Image.network(
@@ -132,6 +137,13 @@ class _AssetDashboardState extends State<AssetDashboard>
                   width: 50,
                   height: 50,
                   fit: BoxFit.fill,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 50,
+                      width: 50,
+                    );
+                  },
                 ),
               ),
             ),
@@ -386,7 +398,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                 infoCard(
                   notifier,
                   label: 'No. of Interest Expressed',
-                  value: '???? users',
+                  value: '${tokenizedAsset.numberOfExpressedInterests} users',
                   extraValue: '',
                 ),
               ],
@@ -407,7 +419,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                 infoCard(
                   notifier,
                   label: 'Total Quantity Sold',
-                  value: '${'20'} ${tokenizedAsset.assetCode}',
+                  value: '${'????'} ${tokenizedAsset.assetCode}',
                   extraValue: '',
                 ),
               ],
@@ -421,7 +433,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                 infoCard(
                   notifier,
                   label: 'No. of Users Bought',
-                  value: '10 Users',
+                  value: '${'????'} Users',
                   extraValue: '',
                 ),
                 infoCard(
@@ -617,7 +629,9 @@ class _AssetDashboardState extends State<AssetDashboard>
                             "Project Economic Benefits":
                                 tokenizedAsset.projectEconomicBenefits ?? "",
                             "Expected No. of Job to be Created":
-                                tokenizedAsset.projectExpectedNoOfJobs ?? "",
+                                tokenizedAsset.assetAlreadyExists == 0
+                                    ? tokenizedAsset.projectExpectedNoOfJobs
+                                    : "",
                             "Project Intended Social Benefits":
                                 tokenizedAsset.projectIntendedSocialBenefits ??
                                     "",
@@ -662,57 +676,60 @@ class _AssetDashboardState extends State<AssetDashboard>
                         },
                       ),
                       SizedBox(height: 10),
-                      categoryTile(
-                        notifier,
-                        label: 'Asset Financial Information',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
-                        onTap: () {
-                          var details = {
-                            "Estimated Project IRR": formatNumber(
-                                tokenizedAsset.estimatedProjectIRR ?? 0),
-                            "Estimated Project ROI": formatNumber(
-                                tokenizedAsset.estimatedProjectROI ?? 0),
-                            "Estimated Project NPV at Launch (Day 1)":
-                                formatNumber(
-                                    tokenizedAsset.estimatedProjectNPV ?? 0),
-                            "Estimated Project Payback Periods (in Months)":
-                                tokenizedAsset
-                                        .estimatedProjectPaybackPeriodsInMonths ??
-                                    '',
-                            "All Key Assumptions Including Values Assumed":
-                                tokenizedAsset.keyAssumptionsList ?? '',
-                          };
-                          displayDetails(
-                              'Asset Financial Information', details);
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      categoryTile(
-                        notifier,
-                        label: "Project Risk Assessment",
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
-                        onTap: () {
-                          var details = {
-                            "Legal Risks Identified":
-                                tokenizedAsset.projectIdentifiedLegalRisks ??
-                                    '',
-                            "Regulatory Risks Identified": tokenizedAsset
-                                    .projectIdentifiedRegulatoryRisks ??
-                                '',
-                            "Operational/Execution Risks Identified": tokenizedAsset
-                                    .projectIdentifiedOperationalOrExecutionRisks ??
-                                '',
-                            "Market Risks Identified":
-                                tokenizedAsset.projectIdentifiedMarketRisks ??
-                                    '',
-                            "Other Relevant Risks Identified": tokenizedAsset
-                                    .projectIdentifiedOtherRelevantRisks ??
-                                '',
-                          };
-                          displayDetails("Project Risk Assessment", details);
-                        },
-                      ),
-                      SizedBox(height: 10),
+                      if (tokenizedAsset.assetAlreadyExists == 0) ...[
+                        categoryTile(
+                          notifier,
+                          label: 'Asset Financial Information',
+                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          onTap: () {
+                            var details = {
+                              "Estimated Project IRR": formatNumber(
+                                  tokenizedAsset.estimatedProjectIRR ?? 0),
+                              "Estimated Project ROI": formatNumber(
+                                  tokenizedAsset.estimatedProjectROI ?? 0),
+                              "Estimated Project NPV at Launch (Day 1)":
+                                  formatNumber(
+                                      tokenizedAsset.estimatedProjectNPV ?? 0),
+                              "Estimated Project Payback Periods (in Months)":
+                                  tokenizedAsset
+                                          .estimatedProjectPaybackPeriodsInMonths ??
+                                      '',
+                              "All Key Assumptions Including Values Assumed":
+                                  tokenizedAsset.keyAssumptionsList ?? '',
+                            };
+                            displayDetails(
+                                'Asset Financial Information', details);
+                          },
+                        ),
+                        SizedBox(height: 10),
+                        categoryTile(
+                          notifier,
+                          label: "Project Risk Assessment",
+                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          onTap: () {
+                            var details = {
+                              "Legal Risks Identified":
+                                  tokenizedAsset.projectIdentifiedLegalRisks ??
+                                      '',
+                              "Regulatory Risks Identified": tokenizedAsset
+                                      .projectIdentifiedRegulatoryRisks ??
+                                  '',
+                              "Operational/Execution Risks Identified":
+                                  tokenizedAsset
+                                          .projectIdentifiedOperationalOrExecutionRisks ??
+                                      '',
+                              "Market Risks Identified":
+                                  tokenizedAsset.projectIdentifiedMarketRisks ??
+                                      '',
+                              "Other Relevant Risks Identified": tokenizedAsset
+                                      .projectIdentifiedOtherRelevantRisks ??
+                                  '',
+                            };
+                            displayDetails("Project Risk Assessment", details);
+                          },
+                        ),
+                        SizedBox(height: 10),
+                      ],
                       categoryTile(
                         notifier,
                         label: 'Stakeholders Information',
@@ -884,11 +901,13 @@ class _AssetDashboardState extends State<AssetDashboard>
                   ),
                   SizedBox(height: 20),
                   for (var item in items.entries) ...[
-                    infoTile(
-                      notifier,
-                      item.key,
-                      item.value,
-                    ),
+                    if (item.value.toString().isNotEmpty) ...[
+                      infoTile(
+                        notifier,
+                        item.key,
+                        item.value,
+                      ),
+                    ],
                   ],
                   SizedBox(height: 60),
                 ],

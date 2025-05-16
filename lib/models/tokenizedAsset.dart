@@ -154,6 +154,7 @@ class TokenizedAsset {
   String? projectIdentifiedOperationalOrExecutionRisks;
   String? projectIdentifiedMarketRisks;
   String? projectIdentifiedOtherRelevantRisks;
+  int? numberOfExpressedInterests;
 
   TokenizedAsset({
     this.id,
@@ -305,6 +306,7 @@ class TokenizedAsset {
     this.projectIdentifiedOtherRelevantRisks,
     this.feeInAsset,
     this.feeInAssetPercent,
+    this.numberOfExpressedInterests,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -497,6 +499,8 @@ class TokenizedAsset {
           m["projectIdentifiedOtherRelevantRisks"].toString(),
       feeInAsset: double.tryParse(m["feeInAsset"].toString()),
       feeInAssetPercent: double.tryParse(m["feeInAssetPercent"].toString()),
+      numberOfExpressedInterests:
+          int.tryParse(m["numberOfExpressedInterests"].toString()),
     );
   }
 

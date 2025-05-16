@@ -822,4 +822,7 @@ class DataProvider with ChangeNotifier {
           pages: [LoginPageConfig, CreatePasswordPageConfig]);
     }
   }
+
+  Map expressedInterests = {};
+  Map subscriptions = {};
 }

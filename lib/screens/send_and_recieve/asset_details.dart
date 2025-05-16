@@ -378,17 +378,24 @@ class _AssetDetailsState extends State<AssetDetails>
                     ),
                     Container(
                       width: width / 1.3,
-                      child: Image.network(
-                        asset!.imageUrl!,
-                        height: 50,
-                        width: 50,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            height: 50,
-                            width: 50,
-                          );
-                        },
+                      child: CircleAvatar(
+                        radius: 30,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            asset!.imageUrl!,
+                            height: 55,
+                            width: 55,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                height: 55,
+                                width: 55,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ],

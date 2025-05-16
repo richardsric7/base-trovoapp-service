@@ -247,10 +247,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     }
 
     if (appState.userInfo!.kycVerified == 0) {
-      popup(context,
-          title: "error".tr(),
-          message:
-              "You must complete your KYC verification before you can proceed.");
+      kycUnverifiedErrorPop(context);
       return;
     }
 
@@ -542,7 +539,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         records[i].vettingStatus == 0
                                     ? 'Pending Vetting'
                                     : getTokenizationStatus(
-                                        records[i].tokenizationStatus!)),
+                                        records[i].tokenizationStatus!),
+                                records[i].assetAlreadyExists!),
                             // getTokenizationStatus(
                             //     records[i].tokenizationStatus)),
                           ));
@@ -747,7 +745,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type, String status) {
+  Widget assetTile(String imageUrl, String name, String type, String status,
+      int assetAlreadyExists) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -768,17 +767,26 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   width: 35,
                 ),
               ] else ...[
-                Image.network(
-                  imageUrl,
-                  height: 35,
-                  width: 35,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/trovo.png',
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: assetAlreadyExists == 1
+                      ? notifier.getgreencolor
+                      : notifier.getbluecolor90,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100.0),
+                    child: Image.network(
+                      imageUrl,
                       height: 35,
                       width: 35,
-                    );
-                  },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/trovo.png',
+                          height: 35,
+                          width: 35,
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ],
               SizedBox(width: 20),

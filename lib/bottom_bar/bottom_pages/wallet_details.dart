@@ -447,17 +447,24 @@ class _WalletDetailsState extends State<WalletDetails>
         child: ListTile(
           title: Row(
             children: [
-              Image.network(
-                imageUrl,
-                height: 35,
-                width: 35,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/trovo.png',
+              CircleAvatar(
+                radius: 20,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100.0),
+                  child: Image.network(
+                    imageUrl,
                     height: 35,
                     width: 35,
-                  );
-                },
+                    fit: BoxFit.fill,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/trovo.png',
+                        height: 35,
+                        width: 35,
+                      );
+                    },
+                  ),
+                ),
               ),
               SizedBox(width: 20),
               Column(
@@ -889,17 +896,24 @@ class _WalletDetailsState extends State<WalletDetails>
         child: ListTile(
             title: Row(
               children: [
-                Image.network(
-                  asset.imageUrl!,
-                  height: 35,
-                  width: 35,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/trovo.png',
+                CircleAvatar(
+                  radius: 20,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100.0),
+                    child: Image.network(
+                      asset.imageUrl!,
                       height: 35,
                       width: 35,
-                    );
-                  },
+                      fit: BoxFit.fill,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/trovo.png',
+                          height: 35,
+                          width: 35,
+                        );
+                      },
+                    ),
+                  ),
                 ),
                 SizedBox(width: 20),
                 Column(
