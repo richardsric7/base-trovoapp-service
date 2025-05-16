@@ -666,11 +666,16 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	}
 	//check Trov balance
 	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
-	_, _, _, sourceAccountCustomBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	if errCheckBalance != nil {
+		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error checking wallet balance for initiator. error: %v", errCheckBalance)
 
+		err = &tErrors.CustomError{Err: "error-not-enough-trov", ErrMessage: "Error checking TROV balance of primary wallet."}
+		return
+	}
 	if sourceAccountCustomBalance.InexactFloat64() < countryConfig.MinTROVBalanceForTokenizationApplication {
 
-		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error Not enough TROV balance to initiate operation.")
+		log.Println("[SubmitTokenizationAssetInfoByInitiator]error Not enough TROV balance to initiate operation.")
 
 		err = &tErrors.CustomError{Err: "error-not-enough-trov", ErrMessage: fmt.Sprintf("%v TROV is required in your primary wallet with alias [%v] to initiate tokenization application. You have %v TROV.", countryConfig.MinTROVBalanceForTokenizationApplication, initiator.Username, sourceAccountCustomBalance.String())}
 		return
