@@ -22,7 +22,9 @@ import (
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
 )
+
 const TOKEN_LIMIT float64 = 922337203685.00
+
 type GlobalConfig struct {
 	DynamicLinkServiceURLChan  chan string
 	PushNotificationClient     *messaging.Client
@@ -453,6 +455,16 @@ func (gc *GlobalConfig) GetTokenizedAssetByID(tokenizedAssetID string) (t Tokeni
 	gc.DB.Where("id = ?", tokenizedAssetID).First(&t)
 
 	return t
+}
+
+func (gc *GlobalConfig) TokenLimit() float64 {
+
+	return TOKEN_LIMIT
+}
+
+func (gc *GlobalConfig) TokenLimitAsString() string {
+
+	return fmt.Sprintf("%v", TOKEN_LIMIT)
 }
 
 func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {

@@ -2318,7 +2318,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 			//establish trustline
 			ops = append(ops, &txnbuild.ChangeTrust{
 				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
-				Limit:         "900000000000",
+				Limit:         gc.TokenLimitAsString(),
 				SourceAccount: wallet.ID,
 			})
 			// allow trust from issuer to destination wallet
@@ -2817,7 +2817,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	// create distributionWallet trustline to tokenized asset
 	ops = append(ops, &txnbuild.ChangeTrust{
 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
-		Limit:         "900000000000",
+		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: distributionWallet.ID,
 	})
 
@@ -2826,7 +2826,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	//get fee wallet
 	ops = append(ops, &txnbuild.ChangeTrust{
 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
-		Limit:         "900000000000",
+		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: feeWallet.Address(),
 	})
 
