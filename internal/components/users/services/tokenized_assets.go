@@ -36,6 +36,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const TOKEN_LIMIT float64 = 922337203685.00
+
 func GetTokenizedAssetSectorList(db *gorm.DB) (sectors []userModels.TokenizedAssetSector) {
 	sectors = make([]userModels.TokenizedAssetSector, 0)
 	db.Preload(clause.Associations).Order("id").Find(&sectors)
@@ -602,6 +604,12 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
 		return
 	}
+
+	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+		return
+	}
+
 	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
 	if len(input.ProceedPayoutCurrency) == 0 {
 		input.ProceedPayoutCurrency = strings.ToUpper(input.AssetQuoteCurrency)
@@ -682,6 +690,11 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 // SubmitTokenizationAssetInfo used by trovoManager
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
+
+	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+		return
+	}
 
 	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
@@ -939,6 +952,10 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 
 	}
 
+	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+		return
+	}
 	//tokenization existing
 	if ato.AssetTokenizationStatus > 1 {
 		// error tokenization is already in progress
@@ -2623,6 +2640,10 @@ func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.
 func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 
+	if decimal.NewFromFloat(t.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+		return
+	}
 	client := gc.BantuExpansionClient
 	feeWallet := keypair.MustParseFull(os.Getenv("TOKENIZATION_FEE_WALLET"))
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
@@ -2934,6 +2955,10 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 
 	}
 
+	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+		return
+	}
 	if ato.AssetCountryLocation == nil {
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location."}
 		return
