@@ -1,6 +1,7 @@
 package sharedconfig
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
+	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
@@ -26,6 +28,10 @@ type OrderBookRequestInput struct {
 
 // getBantuOrderBookSummary gets orderbook on bantu network
 func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
 	client := network.GetBlockchainClient()
 	var limit uint
 	var sellingAssetType, buyingAssetType horizonclient.AssetType
@@ -67,11 +73,14 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	// fmt.Printf("Offer Request: %+v\n", oRequest)
 	oSummary, err := client.OrderBook(oRequest)
 	if err != nil {
-		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "decoding horizon.Problem") || strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[client.OrderBookRequest]", err)
+			logDiscordFailedRequest(fmt.Sprintf("[client.OrderBookRequest]%v", err))
 			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
+		// if hError, ok := err.(*horizonclient.Error); ok {} else {}
 		if hError, ok := err.(*horizonclient.Error); ok {
+			// Assertion succeeded
 			//something went wrong, verify stage and check approprate action
 			rCode, _ := hError.ResultCodes()
 			rS, _ := hError.ResultString()
@@ -82,7 +91,8 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 			log.Println("[client.OrderBookRequest] Error submitting:", err)
 			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		} else {
-			log.Println("[client.OrderBookRequest] Error submitting:", err)
+			log.Println("[client.OrderBookRequest]error:", err)
+			// Assertion failed
 			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
 
@@ -183,4 +193,12 @@ func (gc *GlobalConfig) GetAvalableMarketQuantity(sellingAssetCode, sellingAsset
 	}
 
 	return sellingQuantity, buyingQuantity, nil
+}
+
+func logDiscordFailedRequest(msg string) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	discord.Say(msg)
 }

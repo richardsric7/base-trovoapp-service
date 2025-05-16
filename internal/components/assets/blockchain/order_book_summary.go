@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	bantupayerrors "trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ecnepsnai/discord"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"gorm.io/gorm"
@@ -133,7 +134,7 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 	if err != nil {
 		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[getTradeAggregate]", err)
-			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+			return tds, &tErrors.ErrorTemporaryServerError{}
 		}
 		if hError, ok := err.(*horizonclient.Error); ok {
 			//something went wrong, verify stage and check approprate action
@@ -144,10 +145,10 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 			log.Println("\n[getTradeAggregate] Result String in Request:", rS)
 			log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
 			log.Println("[getTradeAggregate] Error submitting:", err)
-			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+			return tds, &tErrors.ErrorTemporaryServerError{}
 		} else {
 			log.Println("[getTradeAggregate] Error submitting:", err)
-			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+			return tds, &tErrors.ErrorTemporaryServerError{}
 		}
 
 	}
@@ -158,6 +159,10 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 
 // getBantuOrderBookSummary gets orderbook on bantu network
 func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
 	client := network.GetBlockchainClient()
 	var limit uint
 	var sellingAssetType, buyingAssetType horizonclient.AssetType
@@ -199,10 +204,11 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	// fmt.Printf("Offer Request: %+v\n", oRequest)
 	oSummary, err := client.OrderBook(oRequest)
 	if err != nil {
-		log.Println("[client.OrderBookRequest]error:", err)
-		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "decoding horizon.Problem") || strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[client.OrderBookRequest]", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			logDiscordFailedRequest(fmt.Sprintf("[client.OrderBookRequest]%v", err))
+
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
 		// if hError, ok := err.(*horizonclient.Error); ok {} else {}
 		if hError, ok := err.(*horizonclient.Error); ok {
@@ -215,10 +221,11 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 			log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
 			log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
 			log.Println("[client.OrderBookRequest] Error submitting:", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		} else {
+			log.Println("[client.OrderBookRequest]error:", err)
 			// Assertion failed
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
 
 	}
@@ -276,7 +283,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	input.SellingAssetIssuer = sellingAssetIssuer
 	dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 	if len(dollarAsset) != 2 {
-		return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	if strings.EqualFold(sellingAssetCode, dollarAsset[0]) && strings.EqualFold(sellingAssetIssuer, dollarAsset[1]) {
@@ -312,7 +319,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		if len(orderBook.Bids) == 0 {
 
 			log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
-			return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
+			return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 		}
 		usdPrice = orderBook.Bids[0].Price
 		priceCache.Price = usdPrice
@@ -359,7 +366,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	orderBook, err := getBantuOrderBookSummary(input)
 
 	if len(orderBook.Asks) == 0 || err != nil {
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", &tErrors.ErrorTemporaryServerError{}
 	}
 	nativePrice = orderBook.Asks[0].Price
 
@@ -593,4 +600,12 @@ func ProcessOrderBookEvent(orderBook horizon.OrderBookSummary) (trovoOrderBook O
 
 	return trovoOrderBook, nil
 
+}
+
+func logDiscordFailedRequest(msg string) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	discord.Say(msg)
 }
