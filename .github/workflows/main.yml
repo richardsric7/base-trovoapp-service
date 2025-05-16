@@ -79,5 +79,5 @@ jobs:
 
       - name: Upload to Firebase App Distribution
         run: |
-          curl -sL https://firebase.tools | bash  # Install Firebase CLI
+          npm install -g firebase-tools
           firebase appdistribution:distribute build/app/outputs/bundle/release/trovo-app-${{ steps.flutter_version.outputs.version_number }}-${{ steps.flutter_version.outputs.build_number }}.aab --app ${{ secrets.FIREBASE_APP_ID }} --groups trovo-core-group --release-notes "New release for version ${{ github.ref }}. ${{ github.event.head_commit.message }}."
