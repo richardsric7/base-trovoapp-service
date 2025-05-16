@@ -530,6 +530,8 @@ type TokenizedAssetJSON struct {
 	ProjectIdentifiedMarketRisks                 string                          `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          string                          `json:"projectIdentifiedOtherRelevantRisks"`
 	NumberOfExpressedInterests                   int64                           `json:"numberOfExpressedInterests"`
+	NumberOfSubscribers                          int64                           `json:"numberOfSubscribers"`
+	QuantityOfTokensSold                         float64                         `json:"quantityOfTokensSold"`
 }
 
 type TokenizedAssetSector struct {
@@ -969,6 +971,7 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 
 	return
 }
+
 func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) (count int64) {
 	if t == nil {
 		log.Println("[TokenizedAsset::CountExpressedInterests] Error tokenized asset is nil")
@@ -979,6 +982,28 @@ func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) 
 
 	return
 }
+
+func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig) (count int64) {
+	if t == nil {
+		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
+		return
+	}
+
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Count(&count)
+
+	return
+}
+
+func (t *TokenizedAsset) SumQuantitySold(gc *sharedconfig.GlobalConfig) (sum float64) {
+	if t == nil {
+		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
+		return
+	}
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+
+	return
+}
+
 func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
 	if t == nil {
 		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
@@ -2146,6 +2171,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 
 	t.NumberOfExpressedInterests = ti.CountExpressedInterests(gc)
+	t.NumberOfSubscribers = ti.CountNumberOfSubscribers(gc)
+	t.QuantityOfTokensSold = ti.SumQuantitySold(gc)
 
 	return t
 
