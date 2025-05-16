@@ -22,7 +22,7 @@ import (
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
 )
-
+const TOKEN_LIMIT float64 = 922337203685.00
 type GlobalConfig struct {
 	DynamicLinkServiceURLChan  chan string
 	PushNotificationClient     *messaging.Client
