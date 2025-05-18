@@ -36,8 +36,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const TOKEN_LIMIT float64 = 922337203685.00
-
 func GetTokenizedAssetSectorList(db *gorm.DB) (sectors []userModels.TokenizedAssetSector) {
 	sectors = make([]userModels.TokenizedAssetSector, 0)
 	db.Preload(clause.Associations).Order("id").Find(&sectors)
@@ -605,8 +603,8 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		return
 	}
 
-	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
-		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
 
@@ -696,8 +694,8 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 
-	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
-		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
 
@@ -957,8 +955,8 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 
 	}
 
-	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
-		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
 	//tokenization existing
@@ -2645,8 +2643,8 @@ func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.
 func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 
-	if decimal.NewFromFloat(t.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
-		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+	if decimal.NewFromFloat(t.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
 	client := gc.BantuExpansionClient
@@ -2960,8 +2958,8 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 
 	}
 
-	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(decimal.NewFromFloat(TOKEN_LIMIT)) {
-		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", TOKEN_LIMIT)}
+	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
+		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
 	if ato.AssetCountryLocation == nil {

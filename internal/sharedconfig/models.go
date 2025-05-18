@@ -463,6 +463,11 @@ func (gc *GlobalConfig) TokenLimit() float64 {
 	return decimal.NewFromFloat(TOKEN_LIMIT).Truncate(7).InexactFloat64()
 }
 
+func (gc *GlobalConfig) TokenLimitAsDecimal() decimal.Decimal {
+
+	return decimal.NewFromFloat(TOKEN_LIMIT).Truncate(7)
+}
+
 func (gc *GlobalConfig) TokenLimitAsString() string {
 
 	return decimal.NewFromFloat(TOKEN_LIMIT).Truncate(7).String()
