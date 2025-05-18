@@ -994,12 +994,26 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 	return
 }
 
+// SumQuantitySold suma the total amount in fiat sold so far
 func (t *TokenizedAsset) SumQuantitySold(gc *sharedconfig.GlobalConfig) (sum float64) {
 	if t == nil {
-		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
+		log.Println("[TokenizedAsset::SumQuantitySold] Error tokenized asset is nil")
 		return
 	}
 	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+
+	return
+}
+
+// SumAmountBoughtByWalletOwner sums the amout that is purchased by the wallet owner
+func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sharedconfig.GlobalConfig) (sum float64) {
+	if t == nil {
+		log.Println("[TokenizedAsset::SumAmountBoughtByWalletOwner] Error tokenized asset is nil")
+		return
+	}
+	ownerUsername := strings.Split(walletAlias, "_")[0]
+
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Wallet_Alias LIKE ?", t.ID, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }

@@ -295,22 +295,6 @@ func GetOpenTokenizedAssetByInitiatorUsername(initiatorUsername string, db *gorm
 
 // GetFeeReadyTokenizedAssetApplicationByInitiatorUsername get the tokenization that has status 1 and initiated by the initiator username
 func GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(initiatorUsername string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
-	// var ta userModels.TokenizedAsset
-	// err = db.Preload(clause.Associations).Order("Created_At DESC").Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
-
-	// if err != nil {
-	// 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-	// 		//critical database error occured
-	// 		log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
-	// 		return
-
-	// 	} else {
-	// 		//record not found
-	// 		NotFound = true
-	// 		err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
-	// 		return
-	// 	}
-	// }
 
 	return userModels.Username(initiatorUsername).GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(db)
 }
@@ -2074,6 +2058,15 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		return
 
 	}
+
+	if ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
+
+		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
+		err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprint("You can only purchase not more than %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, decimal.NewFromFloat(ta.CapAmountInFiat-ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)), *ta.AssetQuoteCurrency)}
+		return
+
+	}
+
 	if subscriberWallet.SharedAccessEnabled == 1 && subscriberWallet.NumberOfApprovalsNeeded > 0 {
 		input.Multiparty = 1
 		swapInfo.Multiparty = 1
