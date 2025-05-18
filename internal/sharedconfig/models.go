@@ -16,6 +16,7 @@ import (
 	"firebase.google.com/go/messaging"
 	"firebase.google.com/go/storage"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"golang.org/x/text/cases"
@@ -459,12 +460,12 @@ func (gc *GlobalConfig) GetTokenizedAssetByID(tokenizedAssetID string) (t Tokeni
 
 func (gc *GlobalConfig) TokenLimit() float64 {
 
-	return TOKEN_LIMIT
+	return decimal.NewFromFloat(TOKEN_LIMIT).Truncate(7).InexactFloat64()
 }
 
 func (gc *GlobalConfig) TokenLimitAsString() string {
 
-	return fmt.Sprintf("%v", TOKEN_LIMIT)
+	return decimal.NewFromFloat(TOKEN_LIMIT).Truncate(7).String()
 }
 
 func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
