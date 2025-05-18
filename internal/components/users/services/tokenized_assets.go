@@ -2062,7 +2062,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	if ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
 
 		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
-		err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprint("You can only purchase not more than %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, decimal.NewFromFloat(ta.CapAmountInFiat-ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)), *ta.AssetQuoteCurrency)}
+		err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase not more than %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, decimal.NewFromFloat(ta.CapAmountInFiat-ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)), *ta.AssetCode)}
 		return
 
 	}
