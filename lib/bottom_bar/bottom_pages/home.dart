@@ -1227,7 +1227,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       {required int status}) async {
     try {
       Future.wait([
-        if (appState.tokenizationData == null) fetchTokenizationData(),
+        if (appState.tokenizationData.isEmpty) fetchTokenizationData(),
         if (appState.expressedInterests.isEmpty) fetchExpressedInterests(),
         if (appState.expressedInterests.isEmpty) fetchSubscriptions(),
       ]);

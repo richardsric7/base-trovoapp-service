@@ -271,7 +271,7 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  dynamic tokenizationData = {};
+  Map tokenizationData = {};
   set setTokenizationData(data) {
     tokenizationData = data;
     notifyListeners();

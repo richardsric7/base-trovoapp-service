@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/announcement.dart';
 import 'package:trovo_app/network/requests.dart';
@@ -49,6 +51,7 @@ Future<void> fetchCuratedSwapList(
 
 storeUserInfo(userInfoMap, DataProvider state) async {
   // print('userInfoMap: ${userInfoMap['userData']}');
+  inspect(userInfoMap);
   var userInfo = userInfoMap['userData'] ?? {};
   var assetBalances = userInfoMap['assetBalances'] ?? {};
   var nfts = userInfoMap['nfts'] ?? {};

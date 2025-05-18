@@ -61,9 +61,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Row(
             children: [
               Container(
-                constraints: isSelected
-                    ? BoxConstraints(maxWidth: width / 4)
-                    : BoxConstraints(maxWidth: width / 2.5),
+                constraints:
+                    isSelected
+                        ? BoxConstraints(maxWidth: width / 4)
+                        : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
                   wallet.alias!,
                   overflow:
@@ -71,24 +72,16 @@ class Payment_HistoryState extends State<PaymentHistory>
                 ),
               ),
               if (wallet.isSharedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
+                SizedBox(width: 2),
                 Icon(
                   Icons.people_outline,
                   size: 17,
                   color: notifier.getbluewhitecolor,
-                )
+                ),
               ],
               if (!isSelected && wallet.publicKey == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
+                SizedBox(width: 2),
+                Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
@@ -105,17 +98,13 @@ class Payment_HistoryState extends State<PaymentHistory>
     filterTypesMap.forEach((key, value) {
       items.add(
         DropdownMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            value: key),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Text(value, overflow: TextOverflow.ellipsis)],
+          ),
+          value: key,
+        ),
       );
     });
 
@@ -124,35 +113,34 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   List<DropdownMenuItem<String>> get assetsDropdownItems {
     var items = <DropdownMenuItem<String>>[];
-    items.add(DropdownMenuItem<String>(
-      value: '*|*',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "allassets".tr(),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    ));
-
-    items.addAll(claimedAssets.map<DropdownMenuItem<String>>((asset) {
-      return DropdownMenuItem<String>(
-        value: '${asset.assetIssuer}|${asset.assetCode}',
+    items.add(
+      DropdownMenuItem<String>(
+        value: '*|*',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              asset.assetCode!.isEmpty ? 'XBN' : asset.assetCode!,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          children: [Text("allassets".tr(), overflow: TextOverflow.ellipsis)],
         ),
-      );
-    }).toList());
+      ),
+    );
+
+    items.addAll(
+      claimedAssets.map<DropdownMenuItem<String>>((asset) {
+        return DropdownMenuItem<String>(
+          value: '${asset.assetIssuer}|${asset.assetCode}',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                asset.assetCode!.isEmpty ? 'XBN' : asset.assetCode!,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
 
     return items;
   }
@@ -167,10 +155,11 @@ class Payment_HistoryState extends State<PaymentHistory>
     // if viewdata is not empty then we are opening this view from shared wallets view
     isFromSharedWalletsView = appState.viewData?['rel'] == 'sharedWalletView';
 
-    selectedWallet = (appState.viewData != null &&
-            appState.viewData!['walletPublicKey'] != null)
-        ? appState.viewData!['walletPublicKey']
-        : appState.primaryWallet.publicKey!;
+    selectedWallet =
+        (appState.viewData != null &&
+                appState.viewData!['walletPublicKey'] != null)
+            ? appState.viewData!['walletPublicKey']
+            : appState.primaryWallet.publicKey!;
 
     wallets = appState.userInfo!.allWallets;
     wallet = appState.userInfo!.getWallet(selectedWallet);
@@ -197,31 +186,34 @@ class Payment_HistoryState extends State<PaymentHistory>
       drawer: getDrawer(context, appState, notifier),
       appBar: AppBar(
         centerTitle: true,
-        leading: isFromSharedWalletsView
-            ? GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Image.asset("assets/images/back.png", scale: 5),
-              )
-            : IconButton(
-                onPressed: () {
-                  key.currentState!.openDrawer();
-                },
-                icon: Icon(
-                  Icons.menu,
-                  size: 35,
-                  color: notifier.getbluewhitecolor,
+        leading:
+            isFromSharedWalletsView
+                ? GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Image.asset("assets/images/back.png", scale: 5),
+                )
+                : IconButton(
+                  onPressed: () {
+                    key.currentState!.openDrawer();
+                  },
+                  icon: Icon(
+                    Icons.menu,
+                    size: 35,
+                    color: notifier.getbluewhitecolor,
+                  ),
                 ),
-              ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             // SizedBox(width: width / 15),
             Text(
               "transactionHistory".tr(),
-              style:
-                  TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
+              style: TextStyle(
+                color: notifier.getblck,
+                fontFamily: fontsemibold,
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -267,7 +259,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 ),
               ),
             ),
-          ]
+          ],
         ],
         backgroundColor: notifier.getfavorites,
         elevation: 0,
@@ -283,9 +275,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 width: width,
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: width / 50,
-                    ),
+                    SizedBox(width: width / 50),
                     // hide the dropdown when we view this page from shared
                     // wallet
                     if (!isFromSharedWalletsView) ...[
@@ -294,8 +284,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                         child: dropdown(
                           (newValue) async {
                             selectedWallet = newValue.toString();
-                            wallet =
-                                appState.userInfo!.getWallet(selectedWallet);
+                            wallet = appState.userInfo!.getWallet(
+                              selectedWallet,
+                            );
                             appState.filterAsset = "*|*";
                             showLoader(context);
                             appState.limit = 20;
@@ -326,7 +317,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                       flex: 2,
                       child: dropdown(
                         (newValue) async {
-                          print(newValue);
                           showLoader(context);
                           appState.limit = 20;
                           appState.totalRecords = 0;
@@ -346,9 +336,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         null,
                       ),
                     ),
-                    SizedBox(
-                      width: width / 50,
-                    ),
+                    SizedBox(width: width / 50),
                   ],
                 ),
               ),
@@ -357,9 +345,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 width: width,
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: width / 50,
-                    ),
+                    SizedBox(width: width / 50),
                     Expanded(
                       flex: 2,
                       child: dropdown(
@@ -376,13 +362,8 @@ class Payment_HistoryState extends State<PaymentHistory>
                         null,
                       ),
                     ),
-                    Expanded(
-                      flex: 2,
-                      child: getContent(filterType),
-                    ),
-                    SizedBox(
-                      width: width / 50,
-                    ),
+                    Expanded(flex: 2, child: getContent(filterType)),
+                    SizedBox(width: width / 50),
                   ],
                 ),
               ),
@@ -398,9 +379,10 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height: isFromSharedWalletsView
-            ? (showFilter ? height / 1.3950 : height / 1.14)
-            : (showFilter ? height / 1.47 : height / 1.19),
+        height:
+            isFromSharedWalletsView
+                ? (showFilter ? height / 1.3950 : height / 1.14)
+                : (showFilter ? height / 1.47 : height / 1.19),
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
@@ -429,12 +411,13 @@ class Payment_HistoryState extends State<PaymentHistory>
             return text;
           },
           child: ListView.separated(
-              separatorBuilder: (context, int) => Container(),
-              itemCount: historyData!.length,
-              controller: scrollController,
-              itemBuilder: (context, index) {
-                return tile(historyData![index]);
-              }),
+            separatorBuilder: (context, int) => Container(),
+            itemCount: historyData!.length,
+            controller: scrollController,
+            itemBuilder: (context, index) {
+              return tile(historyData![index]);
+            },
+          ),
         ),
       );
     }
@@ -453,22 +436,19 @@ class Payment_HistoryState extends State<PaymentHistory>
                 color: notifier.getbluewhitecolor,
               ),
             ),
-            SizedBox(
-              height: height / 90,
-            ),
+            SizedBox(height: height / 90),
             ElevatedButton(
               onPressed: () async {
                 await appState.getHistory(context, selectedWallet);
               },
               style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  notifier.getbluecolor!,
+                ),
               ),
               child: Text(
                 "refresh".tr(),
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                ),
+                style: TextStyle(fontFamily: fontsemibold),
               ),
             ),
           ],
@@ -496,8 +476,10 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     if (transaction.transactionType!.contains('SWAP')) {
       transaction.transactionDirection = TransactionDirection.Swap;
-      var splitResult =
-          transaction.transactionType!.replaceAll('SWAP', '').trim().split('>');
+      var splitResult = transaction.transactionType!
+          .replaceAll('SWAP', '')
+          .trim()
+          .split('>');
       name = "swappedto".tr(args: [splitResult[0], splitResult[1]]);
     }
 
@@ -515,13 +497,16 @@ class Payment_HistoryState extends State<PaymentHistory>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
+            color:
+                notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 15.0,
+            ),
             child: Row(
               children: [
                 Image.asset(
@@ -530,28 +515,28 @@ class Payment_HistoryState extends State<PaymentHistory>
                   color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
-                SizedBox(
-                  width: width / 50,
-                ),
+                SizedBox(width: width / 50),
                 Container(
                   width: width / 1.5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: width / 50,
-                      ),
+                      SizedBox(width: width / 50),
                       Text(
-                        formatAmount(transaction.transactionDirection!, amount,
-                            assetCode),
+                        formatAmount(
+                          transaction.transactionDirection!,
+                          amount,
+                          assetCode,
+                        ),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
-                          color: transaction.transactionDirection ==
-                                  TransactionDirection.Send
-                              ? Colors.red
-                              : notifier.getgreencolor,
+                          color:
+                              transaction.transactionDirection ==
+                                      TransactionDirection.Send
+                                  ? Colors.red
+                                  : notifier.getgreencolor,
                           fontFamily: fontbody,
                         ),
                       ),
@@ -568,9 +553,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: 2,
-                      ),
+                      SizedBox(height: 2),
                       Wrap(
                         children: [
                           Text(
@@ -648,32 +631,34 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: HistoryFilterType.Username,
-                    onDone: (value) async {
-                  appState.setFilterUsername = value;
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                    await appState.getHistory(
-                      context,
-                      selectedWallet,
-                      onDone: () => adjustScrollPosition(),
-                    );
-                  }
-                });
+                textFieldPopup(
+                  context,
+                  rel: HistoryFilterType.Username,
+                  onDone: (value) async {
+                    appState.setFilterUsername = value;
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                      await appState.getHistory(
+                        context,
+                        selectedWallet,
+                        onDone: () => adjustScrollPosition(),
+                      );
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       appState.filterUsername == null
                           ? "enterusername2".tr()
@@ -681,9 +666,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterUsername != null ? 12 : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterUsername != null ? 12 : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -701,32 +687,34 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: HistoryFilterType.Memo,
-                    onDone: (value) async {
-                  appState.setFilterMemo = value;
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&memo=${value}";
-                    await appState.getHistory(
-                      context,
-                      selectedWallet,
-                      onDone: () => adjustScrollPosition(),
-                    );
-                  }
-                });
+                textFieldPopup(
+                  context,
+                  rel: HistoryFilterType.Memo,
+                  onDone: (value) async {
+                    appState.setFilterMemo = value;
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&memo=${value}";
+                      await appState.getHistory(
+                        context,
+                        selectedWallet,
+                        onDone: () => adjustScrollPosition(),
+                      );
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       appState.filterMemo == null
                           ? "entermemo".tr()
@@ -734,9 +722,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterMemo != null ? 12 : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterMemo != null ? 12 : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -754,41 +743,44 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: HistoryFilterType.FromPublicKey,
-                    onDone: (value) async {
-                  if (value != null && value.toString().isNotEmpty) {
-                    appState.setFilterFromPublicKey = value;
-                    appState.setFilterQuery = "&fromPublicKey=$value";
-                    await appState.getHistory(
-                      context,
-                      selectedWallet,
-                      onDone: () => adjustScrollPosition(),
-                    );
-                  }
-                });
+                textFieldPopup(
+                  context,
+                  rel: HistoryFilterType.FromPublicKey,
+                  onDone: (value) async {
+                    if (value != null && value.toString().isNotEmpty) {
+                      appState.setFilterFromPublicKey = value;
+                      appState.setFilterQuery = "&fromPublicKey=$value";
+                      await appState.getHistory(
+                        context,
+                        selectedWallet,
+                        onDone: () => adjustScrollPosition(),
+                      );
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       getTruncatedPublicKey(appState.filterFromPublicKey),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize:
-                              appState.filterFromPublicKey != null ? 12 : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize:
+                            appState.filterFromPublicKey != null ? 12 : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -806,41 +798,43 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: HistoryFilterType.ToPublicKey,
-                    onDone: (value) async {
-                  if (value != null && value.toString().isNotEmpty) {
-                    appState.setFilterToPublicKey = value;
-                    appState.setFilterQuery = "&toPublicKey=$value";
-                    await appState.getHistory(
-                      context,
-                      selectedWallet,
-                      onDone: () => adjustScrollPosition(),
-                    );
-                  }
-                });
+                textFieldPopup(
+                  context,
+                  rel: HistoryFilterType.ToPublicKey,
+                  onDone: (value) async {
+                    if (value != null && value.toString().isNotEmpty) {
+                      appState.setFilterToPublicKey = value;
+                      appState.setFilterQuery = "&toPublicKey=$value";
+                      await appState.getHistory(
+                        context,
+                        selectedWallet,
+                        onDone: () => adjustScrollPosition(),
+                      );
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       getTruncatedPublicKey(appState.filterToPublicKey),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize:
-                              appState.filterToPublicKey != null ? 12 : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterToPublicKey != null ? 12 : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -858,43 +852,47 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                amountRangePopup(context, onDone: () async {
-                  if (appState.filterMinAmount != null &&
-                      appState.filterMaxAmount != null) {
-                    appState.setFilterQuery =
-                        "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
-                    await appState.getHistory(
-                      context,
-                      selectedWallet,
-                      onDone: () => adjustScrollPosition(),
-                    );
-                  }
-                });
+                amountRangePopup(
+                  context,
+                  onDone: () async {
+                    if (appState.filterMinAmount != null &&
+                        appState.filterMaxAmount != null) {
+                      appState.setFilterQuery =
+                          "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+                      await appState.getHistory(
+                        context,
+                        selectedWallet,
+                        onDone: () => adjustScrollPosition(),
+                      );
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       truncate(getAmountRangeValue(), length: 30),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterMinAmount != null &&
-                                  appState.filterMaxAmount != null
-                              ? 12
-                              : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize:
+                            appState.filterMinAmount != null &&
+                                    appState.filterMaxAmount != null
+                                ? 12
+                                : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -912,21 +910,25 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
-                customDateRangePopup(context, onDone: () async {
-                  appState.setFilterQuery =
-                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-                  await appState.getHistory(
-                    context,
-                    selectedWallet,
-                    onDone: () => adjustScrollPosition(),
-                  );
-                });
+                customDateRangePopup(
+                  context,
+                  onDone: () async {
+                    appState.setFilterQuery =
+                        "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                    await appState.getHistory(
+                      context,
+                      selectedWallet,
+                      onDone: () => adjustScrollPosition(),
+                    );
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -935,12 +937,14 @@ class Payment_HistoryState extends State<PaymentHistory>
                     getDateRangeValue(),
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: appState.filterStartDate != null &&
-                                appState.filterEndDate != null
-                            ? 13
-                            : 15,
-                        fontFamily: fontsemibold),
+                      color: notifier.getbluewhitecolor,
+                      fontSize:
+                          appState.filterStartDate != null &&
+                                  appState.filterEndDate != null
+                              ? 13
+                              : 15,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   Icon(
                     Icons.keyboard_arrow_down_rounded,
@@ -958,9 +962,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+              color:
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -1002,12 +1007,14 @@ class Payment_HistoryState extends State<PaymentHistory>
                     getTransactionDirectionValue(),
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: appState.filterStartDate != null &&
-                                appState.filterEndDate != null
-                            ? 13
-                            : 15,
-                        fontFamily: fontsemibold),
+                      color: notifier.getbluewhitecolor,
+                      fontSize:
+                          appState.filterStartDate != null &&
+                                  appState.filterEndDate != null
+                              ? 13
+                              : 15,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   Icon(
                     Icons.keyboard_arrow_down_rounded,
@@ -1061,85 +1068,103 @@ class Payment_HistoryState extends State<PaymentHistory>
   void showPopup(HistoryFilterType filterType) {
     switch (filterType) {
       case HistoryFilterType.Username:
-        textFieldPopup(context, rel: HistoryFilterType.Username,
-            onDone: (value) async {
-          appState.setFilterUsername = value;
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-            await appState.getHistory(
-              context,
-              selectedWallet,
-              onDone: () => adjustScrollPosition(),
-            );
-          }
-        });
+        textFieldPopup(
+          context,
+          rel: HistoryFilterType.Username,
+          onDone: (value) async {
+            appState.setFilterUsername = value;
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+              await appState.getHistory(
+                context,
+                selectedWallet,
+                onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       case HistoryFilterType.FromPublicKey:
-        textFieldPopup(context, rel: HistoryFilterType.FromPublicKey,
-            onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterFromPublicKey = value;
-            appState.setFilterQuery = "&fromPublicKey=$value";
-            await appState.getHistory(
-              context,
-              selectedWallet,
-              onDone: () => adjustScrollPosition(),
-            );
-          }
-        });
+        textFieldPopup(
+          context,
+          rel: HistoryFilterType.FromPublicKey,
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterFromPublicKey = value;
+              appState.setFilterQuery = "&fromPublicKey=$value";
+              await appState.getHistory(
+                context,
+                selectedWallet,
+                onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       case HistoryFilterType.ToPublicKey:
-        textFieldPopup(context, rel: HistoryFilterType.ToPublicKey,
-            onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterToPublicKey = value;
-            appState.setFilterQuery = "&toPublicKey=$value";
-            await appState.getHistory(
-              context,
-              selectedWallet,
-              onDone: () => adjustScrollPosition(),
-            );
-          }
-        });
+        textFieldPopup(
+          context,
+          rel: HistoryFilterType.ToPublicKey,
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterToPublicKey = value;
+              appState.setFilterQuery = "&toPublicKey=$value";
+              await appState.getHistory(
+                context,
+                selectedWallet,
+                onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       case HistoryFilterType.AmountRange:
-        amountRangePopup(context, onDone: () async {
-          if (appState.filterMinAmount != null &&
-              appState.filterMaxAmount != null) {
-            appState.setFilterQuery =
-                "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
-            await appState.getHistory(
-              context,
-              selectedWallet,
-              onDone: () => adjustScrollPosition(),
-            );
-          }
-        });
+        amountRangePopup(
+          context,
+          onDone: () async {
+            if (appState.filterMinAmount != null &&
+                appState.filterMaxAmount != null) {
+              appState.setFilterQuery =
+                  "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+              await appState.getHistory(
+                context,
+                selectedWallet,
+                onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       case HistoryFilterType.DateRange:
-        customDateRangePopup(context, onDone: () async {
-          appState.setFilterQuery =
-              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-          await appState.getHistory(
-            context,
-            selectedWallet,
-            onDone: () => adjustScrollPosition(),
-          );
-        });
-        break;
-      case HistoryFilterType.Memo:
-        textFieldPopup(context, rel: HistoryFilterType.Memo,
-            onDone: (value) async {
-          appState.setFilterMemo = value;
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&memo=${value}";
+        customDateRangePopup(
+          context,
+          onDone: () async {
+            appState.setFilterQuery =
+                "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
             await appState.getHistory(
               context,
               selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
-          }
-        });
+          },
+        );
+        break;
+      case HistoryFilterType.Memo:
+        textFieldPopup(
+          context,
+          rel: HistoryFilterType.Memo,
+          onDone: (value) async {
+            appState.setFilterMemo = value;
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&memo=${value}";
+              await appState.getHistory(
+                context,
+                selectedWallet,
+                onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       default:
         // appState.setFilterQuery = "";
@@ -1200,13 +1225,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 }
 
-enum TransactionDirection {
-  Send,
-  Receive,
-  Swap,
-  Deposit,
-  Withdraw,
-}
+enum TransactionDirection { Send, Receive, Swap, Deposit, Withdraw }
 
 enum HistoryFilterType {
   TransactionDirection,

@@ -104,10 +104,13 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
       }
     }
 
-    appState.userInfo!.wallets!.forEach((wallet) {
-      wallet.claimedAssets!.forEach((asset) {
-        if (asset.assetCode!.toLowerCase() ==
-            tokenizedAsset.assetCode!.toLowerCase()) {
+    var wallets = appState.userInfo?.wallets ?? [];
+
+    wallets.forEach((wallet) {
+      wallet.claimedAssets?.forEach((asset) {
+        if (asset.assetCode != null &&
+            asset.assetCode?.toLowerCase() ==
+                tokenizedAsset.assetCode!.toLowerCase()) {
           assetBalance += asset.amount!;
         }
       });
@@ -120,7 +123,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    inspect(appState.tokenizedAsset);
+    inspect(appState.tokenizationData);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
