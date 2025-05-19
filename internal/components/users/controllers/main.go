@@ -6136,6 +6136,70 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
+		router.DELETE("/v1/trovo-manager/tokenization/:tokenizationID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			au, err := middleware.ExtractTokenMetadata(c.Request)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+			if getUserError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+				}
+				return
+			}
+
+			tid := c.Param("tokenizationID")
+			if strings.EqualFold(tid, "null") {
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			//update request
+			ta, err := userServices.TrovoManagerDeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
+
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, ta)
+
+		})
+
 		router.PUT("/v1/tokenization/document", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 			var err error
