@@ -557,6 +557,16 @@ func TrovoManagerDeleteTokenization(user *userModels.User, tokenizationID string
 
 	tx := gc.DB.Begin()
 	defer tx.Rollback()
+
+	if len(ato.ProofOfPaymentDocuments) > 0 {
+		tx.Delete(&ato.ProofOfPaymentDocuments)
+		// if e != nil {
+		// 	log.Printf("[DeleteTokenization]error deleting existing tokenization documents in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+		// 	return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
+
+		// }
+	}
+
 	if len(ato.AssetTokenizationDocuments) > 0 {
 		tx.Delete(&ato.AssetTokenizationDocuments)
 		// if e != nil {
@@ -565,14 +575,35 @@ func TrovoManagerDeleteTokenization(user *userModels.User, tokenizationID string
 
 		// }
 	}
+
 	//reset the document since it is purged
-	ato.AssetTokenizationDocuments = make([]userModels.AssetTokenizationDocument, 0)
+	ato.AssetTokenizationDocuments = nil
+	ato.ProofOfPaymentDocuments = nil
+
+	// remove wallets
+	if ato.MarketMakingWallet != nil {
+		distributionWallet, errDistributionWallet := userModels.UserWalletID(*ato.MarketMakingWallet).GetWallet(gc.DB, gc)
+		if errDistributionWallet == nil {
+			tx.Delete(&distributionWallet)
+		}
+	}
+	// remove issuing wallet
+	if ato.IssuingWalletPublicKey != nil {
+		issuingWallet, errIssuingWallet := userModels.UserWalletID(*ato.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+		if errIssuingWallet == nil {
+			tx.Delete(&issuingWallet)
+		}
+	}
+
 	e := tx.Delete(&ato).Error
 	if e != nil {
 		log.Printf("[DeleteTokenization]error deleting existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
 		return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
 
 	}
+
+	//
+
 	tx.Commit()
 	user.InvalidateUserCache(gc)
 	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
