@@ -866,19 +866,20 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
             title: Row(
               children: [
                 CircleAvatar(
-                  radius: 20,
+                  radius: 23,
+                  backgroundColor: Colors.white,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100.0),
                     child: Image.network(
                       asset.imageUrl!,
-                      height: 35,
-                      width: 35,
+                      height: 40,
+                      width: 40,
                       fit: BoxFit.fill,
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
                           'assets/images/trovo.png',
-                          height: 35,
-                          width: 35,
+                          height: 40,
+                          width: 40,
                         );
                       },
                     ),

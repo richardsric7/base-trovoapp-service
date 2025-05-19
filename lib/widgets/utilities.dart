@@ -1032,7 +1032,10 @@ Widget tokenizedAssetTile({
                                   color: notifier.getwihitecolor,
                                 ),
                               ),
-                              Image.asset('assets/images/money.png'),
+                              Image.asset(
+                                'assets/images/money.png',
+                                color: notifier.getwihitecolor,
+                              ),
                             ]),
                       ),
                     ],

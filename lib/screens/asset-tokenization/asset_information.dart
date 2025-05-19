@@ -131,7 +131,7 @@ class _AssetInformation extends State<AssetInformation>
 
   List<DropdownMenuItem<String>> get getAssetProtectionOptions {
     List<DropdownMenuItem<String>> assetProtectionOptions = [];
-    var data = appState.tokenizationData!['assetProtectionOptions'];
+    var data = appState.tokenizationData['assetProtectionOptions'];
     for (var i = 0; i < data.length; i++) {
       assetProtectionOptions.add(
         DropdownMenuItem(
@@ -457,16 +457,14 @@ class _AssetInformation extends State<AssetInformation>
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomTextFormField.textField(
+                      child: multilineInput(
                         "Enter objectives",
                         notifier.getbluecolor,
-                        null,
                         notifier.getgrey,
-                        null,
                         notifier.getblck,
                         notifier.getgrey,
-                        85,
-                        300.sp,
+                        100.sp,
+                        width / 1.12,
                         initialValue: projectStrategicObjectives,
                         onChanged: (value) {
                           setState(() {
@@ -484,6 +482,9 @@ class _AssetInformation extends State<AssetInformation>
                             projectStrategicObjectives = value!;
                           });
                         },
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
                       ),
                     ),
                   ],

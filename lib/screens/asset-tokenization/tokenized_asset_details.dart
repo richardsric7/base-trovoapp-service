@@ -144,7 +144,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             if (tokenizedAsset.assetLogo != null) ...[
               CircleAvatar(
                 radius: 30,
-                backgroundColor: notifier.getbluecolor70,
+                backgroundColor: tokenizedAsset.assetAlreadyExists == 1
+                    ? notifier.getgreencolor
+                    : notifier.getbluecolor90,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(100.0),
                   child: Image.network(
@@ -480,6 +482,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ],
               ),
             ],
+            SizedBox(
+              height: height / 70,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
@@ -598,7 +603,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     notifier,
                     label: 'Price Per Token',
                     value:
-                        '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                        '${truncateToDecimalPlaces(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                     extraValue: '',
                   ),
                 ],

@@ -95,7 +95,8 @@ class _AssetDetailsState extends State<AssetDetails>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        bottomSheet: SizedBox(
+        bottomSheet: Container(
+          color: notifier.getwihitecolor,
           height: 120,
           width: double.infinity,
           child: Column(
@@ -380,6 +381,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       width: width / 1.3,
                       child: CircleAvatar(
                         radius: 30,
+                        backgroundColor: Colors.white,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100.0),
                           child: Image.network(

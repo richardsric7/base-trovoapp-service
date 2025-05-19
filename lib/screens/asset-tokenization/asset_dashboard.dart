@@ -102,7 +102,8 @@ class _AssetDashboardState extends State<AssetDashboard>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    _amountRaised = tokenizedAsset.subscriptionAmount ?? 0;
+    _amountRaised = (tokenizedAsset.quantityOfTokensSold ?? 0) *
+        tokenizedAsset.pricePerToken!;
     totalAmountToBeRaised =
         tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!;
     double normalizedProgress =
@@ -312,7 +313,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                   label: 'Total Supply',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
-                  extraValue: '',
                 ),
               ],
             ),
@@ -335,7 +335,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                   label: 'Tokens not for Sale',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee)} ${tokenizedAsset.assetCode}',
-                  extraValue: '',
                 ),
               ],
             ),
@@ -350,14 +349,12 @@ class _AssetDashboardState extends State<AssetDashboard>
                   label: 'Amount to be Raised',
                   value:
                       '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
-                  extraValue: '',
                 ),
                 infoCard(
                   notifier,
                   label: 'Tokens for Sale',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
-                  extraValue: '',
                 ),
               ],
             ),
@@ -371,14 +368,12 @@ class _AssetDashboardState extends State<AssetDashboard>
                   notifier,
                   label: 'Funding Currency',
                   value: 'CNGN',
-                  extraValue: '',
                 ),
                 infoCard(
                   notifier,
                   label: 'Price Per Token',
                   value:
-                      '${getFiatValue(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
-                  extraValue: '',
+                      '${truncateToDecimalPlaces(tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                 ),
               ],
             ),
@@ -393,13 +388,11 @@ class _AssetDashboardState extends State<AssetDashboard>
                   label: 'Purchase Commitments',
                   value:
                       '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
                 ),
                 infoCard(
                   notifier,
                   label: 'No. of Interest Expressed',
                   value: '${tokenizedAsset.numberOfExpressedInterests} users',
-                  extraValue: '',
                 ),
               ],
             ),
@@ -414,13 +407,12 @@ class _AssetDashboardState extends State<AssetDashboard>
                   label: 'Total Amount Raised',
                   value:
                       '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
                 ),
                 infoCard(
                   notifier,
                   label: 'Total Quantity Sold',
-                  value: '${'????'} ${tokenizedAsset.assetCode}',
-                  extraValue: '',
+                  value:
+                      '${truncateToDecimalPlaces(tokenizedAsset.quantityOfTokensSold ?? 0)} ${tokenizedAsset.assetCode}',
                 ),
               ],
             ),
@@ -433,14 +425,13 @@ class _AssetDashboardState extends State<AssetDashboard>
                 infoCard(
                   notifier,
                   label: 'No. of Users Bought',
-                  value: '${'????'} Users',
-                  extraValue: '',
+                  value: '${tokenizedAsset.numberOfSubscribers} Users',
                 ),
                 infoCard(
                   notifier,
                   label: '% of Amount Raised',
-                  value: '${(_amountRaised / (totalAmountToBeRaised) * 100)} %',
-                  extraValue: '',
+                  value:
+                      '${getFiatValue((_amountRaised / (totalAmountToBeRaised) * 100))} %',
                 ),
               ],
             ),
