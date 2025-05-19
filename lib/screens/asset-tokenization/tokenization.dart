@@ -885,10 +885,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         if (tokenizedAssets != null) {
           for (int i = 0; i < tokenizedAssets.length; i++) {
             var a = TokenizedAsset().deserializeJson(tokenizedAssets[i]);
-            a.usdPrice = 1.47;
-            a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
-            a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
-                a.numberOfTokenToBeIssued!);
             assets.add(a);
           }
         }

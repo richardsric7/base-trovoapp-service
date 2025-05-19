@@ -262,7 +262,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         if (assets != null) {
           for (int i = 0; i < assets.length; i++) {
             var a = TokenizedAsset().deserializeJson(assets[i]);
-            a.usdPrice = 1.47;
             if (expressedInterests[a.id] != null) {
               a.expressedInterest = expressedInterests[a.id] != null;
               a.expressedInterestAmount =

@@ -23,7 +23,6 @@ import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
 import 'package:trovo_app/screens/kyc_screen.dart';
-import 'package:trovo_app/screens/send_and_recieve/asset_token_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdraw_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_asset.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_out_asset.dart';
@@ -73,14 +72,12 @@ import 'package:trovo_app/screens/asset-tokenization/buy_tokens.dart';
 import 'package:trovo_app/screens/asset-tokenization/confirm_buy.dart';
 import 'package:trovo_app/screens/asset-tokenization/confirm_tokenization_details.dart';
 import 'package:trovo_app/screens/asset-tokenization/liquidate_asset.dart';
-import 'package:trovo_app/screens/asset-tokenization/my_asset_token.dart';
 import 'package:trovo_app/screens/asset-tokenization/proceeds_payout.dart';
 import 'package:trovo_app/screens/asset-tokenization/setup_and_compliance.dart';
 import 'package:trovo_app/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_app/screens/asset-tokenization/tokenization_fee_payment.dart';
 import 'package:trovo_app/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_app/screens/asset-tokenization/tokenized_asset_details.dart';
-import 'package:trovo_app/screens/asset-tokenization/tokenized_assets_list.dart';
 import 'package:trovo_app/screens/asset-tokenization/total_sales.dart';
 import 'package:trovo_app/screens/asset-tokenization/wallet_preparation.dart';
 import 'package:trovo_app/screens/import_wallet/import_wallet.dart';
@@ -427,10 +424,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.ConfirmBuyView:
           _addPageData(ConfirmBuy(), ConfirmBuyViewPageConfig);
           break;
-        case Pages.TokenizedAssetsListView:
-          _addPageData(
-              TokenizedAssetsList(), TokenizedAssetsListViewPageConfig);
-          break;
         case Pages.AssetDashboardView:
           _addPageData(AssetDashboard(), AssetDashboardViewPageConfig);
           break;
@@ -449,10 +442,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.WalletPreparationView:
           _addPageData(WalletPreparation(), WalletPreparationViewPageConfig);
           break;
-        case Pages.MyAssetTokenDetailsView:
-          _addPageData(
-              MyAssetTokenDetails(), MyAssetTokenDetailsViewPageConfig);
-          break;
         case Pages.MarketTradeView:
           _addPageData(MarketTrade(), MarketTradeViewPageConfig);
           break;
@@ -467,9 +456,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.AllWalletsView:
           _addPageData(AllWalletsView(), AllWalletsViewPageConfig);
-          break;
-        case Pages.AssetTokenDetailsView:
-          _addPageData(AssetTokenDetails(), AssetTokenDetailsViewPageConfig);
           break;
         case Pages.ConfirmTokenizationDetailsView:
           _addPageData(ConfirmTokenizationDetails(),
@@ -764,9 +750,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.ConfirmBuyView:
         ConfirmBuyViewPageConfig.currentPageAction = action;
         break;
-      case Pages.TokenizedAssetsListView:
-        TokenizedAssetsListViewPageConfig.currentPageAction = action;
-        break;
       case Pages.AssetDashboardView:
         AssetDashboardViewPageConfig.currentPageAction = action;
         break;
@@ -784,9 +767,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.WalletPreparationView:
         WalletPreparationViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.MyAssetTokenDetailsView:
-        MyAssetTokenDetailsViewPageConfig.currentPageAction = action;
         break;
       case Pages.MarketTradeView:
         MarketTradeViewPageConfig.currentPageAction = action;

@@ -169,8 +169,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return BuyTokensViewPageConfig;
       case ConfirmBuyViewPath:
         return ConfirmBuyViewPageConfig;
-      case TokenizedAssetsListViewPath:
-        return TokenizedAssetsListViewPageConfig;
       case AssetDashboardViewPath:
         return AssetDashboardViewPageConfig;
       case AssetSubscribersViewPath:
@@ -183,8 +181,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return LiquidateAssetViewPageConfig;
       case WalletPreparationViewPath:
         return WalletPreparationViewPageConfig;
-      case MyAssetTokenDetailsViewPath:
-        return MyAssetTokenDetailsViewPageConfig;
       case MarketTradeViewPath:
         return MarketTradeViewPageConfig;
       case MarketTradeInfoViewPath:
@@ -195,8 +191,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SetupAndComplianceViewPageConfig;
       case AllWalletsViewPath:
         return AllWalletsViewPageConfig;
-      case AssetTokenDetailsViewPath:
-        return AssetTokenDetailsViewPageConfig;
       case ConfirmTokenizationDetailsViewPath:
         return ConfirmTokenizationDetailsViewPageConfig;
       case TokenizationFeePaymentViewPath:
@@ -383,8 +377,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(BuyTokensViewPath));
       case Pages.ConfirmBuyView:
         return RouteInformation(uri: Uri.parse(ConfirmBuyViewPath));
-      case Pages.TokenizedAssetsListView:
-        return RouteInformation(uri: Uri.parse(TokenizedAssetsListViewPath));
       case Pages.AssetDashboardView:
         return RouteInformation(uri: Uri.parse(AssetDashboardViewPath));
       case Pages.AssetSubscribersView:

@@ -3,8 +3,6 @@ import 'dart:developer';
 class TokenizedAsset {
   String? id;
   String? shadowId;
-  double? usdPrice;
-  String? assetIssuer;
   String? assetCode;
   String? assetName;
   String? assetSector;
@@ -162,8 +160,6 @@ class TokenizedAsset {
   TokenizedAsset({
     this.id,
     this.shadowId,
-    this.usdPrice,
-    this.assetIssuer,
     this.assetCode,
     this.assetName,
     this.assetSector,
@@ -320,9 +316,7 @@ class TokenizedAsset {
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],
-      usdPrice: m["usdPrice"],
       assetCode: m["assetCode"],
-      assetIssuer: m["assetIssuer"],
       assetName: m["assetName"],
       assetSector: m["assetSector"],
       assetSubSector: m["assetSubSector"],

@@ -89,7 +89,6 @@ const String AssetVerificationDocumentsViewPath =
 const String TokenizedAssetDetailViewPath = '/TokenizedAssetDetailView';
 const String BuyTokensViewPath = '/BuyTokensView';
 const String ConfirmBuyViewPath = '/ConfirmBuyView';
-const String TokenizedAssetsListViewPath = '/TokenizedAssetsListView';
 const String AssetDashboardViewPath = '/AssetDashboardView';
 const String AssetSubscribersViewPath = '/AssetSubscribersView';
 const String TotalSalesViewPath = '/TotalSalesView';
@@ -661,11 +660,6 @@ PageConfiguration ConfirmBuyViewPageConfig = PageConfiguration(
     path: ConfirmBuyViewPath,
     uiPage: Pages.ConfirmBuyView,
     currentPageAction: null);
-PageConfiguration TokenizedAssetsListViewPageConfig = PageConfiguration(
-    key: 'TokenizedAssetsListView',
-    path: TokenizedAssetsListViewPath,
-    uiPage: Pages.TokenizedAssetsListView,
-    currentPageAction: null);
 PageConfiguration AssetDashboardViewPageConfig = PageConfiguration(
     key: 'AssetDashboardView',
     path: AssetDashboardViewPath,
@@ -695,11 +689,6 @@ PageConfiguration WalletPreparationViewPageConfig = PageConfiguration(
     key: 'WalletPreparationView',
     path: WalletPreparationViewPath,
     uiPage: Pages.WalletPreparationView,
-    currentPageAction: null);
-PageConfiguration MyAssetTokenDetailsViewPageConfig = PageConfiguration(
-    key: 'MyAssetTokenDetailsView',
-    path: MyAssetTokenDetailsViewPath,
-    uiPage: Pages.MyAssetTokenDetailsView,
     currentPageAction: null);
 PageConfiguration MarketTradeViewPageConfig = PageConfiguration(
     key: 'MarketTradeView',
