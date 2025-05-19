@@ -445,17 +445,16 @@ func UploadTokenizationAssetLogo(user *userModels.User, ato *userModels.Tokenize
 
 func DeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
 	// var document userModels.AssetTokenizationDocument
-	ato, _, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
-	if err != nil {
+	ato, NotFound, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if NotFound {
 		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
 		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
-
 	}
-	if ato.IssuingWalletPublicKey != nil {
-		if len(*ato.IssuingWalletPublicKey) != 56 {
-			return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
 
-		}
+	if err != nil && !NotFound {
+		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
+		return tokenizedAsset, fmt.Errorf("system error occured while getching tokenization request with ID %v", tokenizationID)
+
 	}
 
 	if ato.AssetTokenizationStatus > 0 {
@@ -465,24 +464,75 @@ func DeleteTokenization(user *userModels.User, tokenizationID string, gc *shared
 
 	}
 	//get access permission and see if the user taking action has an INITIATOR access.
-	if ato.IssuingWalletPublicKey != nil {
-		if !userModels.UserWalletID(*ato.IssuingWalletPublicKey).UserHasAccess(user.Username, "INITIATOR", gc.DB) {
-			err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-access", ErrMessage: "You cannot delete this tokenization request because you do not possess an initiator permission on the tokenization wallet."}
+	if ato.InitiatorUsername != user.Username {
 
-			return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+		err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-access", ErrMessage: "You cannot delete this tokenization request because you did not initiate it."}
 
-		}
+		return tokenizedAsset, err
+
 	}
 
 	tx := gc.DB.Begin()
 	defer tx.Rollback()
 	if len(ato.AssetTokenizationDocuments) > 0 {
-		e := tx.Delete(&ato.AssetTokenizationDocuments).Error
-		if e != nil {
-			log.Printf("[DeleteTokenization]error deleting existing tokenization documents in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
-			return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
+		tx.Delete(&ato.AssetTokenizationDocuments)
+		// if e != nil {
+		// 	log.Printf("[DeleteTokenization]error deleting existing tokenization documents in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+		// 	return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
 
+		// }
+	}
+	//reset the document since it is purged
+	ato.AssetTokenizationDocuments = make([]userModels.AssetTokenizationDocument, 0)
+	e := tx.Delete(&ato).Error
+	if e != nil {
+		log.Printf("[DeleteTokenization]error deleting existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+		return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
+
+	}
+	tx.Commit()
+	user.InvalidateUserCache(gc)
+	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	if err == nil {
+		if owner.Username == user.Username {
+			user = &owner
 		}
+
+	}
+
+	return ato.ToJSON(gc), nil
+}
+
+func TrovoManagerDeleteTokenization(user *userModels.User, tokenizationID string, gc *sharedconfig.GlobalConfig) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
+	// var document userModels.AssetTokenizationDocument
+	ato, NotFound, err := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if NotFound {
+		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
+		return tokenizedAsset, fmt.Errorf("error locating tokenization request with ID %v", tokenizationID)
+	}
+
+	if err != nil && !NotFound {
+		log.Printf("[DeleteTokenization] error locating existing tokenization in database  [%v] for %v: %v\n", tokenizationID, user.Username, err)
+		return tokenizedAsset, fmt.Errorf("system error occured while getching tokenization request with ID %v", tokenizationID)
+
+	}
+
+	if ato.AssetTokenizationStatus > 0 {
+		err = &tErrors.CustomError{Param: "ID", Err: "error-invalid-cannot-delete", ErrMessage: "You cannot delete this tokenization request because it has passed the editing stage."}
+
+		return ato.ToJSON(gc), err
+
+	}
+
+	tx := gc.DB.Begin()
+	defer tx.Rollback()
+	if len(ato.AssetTokenizationDocuments) > 0 {
+		tx.Delete(&ato.AssetTokenizationDocuments)
+		// if e != nil {
+		// 	log.Printf("[DeleteTokenization]error deleting existing tokenization documents in database  [%v] for %v: %v\n", tokenizationID, user.Username, e)
+		// 	return ato.ToJSON(gc), fmt.Errorf("error deleting tokenization request with ID %v", tokenizationID)
+
+		// }
 	}
 	//reset the document since it is purged
 	ato.AssetTokenizationDocuments = make([]userModels.AssetTokenizationDocument, 0)
