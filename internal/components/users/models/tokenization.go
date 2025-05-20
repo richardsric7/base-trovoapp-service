@@ -415,7 +415,7 @@ type TokenizedAssetJSON struct {
 	InsurancePolicyHolder                        string                          `json:"insurancePolicyHolder"`
 	PercentageValueOfInsurance                   float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances               int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
-	AssetAlreadyExists                           int                             `gorm:"default:1" json:"assetAlreadyExists"`
+	AssetAlreadyExists                           int                             `gorm:"default:0" json:"assetAlreadyExists"`
 	VettingStatus                                int                             `gorm:"default:0" json:"vettingStatus"`
 	DueDiligenceFail                             int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
 	DueDiligenceFailureReason                    string                          `json:"dueDiligenceFailureReason"`
