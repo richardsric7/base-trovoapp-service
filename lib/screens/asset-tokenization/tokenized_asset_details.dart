@@ -275,11 +275,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ]
               ],
             ),
-            if (tokenizedAsset.expressedInterestAmount! > 0) ...[
+            if ((tokenizedAsset.expressedInterestAmount ?? 0) > 0) ...[
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Text(
-                  'You have indicated to invest ${formatHistoryNumber(tokenizedAsset.expressedInterestAmount!, 6)} ${tokenizedAsset.assetQuoteCurrency}.',
+                  'You have indicated to invest ${formatHistoryNumber(tokenizedAsset.expressedInterestAmount ?? 0, 6)} ${tokenizedAsset.assetQuoteCurrency}.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -359,7 +359,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 4) ...[
-              if (tokenizedAsset.expressedInterestAmount! <= 0) ...[
+              if ((tokenizedAsset.expressedInterestAmount ?? 0) <= 0) ...[
                 SizedBox(
                   height: height / 50,
                 ),
