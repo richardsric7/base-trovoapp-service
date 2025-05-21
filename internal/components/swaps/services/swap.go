@@ -3,6 +3,7 @@ package swaps
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -55,6 +56,17 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return e
 	}
 	if gc.IsValidTokenizedAsset(swapInfo.DestinationAssetCode) {
+
+		t := gc.GetTokenizedAssetByCode(swapInfo.DestinationAssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Swap is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+
 		//check if user has done KYC
 		if walletOwner.KYCVerified == 0 {
 			return &tErrors.CustomError{
