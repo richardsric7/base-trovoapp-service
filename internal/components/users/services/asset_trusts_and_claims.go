@@ -23,6 +23,17 @@ import (
 
 // ClaimPendingAsset claim pending assets
 func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if gc.IsValidTokenizedAsset(pendingAssetToClaim.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(pendingAssetToClaim.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return pendingAssetToClaim, false, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "Asset is not yet available for sale.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
 
 	if len(pendingAssetToClaim.AssetIssuer) == 0 {
 		return pendingAssetToClaim, false, &tErrors.CustomError{
@@ -153,6 +164,17 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 
 // RejectPendingAsset rejects pending assets
 func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if gc.IsValidTokenizedAsset(pendingAssetToClaim.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(pendingAssetToClaim.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return pendingAssetToClaim, false, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "Asset is not yet available for sale.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		pendingAssetToClaim.Multiparty = 1
 	}
@@ -852,6 +874,18 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 }
 
 func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
+	if gc.IsValidTokenizedAsset(trustLineInfo.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(trustLineInfo.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Add/Remove is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
+
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
@@ -933,6 +967,18 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 }
 
 func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
+	if gc.IsValidTokenizedAsset(trustLineInfo.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(trustLineInfo.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Add/Remove is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
+
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
