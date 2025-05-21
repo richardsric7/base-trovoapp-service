@@ -22,7 +22,6 @@ class _CountdownState extends State<Countdown> {
   initState() {
     notifier = Provider.of<ColorNotifier>(context, listen: false);
     var diff = widget.startDate.difference(DateTime.now()).inDays;
-    print('diff: $diff');
     if (diff > 0) {
       countdown = widget.isColumn
           ? Column(
@@ -62,7 +61,7 @@ class _CountdownState extends State<Countdown> {
                 ),
                 SizedBox(height: 5),
                 Text(
-                  'days left',
+                  'days to primary sale',
                   style: TextStyle(
                     fontSize: 15,
                     fontFamily: fontbody,
@@ -171,7 +170,7 @@ class _CountdownState extends State<Countdown> {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      'hours left',
+                      'hours to primary sale',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
@@ -250,6 +249,7 @@ class _CountdownState extends State<Countdown> {
 
   @override
   Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
     return countdown;
   }
 

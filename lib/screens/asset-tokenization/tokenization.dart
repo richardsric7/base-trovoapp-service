@@ -289,7 +289,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 notifier.getwihitecolor,
                 scaffoldKey: key,
                 showMenu: true,
-                txt: '',
+                txt: 'Tokenize',
                 titlecolor: notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),

@@ -73,167 +73,166 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
               SizedBox(
                 height: height / 30,
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'Amount',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      'Amount',
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      onChanged: (value) {
-                        setState(() {
-                          var a = double.tryParse(value);
-                          print('===============> $a');
-                          if (a != null) {
-                            var pricePerToken = tokenizedAsset.pricePerToken!;
-                            quantity = a / pricePerToken;
-                          } else {
-                            quantity = 0;
-                          }
-                        });
-                      },
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      controller: amountController,
-                      onSaved: (value) {
-                        amount = double.parse(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'Currency',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: 300.sp,
-                      height: 55.sp,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              tokenizedAsset.assetQuoteCurrency!,
-                              style: TextStyle(fontSize: 15),
-                            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Amount',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
-                          const SizedBox(height: 2),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'Quantity of ${tokenizedAsset.assetCode}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
+                    SizedBox(
+                      height: height / 50,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: 300.sp,
-                      height: 55.sp,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              formatNumber(quantity),
-                              style: TextStyle(fontSize: 15),
-                            ),
+                    Row(
+                      children: [
+                        CustomTextFormField.textField(
+                          'Amount',
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          null,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          70.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            setState(() {
+                              var a = double.tryParse(value);
+                              if (a != null) {
+                                amount = a;
+                                var pricePerToken =
+                                    tokenizedAsset.pricePerToken!;
+                                quantity = a / pricePerToken;
+                              } else {
+                                quantity = 0;
+                              }
+                            });
+                          },
+                          keyboardtype:
+                              TextInputType.numberWithOptions(decimal: true),
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return "fieldcannotbeempty".tr();
+                            }
+                            return null;
+                          },
+                          controller: amountController,
+                          onSaved: (value) {
+                            amount = double.parse(value);
+                          },
+                        ),
+                      ],
+                    ),
+                    if (!appState.hideBalances) ...[availableBalance()],
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Currency',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
-                          const SizedBox(height: 2),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  )
-                ],
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 300.sp,
+                          height: 55.sp,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(15.0)),
+                            color: notifier.getaddsubwalletgrey,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Text(
+                                  tokenizedAsset.assetQuoteCurrency!,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getblck,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Quantity of ${tokenizedAsset.assetCode}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 300.sp,
+                          height: 55.sp,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(15.0)),
+                            color: notifier.getaddsubwalletgrey,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Text(
+                                  formatNumber(quantity),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getblck,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SizedBox(
                 height: height / 30,
@@ -267,82 +266,37 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
     );
   }
 
-  Widget confirmLiensAndEncumbrance() {
+  Widget availableBalance() {
+    var asset = appState.activeWallet!.claimedAssets!
+        .firstWhere((asset) => asset.assetCode!.toLowerCase() == 'cngn');
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Transform.scale(
-          scale: 1.sp,
-          child: Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
-            ),
-            activeColor: notifier.isDark
-                ? notifier.getbluecolor50
-                : notifier.getbluecolor90,
-            side: BorderSide(
-              color: notifier.isDark
-                  ? notifier.getbluecolor50
-                  : notifier.getbluecolor90,
-            ),
-            value: true,
-            onChanged: (bool? value) {
-              setState(() {});
-            },
-          ),
-        ),
-        Container(
-          width: width / 1.2,
+        Flexible(
           child: Text(
-            'I confirm that this asset is completely free of all liens and encumbrance',
-            overflow: TextOverflow.visible,
+            amount.toString().isNotEmpty
+                ? "≈ ${formatNumber(amount)} ${getAssetCode(asset.assetCode)}"
+                : "≈ 0.0000 ${getAssetCode(asset.assetCode)}",
+            textScaleFactor: 1.0,
             style: TextStyle(
-                fontSize: 15,
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody),
+                color: notifier.getdarkgrey,
+                fontWeight: FontWeight.w400,
+                fontSize: 12.0.sp),
           ),
         ),
+        Flexible(
+            child: Visibility(
+          visible: true,
+          replacement: Container(),
+          child: Text(
+            "${formatNumber(asset.amount!)} ${getAssetCode(asset.assetCode)}",
+            textScaleFactor: 1.0,
+            textAlign: TextAlign.right,
+            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+          ),
+        )),
       ],
     );
   }
-}
-
-Widget CheckItem(
-  String name,
-  void Function()? onClick, {
-  required Color backColor,
-  required Color foreColor,
-  required Color borderColor,
-  double? fontSize = 15,
-}) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 1),
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              softWrap: true,
-              style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
-            ),
-            SizedBox(
-              width: width / 70,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

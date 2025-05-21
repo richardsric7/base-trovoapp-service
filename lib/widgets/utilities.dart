@@ -815,20 +815,37 @@ Widget tokenizedAssetTile({
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (asset.assetLogo != null) ...[
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: asset.assetAlreadyExists == 1
-                        ? notifier.getgreencolor
-                        : notifier.getbluecolor90,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        asset.assetLogo!,
-                        height: 35,
-                        width: 35,
-                        fit: BoxFit.fill,
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            asset.assetLogo!,
+                            height: 38,
+                            width: 38,
+                            fit: BoxFit.fill,
+                          ),
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
+                          border: Border.all(
+                            color: notifier.getwihitecolor,
+                            width: 1,
+                          ),
+                          color: asset.assetAlreadyExists == 1
+                              ? notifier.getgreencolor
+                              : notifier.getupcomingassetyellow,
+                        ),
+                      ),
+                    ],
                   ),
                 ] else ...[
                   Image.asset(
@@ -1129,7 +1146,7 @@ Widget categoryTile(
       child: ListTile(
         title: Row(
           children: [
-            Image.asset('assets/images/airtel.jpg', width: 30),
+            Image.asset(imageUrl, width: 30),
             SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

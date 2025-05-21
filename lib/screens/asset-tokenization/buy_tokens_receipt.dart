@@ -80,7 +80,7 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                       ),
                       SizedBox(height: height / 30),
                       Text(
-                        'Purchase Receipt',
+                        'Tokenized Asset Purchase Receipt',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,

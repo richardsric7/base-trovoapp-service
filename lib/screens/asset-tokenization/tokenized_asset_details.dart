@@ -34,6 +34,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   late DataProvider appState;
   String assetType = '';
   String fiatCurrency = '';
+  double _tokensBought = 0;
+  double _tokensRemaining = 0;
+  int _daysProgress = 0;
+  int _totalDays = 0;
   double assetBalance = 0;
   late TokenizedAsset tokenizedAsset;
   String regulatorName = '';
@@ -115,6 +119,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         }
       });
     });
+
+    _daysProgress =
+        DateTime.now().difference(tokenizedAsset.salesStart!).inDays;
+    _totalDays =
+        tokenizedAsset.salesEnd!.difference(tokenizedAsset.salesStart!).inDays;
   }
 
   @override
@@ -123,7 +132,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    inspect(appState.tokenizationData);
+    inspect(appState.tokenizedAsset);
+    _tokensBought = tokenizedAsset.quantityOfTokensSold ?? 0;
+    _tokensRemaining = (tokenizedAsset.numberOfTokenToBeSold! -
+        tokenizedAsset.quantityOfTokensSold!);
+    double normalizedProgress = 1 -
+        (_tokensBought /
+            tokenizedAsset.numberOfTokenToBeSold!); // Convert to 0-1 range
+
+    double normalizedDaysProgress = _daysProgress == _totalDays
+        ? 1
+        : 1 - (_daysProgress / _totalDays); // Convert to 0-1 range
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -256,6 +275,21 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ]
               ],
             ),
+            if (tokenizedAsset.expressedInterestAmount! > 0) ...[
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  'You have indicated to invest ${formatHistoryNumber(tokenizedAsset.expressedInterestAmount!, 6)} ${tokenizedAsset.assetQuoteCurrency}.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ],
             if (tokenizedAsset.tokenizationStatus == 5) ...[
               SizedBox(
                 height: height / 50,
@@ -307,7 +341,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset('assets/images/money.png'),
+                          Image.asset(
+                            'assets/images/money.png',
+                            color: notifier.getwihitecolor,
+                          ),
                           SizedBox(width: 10),
                           Text(
                             'Buy',
@@ -322,9 +359,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 4) ...[
-              SizedBox(
-                height: height / 50,
-              ),
+              if (tokenizedAsset.expressedInterestAmount! <= 0) ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -391,7 +430,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               ),
                               SizedBox(width: 10),
                               Text(
-                                'Interest Expressed',
+                                'Update Interest Expressed',
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                   fontSize: 12,
@@ -550,18 +589,18 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 children: [
                   infoCard(
                     notifier,
+                    label: 'Total Token Supply',
+                    value:
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                    extraValue: '',
+                  ),
+                  infoCard(
+                    notifier,
                     label: tokenizedAsset.assetAlreadyExists == 1
                         ? 'Asset Value'
                         : 'Total Project Budget',
                     value:
                         '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                  ),
-                  infoCard(
-                    notifier,
-                    label: 'Total Token Supply',
-                    value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
-                    extraValue: '',
                   ),
                 ],
               ),
@@ -573,16 +612,16 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 children: [
                   infoCard(
                     notifier,
-                    label: 'Amount to be Raised',
+                    label: 'Tokens for Sale',
                     value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                     extraValue: '',
                   ),
                   infoCard(
                     notifier,
-                    label: 'Tokens for Sale',
+                    label: 'Amount to be Raised',
                     value:
-                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode!.toUpperCase()}',
+                        '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                     extraValue: '',
                   ),
                 ],
@@ -632,6 +671,133 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               ),
             ),
             SizedBox(height: height / 50),
+            if (tokenizedAsset.tokenizationStatus == 5) ...[
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                child: Container(
+                  child: Card(
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    color: notifier.isDark
+                        ? notifier.getbluecolor90
+                        : notifier.getpillbg,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 15),
+                          Row(
+                            children: [
+                              Text('Tokens Remaining',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  )),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Container(
+                            height: 10,
+                            child: LinearProgressIndicator(
+                              value:
+                                  normalizedProgress, // Show progress (0 to 1)
+                              minHeight: 10,
+                              borderRadius: BorderRadius.circular(10),
+                              backgroundColor: Colors.grey[300],
+                              color: notifier.getgreencolor,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Text(
+                                  '${formatHistoryNumber(_tokensRemaining, 6)} ${tokenizedAsset.assetCode} ',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluewhitecolor)),
+                              Text('remaining out of ',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  )),
+                              Text(
+                                  '${formatHistoryNumber(tokenizedAsset.numberOfTokenToBeSold!, 6)} ${tokenizedAsset.assetCode}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  )),
+                            ],
+                          ),
+                          SizedBox(height: height / 50),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('Days Remaining',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: fontsemibold,
+                                        color: notifier.getbluewhitecolor,
+                                      )),
+                                ],
+                              ),
+                              SizedBox(height: 5),
+                              if (_daysProgress >= 0) ...[
+                                // Gesture Detector for Tapping the Progress Bar
+                                Container(
+                                  height: 10,
+                                  child: LinearProgressIndicator(
+                                    value:
+                                        normalizedDaysProgress, // Show progress (0 to 1)
+                                    minHeight: 10,
+                                    borderRadius: BorderRadius.circular(10),
+                                    backgroundColor: Colors.grey[300],
+                                    color: Colors.blue[400],
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Text(
+                                        (_totalDays - _daysProgress).toString(),
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: fontbody,
+                                            color: notifier.getbluewhitecolor)),
+                                    Text(' days remaining out of ',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        )),
+                                    Text('${_totalDays} days',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: fontbody,
+                                            color: notifier.getbluewhitecolor)),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                          SizedBox(height: height / 50),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             Row(
               children: [
                 Padding(
@@ -739,7 +905,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           categoryTile(
                             notifier,
                             label: 'Asset Financial Information',
-                            imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                            imageUrl: 'assets/images/stakeholders.png',
                             onTap: () {
                               var details = {
                                 "Estimated Project IRR": formatNumber(
@@ -765,7 +931,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           categoryTile(
                             notifier,
                             label: "Project Risk Assessment",
-                            imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                            imageUrl: 'assets/images/proof.png',
                             onTap: () {
                               var details = {
                                 "Legal Risks Identified": tokenizedAsset
@@ -794,7 +960,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         categoryTile(
                           notifier,
                           label: 'Stakeholders Information',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/stakeholders.png',
                           onTap: () {
                             var details = {
                               'Regulator': regulatorName
@@ -827,7 +993,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         categoryTile(
                           notifier,
                           label: 'Legal & Compliance Information',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/shareholders.png',
                           onTap: () {
                             var details = {
                               'Free of liens, mortgages, and outstanding loans.':
@@ -887,6 +1053,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: notifier.getwihitecolor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
             top: Radius.circular(16)), // Rounded top corners

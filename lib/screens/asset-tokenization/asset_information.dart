@@ -2749,6 +2749,9 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
+                            SizedBox(
+                              height: 10,
+                            ),
                             CheckboxItem(
                               value: contractualProtectionSLA,
                               label: "slas".tr(),

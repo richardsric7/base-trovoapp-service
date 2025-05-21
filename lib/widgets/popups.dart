@@ -4044,7 +4044,7 @@ showDocumentUploadPopup(context, String title,
                                       Icon(
                                         Icons.file_copy_outlined,
                                         size: 20,
-                                        // color: notifier.getbluewhitecolor,
+                                        color: notifier.getbluewhitecolor,
                                       ),
                                       SizedBox(
                                         width: width / 50,
@@ -4152,7 +4152,6 @@ showSubscribePopup(
   required void Function(String amount) onDone,
   required TokenizedAsset asset,
 }) async {
-  var appState = Provider.of<DataProvider>(context, listen: false);
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -4188,7 +4187,7 @@ showSubscribePopup(
                         padding: const EdgeInsets.all(20.0),
                         child: Center(
                           child: Text(
-                            "You have already indicated to invest ${formatNumberShort(asset.expressedInterestAmount ?? 0)} ${appState.defaultCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
+                            "You have already indicated to invest ${formatNumberShort(asset.expressedInterestAmount ?? 0)} ${asset.assetQuoteCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
@@ -4202,8 +4201,9 @@ showSubscribePopup(
                         padding: const EdgeInsets.all(20.0),
                         child: Center(
                           child: Text(
-                            "enterinterestedamount"
-                                .tr(args: [asset.assetCode!.toUpperCase()]),
+                            "enterinterestedamount".tr(args: [
+                              asset.assetQuoteCurrency!.toUpperCase()
+                            ]),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
@@ -4219,8 +4219,8 @@ showSubscribePopup(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: CustomTextFormField.textField(
                           asset.expressedInterest ?? false
-                              ? 'Update ${"amount".tr()} (NGN)'
-                              : '${"amount".tr()} (NGN)',
+                              ? 'Update ${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}'
+                              : '${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}',
                           notifier.getbluecolor,
                           null,
                           notifier.getgrey,

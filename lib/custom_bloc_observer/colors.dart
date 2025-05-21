@@ -22,6 +22,7 @@ Color darkblue50 = const Color(0xFF0041ab);
 Color bottombarblue = const Color(0xFF336DA0);
 
 Color green = const Color(0xff00a859);
+Color upcomingassetyellow = const Color(0xffEA9C1F);
 
 Color grey = const Color(0xff9EA3AE);
 Color darkgrey = Color(0xFF5B5E61);

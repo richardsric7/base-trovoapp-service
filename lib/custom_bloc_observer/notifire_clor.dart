@@ -93,6 +93,8 @@ class ColorNotifier with ChangeNotifier {
 
   get getgreencolor => green;
 
+  get getupcomingassetyellow => upcomingassetyellow;
+
   get getblck => isDark ? blck : darkblck;
 
   get getpinauth => isDark ? pinauth : darkpinauth;
@@ -108,7 +110,7 @@ class ColorNotifier with ChangeNotifier {
 
   get getfavorites => isDark ? darkfavorites : favorites;
 
-  get getaddsubwalletgrey => addsubwalletgrey;
+  get getaddsubwalletgrey => isDark ? trovoblue : addsubwalletgrey;
   get getpillbg => pillbg;
   get getplatinumcolor => platinum;
   get getdiamondcolor => diamond;

@@ -293,6 +293,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                 icon: Icon(
                                   CupertinoIcons.delete,
                                   size: 20,
+                                  color: Colors.red,
                                 ),
                                 onPressed: (() async {
                                   deleteFile(

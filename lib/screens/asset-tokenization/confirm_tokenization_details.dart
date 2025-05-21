@@ -602,10 +602,11 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       child: Container(
         child: Card(
           shadowColor: Colors.black,
+          color: notifier.getaddsubwalletgrey,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5.0),
               side: BorderSide(
-                color: notifier.getbluewhitecolor,
+                color: notifier.getaddsubwalletgrey,
                 width: 1,
               )),
           child: Padding(

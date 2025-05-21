@@ -314,17 +314,23 @@ class _OptInOutAssetState extends State<OptInOutAsset>
         child: ListTile(
             title: Row(
               children: [
-                Image.network(
-                  entry.value['imageUrl']!,
-                  height: 35,
-                  width: 35,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/trovo.png',
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100.0),
+                    child: Image.network(
+                      entry.value['imageUrl']!,
                       height: 35,
                       width: 35,
-                    );
-                  },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/trovo.png',
+                          height: 35,
+                          width: 35,
+                        );
+                      },
+                    ),
+                  ),
                 ),
                 SizedBox(width: 20),
                 Column(

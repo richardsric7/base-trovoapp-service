@@ -110,7 +110,7 @@ class _AssetDashboardState extends State<AssetDashboard>
         _amountRaised / totalAmountToBeRaised; // Convert to 0-1 range
     double normalizedDaysProgress = _daysProgress == _totalDays
         ? 1
-        : _daysProgress / _totalDays; // Convert to 0-1 range
+        : 1 - (_daysProgress / _totalDays); // Convert to 0-1 range
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -302,17 +302,17 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
+                  label: 'Total Token Supply',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
+                ),
+                infoCard(
+                  notifier,
                   label: tokenizedAsset.assetAlreadyExists == 1
                       ? 'Asset Value'
                       : 'Total Project Budget',
                   value:
                       '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} ${fiatCurrency}',
-                ),
-                infoCard(
-                  notifier,
-                  label: 'Total Supply',
-                  value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetCode}',
                 ),
               ],
             ),
@@ -322,6 +322,12 @@ class _AssetDashboardState extends State<AssetDashboard>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                infoCard(
+                  notifier,
+                  label: 'Tokens not for Sale',
+                  value:
+                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee)} ${tokenizedAsset.assetCode}',
+                ),
                 infoCard(
                   notifier,
                   label: tokenizedAsset.assetAlreadyExists == 1
@@ -330,12 +336,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                   value:
                       '${getFiatValue((tokenizedAsset.assetOwnerRetainedOrContributedValue ?? 0))} ${fiatCurrency}',
                 ),
-                infoCard(
-                  notifier,
-                  label: 'Tokens not for Sale',
-                  value:
-                      '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee)} ${tokenizedAsset.assetCode}',
-                ),
               ],
             ),
           ),
@@ -346,15 +346,15 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
-                  label: 'Amount to be Raised',
-                  value:
-                      '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
-                ),
-                infoCard(
-                  notifier,
                   label: 'Tokens for Sale',
                   value:
                       '${getFiatValue(tokenizedAsset.numberOfTokenToBeSold ?? 0)} ${tokenizedAsset.assetCode}',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Amount to be Raised',
+                  value:
+                      '${getFiatValue(totalAmountToBeRaised)} ${fiatCurrency}',
                 ),
               ],
             ),
@@ -385,14 +385,14 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
-                  label: 'Purchase Commitments',
-                  value:
-                      '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
+                  label: 'No. of Interest Expressed',
+                  value: '${tokenizedAsset.numberOfExpressedInterests} users',
                 ),
                 infoCard(
                   notifier,
-                  label: 'No. of Interest Expressed',
-                  value: '${tokenizedAsset.numberOfExpressedInterests} users',
+                  label: 'Purchase Commitments',
+                  value:
+                      '${getFiatValue(tokenizedAsset.expressedInterestAmount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
                 ),
               ],
             ),
@@ -404,15 +404,15 @@ class _AssetDashboardState extends State<AssetDashboard>
               children: [
                 infoCard(
                   notifier,
-                  label: 'Total Amount Raised',
-                  value:
-                      '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
-                ),
-                infoCard(
-                  notifier,
                   label: 'Total Quantity Sold',
                   value:
                       '${truncateToDecimalPlaces(tokenizedAsset.quantityOfTokensSold ?? 0)} ${tokenizedAsset.assetCode}',
+                ),
+                infoCard(
+                  notifier,
+                  label: 'Total Amount Raised',
+                  value:
+                      '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency}',
                 ),
               ],
             ),
@@ -481,7 +481,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       Row(
                         children: [
                           Text(
-                              '${getFiatValue(_amountRaised)} ${tokenizedAsset.assetQuoteCurrency} ',
+                              '${formatHistoryNumber(_amountRaised, 6)} ${tokenizedAsset.assetQuoteCurrency} ',
                               style: TextStyle(
                                   fontSize: 12,
                                   fontFamily: fontbody,
@@ -493,7 +493,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                 color: notifier.getbluewhitecolor,
                               )),
                           Text(
-                              '${getFiatValue(totalAmountToBeRaised)} ${tokenizedAsset.assetQuoteCurrency}',
+                              '${formatHistoryNumber(totalAmountToBeRaised, 6)} ${tokenizedAsset.assetQuoteCurrency}',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontFamily: fontbody,
@@ -527,7 +527,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                   minHeight: 10,
                                   borderRadius: BorderRadius.circular(10),
                                   backgroundColor: Colors.grey[300],
-                                  color: notifier.getbluewhitecolor,
+                                  color: Colors.blue[400],
                                 ),
                               ),
                               SizedBox(height: 5),
@@ -595,7 +595,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Asset Information',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/asset-info.png',
                         onTap: () {
                           var details = {
                             'Status': tokenizedAsset.assetAlreadyExists == 1
@@ -671,7 +671,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                         categoryTile(
                           notifier,
                           label: 'Asset Financial Information',
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/stakeholders.png',
                           onTap: () {
                             var details = {
                               "Estimated Project IRR": formatNumber(
@@ -696,7 +696,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                         categoryTile(
                           notifier,
                           label: "Project Risk Assessment",
-                          imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                          imageUrl: 'assets/images/proof.png',
                           onTap: () {
                             var details = {
                               "Legal Risks Identified":
@@ -724,7 +724,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Stakeholders Information',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/stakeholders.png',
                         onTap: () {
                           var details = {
                             'Regulator': regulatorName
@@ -757,7 +757,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Legal & Compliance Information',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/shareholders.png',
                         onTap: () {
                           var details = {
                             'I confirm that this asset is free of liens, mortgages, and outstanding loans.':
@@ -795,7 +795,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Verification Documents',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/documents.png',
                         onTap: () {
                           displayDocuments('Verification Documents');
                         },
@@ -804,7 +804,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                       categoryTile(
                         notifier,
                         label: 'Proof of Payment Documents',
-                        imageUrl: tokenizedAsset.assetCode!.toUpperCase(),
+                        imageUrl: 'assets/images/proof.png',
                         onTap: () {
                           displayDocuments('Proof of Payment Documents');
                         },
@@ -818,17 +818,6 @@ class _AssetDashboardState extends State<AssetDashboard>
           SizedBox(
             height: height / 30,
           ),
-          // Button(
-          //   'Payout Proceeds',
-          //   notifier.getbluecolor,
-          //   wihitecolor,
-          //   onTap: () {
-          //     appState.currentAction = PageAction(
-          //       state: PageState.addPage,
-          //       page: ProceedsPayOutViewPageConfig,
-          //     );
-          //   },
-          // ),
           SizedBox(
             height: height / 10,
           ),
@@ -841,6 +830,7 @@ class _AssetDashboardState extends State<AssetDashboard>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: notifier.getwihitecolor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
             top: Radius.circular(16)), // Rounded top corners
@@ -914,6 +904,7 @@ class _AssetDashboardState extends State<AssetDashboard>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: notifier.getwihitecolor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
             top: Radius.circular(16)), // Rounded top corners
