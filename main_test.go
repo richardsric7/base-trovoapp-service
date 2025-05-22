@@ -3426,13 +3426,33 @@ func TestCreateMarketOffer(t *testing.T) {
 	// 	Quantity:       "2",
 	// }
 
+	// payload := MarketOfferRequest{
+	// 	OfferType:      "BUY",
+	// 	AssetCode:      "ETH",
+	// 	AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
+	// 	CurrencyCode:   "TROV",
+	// 	CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+	// 	PricePerUnit:   "3250",
+	// 	Quantity:       "2",
+	// }
+
+	// payload := MarketOfferRequest{
+	// 	OfferType:      "BUY",
+	// 	AssetCode:      "CNGN",
+	// 	AssetIssuer:    "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
+	// 	CurrencyCode:   "USDT",
+	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+	// 	PricePerUnit:   "",
+	// 	Quantity:       "2",
+	// }
+
 	payload := MarketOfferRequest{
 		OfferType:      "BUY",
-		AssetCode:      "ETH",
-		AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
-		CurrencyCode:   "TROV",
-		CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
-		PricePerUnit:   "3250",
+		CurrencyCode:   "CNGN",
+		CurrencyIssuer: "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
+		AssetCode:      "USDT",
+		AssetIssuer:    "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+		PricePerUnit:   "1600",
 		Quantity:       "2",
 	}
 

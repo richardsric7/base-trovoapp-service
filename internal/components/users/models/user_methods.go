@@ -202,7 +202,11 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		return balances, err
 	}
 	if len(nv) == 2 {
-		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc, true)
+		checkCacheFirst := false
+		if nativeCode != "CNGN" {
+			checkCacheFirst = true
+		}
+		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc, checkCacheFirst)
 	} else {
 		nativeUsdPrice = xbnUsdPrice
 	}
