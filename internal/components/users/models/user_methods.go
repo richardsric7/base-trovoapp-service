@@ -245,7 +245,11 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetUsdPrice = xbnUsdPrice
 					assetNativePrice = xbnNativePrice
 				} else {
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
+					checkCacheFirst := false
+					if nativeCode != "CNGN" {
+						checkCacheFirst = true
+					}
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, checkCacheFirst)
 					dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 					if len(dollarAsset) == 2 {
 						if strings.EqualFold(bal.Code, dollarAsset[0]) && strings.EqualFold(bal.Issuer, dollarAsset[1]) {
