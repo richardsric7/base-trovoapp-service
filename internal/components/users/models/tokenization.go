@@ -63,169 +63,174 @@ type ExistingAssetValidationAssetDocument struct {
 }
 
 type TokenizedAsset struct {
-	ID                                       string                          `json:"id"`
-	CreatedAt                                time.Time                       `json:"createdAt"`
-	UpdatedAt                                time.Time                       `json:"updatedAt"`
-	InitiatorUsername                        string                          `gorm:"size:50;not null" json:"initiatorUsername"`
-	AssetSector                              *string                         `json:"assetSector"`
-	AssetSubSector                           *string                         `json:"assetSubSector"`
-	AssetType                                *string                         `json:"assetType"`
-	AssetName                                *string                         `json:"assetName"`
-	ApprovedAssetCustodianID                 uint64                          `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
-	ApprovedAssetCustodian                   ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
-	OfferingType                             *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                            *string                         `gorm:"null" json:"closedGroupId"`
-	ClosedGroup                              ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
-	SecApproval                              int                             `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                      *string                         `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                   *string                         `gorm:"size:60" json:"issuingWalletPublicKey"`
-	IssuingWalletAlias                       *string                         `gorm:"size:60" json:"issuingWalletAlias"`
-	MarketMakingWallet                       *string                         `json:"marketMakingWallet"`
-	AssetDescription                         *string                         `json:"assetDescription"`
-	AssetCountryLocation                     *string                         `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
-	AssetPhysicalAddress                     *string                         `json:"assetPhysicalAddress"`
-	AssetLongitude                           *string                         `json:"assetLongitude"`
-	AssetLatitude                            *string                         `json:"assetLatitude"`
-	OwnershipType                            *string                         `json:"ownershipType"` //DIRECT,THIRD-PARTY
-	OwnershipKind                            *string                         `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
-	InitialOwnerPreferredWalletAddress       *string                         `json:"initialOwnerPreferredWalletAddress"`
-	AssetOwnerName                           *string                         `json:"assetOwnerName"`
-	AssetOwnerAddress                        *string                         `json:"assetOwnerAddress"`
-	AssetManagerID                           uint64                          `gorm:"default:0" json:"assetManagerId"`
-	AssetManager                             AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetIssuingHouseID                      uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
-	AssetIssuingHouse                        AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
-	LegalAndProfesionalPartnerID             uint64                          `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
-	LegalAndProfesionalPartner               LegalAndProfesionalPartner      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
-	RatingAgencyID                           uint64                          `gorm:"not null;default:0" json:"ratingAgencyID"`
-	RatingAgency                             RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
-	AssetQuoteCurrency                       *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
-	AssetCurrentValue                        float64                         `gorm:"default:0" json:"assetCurrentValue"`
-	AssetOwnerRetainedOrContributedValue     float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
-	AssetMscCostOutisdeOfValuation           float64                         `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
-	ValueOfTokenizedAsset                    float64                         `gorm:"default:0" json:"valueOfTokenizedAsset"`
-	ProtectionMethods                        *string                         `json:"protectionMethods"` //csv format
-	InsuranceCompanyName                     *string                         `json:"insuranceCompanyName"`
-	InsurancePolicyNumber                    *string                         `json:"insurancePolicyNumber"`
-	InsurancePolicyHolder                    *string                         `json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance               float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
-	IsFreeFromLiensAndEncumbrances           int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
-	AssetAlreadyExists                       int                             `gorm:"default:0" json:"assetAlreadyExists"`
-	VettingStatus                            int                             `gorm:"default:0" json:"vettingStatus"`
-	DueDiligenceFail                         int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
-	DueDiligenceFailureReason                *string                         `json:"dueDiligenceFailureReason"`
-	AssetTokenizationDocuments               []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
-	ProofOfPaymentDocuments                  []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
-	AssetCode                                *string                         `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
-	AssetLogo                                *string                         `json:"assetLogo"`
-	AssetWebsite                             *string                         `gorm:"default:'trovotech.io'" json:"assetWebsite"`
-	NumberOfTokenToBeIssued                  float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
-	MaxNumberOfTokenAvailableForSale         float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
-	FeeInAsset                               float64                         `gorm:"default:0" json:"feeInAsset"`
-	FeeInAssetPercent                        float64                         `gorm:"default:0" json:"feeInAssetPercent"`
-	FeeInFiat                                float64                         `gorm:"default:0" json:"feeInFiat"` //tokenization fee in fiat
-	NumberOfTokenToBeSold                    float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
-	TotalTokenHeldByManager                  float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale             *string                         `json:"walletToHoldAssetsNotForSale"`
-	PricePerToken                            float64                         `gorm:"default:0" json:"pricePerToken"`
-	SalesStart                               time.Time                       `json:"salesStart"`
-	SalesEnd                                 time.Time                       `json:"salesEnd"`
-	CapOnPurchase                            int                             `gorm:"default:0" json:"capOnPurchase"`
-	CapQuantity                              float64                         `gorm:"default:0" json:"capQuantity"`
-	CapAmountInFiat                          float64                         `gorm:"default:0" json:"capAmountInFiat"`
-	CapDurationInDays                        int                             `gorm:"default:0" json:"capDurationInDays"`
-	ProceedCycle                             *string                         `gorm:"size:50" json:"proceedCycle"`
-	TokenizationFeeID                        *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
-	TokenizationFee                          TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
-	SECTokenizationFeePercent                float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
-	SECTokenizationFeeFixed                  float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
-	SECTokenizationFeeValue                  float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
-	CustodianFeePercent                      float64                         `gorm:"default:0" json:"custodianFeePercent"`
-	CustodianFeeFixed                        float64                         `gorm:"default:0" json:"custodianFeeFixed"`
-	CustodianFeeValue                        float64                         `gorm:"default:0" json:"custodianFeeValue"`
-	AssetManagerFeeValue                     float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
-	AssetManagerFeePercent                   float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
-	AssetManagerFeeFixed                     float64                         `gorm:"default:0" json:"assetManagerFeeFixed"`
-	IssuingHouseFeeValue                     float64                         `gorm:"default:0" json:"issuingHouseFeeValue"`
-	IssuingHouseFeePercent                   float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
-	IssuingHouseFeeFixed                     float64                         `gorm:"default:0" json:"issuingHouseFeeFixed"`
-	LegalAndProfessionalFeePercent           float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
-	LegalAndProfessionalFeeFixed             float64                         `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
-	LegalAndProfessionalFeeValue             float64                         `gorm:"default:0" json:"legalAndProfessionalFeeValue"`
-	RatingAgencyFeePercent                   float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
-	RatingAgencyFeeFixed                     float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
-	RatingAgencyFeeValue                     float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
-	VATPercent                               float64                         `gorm:"default:0" json:"vatPercent"`
-	VATValue                                 float64                         `gorm:"default:0" json:"vatValue"`
-	VATInAsset                               float64                         `gorm:"default:0" json:"vatInAsset"`
-	ProceedPayoutCurrency                    *string                         `json:"proceedPayoutCurrency"`
-	ProceedPayoutType                        int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
-	ExemptedCountries                        *string                         `json:"exemptedCountries"`
-	HasAdditionalKYCRequirements             int                             `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
-	AdditionalKYCRequirements                *string                         `json:"additionalKYCRequirements"`
-	InvestorAccreditationRequired            int                             `gorm:"default:0" json:"investorAccreditationRequired"`
-	AssetTokenizationStatus                  int                             `gorm:"default:0" json:"assetTokenizationStatus"`
-	LastUpdatedBy                            *string                         `gorm:"null" json:"lastUpdatedBy"`
-	TokenizationTransaction                  *string                         `gorm:"null" json:"-"`
-	AgreeTransferTitleToCustodian            int                             `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
-	ContractualProtectionRevGuarantees       int                             `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
-	ContractualProtectionPerfBond            int                             `gorm:"default:0" json:"contractualProtectionPerfBond"`
-	ContractualProtectionSLA                 int                             `gorm:"default:0" json:"contractualProtectionSLA"`
-	RiskSharingMechanismPPPs                 int                             `gorm:"default:0" json:"riskSharingMechanismPPPs"`
-	RiskSharingMechanismHedgeInstruments     int                             `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
-	RiskSharingMechanismCompletionGuarantees int                             `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
-	IndependentMonitoringList                *string                         `gorm:"null" json:"independentMonitoringList"`
-	ESGSafeguardsSusCerts                    int                             `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
-	ESGSafeguardsCommEngPlans                int                             `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
-	SecurityMeasuresAccessControl            int                             `gorm:"default:0" json:"securityMeasuresAccessControl"`
-	SecurityMeasuresSurveilanceSystems       int                             `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
-	SecurityMeasuresOnSiteSecurityPersonnel  int                             `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
-	SecurityMeasuresPerimeterSecurity        int                             `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
-	SecurityMeasuresCriticalInfraProtections int                             `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
-	OtherAssetProtection                     *string                         `gorm:"null" json:"otherAssetProtection"`
-	LegalAdvisor                             *string                         `gorm:"null" json:"legalAdvisor"`
-	FinancialAdvisor                         *string                         `gorm:"null" json:"financialAdvisor"`
-	// RatingAgency                                 *string                         `gorm:"null" json:"ratingAgency"`
-	UndertakingNoLien                            int     `gorm:"default:0" json:"undertakingNoLien"`
-	UndertakingNotCollateral                     int     `gorm:"default:0" json:"undertakingNotCollateral"`
-	UndertakingNoClaims                          int     `gorm:"default:0" json:"undertakingNoClaims"`
-	UndertakingNoForeclosure                     int     `gorm:"default:0" json:"undertakingNoForeclosure"`
-	ComplianceNoViolation                        int     `gorm:"default:0" json:"complianceNoViolation"`
-	ComplianceAllPermits                         int     `gorm:"default:0" json:"complianceAllPermits"`
-	OutstandingFinancialRespNoDebts              int     `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
-	OutstandingFinancialRespNoHiddenLiabilities  int     `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
-	RiskManagementFullyInsured                   int     `gorm:"default:0" json:"riskManagementFullyInsured"`
-	RiskManagementDeclaredValue                  int     `gorm:"default:0" json:"riskManagementDeclaredValue"`
-	PhysicalConditionSound                       int     `gorm:"default:0" json:"physicalConditionSound"`
-	PhysicalConditionNolease                     int     `gorm:"default:0" json:"physicalConditionNolease"`
-	PhysicalConditionNoUndisclosedEasements      int     `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
-	MintingInitators                             *string `gorm:"null" json:"mintingInitators"` //CSV of approvers
-	MintingApprovers                             *string `gorm:"null" json:"mintingApprovers"` //csv of initators
-	BankID                                       *uint64 `gorm:"null" json:"bankId"`
-	Bank                                         Bank    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
-	AccountNumber                                *string `gorm:"null" json:"accountNumber"`
-	BeneficiaryName                              *string `gorm:"null" json:"beneficiaryName"`
-	TokenizationApplicationFee                   float64 `gorm:"default:0" json:"tokenizationApplicationFee"`
-	TokenizationApplicationFeeAsset              string  `gorm:"not null;default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
-	ProjectStrategicObjectives                   *string `json:"projectStrategicObjectives"`
-	ProjectDevelopmentTimeline                   *string `json:"projectDevelopmentTimeline"`
-	ProjectKeyMilestoneAndDates                  *string `json:"projectKeyMilestoneAndDates"`
-	ProjectScope                                 *string `json:"projectScope"`
-	ProjectEconomicBenefits                      *string `json:"projectEconomicBenefits"`
-	ProjectExpectedNoOfJobs                      int     `json:"projectExpectedNoOfJobs"`
-	ProjectIntendedSocialBenefits                *string `json:"projectIntendedSocialBenefits"`
-	ProjectTechnicalPartners                     *string `json:"projectTechnicalPartners"`
-	ProjectFinancialPartners                     *string `json:"projectFinancialPartners"`
-	EstimatedProjectIRR                          float64 `json:"estimatedProjectIRR"`
-	EstimatedProjectROI                          float64 `json:"estimatedProjectROI"`
-	EstimatedProjectNPV                          float64 `json:"estimatedProjectNPV"`
-	EstimatedProjectPaybackPeriodsInMonths       int     `json:"estimatedProjectPaybackPeriodsInMonths"`
-	KeyAssumptionsList                           *string `json:"keyAssumptionsList"`
-	ProjectIdentifiedLegalRisks                  *string `json:"projectIdentifiedLegalRisks"`
-	ProjectIdentifiedRegulatoryRisks             *string `json:"projectIdentifiedRegulatoryRisks"`
-	ProjectIdentifiedOperationalOrExecutionRisks *string `json:"projectIdentifiedOperationalOrExecutionRisks"`
-	ProjectIdentifiedMarketRisks                 *string `json:"projectIdentifiedMarketRisks"`
-	ProjectIdentifiedOtherRelevantRisks          *string `json:"projectIdentifiedOtherRelevantRisks"`
+	ID                                           string                          `json:"id"`
+	CreatedAt                                    time.Time                       `json:"createdAt"`
+	UpdatedAt                                    time.Time                       `json:"updatedAt"`
+	InitiatorUsername                            string                          `gorm:"size:50;not null" json:"initiatorUsername"`
+	AssetSector                                  *string                         `json:"assetSector"`
+	AssetSubSector                               *string                         `json:"assetSubSector"`
+	AssetType                                    *string                         `json:"assetType"`
+	AssetName                                    *string                         `json:"assetName"`
+	ApprovedAssetCustodianID                     uint64                          `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodian                       ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
+	OfferingType                                 *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID                                *string                         `gorm:"null" json:"closedGroupId"`
+	ClosedGroup                                  ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
+	SecApproval                                  int                             `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber                          *string                         `json:"secApprovalIdNumber"`
+	IssuingWalletPublicKey                       *string                         `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAlias                           *string                         `gorm:"size:60" json:"issuingWalletAlias"`
+	MarketMakingWallet                           *string                         `json:"marketMakingWallet"`
+	AssetDescription                             *string                         `json:"assetDescription"`
+	AssetCountryLocation                         *string                         `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
+	AssetPhysicalAddress                         *string                         `json:"assetPhysicalAddress"`
+	AssetLongitude                               *string                         `json:"assetLongitude"`
+	AssetLatitude                                *string                         `json:"assetLatitude"`
+	OwnershipType                                *string                         `json:"ownershipType"` //DIRECT,THIRD-PARTY
+	OwnershipKind                                *string                         `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress           *string                         `json:"initialOwnerPreferredWalletAddress"`
+	AssetOwnerName                               *string                         `json:"assetOwnerName"`
+	AssetOwnerAddress                            *string                         `json:"assetOwnerAddress"`
+	AssetManagerID                               uint64                          `gorm:"default:0" json:"assetManagerId"`
+	AssetManager                                 AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
+	AssetIssuingHouseID                          uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
+	AssetIssuingHouse                            AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
+	LegalAndProfesionalPartnerID                 uint64                          `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
+	LegalAndProfesionalPartner                   LegalAndProfesionalPartner      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
+	RatingAgencyID                               uint64                          `gorm:"not null;default:0" json:"ratingAgencyId"`
+	RatingAgency                                 RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
+	TrusteeID                                    uint64                          `gorm:"not null;default:0" json:"trusteeId"`
+	Trustee                                      Trustee                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
+	AssetQuoteCurrency                           *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
+	AssetCurrentValue                            float64                         `gorm:"default:0" json:"assetCurrentValue"`
+	AssetOwnerRetainedOrContributedValue         float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
+	AssetMscCostOutisdeOfValuation               float64                         `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
+	ValueOfTokenizedAsset                        float64                         `gorm:"default:0" json:"valueOfTokenizedAsset"`
+	ProtectionMethods                            *string                         `json:"protectionMethods"` //csv format
+	InsuranceCompanyName                         *string                         `json:"insuranceCompanyName"`
+	InsurancePolicyNumber                        *string                         `json:"insurancePolicyNumber"`
+	InsurancePolicyHolder                        *string                         `json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance                   float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances               int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
+	AssetAlreadyExists                           int                             `gorm:"default:0" json:"assetAlreadyExists"`
+	VettingStatus                                int                             `gorm:"default:0" json:"vettingStatus"`
+	DueDiligenceFail                             int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
+	DueDiligenceFailureReason                    *string                         `json:"dueDiligenceFailureReason"`
+	AssetTokenizationDocuments                   []AssetTokenizationDocument     `json:"AssetTokenizationDocuments"`
+	ProofOfPaymentDocuments                      []TokenizationFeeProofOfPayment `json:"ProofOfPaymentDocuments"`
+	AssetCode                                    *string                         `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
+	AssetLogo                                    *string                         `json:"assetLogo"`
+	AssetWebsite                                 *string                         `gorm:"default:'trovotech.io'" json:"assetWebsite"`
+	InitialValueOfTokenizedAsset                 float64                         `gorm:"default:0" json:"initialValueOfTokenizedAsset"`
+	NumberOfTokenToBeIssued                      float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
+	MaxNumberOfTokenAvailableForSale             float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
+	FeeInAsset                                   float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInAssetPercent                            float64                         `gorm:"default:0" json:"feeInAssetPercent"`
+	FeeInFiat                                    float64                         `gorm:"default:0" json:"feeInFiat"` //tokenization fee in fiat
+	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
+	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
+	WalletToHoldAssetsNotForSale                 *string                         `json:"walletToHoldAssetsNotForSale"`
+	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
+	SalesStart                                   time.Time                       `json:"salesStart"`
+	SalesEnd                                     time.Time                       `json:"salesEnd"`
+	CapOnPurchase                                int                             `gorm:"default:0" json:"capOnPurchase"`
+	CapQuantity                                  float64                         `gorm:"default:0" json:"capQuantity"`
+	CapAmountInFiat                              float64                         `gorm:"default:0" json:"capAmountInFiat"`
+	CapDurationInDays                            int                             `gorm:"default:0" json:"capDurationInDays"`
+	ProceedCycle                                 *string                         `gorm:"size:50" json:"proceedCycle"`
+	TokenizationFeeID                            *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
+	TokenizationFee                              TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	SECTokenizationFeePercent                    float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed                      float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
+	SECTokenizationFeeValue                      float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
+	CustodianFeePercent                          float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeFixed                            float64                         `gorm:"default:0" json:"custodianFeeFixed"`
+	CustodianFeeValue                            float64                         `gorm:"default:0" json:"custodianFeeValue"`
+	AssetManagerFeeValue                         float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
+	AssetManagerFeePercent                       float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
+	AssetManagerFeeFixed                         float64                         `gorm:"default:0" json:"assetManagerFeeFixed"`
+	IssuingHouseFeeValue                         float64                         `gorm:"default:0" json:"issuingHouseFeeValue"`
+	IssuingHouseFeePercent                       float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	IssuingHouseFeeFixed                         float64                         `gorm:"default:0" json:"issuingHouseFeeFixed"`
+	LegalAndProfessionalFeePercent               float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	LegalAndProfessionalFeeFixed                 float64                         `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
+	LegalAndProfessionalFeeValue                 float64                         `gorm:"default:0" json:"legalAndProfessionalFeeValue"`
+	RatingAgencyFeePercent                       float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed                         float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
+	RatingAgencyFeeValue                         float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
+	TrusteeFeePercent                            float64                         `gorm:"default:0" json:"trusteeFeePercent"`
+	TrusteeFeeFixed                              float64                         `gorm:"default:0" json:"trusteeFeeFixed"`
+	TrusteeFeeValue                              float64                         `gorm:"default:0" json:"trusteeFeeValue"`
+	VATPercent                                   float64                         `gorm:"default:0" json:"vatPercent"`
+	VATValue                                     float64                         `gorm:"default:0" json:"vatValue"`
+	VATInAsset                                   float64                         `gorm:"default:0" json:"vatInAsset"`
+	ProceedPayoutCurrency                        *string                         `json:"proceedPayoutCurrency"`
+	ProceedPayoutType                            int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
+	ExemptedCountries                            *string                         `json:"exemptedCountries"`
+	HasAdditionalKYCRequirements                 int                             `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
+	AdditionalKYCRequirements                    *string                         `json:"additionalKYCRequirements"`
+	InvestorAccreditationRequired                int                             `gorm:"default:0" json:"investorAccreditationRequired"`
+	AssetTokenizationStatus                      int                             `gorm:"default:0" json:"assetTokenizationStatus"`
+	LastUpdatedBy                                *string                         `gorm:"null" json:"lastUpdatedBy"`
+	TokenizationTransaction                      *string                         `gorm:"null" json:"-"`
+	AgreeTransferTitleToCustodian                int                             `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
+	ContractualProtectionRevGuarantees           int                             `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
+	ContractualProtectionPerfBond                int                             `gorm:"default:0" json:"contractualProtectionPerfBond"`
+	ContractualProtectionSLA                     int                             `gorm:"default:0" json:"contractualProtectionSLA"`
+	RiskSharingMechanismPPPs                     int                             `gorm:"default:0" json:"riskSharingMechanismPPPs"`
+	RiskSharingMechanismHedgeInstruments         int                             `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
+	RiskSharingMechanismCompletionGuarantees     int                             `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
+	IndependentMonitoringList                    *string                         `gorm:"null" json:"independentMonitoringList"`
+	ESGSafeguardsSusCerts                        int                             `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
+	ESGSafeguardsCommEngPlans                    int                             `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
+	SecurityMeasuresAccessControl                int                             `gorm:"default:0" json:"securityMeasuresAccessControl"`
+	SecurityMeasuresSurveilanceSystems           int                             `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
+	SecurityMeasuresOnSiteSecurityPersonnel      int                             `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
+	SecurityMeasuresPerimeterSecurity            int                             `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
+	SecurityMeasuresCriticalInfraProtections     int                             `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
+	OtherAssetProtection                         *string                         `gorm:"null" json:"otherAssetProtection"`
+	LegalAdvisor                                 *string                         `gorm:"null" json:"legalAdvisor"`
+	FinancialAdvisor                             *string                         `gorm:"null" json:"financialAdvisor"`
+	UndertakingNoLien                            int                             `gorm:"default:0" json:"undertakingNoLien"`
+	UndertakingNotCollateral                     int                             `gorm:"default:0" json:"undertakingNotCollateral"`
+	UndertakingNoClaims                          int                             `gorm:"default:0" json:"undertakingNoClaims"`
+	UndertakingNoForeclosure                     int                             `gorm:"default:0" json:"undertakingNoForeclosure"`
+	ComplianceNoViolation                        int                             `gorm:"default:0" json:"complianceNoViolation"`
+	ComplianceAllPermits                         int                             `gorm:"default:0" json:"complianceAllPermits"`
+	OutstandingFinancialRespNoDebts              int                             `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
+	OutstandingFinancialRespNoHiddenLiabilities  int                             `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
+	RiskManagementFullyInsured                   int                             `gorm:"default:0" json:"riskManagementFullyInsured"`
+	RiskManagementDeclaredValue                  int                             `gorm:"default:0" json:"riskManagementDeclaredValue"`
+	PhysicalConditionSound                       int                             `gorm:"default:0" json:"physicalConditionSound"`
+	PhysicalConditionNolease                     int                             `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements      int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	MintingInitators                             *string                         `gorm:"null" json:"mintingInitators"` //CSV of approvers
+	MintingApprovers                             *string                         `gorm:"null" json:"mintingApprovers"` //csv of initators
+	BankID                                       *uint64                         `gorm:"null" json:"bankId"`
+	Bank                                         Bank                            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	AccountNumber                                *string                         `gorm:"null" json:"accountNumber"`
+	BeneficiaryName                              *string                         `gorm:"null" json:"beneficiaryName"`
+	TokenizationApplicationFee                   float64                         `gorm:"default:0" json:"tokenizationApplicationFee"`
+	TokenizationApplicationFeeAsset              string                          `gorm:"not null;default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	ProjectStrategicObjectives                   *string                         `json:"projectStrategicObjectives"`
+	ProjectDevelopmentTimeline                   *string                         `json:"projectDevelopmentTimeline"`
+	ProjectKeyMilestoneAndDates                  *string                         `json:"projectKeyMilestoneAndDates"`
+	ProjectScope                                 *string                         `json:"projectScope"`
+	ProjectEconomicBenefits                      *string                         `json:"projectEconomicBenefits"`
+	ProjectExpectedNoOfJobs                      int                             `json:"projectExpectedNoOfJobs"`
+	ProjectIntendedSocialBenefits                *string                         `json:"projectIntendedSocialBenefits"`
+	ProjectTechnicalPartners                     *string                         `json:"projectTechnicalPartners"`
+	ProjectFinancialPartners                     *string                         `json:"projectFinancialPartners"`
+	EstimatedProjectIRR                          float64                         `json:"estimatedProjectIRR"`
+	EstimatedProjectROI                          float64                         `json:"estimatedProjectROI"`
+	EstimatedProjectNPV                          float64                         `json:"estimatedProjectNPV"`
+	EstimatedProjectPaybackPeriodsInMonths       int                             `json:"estimatedProjectPaybackPeriodsInMonths"`
+	KeyAssumptionsList                           *string                         `json:"keyAssumptionsList"`
+	ProjectIdentifiedLegalRisks                  *string                         `json:"projectIdentifiedLegalRisks"`
+	ProjectIdentifiedRegulatoryRisks             *string                         `json:"projectIdentifiedRegulatoryRisks"`
+	ProjectIdentifiedOperationalOrExecutionRisks *string                         `json:"projectIdentifiedOperationalOrExecutionRisks"`
+	ProjectIdentifiedMarketRisks                 *string                         `json:"projectIdentifiedMarketRisks"`
+	ProjectIdentifiedOtherRelevantRisks          *string                         `json:"projectIdentifiedOtherRelevantRisks"`
 }
 
 type TokenizedAssetID string
@@ -358,12 +363,12 @@ type VetTokenizedAssetJSONInput struct {
 	ApprovedAssetCustodianID     uint64 `gorm:"not null" json:"approvedAssetCustodianId"`
 	AssetManagerID               uint64 `json:"assetManagerId"`
 	AssetIssuingHouseID          uint64 `json:"assetIssuingHouseId"`
-	LegalAndProfesionalPartnerID uint64 `json:"legalAndProfesionalPartnerID"`
-	RatingAgencyID               uint64 `json:"ratingAgencyID"`
+	LegalAndProfesionalPartnerID uint64 `json:"legalAndProfesionalPartnerId"`
+	RatingAgencyID               uint64 `json:"ratingAgencyId"`
+	TrusteeID                    uint64 `json:"trusteeId"`
 	CountryCode                  string `json:"CountryCode"`
 	ProceedPayoutCurrency        string `json:"proceedPayoutCurrency"`
 	AssetQuoteCurrency           string `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
-	// Messages                 []string `json:"messages"`
 }
 
 type TokenizedAssetJSON struct {
@@ -380,10 +385,12 @@ type TokenizedAssetJSON struct {
 	ApprovedAssetCustodian                       ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
 	AssetIssuingHouseID                          uint64                          `gorm:"not null" json:"assetIssuingHouseId"`
 	AssetIssuingHouse                            AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
-	LegalAndProfesionalPartnerID                 uint64                          `gorm:"not null" json:"legalAndProfesionalPartnerID"`
+	LegalAndProfesionalPartnerID                 uint64                          `gorm:"not null" json:"legalAndProfesionalPartnerId"`
 	LegalAndProfesionalPartner                   LegalAndProfesionalPartner      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
 	RatingAgencyID                               uint64                          `gorm:"not null" json:"ratingAgencyId"`
 	RatingAgency                                 RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
+	TrusteeID                                    uint64                          `gorm:"not null" json:"trusteeId"`
+	Trustee                                      Trustee                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
 	OfferingType                                 string                          `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                                string                          `gorm:"null" json:"closedGroupId"`
 	ClosedGroup                                  ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
@@ -460,6 +467,9 @@ type TokenizedAssetJSON struct {
 	RatingAgencyFeePercent                       float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
 	RatingAgencyFeeFixed                         float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
 	RatingAgencyFeeValue                         float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
+	TrusteeFeePercent                            float64                         `gorm:"default:0" json:"trusteeFeePercent"`
+	TrusteeFeeFixed                              float64                         `gorm:"default:0" json:"trusteeFeeFixed"`
+	TrusteeFeeValue                              float64                         `gorm:"default:0" json:"trusteeFeeValue"`
 	VATPercent                                   float64                         `gorm:"default:0" json:"vatPercent"`
 	VATValue                                     float64                         `gorm:"default:0" json:"vatValue"`
 	VATInAsset                                   float64                         `gorm:"default:0" json:"vatInAsset"`
@@ -650,6 +660,15 @@ type RatingAgency struct {
 	AgencyCountry string  `gorm:"size:3" json:"agencyCountry"`
 	FeePercent    float64 `gorm:"default:0" json:"FeePercent"`
 	FeeFixed      float64 `gorm:"default:0" json:"FeeFixed"`
+}
+
+type Trustee struct {
+	ID             uint64  `gorm:"" json:"id"`
+	TrusteeName    string  `gorm:"size:100" json:"trusteeName"`
+	TrusteeAddress string  `json:"trusteeAddress"`
+	TrusteeCountry string  `gorm:"size:3" json:"trusteeCountry"`
+	FeePercent     float64 `gorm:"default:0" json:"FeePercent"`
+	FeeFixed       float64 `gorm:"default:0" json:"FeeFixed"`
 }
 
 type AssetProtectionOption struct {
@@ -1311,7 +1330,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
 	var secFee float64
-	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat float64
+	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat, trusteeFee float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 	}
@@ -1330,15 +1349,19 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				// Calculate Fees
 				feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 				t.FeeInAsset = feeInAsset
-
+				log.Printf("Calculated Fee In Asset:= %v\n", feeInAsset)
 				t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 
 				t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 				if feeCompo.FeeFiatCap > t.FeeInFiat {
 					t.FeeInFiat = feeCompo.FeeFiatCap
 				}
+				log.Printf("Calculated Fee In Fiat:= %v\n", t.FeeInFiat)
+
 				VATAsset = decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 				t.VATInAsset = VATAsset
+				log.Printf("Calculated VAT Asset:= %v\n", VATAsset)
+
 			}
 
 			// get tokenization fees.
@@ -1347,6 +1370,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
 			secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
 			t.SECTokenizationFeeValue = secFee
+			log.Printf("Calculated SEC Fee Value:= %v\n", secFee)
 
 			if t.ApprovedAssetCustodianID > 0 {
 				// t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
@@ -1355,6 +1379,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.CustodianFeePercent = custodian.FeePercent
 				custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
 				t.CustodianFeeValue = custodyFee
+				log.Printf("Custodian Fee Value:= %v\n", custodyFee)
 
 			}
 
@@ -1365,6 +1390,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.AssetManagerFeeFixed = assetManager.FeeFixed
 				assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
 				t.AssetManagerFeeValue = assetMgtFee
+				log.Printf("Calculated Asset Managment fee Value:= %v\n", assetMgtFee)
 
 			}
 
@@ -1375,6 +1401,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.IssuingHouseFeePercent = issuingHouse.FeePercent
 				issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 				t.IssuingHouseFeeValue = issuingHouseFeeValue
+				log.Printf("Calculated Issuing House Fee Value:= %v\n", issuingHouseFeeValue)
+
 			}
 
 			if t.LegalAndProfesionalPartnerID > 0 {
@@ -1383,38 +1411,67 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.LegalAndProfessionalFeePercent = lpp.FeePercent
 				legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 				t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
+				log.Printf("Calculated Legal&Professional Fee Value:= %v\n", legalAndProfessionalFee)
+
 			}
 
 			if t.RatingAgencyID > 0 {
-				ra := RatingAgencyID(t.LegalAndProfesionalPartnerID).GetRatingAgency(gc)
+				ra := RatingAgencyID(t.TrusteeID).GetRatingAgency(gc)
 				t.RatingAgencyFeeFixed = ra.FeeFixed
 				t.RatingAgencyFeePercent = ra.FeePercent
 				ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 				t.RatingAgencyFeeValue = ratingAgencyFee
+				log.Printf("Calculated Rating Agency Fee Value:= %v\n", ratingAgencyFee)
+
 			}
 
-			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
+			if t.TrusteeID > 0 {
+				ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
+				t.TrusteeFeeFixed = ra.FeeFixed
+				t.TrusteeFeePercent = ra.FeePercent
+				trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
+				t.TrusteeFeeValue = trusteeFee
+				log.Printf("Calculated Trustee Fee Value:= %v\n", trusteeFee)
+
+			}
+
+			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee + trusteeFee
+			log.Printf("Calculated Total charged Fees for VAT:= %v\n", totalChargedFeesForVat)
+
 			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 
 			t.VATPercent = cConfig.VATPercent
 			t.VATValue = vat
+			log.Printf("Calculated VAT Value:= %v\n", vat)
 
 			initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
+			t.InitialValueOfTokenizedAsset = initialValueOfTokenizedAsset
+			log.Printf("Calculated Initial Value Of Tokenized Asset:= %v\n", initialValueOfTokenizedAsset)
 
 			if t.NumberOfTokenToBeIssued > 0 {
 				// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-				t.PricePerToken = decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset))).Round(7).InexactFloat64()
+				pricePerToken := decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset)))
+				t.PricePerToken = pricePerToken.Round(7).InexactFloat64()
+				log.Printf("Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), t.PricePerToken)
 				// auto calculate, token to be held is less the fee. token not to be sold
-				t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Truncate(7).InexactFloat64()
+				totalTokenHeldByManager := decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken)
+				t.TotalTokenHeldByManager = totalTokenHeldByManager.Truncate(7).InexactFloat64()
+				log.Printf("Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), t.TotalTokenHeldByManager)
 
 				{
 					//ensure correct the number of token to be sold.
-					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
-					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
+					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+
+					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+					log.Printf("Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), t.NumberOfTokenToBeSold)
 
 				}
-				t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken).InexactFloat64()
+
+				finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
+				t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
+				log.Printf("Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset, t.ValueOfTokenizedAsset)
+
 			}
 
 			if len(ti.WalletToHoldAssetsNotForSale) > 0 {
@@ -1635,12 +1692,15 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
+		log.Printf("Calculated Fee In Asset:= %v\n", feeInAsset)
 
 		t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 		if feeCompo.FeeFiatCap > t.FeeInFiat {
 			t.FeeInFiat = feeCompo.FeeFiatCap
 		}
+		log.Printf("Calculated Fee In Fiat:= %v\n", t.FeeInFiat)
+
 	}
 	// get SEC tokenization fee.
 	// /////
@@ -1666,19 +1726,22 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	var cConfig Country
 	var custodyFee, assetMgtFee float64
 	var secFee float64
-	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat float64
+	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat, trusteeFee float64
 	if t.AssetCountryLocation != nil {
 		cConfig = CountryCode(*t.AssetCountryLocation).GetConfig(gc)
 
 	}
 	VATAsset := decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 	t.VATInAsset = VATAsset
+	log.Printf("Calculated VAT Asset:= %v\n", VATAsset)
+
 	if t.AssetCurrentValue > 0 {
 
 		t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
 		t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
 		secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
 		t.SECTokenizationFeeValue = secFee
+		log.Printf("Calculated SEC Fee Value:= %v\n", secFee)
 
 		if t.ApprovedAssetCustodianID > 0 {
 			custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
@@ -1686,6 +1749,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.CustodianFeePercent = custodian.FeePercent
 			custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
 			t.CustodianFeeValue = custodyFee
+			log.Printf("Custodian Fee Value:= %v\n", custodyFee)
 
 		}
 
@@ -1695,6 +1759,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.AssetManagerFeeFixed = assetManager.FeeFixed
 			assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
 			t.AssetManagerFeeValue = assetMgtFee
+			log.Printf("Calculated Asset Managment fee Value:= %v\n", assetMgtFee)
 
 		}
 
@@ -1704,6 +1769,8 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.IssuingHouseFeePercent = issuingHouse.FeePercent
 			issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 			t.IssuingHouseFeeValue = issuingHouseFeeValue
+			log.Printf("Calculated Issuing House Fee Value:= %v\n", issuingHouseFeeValue)
+
 		}
 
 		if t.LegalAndProfesionalPartnerID > 0 {
@@ -1712,6 +1779,8 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.LegalAndProfessionalFeePercent = lpp.FeePercent
 			legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 			t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
+			log.Printf("Calculated Legal&Professional Fee Value:= %v\n", legalAndProfessionalFee)
+
 		}
 
 		if t.RatingAgencyID > 0 {
@@ -1720,34 +1789,60 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.RatingAgencyFeePercent = ra.FeePercent
 			ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 			t.RatingAgencyFeeValue = ratingAgencyFee
+			log.Printf("Calculated Rating Agency Fee Value:= %v\n", ratingAgencyFee)
+
 		}
 
-		totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee
+		if t.TrusteeID > 0 {
+			ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
+			t.TrusteeFeeFixed = ra.FeeFixed
+			t.TrusteeFeePercent = ra.FeePercent
+			trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
+			t.TrusteeFeeValue = trusteeFee
+			log.Printf("Calculated Trustee Fee Value:= %v\n", trusteeFee)
+
+		}
+
+		totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee + trusteeFee
+		log.Printf("Calculated Total charged Fees for VAT:= %v\n", totalChargedFeesForVat)
+
 		vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 
 		t.VATPercent = cConfig.VATPercent
 		t.VATValue = vat
+		log.Printf("Calculated VAT Value:= %v\n", vat)
+
 	}
 
 	initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
-
+	t.InitialValueOfTokenizedAsset = initialValueOfTokenizedAsset
+	log.Printf("Calculated Initial Value Of Tokenized Asset:= %v\n", initialValueOfTokenizedAsset)
 	if t.NumberOfTokenToBeIssued > 0 {
 		// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-		t.PricePerToken = decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset))).Truncate(7).InexactFloat64()
+		pricePerToken := decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset)))
+		t.PricePerToken = pricePerToken.Round(7).InexactFloat64()
+		log.Printf("Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), t.PricePerToken)
 		// auto calculate, token to be held is less the fee. token not to be sold
-		t.TotalTokenHeldByManager = decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken).Round(7).InexactFloat64()
+		totalTokenHeldByManager := decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken)
+		t.TotalTokenHeldByManager = totalTokenHeldByManager.Truncate(7).InexactFloat64()
+		log.Printf("Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), t.TotalTokenHeldByManager)
 
 		// feeInAsset = decimal.NewFromFloat(feeInAssetFiatEquivalent / t.PricePerToken).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
 
 		{
 			//ensure correct the number of token to be sold.
-			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager).Truncate(7).InexactFloat64()
-			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold
+			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+
+			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+			log.Printf("Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), t.NumberOfTokenToBeSold)
 
 		}
-		t.ValueOfTokenizedAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken).InexactFloat64()
+
+		finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
+		t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
+		log.Printf("Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset, t.ValueOfTokenizedAsset)
 	}
 
 	if t.CapOnPurchase == 1 && t.PricePerToken > 0 && t.CapAmountInFiat > 0 {
@@ -1820,6 +1915,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.RatingAgencyFeePercent = ti.RatingAgencyFeePercent
 	t.RatingAgencyFeeFixed = ti.RatingAgencyFeeFixed
 	t.RatingAgencyFeeValue = ti.RatingAgencyFeeValue
+	t.TrusteeID = ti.TrusteeID
+	t.TrusteeFeePercent = ti.TrusteeFeePercent
+	t.TrusteeFeeFixed = ti.TrusteeFeeFixed
+	t.TrusteeFeeValue = ti.TrusteeFeeValue
 	t.VATPercent = ti.VATPercent
 	t.VATValue = ti.VATValue
 	t.VATInAsset = ti.VATInAsset
@@ -1915,6 +2014,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.RatingAgencyID > 0 {
 		t.RatingAgencyID = ti.RatingAgencyID
 		t.RatingAgency = ti.RatingAgency
+	}
+	if ti.TrusteeID > 0 {
+		t.TrusteeID = ti.TrusteeID
+		t.Trustee = ti.Trustee
 	}
 	if ti.OfferingType != nil {
 		t.OfferingType = *ti.OfferingType
@@ -2325,6 +2428,7 @@ type ApprovedCustodianID uint64
 type IssuingHouseID uint64
 type LegalAndProfesionalPartnerID uint64
 type RatingAgencyID uint64
+type TrusteeID uint64
 
 func (a AssetManagerID) GetAssetManager(gc *sharedconfig.GlobalConfig) (assetManager AssetManager) {
 	gc.DB.Where("id = ?", uint64(a)).First(&assetManager)
@@ -2352,6 +2456,12 @@ func (a LegalAndProfesionalPartnerID) GetLegalAndProfesionalPartner(gc *sharedco
 
 func (a RatingAgencyID) GetRatingAgency(gc *sharedconfig.GlobalConfig) (ra RatingAgency) {
 	gc.DB.Where("id = ?", uint64(a)).First(&ra)
+
+	return
+}
+
+func (a TrusteeID) GetTrustee(gc *sharedconfig.GlobalConfig) (ts Trustee) {
+	gc.DB.Where("id = ?", uint64(a)).First(&ts)
 
 	return
 }

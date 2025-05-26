@@ -146,6 +146,14 @@ func GetRatingAgencies(db *gorm.DB) (ras []userModels.RatingAgency) {
 
 	return
 }
+
+func GetTrustees(db *gorm.DB) (trs []userModels.Trustee) {
+	trs = make([]userModels.Trustee, 0)
+	db.Order("Trustee_Country, Trustee_name").Find(&trs)
+
+	return
+}
+
 func GetAssetManagerByID(id uint64, db *gorm.DB) (assetManager userModels.AssetManager) {
 	db.Where("id = ?", id).First(&assetManager)
 
@@ -172,6 +180,12 @@ func GetLegalAndProfesionalPartnerByID(id uint64, db *gorm.DB) (lpp userModels.L
 
 func GetRatingAgencyByID(id uint64, db *gorm.DB) (ra userModels.RatingAgency) {
 	db.Where("id = ?", id).First(&ra)
+
+	return
+}
+
+func GetTrusteeByID(id uint64, db *gorm.DB) (tr userModels.Trustee) {
+	db.Where("id = ?", id).First(&tr)
 
 	return
 }
@@ -1137,11 +1151,19 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	// 	return
 	// }
 
-	// check asset manager ID
+	// check rating agency ID
 	ra := GetRatingAgencyByID(input.RatingAgencyID, gc.DB)
 	if len(ra.AgencyName) == 0 {
 		log.Printf("[VetTokenizationAssetInfo] Error Invalid rating agency: %v\n%v\n", input.RatingAgencyID, tokenizationID)
 		err = &tErrors.CustomError{Param: "ratingAgency", Err: "error-invalid-rating-agency", ErrMessage: "Invalid Rating Agency."}
+		return
+	}
+
+	// check trustee ID
+	ts := GetTrusteeByID(input.TrusteeID, gc.DB)
+	if len(ra.AgencyName) == 0 {
+		log.Printf("[VetTokenizationAssetInfo] Error Invalid trustee: %v\n%v\n", input.TrusteeID, tokenizationID)
+		err = &tErrors.CustomError{Param: "trustee", Err: "error-invalid-trustee", ErrMessage: "Invalid Trustee."}
 		return
 	}
 
@@ -1158,6 +1180,9 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	ato.RatingAgencyID = input.RatingAgencyID
 	ato.RatingAgencyFeePercent = ra.FeePercent
 	ato.RatingAgencyFeeFixed = ra.FeeFixed
+	ato.TrusteeID = input.TrusteeID
+	ato.TrusteeFeePercent = ts.FeePercent
+	ato.TrusteeFeeFixed = ts.FeeFixed
 
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency

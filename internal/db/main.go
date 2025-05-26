@@ -412,6 +412,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating RatingAgency: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.Trustee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Trustee: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingApprover{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingApprover: ", errMigrate)

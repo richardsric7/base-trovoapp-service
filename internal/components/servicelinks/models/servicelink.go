@@ -6,24 +6,25 @@ import (
 
 // ServiceLink holds ServiceLink data model
 type ServiceLink struct {
-	ID                         string    `json:"-" gorm:"size:100"`
-	CreatedAt                  time.Time `json:"-"`
-	UpdatedAt                  time.Time `json:"-"`
-	OwnerUsername              string    `json:"TrovoUsername" gorm:"size:100;index:idx_owner_username;index:idx_service_shortname,unique;not null;check:,length(owner_username) > 2"`
-	PublicKey                  string    `json:"publicKey" gorm:"size:56;index:idx_service_user_public_key;not null;"`
-	ApiKey                     string    `json:"apiKey" gorm:"size:50;index:idx_service_api_key,unique;not null;"`
-	ShortName                  string    `json:"shortName" gorm:"size:50;index:idx_service_shortname,unique;not null;"`
-	LongName                   string    `json:"longName" gorm:"size:100"`
-	LoginPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
-	PaymentPermission          int       `json:"-" gorm:"type:integer;not null;default:0"`
-	TokenInfoPermission        int       `json:"-" gorm:"type:integer;not null;default:0"`
-	AuthorizationPermission    int       `json:"-" gorm:"type:integer;not null;default:0"`
-	EventPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
-	AllowUserInfo              int       `json:"-" gorm:"type:integer;not null;default:0"`
-	PushNotificationPermission int       `json:"-" gorm:"type:integer;not null;default:0"`
-	IncludePhoneNumbers        int       `json:"-" gorm:"type:integer;not null;default:0"`
-	IncludeUserBalances        int       `json:"-" gorm:"type:integer;not null;default:0"`
-	Verified                   int       `json:"-" gorm:"type:integer;not null;default:0"`
+	ID                                    string    `json:"-" gorm:"size:100"`
+	CreatedAt                             time.Time `json:"-"`
+	UpdatedAt                             time.Time `json:"-"`
+	OwnerUsername                         string    `json:"TrovoUsername" gorm:"size:100;index:idx_owner_username;index:idx_service_shortname,unique;not null;check:,length(owner_username) > 2"`
+	PublicKey                             string    `json:"publicKey" gorm:"size:56;index:idx_service_user_public_key;not null;"`
+	ApiKey                                string    `json:"apiKey" gorm:"size:50;index:idx_service_api_key,unique;not null;"`
+	ShortName                             string    `json:"shortName" gorm:"size:50;index:idx_service_shortname,unique;not null;"`
+	LongName                              string    `json:"longName" gorm:"size:100"`
+	LoginPermission                       int       `json:"-" gorm:"type:integer;not null;default:0"`
+	PaymentPermission                     int       `json:"-" gorm:"type:integer;not null;default:0"`
+	TokenInfoPermission                   int       `json:"-" gorm:"type:integer;not null;default:0"`
+	AuthorizationPermission               int       `json:"-" gorm:"type:integer;not null;default:0"`
+	EventPermission                       int       `json:"-" gorm:"type:integer;not null;default:0"`
+	AllowUserInfo                         int       `json:"-" gorm:"type:integer;not null;default:0"`
+	PushNotificationPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
+	IncludePhoneNumbers                   int       `json:"-" gorm:"type:integer;not null;default:0"`
+	IncludeUserBalances                   int       `json:"-" gorm:"type:integer;not null;default:0"`
+	TokenizedAssetAuthorizationPermission int       `json:"-" gorm:"type:integer;not null;default:0"`
+	Verified                              int       `json:"-" gorm:"type:integer;not null;default:0"`
 	// RewardOnly                 int       `json:"-" gorm:"type:integer;not null;default:0"`
 	Inactive         int     `json:"inactive" gorm:"type:integer;not null;default:0"`
 	Suspended        int     `json:"-" gorm:"type:integer;not null;default:0"`
@@ -78,6 +79,12 @@ type ServiceLinkRequestInput struct {
 	DeviceInfo        string `json:"deviceInfo,omitempty"`
 	CallbackURL       string `json:"callbackUrl,omitempty"`
 	ValidityInMinutes int    `json:"validityInMinutes,omitempty"`
+}
+
+type ServiceLinkTokenizedAssetAuthRequestInput struct {
+	UnsignedTransaction string `json:"unsignedTransaction,omitempty"`
+	AssetCode           string `json:"assetCode,omitempty"`
+	SignedTransaction   string `json:"signedTransaction,omitempty"`
 }
 type ServiceLinkEventRequestInput struct {
 	EventDescription  string `json:"eventDescription,omitempty"`

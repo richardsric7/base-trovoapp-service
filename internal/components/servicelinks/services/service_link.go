@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
@@ -14,6 +15,8 @@ import (
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 )
 
@@ -222,6 +225,68 @@ func GetUserForServiceLink(ID string, serviceLink servicelinkModels.ServiceLink,
 	}
 
 	return userInfoForServiceLink, nil
+
+}
+
+// GetTransactionSignature gets signed transaction from unsigned transaction information
+func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetAuthRequestInput, gc *sharedconfig.GlobalConfig) (output servicelinkModels.ServiceLinkTokenizedAssetAuthRequestInput, err error) {
+	if gc.IsValidTokenizedAsset(input.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(input.AssetCode)
+		if t.AssetTokenizationStatus < 6 {
+			return output, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for secondary market. Authorization is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+
+		//start signing transaction
+		log.Println("[generateTrustAssetXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		gTxn, e := txnbuild.TransactionFromXDR(input.UnsignedTransaction)
+
+		if e != nil {
+			return output, &tErrors.ErrorInvalidTransaction{}
+		}
+
+		tx, ok := gTxn.Transaction()
+
+		if !ok {
+			return output, &tErrors.ErrorInvalidTransaction{}
+		}
+
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[GetTransactionSignature] error signing transaction with issuer key to authorize trustline", err)
+			return output, &tErrors.ErrorTemporaryServerError{}
+		}
+
+		xdrBase64, err := tx.Base64()
+
+		if err != nil {
+			return output, err
+		}
+
+		//assign signature
+		input.SignedTransaction = xdrBase64
+		return *input, nil
+
+	}
+	return output, &tErrors.CustomError{
+		Param:      "assetIssuer",
+		Err:        "error-asset-not-valid",
+		ErrMessage: "This asset is not a tokenized Asset.",
+		Code:       http.StatusForbidden,
+	}
 
 }
 func GetUserFromPrimarySigner(signerKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {

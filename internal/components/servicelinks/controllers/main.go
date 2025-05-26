@@ -871,6 +871,89 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, data)
 	})
 
+	//service authorization tokenizedAsset
+	router.POST("/v1/servicelinks/authorize/tokenized-asset", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		ownerUsername := mInfo.OwnerUsername
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/authorize/tokenized-asset %v", ownerUsername), gc.DB)
+
+		if mInfo.TokenizedAssetAuthorizationPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to authorize tokenized asset not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkTokenizedAssetAuthRequestInput
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Println("ServiceLinkTokenizedAssetAuthRequestInput Request Input JSON Error:", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if serviceLinkRequestInput.AssetCode == "" {
+			log.Println("ServiceLinkTokenizedAssetAuthRequestInput Request Input Asset Code Error")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-no-asset-code", "message": "Asset Code is empty"})
+			return
+		}
+
+		if serviceLinkRequestInput.UnsignedTransaction == "" {
+			log.Println("ServiceLinkTokenizedAssetAuthRequestInput Request Input Transaction Error")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-no-unsignedTransaction", "message": "UnsignedTransaction is empty"})
+			return
+		}
+		// get tokenized asset by the asset code
+		t := gc.GetTokenizedAssetByCode(serviceLinkRequestInput.AssetCode)
+
+		if t.ID == "" {
+			log.Println("ServiceLinkTokenizedAssetAuthRequestInput Request Input Asset Code Error")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-no-asset-code", "message": "Asset Code is not for tokenized asset"})
+			return
+		}
+
+		data, err := servicelinkServices.GetTransactionSignature(&serviceLinkRequestInput, gc)
+		if err != nil {
+			//could not create authorization session
+			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
+			statusCode := http.StatusServiceUnavailable
+			c.JSON(statusCode, response)
+			return
+		}
+
+		c.JSON(http.StatusOK, data)
+	})
+
 	//service event link request
 	router.POST("/v1/servicelinks/events/request", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
