@@ -262,6 +262,7 @@ type TokenizedAssetJSONInput struct {
 	AssetIssuingHouseID                          uint64    `gorm:"not null" json:"assetIssuingHouseId"`
 	LegalAndProfesionalPartnerID                 uint64    `gorm:"not null" json:"legalAndProfesionalPartnerID"`
 	RatingAgencyID                               uint64    `gorm:"not null" json:"ratingAgencyID"`
+	TrusteeID                                    uint64    `gorm:"not null" json:"trusteeId"`
 	AssetQuoteCurrency                           string    `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                            float64   `gorm:"default:0" json:"assetCurrentValue"`
 	AssetMscCostOutisdeOfValuation               float64   `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
