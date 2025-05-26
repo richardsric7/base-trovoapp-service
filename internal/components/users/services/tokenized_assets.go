@@ -1465,9 +1465,9 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 			if u.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "assetSubscription"
-				msgBody := fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v). Only %v units @ %v %v are available for the primary sale. So, hurry now!", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency)
+				msgBody := fmt.Sprintf("You can now go to your Trovo App and purchase %v (%v). Only %v units @ %v %v are available for the primary sale. So, hurry now!", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency)
 				if t.CapAmountInFiat > 0 {
-					msgBody = fmt.Sprintf("You can now go to your trovoApp and purchase %v (%v). Only %v units @ %v%v are  available for the primary sale, capped at %v %v per person.", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency, t.CapAmountInFiat, *t.AssetQuoteCurrency)
+					msgBody = fmt.Sprintf("You can now go to your Trovo App and purchase %v (%v). Only %v units @ %v%v are  available for the primary sale, capped at %v %v per person.", *t.AssetCode, *t.AssetName, t.MaxNumberOfTokenAvailableForSale, t.PricePerToken, *t.AssetQuoteCurrency, t.CapAmountInFiat, *t.AssetQuoteCurrency)
 				}
 				u.SendPushMessage(fmt.Sprintf("The asset %v is now live on sale @ %v%v per unit!", *t.AssetCode, t.PricePerToken, *t.AssetQuoteCurrency), msgBody, *t.AssetLogo, dataPayload, gc)
 			}
