@@ -1461,7 +1461,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 				{
 					//ensure correct the number of token to be sold.
-					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager - VATAsset)
 
 					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
@@ -1833,7 +1833,8 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		{
 			//ensure correct the number of token to be sold.
-			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+			// maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager)
+			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager - VATAsset)
 
 			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
