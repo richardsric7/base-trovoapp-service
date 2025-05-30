@@ -1373,7 +1373,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			t.SECTokenizationFeeValue = secFee
 			log.Printf("[UpdateTokenizedAssetFromInput] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
-			if t.ApprovedAssetCustodianID > 0 {
+			{
 				// t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
 				custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
 				t.CustodianFeeFixed = custodian.FeeFixed
@@ -1384,7 +1384,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			}
 
-			if t.AssetManagerID > 0 {
+			{
 				// t.AssetManagerID = ti.AssetManagerID
 				assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
 				t.AssetManagerFeePercent = assetManager.FeePercent
@@ -1395,7 +1395,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			}
 
-			if t.AssetIssuingHouseID > 0 {
+			{
 				// t.AssetIssuingHouseID = ti.AssetIssuingHouseID
 				issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
 				t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
@@ -1406,7 +1406,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			}
 
-			if t.LegalAndProfesionalPartnerID > 0 {
+			{
 				lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
 				t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
 				t.LegalAndProfessionalFeePercent = lpp.FeePercent
@@ -1416,7 +1416,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			}
 
-			if t.RatingAgencyID > 0 {
+			{
 				ra := RatingAgencyID(t.TrusteeID).GetRatingAgency(gc)
 				t.RatingAgencyFeeFixed = ra.FeeFixed
 				t.RatingAgencyFeePercent = ra.FeePercent
@@ -1426,7 +1426,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			}
 
-			if t.TrusteeID > 0 {
+			{
 				ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
 				t.TrusteeFeeFixed = ra.FeeFixed
 				t.TrusteeFeePercent = ra.FeePercent
@@ -1744,7 +1744,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		t.SECTokenizationFeeValue = secFee
 		log.Printf("[UpdateCalculation] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
-		if t.ApprovedAssetCustodianID > 0 {
+		{
 			custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
 			t.CustodianFeeFixed = custodian.FeeFixed
 			t.CustodianFeePercent = custodian.FeePercent
@@ -1754,7 +1754,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		if t.AssetManagerID > 0 {
+		{
 			assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
 			t.AssetManagerFeePercent = assetManager.FeePercent
 			t.AssetManagerFeeFixed = assetManager.FeeFixed
@@ -1764,7 +1764,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		if t.AssetIssuingHouseID > 0 {
+		{
 			issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
 			t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
 			t.IssuingHouseFeePercent = issuingHouse.FeePercent
@@ -1774,7 +1774,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		if t.LegalAndProfesionalPartnerID > 0 {
+		{
 			lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
 			t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
 			t.LegalAndProfessionalFeePercent = lpp.FeePercent
@@ -1784,7 +1784,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		if t.RatingAgencyID > 0 {
+		{
 			ra := RatingAgencyID(t.LegalAndProfesionalPartnerID).GetRatingAgency(gc)
 			t.RatingAgencyFeeFixed = ra.FeeFixed
 			t.RatingAgencyFeePercent = ra.FeePercent
@@ -1794,7 +1794,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		if t.TrusteeID > 0 {
+		{
 			ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
 			t.TrusteeFeeFixed = ra.FeeFixed
 			t.TrusteeFeePercent = ra.FeePercent
