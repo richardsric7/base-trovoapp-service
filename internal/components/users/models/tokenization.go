@@ -1350,18 +1350,18 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				// Calculate Fees
 				feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 				t.FeeInAsset = feeInAsset
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Fee In Asset:= %v\n", feeInAsset)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Fee In Asset:= %v\n", decimal.NewFromFloat(feeInAsset).String())
 				t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 
 				t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 				if feeCompo.FeeFiatCap > t.FeeInFiat {
 					t.FeeInFiat = feeCompo.FeeFiatCap
 				}
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Fee In Fiat:= %v\n", t.FeeInFiat)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Fee In Fiat:= %v\n", decimal.NewFromFloat(t.FeeInFiat).String())
 
 				VATAsset = decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 				t.VATInAsset = VATAsset
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated VAT Asset:= %v\n", VATAsset)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated VAT Asset:= %v\n", decimal.NewFromFloat(VATAsset).String())
 
 			}
 
@@ -1371,7 +1371,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
 			secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
 			t.SECTokenizationFeeValue = secFee
-			log.Printf("[UpdateTokenizedAssetFromInput] Calculated SEC Fee Value:= %v\n", secFee)
+			log.Printf("[UpdateTokenizedAssetFromInput] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
 			if t.ApprovedAssetCustodianID > 0 {
 				// t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
@@ -1380,7 +1380,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.CustodianFeePercent = custodian.FeePercent
 				custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
 				t.CustodianFeeValue = custodyFee
-				log.Printf("[UpdateTokenizedAssetFromInput] Custodian Fee Value:= %v\n", custodyFee)
+				log.Printf("[UpdateTokenizedAssetFromInput] Custodian Fee Value:= %v\n", decimal.NewFromFloat(custodyFee).String())
 
 			}
 
@@ -1391,7 +1391,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.AssetManagerFeeFixed = assetManager.FeeFixed
 				assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
 				t.AssetManagerFeeValue = assetMgtFee
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Asset Managment fee Value:= %v\n", assetMgtFee)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Asset Managment fee Value:= %v\n", decimal.NewFromFloat(assetMgtFee).String())
 
 			}
 
@@ -1402,7 +1402,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.IssuingHouseFeePercent = issuingHouse.FeePercent
 				issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 				t.IssuingHouseFeeValue = issuingHouseFeeValue
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Issuing House Fee Value:= %v\n", issuingHouseFeeValue)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Issuing House Fee Value:= %v\n", decimal.NewFromFloat(issuingHouseFeeValue).String())
 
 			}
 
@@ -1412,7 +1412,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.LegalAndProfessionalFeePercent = lpp.FeePercent
 				legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 				t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Legal&Professional Fee Value:= %v\n", legalAndProfessionalFee)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Legal&Professional Fee Value:= %v\n", decimal.NewFromFloat(legalAndProfessionalFee).String())
 
 			}
 
@@ -1422,7 +1422,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.RatingAgencyFeePercent = ra.FeePercent
 				ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 				t.RatingAgencyFeeValue = ratingAgencyFee
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Rating Agency Fee Value:= %v\n", ratingAgencyFee)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Rating Agency Fee Value:= %v\n", decimal.NewFromFloat(ratingAgencyFee).String())
 
 			}
 
@@ -1432,32 +1432,32 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.TrusteeFeePercent = ra.FeePercent
 				trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
 				t.TrusteeFeeValue = trusteeFee
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Trustee Fee Value:= %v\n", trusteeFee)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Trustee Fee Value:= %v\n", decimal.NewFromFloat(trusteeFee).String())
 
 			}
 
 			totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee + trusteeFee
-			log.Printf("[UpdateTokenizedAssetFromInput] Calculated Total charged Fees for VAT:= %v\n", totalChargedFeesForVat)
+			log.Printf("[UpdateTokenizedAssetFromInput] Calculated Total charged Fees for VAT:= %v\n", decimal.NewFromFloat(totalChargedFeesForVat).String())
 
 			vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 
 			t.VATPercent = cConfig.VATPercent
 			t.VATValue = vat
-			log.Printf("[UpdateTokenizedAssetFromInput] Calculated VAT Value:= %v\n", vat)
+			log.Printf("[UpdateTokenizedAssetFromInput] Calculated VAT Value:= %v\n", decimal.NewFromFloat(vat).String())
 
 			initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
 			t.InitialValueOfTokenizedAsset = initialValueOfTokenizedAsset
-			log.Printf("[UpdateTokenizedAssetFromInput] Calculated Initial Value Of Tokenized Asset:= %v\n", initialValueOfTokenizedAsset)
+			log.Printf("[UpdateTokenizedAssetFromInput] Calculated Initial Value Of Tokenized Asset:= %v\n", decimal.NewFromFloat(initialValueOfTokenizedAsset).String())
 
 			if t.NumberOfTokenToBeIssued > 0 {
 				// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 				pricePerToken := decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset)))
 				t.PricePerToken = pricePerToken.Round(7).InexactFloat64()
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), t.PricePerToken)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), decimal.NewFromFloat(t.PricePerToken).String())
 				// auto calculate, token to be held is less the fee. token not to be sold
 				totalTokenHeldByManager := decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken)
 				t.TotalTokenHeldByManager = totalTokenHeldByManager.Truncate(7).InexactFloat64()
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), t.TotalTokenHeldByManager)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), decimal.NewFromFloat(t.TotalTokenHeldByManager).String())
 
 				{
 					//ensure correct the number of token to be sold.
@@ -1465,13 +1465,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
-					log.Printf("[UpdateTokenizedAssetFromInput] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), t.NumberOfTokenToBeSold)
+					log.Printf("[UpdateTokenizedAssetFromInput] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), decimal.NewFromFloat(t.NumberOfTokenToBeSold).String())
 
 				}
 
 				finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
 				t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
-				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset, t.ValueOfTokenizedAsset)
+				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset.String(), decimal.NewFromFloat(t.ValueOfTokenizedAsset).String())
 
 			}
 
@@ -1693,14 +1693,14 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		feeInAsset = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
-		log.Printf("[UpdateCalculation] Calculated Fee In Asset:= %v\n", feeInAsset)
+		log.Printf("[UpdateCalculation] Calculated Fee In Asset:= %v\n", decimal.NewFromFloat(feeInAsset).String())
 
 		t.FeeInAssetPercent = feeCompo.FeeAssetPercentage
 		t.FeeInFiat = decimal.NewFromFloat(t.AssetCurrentValue * (feeCompo.FeeFiatPercentage / 100)).Truncate(7).InexactFloat64()
 		if feeCompo.FeeFiatCap > t.FeeInFiat {
 			t.FeeInFiat = feeCompo.FeeFiatCap
 		}
-		log.Printf("[UpdateCalculation] Calculated Fee In Fiat:= %v\n", t.FeeInFiat)
+		log.Printf("[UpdateCalculation] Calculated Fee In Fiat:= %v\n", decimal.NewFromFloat(t.FeeInFiat).String())
 
 	}
 	// get SEC tokenization fee.
@@ -1734,7 +1734,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	}
 	VATAsset := decimal.NewFromFloat(feeInAsset * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 	t.VATInAsset = VATAsset
-	log.Printf("[UpdateCalculation] Calculated VAT Asset:= %v\n", VATAsset)
+	log.Printf("[UpdateCalculation] Calculated VAT Asset:= %v\n", decimal.NewFromFloat(VATAsset).String())
 
 	if t.AssetCurrentValue > 0 {
 
@@ -1742,7 +1742,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
 		secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
 		t.SECTokenizationFeeValue = secFee
-		log.Printf("[UpdateCalculation] Calculated SEC Fee Value:= %v\n", secFee)
+		log.Printf("[UpdateCalculation] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
 		if t.ApprovedAssetCustodianID > 0 {
 			custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
@@ -1750,7 +1750,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.CustodianFeePercent = custodian.FeePercent
 			custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
 			t.CustodianFeeValue = custodyFee
-			log.Printf("[UpdateCalculation] Custodian Fee Value:= %v\n", custodyFee)
+			log.Printf("[UpdateCalculation] Custodian Fee Value:= %v\n", decimal.NewFromFloat(custodyFee).String())
 
 		}
 
@@ -1760,7 +1760,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.AssetManagerFeeFixed = assetManager.FeeFixed
 			assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
 			t.AssetManagerFeeValue = assetMgtFee
-			log.Printf("[UpdateCalculation] Calculated Asset Managment fee Value:= %v\n", assetMgtFee)
+			log.Printf("[UpdateCalculation] Calculated Asset Managment fee Value:= %v\n", decimal.NewFromFloat(assetMgtFee).String())
 
 		}
 
@@ -1770,7 +1770,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.IssuingHouseFeePercent = issuingHouse.FeePercent
 			issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 			t.IssuingHouseFeeValue = issuingHouseFeeValue
-			log.Printf("[UpdateCalculation] Calculated Issuing House Fee Value:= %v\n", issuingHouseFeeValue)
+			log.Printf("[UpdateCalculation] Calculated Issuing House Fee Value:= %v\n", decimal.NewFromFloat(issuingHouseFeeValue).String())
 
 		}
 
@@ -1780,7 +1780,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.LegalAndProfessionalFeePercent = lpp.FeePercent
 			legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 			t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
-			log.Printf("[UpdateCalculation] Calculated Legal&Professional Fee Value:= %v\n", legalAndProfessionalFee)
+			log.Printf("[UpdateCalculation] Calculated Legal&Professional Fee Value:= %v\n", decimal.NewFromFloat(legalAndProfessionalFee).String())
 
 		}
 
@@ -1790,7 +1790,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.RatingAgencyFeePercent = ra.FeePercent
 			ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 			t.RatingAgencyFeeValue = ratingAgencyFee
-			log.Printf("[UpdateCalculation] Calculated Rating Agency Fee Value:= %v\n", ratingAgencyFee)
+			log.Printf("[UpdateCalculation] Calculated Rating Agency Fee Value:= %v\n", decimal.NewFromFloat(ratingAgencyFee).String())
 
 		}
 
@@ -1800,33 +1800,33 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			t.TrusteeFeePercent = ra.FeePercent
 			trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
 			t.TrusteeFeeValue = trusteeFee
-			log.Printf("[UpdateCalculation] Calculated Trustee Fee Value:= %v\n", trusteeFee)
+			log.Printf("[UpdateCalculation] Calculated Trustee Fee Value:= %v\n", decimal.NewFromFloat(trusteeFee).String())
 
 		}
 
 		totalChargedFeesForVat = secFee + custodyFee + assetMgtFee + t.FeeInFiat + issuingHouseFeeValue + legalAndProfessionalFee + ratingAgencyFee + trusteeFee
-		log.Printf("[UpdateCalculation] Calculated Total charged Fees for VAT:= %v\n", totalChargedFeesForVat)
+		log.Printf("[UpdateCalculation] Calculated Total charged Fees for VAT:= %v\n", decimal.NewFromFloat(totalChargedFeesForVat).String())
 
 		vat = decimal.NewFromFloat(totalChargedFeesForVat * (cConfig.VATPercent / 100)).Truncate(7).InexactFloat64()
 
 		t.VATPercent = cConfig.VATPercent
 		t.VATValue = vat
-		log.Printf("[UpdateCalculation] Calculated VAT Value:= %v\n", vat)
+		log.Printf("[UpdateCalculation] Calculated VAT Value:= %v\n", decimal.NewFromFloat(vat).String())
 
 	}
 
 	initialValueOfTokenizedAsset := (t.AssetCurrentValue + t.AssetMscCostOutisdeOfValuation + totalChargedFeesForVat + vat) // - *this is not to be shown on the App*
 	t.InitialValueOfTokenizedAsset = initialValueOfTokenizedAsset
-	log.Printf("[UpdateCalculation] Calculated Initial Value Of Tokenized Asset:= %v\n", initialValueOfTokenizedAsset)
+	log.Printf("[UpdateCalculation] Calculated Initial Value Of Tokenized Asset:= %v\n", decimal.NewFromFloat(initialValueOfTokenizedAsset).String())
 	if t.NumberOfTokenToBeIssued > 0 {
 		// t.PricePerToken = decimal.NewFromFloat(t.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
 		pricePerToken := decimal.NewFromFloat((initialValueOfTokenizedAsset / (t.NumberOfTokenToBeIssued - feeInAsset - VATAsset)))
 		t.PricePerToken = pricePerToken.Round(7).InexactFloat64()
-		log.Printf("[UpdateCalculation] Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), t.PricePerToken)
+		log.Printf("[UpdateCalculation] Calculated PricePerToken:= %v, Rounded 7DP Value:= %v\n", pricePerToken.String(), decimal.NewFromFloat(t.PricePerToken).String())
 		// auto calculate, token to be held is less the fee. token not to be sold
 		totalTokenHeldByManager := decimal.NewFromFloat(t.AssetOwnerRetainedOrContributedValue / t.PricePerToken)
 		t.TotalTokenHeldByManager = totalTokenHeldByManager.Truncate(7).InexactFloat64()
-		log.Printf("[UpdateCalculation] Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), t.TotalTokenHeldByManager)
+		log.Printf("[UpdateCalculation] Calculated Total Token Held By Manager:= %v, Truncated 7DP Value:= %v\n", totalTokenHeldByManager.String(), decimal.NewFromFloat(t.TotalTokenHeldByManager).String())
 
 		// feeInAsset = decimal.NewFromFloat(feeInAssetFiatEquivalent / t.PricePerToken).Truncate(7).InexactFloat64()
 		t.FeeInAsset = feeInAsset
@@ -1837,13 +1837,13 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
 			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
-			log.Printf("[UpdateCalculation] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), t.NumberOfTokenToBeSold)
+			log.Printf("[UpdateCalculation] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), decimal.NewFromFloat(t.NumberOfTokenToBeSold).String())
 
 		}
 
 		finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
 		t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
-		log.Printf("[UpdateCalculation] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset, t.ValueOfTokenizedAsset)
+		log.Printf("[UpdateCalculation] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset.String(), decimal.NewFromFloat(t.ValueOfTokenizedAsset).String())
 	}
 
 	if t.CapOnPurchase == 1 && t.PricePerToken > 0 && t.CapAmountInFiat > 0 {
