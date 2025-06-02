@@ -58,17 +58,12 @@ class _KYCScreenState extends State<KYCScreen> {
 
   InAppWebViewController? _webViewController;
 
-  InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
-    crossPlatform: InAppWebViewOptions(
-        clearCache: true,
-        useShouldOverrideUrlLoading: true,
-        mediaPlaybackRequiresUserGesture: false),
-    android: AndroidInAppWebViewOptions(
-      useHybridComposition: true,
-    ),
-    ios: IOSInAppWebViewOptions(
-      allowsInlineMediaPlayback: true,
-    ),
+  InAppWebViewSettings settings = InAppWebViewSettings(
+    clearCache: true,
+    useShouldOverrideUrlLoading: true,
+    mediaPlaybackRequiresUserGesture: false,
+    useHybridComposition: true,
+    allowsInlineMediaPlayback: true,
   );
 
   @override
@@ -76,9 +71,8 @@ class _KYCScreenState extends State<KYCScreen> {
     return Scaffold(
       body: SafeArea(
         child: InAppWebView(
-          initialOptions: options,
-          initialUrlRequest:
-              URLRequest(url: Uri.parse("https://widget.dojah.io")),
+          // initialOptions: options,
+          initialUrlRequest: URLRequest(url: WebUri("https://widget.dojah.io")),
           initialData: InAppWebViewInitialData(
             data: """
 <!DOCTYPE html>
@@ -215,9 +209,9 @@ class _KYCScreenState extends State<KYCScreen> {
 
 </html>
                 """,
-            androidHistoryUrl: Uri.parse("https://widget.dojah.io"),
+            historyUrl: WebUri("https://widget.dojah.io"),
             mimeType: "text/html",
-            baseUrl: Uri.parse("https://widget.dojah.io"),
+            baseUrl: WebUri("https://widget.dojah.io"),
           ),
           onWebViewCreated: (controller) {
             _webViewController = controller;
@@ -236,18 +230,22 @@ class _KYCScreenState extends State<KYCScreen> {
               },
             );
           },
-          androidOnGeolocationPermissionsShowPrompt:
-              (controller, origin) async {
+          onGeolocationPermissionsShowPrompt: (controller, origin) async {
             return GeolocationPermissionShowPromptResponse(
               origin: origin,
               allow: true, // Grant permission
               retain: true, // Retain permission for future requests
             );
           },
-          androidOnPermissionRequest: (controller, origin, resources) async {
-            return PermissionRequestResponse(
-                resources: resources,
-                action: PermissionRequestResponseAction.GRANT);
+          // onPermissionRequest: (
+          //   controller,
+          //   PermissionResponse(
+          //       resources: resources, action: PermissionResponseAction.GRANT)
+          // ),
+          onPermissionRequest: (controller, request) async {
+            return PermissionResponse(
+                resources: request.resources,
+                action: PermissionResponseAction.GRANT);
           },
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:trovo_app/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -701,30 +700,6 @@ class _WalletDetailsState extends State<WalletDetails>
                         ),
                       ),
                     ],
-                    // Container(
-                    //   height: height / 2,
-                    //   child: SingleChildScrollView(
-                    //     child: Column(
-                    //       children: [
-                    //         // in situations where the blockchain has an issue,
-                    //         // some values can be returned as null or empty
-                    //         // so always null check for such situations
-                    //         // if (nfts != null && nfts != {}) ...[
-                    //         //   if (nfts[activeWallet!.publicKey] != null &&
-                    //         //       nfts[activeWallet!.publicKey].length >
-                    //         //           0) ...[
-                    //         gridView(),
-                    //         //     SizedBox(height: 600),
-                    //         //   ] else ...[
-                    //         //     showEmptyNFTs(),
-                    //         //   ]
-                    //         // ] else ...[
-                    //         //   showEmptyNFTs(),
-                    //         // ],
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
@@ -732,144 +707,6 @@ class _WalletDetailsState extends State<WalletDetails>
           ),
         ],
       ),
-    );
-  }
-
-  Widget showEmptyNFTs() {
-    return Container(
-      height: height / 3,
-      child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-          child: Center(
-            child: Text(
-              "noNFTs".tr(),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontsemibold,
-                color: notifier.getblck,
-              ),
-            ),
-          )),
-    );
-  }
-
-  Widget gridView() {
-    return Container(
-      height: height / 1.13,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
-        child: GridView(
-          padding: const EdgeInsets.fromLTRB(15, 0, 15, 70),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 20,
-              childAspectRatio: 1.05),
-          children: [
-            nftCard(
-              "assets/images/awka-paws.svg",
-              'AWKA PAWS',
-              'GBCVE....UJKKGA',
-              Colors.blue,
-            ),
-            nftCard(
-              "assets/images/warri-wolves.svg",
-              'WARRI WOLVES',
-              'GBCVE....UJKKGA',
-              Colors.green,
-            ),
-            nftCard(
-              "assets/images/accra-goats.svg",
-              'ACCRA GOATS',
-              'GBCVE....UJKKGA',
-              Colors.red,
-            ),
-            nftCard(
-              "assets/images/awka-paws.svg",
-              'AWKA PAWS',
-              'GBCVE....UJKKGA',
-              Colors.blue,
-            ),
-            nftCard(
-              "assets/images/warri-wolves.svg",
-              'WARRI WOLVES',
-              'GBCVE....UJKKGA',
-              Colors.green,
-            ),
-            nftCard(
-              "assets/images/accra-goats.svg",
-              'ACCRA GOATS',
-              'GBCVE....UJKKGA',
-              Colors.red,
-            ),
-            nftCard(
-              "assets/images/awka-paws.svg",
-              'AWKA PAWS',
-              'GBCVE....UJKKGA',
-              Colors.blue,
-            ),
-            nftCard(
-              "assets/images/warri-wolves.svg",
-              'WARRI WOLVES',
-              'GBCVE....UJKKGA',
-              Colors.green,
-            ),
-            nftCard(
-              "assets/images/accra-goats.svg",
-              'ACCRA GOATS',
-              'GBCVE....UJKKGA',
-              Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget nftCard(image, title, subtitle, color) {
-    return Card(
-      elevation: 5,
-      shadowColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      color: color,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              image,
-              width: 75,
-              height: 75,
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontsemibold,
-                color: notifier.getblck,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-              child: Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontFamily: fontbody,
-                  color: notifier.getblck,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ), //SizedBox
     );
   }
 

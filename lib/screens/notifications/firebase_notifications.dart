@@ -37,25 +37,18 @@ Future<void> initAppNotification(context, appState) async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  final IOSInitializationSettings initializationSettingsIOS =
-      IOSInitializationSettings(
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: true,
-          requestSoundPermission: true,
-          onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-  const MacOSInitializationSettings initializationSettingsMacOS =
-      MacOSInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false);
+          requestSoundPermission: true);
+
   final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-      macOS: initializationSettingsMacOS);
+      android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
 
   requestPermissions();
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      onSelectNotification: selectNotification);
+      onDidReceiveNotificationResponse: onDidReceiveLocalNotification);
   //requestPermissions();
   initMyNotification(context);
 }
@@ -122,14 +115,13 @@ Future<void> showNotification(RemoteMessage payload) async {
       payload: '${payload.data['route']}');
 }
 
-void onDidReceiveLocalNotification(
-    int id, String? title, String? body, String? payload) async {
+void onDidReceiveLocalNotification(NotificationResponse response) async {
   // display a dialog with the notification details, tap ok to go to another page
   showDialog(
     context: _context,
     builder: (BuildContext context) => CupertinoAlertDialog(
-      title: Text(title!),
-      content: Text(body!),
+      title: Text(''),
+      content: Text(response.payload!),
       actions: [
         CupertinoDialogAction(
           isDefaultAction: true,

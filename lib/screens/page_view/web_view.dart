@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +22,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
   late ColorNotifier notifier;
   late DataProvider appState;
   bool isLoading = false;
+  late WebViewController controller;
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers = {
     Factory(() => EagerGestureRecognizer())
   };
@@ -39,9 +39,27 @@ class TrovoWebViewState extends State<TrovoWebView> {
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
     getdarkmodepreviousstate();
-    // Enable virtual display.
-    if (Platform.isAndroid) WebView.platform = AndroidWebView();
+
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            isLoading = true;
+          },
+          onPageFinished: (String url) {
+            isLoading = false;
+            hideLoader(context);
+          },
+          onHttpError: (HttpResponseError error) {},
+          onWebResourceError: (WebResourceError error) {
+            print('error $error');
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(appState.initialUrl));
   }
 
   @override
@@ -62,24 +80,9 @@ class TrovoWebViewState extends State<TrovoWebView> {
               SingleChildScrollView(
                 child: SizedBox(
                   height: height - 90,
-                  child: WebView(
-                    javascriptMode: JavascriptMode.unrestricted,
+                  child: WebViewWidget(
                     gestureRecognizers: gestureRecognizers,
-                    initialUrl: appState.initialUrl,
-                    onPageStarted: (value) => {
-                      print('loading... $value'),
-                      setState(() {
-                        isLoading = true;
-                      })
-                    },
-                    onPageFinished: (value) {
-                      print('finished loading.$value');
-                      setState(() {
-                        isLoading = false;
-                        hideLoader(context);
-                      });
-                    },
-                    onWebResourceError: (error) => {print('error $error')},
+                    controller: controller,
                   ),
                 ),
               ),

@@ -2954,8 +2954,6 @@ class _SharedAccessState extends State<SharedAccess>
           }
         });
         break;
-      default:
-        break;
     }
   }
 

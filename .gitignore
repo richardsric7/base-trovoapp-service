@@ -9,7 +9,6 @@
 .buildlog/
 .history
 .svn/
-.fvm/flutter_sdk
 
 # IntelliJ related
 *.iml
@@ -127,3 +126,6 @@ app.*.symbols
 
 # Ignore Gradle build output directory
 build
+
+# FVM Version Cache
+.fvm/

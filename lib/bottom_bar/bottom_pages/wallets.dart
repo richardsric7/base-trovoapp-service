@@ -50,7 +50,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   List<Asset>? unclaimedAssets;
   List<Asset> otherTokens = [];
   late UserInfo userInfo;
-  final carouselController = CarouselController();
+  final carouselController = CarouselSliderController();
   int tabLength = 2;
   int activeTabIndex = 0;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
@@ -640,17 +640,17 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       options: CarouselOptions(
         onPageChanged: ((index, reason) => {
               setState(
-                () => {
-                  activeWalletIndex = index == 5 ? index - 1 : index,
-                  activeWallet = wallets[activeWalletIndex].publicKey,
+                () {
+                  activeWalletIndex = index == 5 ? index - 1 : index;
+                  activeWallet = wallets[activeWalletIndex].publicKey;
                   otherTokens = wallets[activeWalletIndex]
                       .getOtherTokens(appState)
                       .where((asset) =>
                           asset.assetCode != '' && asset.assetIssuer != '')
-                      .toList(),
-                  unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
+                      .toList();
+                  unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets;
                   tokenizedAssets =
-                      wallets[activeWalletIndex].getTokenizedAssets(appState),
+                      wallets[activeWalletIndex].getTokenizedAssets(appState);
                 },
               ),
               // reOrderClaimedAssets(activeWallet!),

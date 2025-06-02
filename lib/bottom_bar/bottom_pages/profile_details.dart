@@ -311,7 +311,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     if (image != null) {
       var croppedImage = await ImageCropper().cropImage(
           sourcePath: image.path,
-          cropStyle: CropStyle.circle,
+          // cropStyle: CropStyle.circle,
           aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
           compressQuality: 100,
           maxHeight: 800,

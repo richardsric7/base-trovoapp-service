@@ -5,7 +5,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_share/flutter_share.dart';
+// import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
@@ -53,12 +53,12 @@ class _SettingsState extends State<Settings> {
   List<DropdownMenuItem<String>> get getCurrencies {
     List<DropdownMenuItem<String>> currencies = [];
     appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: key));
+      currencies.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: key,
+        ),
+      );
     });
     return currencies;
   }
@@ -68,13 +68,16 @@ class _SettingsState extends State<Settings> {
   List<DropdownMenuItem<String>> get getLanguages {
     List<DropdownMenuItem<String>> languages = [];
     internationalLanguages.forEach((key, value) {
-      languages.add(DropdownMenuItem(
+      languages.add(
+        DropdownMenuItem(
           child: Text(
             value,
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: key,
+        ),
+      );
     });
     return languages;
   }
@@ -108,40 +111,41 @@ class _SettingsState extends State<Settings> {
                 ).getBar(),
                 Center(
                   child: CircleAvatar(
-                      radius: width / 10,
-                      backgroundColor: notifier.getbluecolor70,
-                      child: GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: ProfileDetailsViewPageConfig);
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100.0),
-                          child: Image.network(
-                            appState.userInfo!.imageThumbnailURL!,
-                            width: width / 5.3,
-                            // height: width / 10,
-                            fit: BoxFit.fill,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/trovo.png',
-                                width: width / 9,
-                              );
-                            },
-                          ),
+                    radius: width / 10,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: ProfileDetailsViewPageConfig,
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 5.3,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              width: width / 9,
+                            );
+                          },
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                 ),
-                SizedBox(
-                  height: height / 80,
-                ),
+                SizedBox(height: height / 80),
                 Text(
                   '${appState.userInfo!.firstName} ${appState.userInfo!.lastName} ${appState.userInfo!.isCorporate ? '(Corporate)' : ''}',
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold,
-                      fontSize: 18),
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                    fontSize: 18,
+                  ),
                 ),
                 SizedBox(height: height / 50),
                 GestureDetector(
@@ -149,7 +153,10 @@ class _SettingsState extends State<Settings> {
                     share();
                   },
                   child: invitefriend(
-                      notifier.getbluecolor, "invitefriends".tr(), wihitecolor),
+                    notifier.getbluecolor,
+                    "invitefriends".tr(),
+                    wihitecolor,
+                  ),
                 ),
                 SizedBox(height: height / 25),
                 Row(
@@ -158,9 +165,10 @@ class _SettingsState extends State<Settings> {
                     Text(
                       "preferences".tr(),
                       style: TextStyle(
-                          color: notifier.getgrey,
-                          fontSize: 13,
-                          fontFamily: fontsemibold),
+                        color: notifier.getgrey,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ],
                 ),
@@ -171,7 +179,10 @@ class _SettingsState extends State<Settings> {
                 // ),
                 GestureDetector(
                   child: currency(
-                      "assets/images/currency.png", "", "currency".tr()),
+                    "assets/images/currency.png",
+                    "",
+                    "currency".tr(),
+                  ),
                 ),
                 GestureDetector(
                   child: darkmode("assets/images/theme.png", "", "theme".tr()),
@@ -183,31 +194,45 @@ class _SettingsState extends State<Settings> {
                     Text(
                       "security".tr(),
                       style: TextStyle(
-                          color: notifier.getgrey,
-                          fontSize: 13,
-                          fontFamily: fontsemibold),
+                        color: notifier.getgrey,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ],
                 ),
                 SizedBox(height: height / 50),
                 GestureDetector(
                   onTap: () => appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: PasswordMgtViewPageConfig),
+                    state: PageState.addPage,
+                    page: PasswordMgtViewPageConfig,
+                  ),
                   child: iteamlist(
-                      "assets/images/lock.png", "", "passwordmanagement".tr()),
+                    "assets/images/lock.png",
+                    "",
+                    "passwordmanagement".tr(),
+                  ),
                 ),
                 GestureDetector(
                   child: hideBalance(
-                      "assets/images/eyeoff.png", "", "hidebalance".tr()),
+                    "assets/images/eyeoff.png",
+                    "",
+                    "hidebalance".tr(),
+                  ),
                 ),
                 GestureDetector(
                   child: timeout(
-                      "assets/images/hourglass.png", "", "timeout".tr()),
+                    "assets/images/hourglass.png",
+                    "",
+                    "timeout".tr(),
+                  ),
                 ),
                 GestureDetector(
                   child: biometrics(
-                      "assets/images/biometrics.png", "", "biometrics".tr()),
+                    "assets/images/biometrics.png",
+                    "",
+                    "biometrics".tr(),
+                  ),
                 ),
                 SizedBox(height: height / 25),
                 Row(
@@ -216,20 +241,26 @@ class _SettingsState extends State<Settings> {
                     Text(
                       "wallet".tr(),
                       style: TextStyle(
-                          color: notifier.getgrey,
-                          fontSize: 13,
-                          fontFamily: fontsemibold),
+                        color: notifier.getgrey,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ],
                 ),
                 SizedBox(height: height / 50),
                 walletMode(
-                    "assets/images/walletmode.png", "", "walletmode".tr()),
+                  "assets/images/walletmode.png",
+                  "",
+                  "walletmode".tr(),
+                ),
                 SizedBox(height: height / 25),
                 GestureDetector(
                   onTap: () {
                     appState.currentAction = PageAction(
-                        state: PageState.replaceAll, page: LoginPageConfig);
+                      state: PageState.replaceAll,
+                      page: LoginPageConfig,
+                    );
                     appState.isLoggedIn = false;
                   },
                   child: logout("assets/images/logout.png", "", "logout".tr()),
@@ -238,9 +269,10 @@ class _SettingsState extends State<Settings> {
                 Text(
                   '${"version".tr()} ${appState.appVersion}',
                   style: TextStyle(
-                      color: notifier.getdarkgrey,
-                      fontSize: 13.5,
-                      fontFamily: fontbody),
+                    color: notifier.getdarkgrey,
+                    fontSize: 13.5,
+                    fontFamily: fontbody,
+                  ),
                 ),
                 SizedBox(height: height / 30),
               ],
@@ -252,8 +284,9 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> share() async {
-    var label = await FirebaseRemoteConfig.instance
-        .getString('share_wallet_referral_label');
+    var label = await FirebaseRemoteConfig.instance.getString(
+      'share_wallet_referral_label',
+    );
 
     label = label
         .replaceAll('[link]', appState.userInfo!.referralLink!)
@@ -266,54 +299,57 @@ class _SettingsState extends State<Settings> {
       buffer.write('${line}\n\n');
     }
 
-    await FlutterShare.share(
-      title: 'Trovo Wallet',
-      text: buffer.toString().trim(),
-    );
+    // await FlutterShare.share(
+    //   title: 'Trovo Wallet',
+    //   text: buffer.toString().trim(),
+    // );
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {
     return Center(
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            LayoutBuilder(builder: (context, constraints) {
-              return Container(
-                height: height / 10,
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: colorbutton!,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Image.asset("assets/images/referrals.png",
-                        height: height / 30),
-                    Container(
-                      width: width / 1.7,
-                      child: Text(
-                        buttontext!,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  height: height / 10,
+                  width: width / 1.1,
+                  decoration: BoxDecoration(
+                    color: colorbutton!,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Image.asset(
+                        "assets/images/referrals.png",
+                        height: height / 30,
+                      ),
+                      Container(
+                        width: width / 1.7,
+                        child: Text(
+                          buttontext!,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
                             fontFamily: fontbody,
                             fontSize: 13,
-                            color: buttontextcolor),
+                            color: buttontextcolor,
+                          ),
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: wihitecolor,
-                    )
-                  ],
-                ),
-              );
-            }),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: wihitecolor,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -337,9 +373,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 14,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 14,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -378,9 +415,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -398,16 +436,18 @@ class _SettingsState extends State<Settings> {
                           : notifier.getaddsubwalletgrey,
                       value: appState.walletMode,
                       icon: Visibility(
-                          visible: false, child: Icon(Icons.arrow_downward)),
+                        visible: false,
+                        child: Icon(Icons.arrow_downward),
+                      ),
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                        ),
+                        border: OutlineInputBorder(borderSide: BorderSide.none),
                       ),
                       elevation: 0,
                       style: TextStyle(
@@ -463,9 +503,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -482,16 +523,18 @@ class _SettingsState extends State<Settings> {
                           : notifier.getaddsubwalletgrey,
                       value: appState.timeout,
                       icon: Visibility(
-                          visible: false, child: Icon(Icons.arrow_downward)),
+                        visible: false,
+                        child: Icon(Icons.arrow_downward),
+                      ),
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                        ),
+                        border: OutlineInputBorder(borderSide: BorderSide.none),
                       ),
                       elevation: 0,
                       style: TextStyle(
@@ -507,35 +550,40 @@ class _SettingsState extends State<Settings> {
                       },
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
-                            child: Text(
-                              '1 ${"minute".tr()}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: '1'),
+                          child: Text(
+                            '1 ${"minute".tr()}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: '1',
+                        ),
                         DropdownMenuItem(
-                            child: Text(
-                              '2 ${"minutes".tr()}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: '2'),
+                          child: Text(
+                            '2 ${"minutes".tr()}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: '2',
+                        ),
                         DropdownMenuItem(
-                            child: Text(
-                              '5 ${"minutes".tr()}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: '5'),
+                          child: Text(
+                            '5 ${"minutes".tr()}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: '5',
+                        ),
                         DropdownMenuItem(
-                            child: Text(
-                              '10 ${"minutes".tr()}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: '10'),
+                          child: Text(
+                            '10 ${"minutes".tr()}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: '10',
+                        ),
                         DropdownMenuItem(
-                            child: Text(
-                              '15 ${"minutes".tr()}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: '15'),
+                          child: Text(
+                            '15 ${"minutes".tr()}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: '15',
+                        ),
                       ],
                     ),
                   ),
@@ -551,11 +599,16 @@ class _SettingsState extends State<Settings> {
 
   void handleEnvironmentSwitch(String? newValue) async {
     if (newValue != appState.walletMode) {
-      showSwitchEnvironmentPopup(context, onProceed: () async {
-        await appState.changeWalletMode(newValue.toString());
-      }, onCancel: () {
-        _dropDownKey.currentState!.reset();
-      }, toEnvironment: newValue!);
+      showSwitchEnvironmentPopup(
+        context,
+        onProceed: () async {
+          await appState.changeWalletMode(newValue.toString());
+        },
+        onCancel: () {
+          _dropDownKey.currentState!.reset();
+        },
+        toEnvironment: newValue!,
+      );
     }
   }
 
@@ -577,9 +630,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -596,16 +650,18 @@ class _SettingsState extends State<Settings> {
                           : notifier.getaddsubwalletgrey,
                       value: appState.defaultCurrency,
                       icon: Visibility(
-                          visible: false, child: Icon(Icons.arrow_downward)),
+                        visible: false,
+                        child: Icon(Icons.arrow_downward),
+                      ),
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                        ),
+                        border: OutlineInputBorder(borderSide: BorderSide.none),
                       ),
                       elevation: 0,
                       style: TextStyle(
@@ -616,7 +672,9 @@ class _SettingsState extends State<Settings> {
                       ),
                       onChanged: (newValue) async {
                         await StoreData().storeInsertData(
-                            'defaultCurrency', newValue.toString());
+                          'defaultCurrency',
+                          newValue.toString(),
+                        );
                         appState.setDefaultCurrency = newValue.toString();
                       },
                       items: getCurrencies,
@@ -650,9 +708,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -669,16 +728,18 @@ class _SettingsState extends State<Settings> {
                           : notifier.getaddsubwalletgrey,
                       value: appState.defaultLanguage,
                       icon: Visibility(
-                          visible: false, child: Icon(Icons.arrow_downward)),
+                        visible: false,
+                        child: Icon(Icons.arrow_downward),
+                      ),
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 10,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                        ),
+                        border: OutlineInputBorder(borderSide: BorderSide.none),
                       ),
                       elevation: 0,
                       style: TextStyle(
@@ -690,7 +751,9 @@ class _SettingsState extends State<Settings> {
                       onChanged: (newValue) async {
                         context.setLocale(Locale(newValue.toString()));
                         await StoreData().storeInsertData(
-                            'defaultLanguage', newValue.toString());
+                          'defaultLanguage',
+                          newValue.toString(),
+                        );
                         appState.setDefaultLanguage = newValue.toString();
                       },
                       items: getLanguages,
@@ -721,9 +784,10 @@ class _SettingsState extends State<Settings> {
           Text(
             name,
             style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 13,
-                fontFamily: fontsemibold),
+              color: notifier.getblck,
+              fontSize: 13,
+              fontFamily: fontsemibold,
+            ),
           ),
         ],
       ),
@@ -747,9 +811,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -791,9 +856,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -831,9 +897,10 @@ class _SettingsState extends State<Settings> {
             Text(
               name,
               style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 13,
-                  fontFamily: fontsemibold),
+                color: notifier.getblck,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+              ),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -863,28 +930,37 @@ class _SettingsState extends State<Settings> {
       if (result) {
         setState(() {
           appState.biometricEnabled = !appState.biometricEnabled;
-          StoreData()
-              .storeInsertData('biometricsEnabled', appState.biometricEnabled);
+          StoreData().storeInsertData(
+            'biometricsEnabled',
+            appState.biometricEnabled,
+          );
         });
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
           e.code == auth_error.notAvailable) {
         if (!appState.biometricEnabled) {
-          popup(context,
-              title: 'Invalid Operation',
-              message:
-                  'You cannot enable bometrics unless you do biometrics enrollment on your device');
+          popup(
+            context,
+            title: 'Invalid Operation',
+            message:
+                'You cannot enable bometrics unless you do biometrics enrollment on your device',
+          );
           return;
         }
 
-        biometricsErrorAlert(context, callback: () {
-          setState(() {
-            appState.biometricEnabled = false;
-            StoreData().storeInsertData(
-                'biometricsEnabled', appState.biometricEnabled);
-          });
-        });
+        biometricsErrorAlert(
+          context,
+          callback: () {
+            setState(() {
+              appState.biometricEnabled = false;
+              StoreData().storeInsertData(
+                'biometricsEnabled',
+                appState.biometricEnabled,
+              );
+            });
+          },
+        );
       }
     }
   }
