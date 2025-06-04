@@ -12,7 +12,7 @@ type CuratedAsset struct {
 	AssetCode                   string     `gorm:"size:12;unique;not null; default:''" json:"assetCode"`
 	AssetName                   string     `gorm:"size:50;null; default:''" json:"assetName"`
 	AssetIssuer                 string     `gorm:"size:56;not null; default:''" json:"assetIssuer"`
-	Description                 string     `gorm:"size:300; not null" json:"description"`
+	Description                 string     `gorm:"not null" json:"description"`
 	ImageURL                    *string    `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
 	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
