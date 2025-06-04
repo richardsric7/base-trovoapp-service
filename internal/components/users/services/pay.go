@@ -509,6 +509,15 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
+				if gc.IsValidTokenizedAsset(asset.GetCode()) {
+
+					return "", nil, &tErrors.CustomError{
+						Param:      "destination",
+						Err:        "error-destination-cannot-accept-asset",
+						ErrMessage: fmt.Sprintf("%v does not accept the asset %v at this time.", destinationWallet.Alias, asset.GetCode()),
+					}
+
+				}
 				//meaning that destinationWallet and destinationUser objects are valid.
 				if destinationWallet.WalletType == 1 {
 					//asset issuing wallet is forbidden to receive custom assets. only native assets
