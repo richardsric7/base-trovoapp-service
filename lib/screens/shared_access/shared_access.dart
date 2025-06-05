@@ -3142,6 +3142,7 @@ class _SharedAccessState extends State<SharedAccess>
   void dispose() {
     appState.excludeUserApproved = 1;
     appState.totalRecords = 0;
+    appState.currentPage = 1;
     appState.filterQuery = '';
     appState.returnView = null;
     super.dispose();
