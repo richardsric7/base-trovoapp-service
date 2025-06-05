@@ -40,45 +40,39 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     return appState.userInfo!
         .transactionableWallets()
         .mapIndexed<DropdownMenuItem<int>>((index, wallet) {
-      return DropdownMenuItem(
-        child: Row(
-          children: [
-            Container(
-              constraints: isSelected
-                  ? BoxConstraints(maxWidth: width / 4)
-                  : BoxConstraints(maxWidth: width / 2.5),
-              child: Text(
-                wallet.alias!,
-                overflow:
-                    isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
-              ),
+          return DropdownMenuItem(
+            child: Row(
+              children: [
+                Container(
+                  constraints: isSelected
+                      ? BoxConstraints(maxWidth: width / 4)
+                      : BoxConstraints(maxWidth: width / 2.5),
+                  child: Text(
+                    wallet.alias!,
+                    overflow: isSelected
+                        ? TextOverflow.ellipsis
+                        : TextOverflow.visible,
+                  ),
+                ),
+                if (wallet.isSharedWallet) ...[
+                  SizedBox(width: 2),
+                  Icon(
+                    Icons.people_outline,
+                    size: 17,
+                    color: notifier.getbluecolor,
+                  ),
+                ],
+                if (!isSelected && index == selectedWalletIndex) ...[
+                  SizedBox(width: 2),
+                  Icon(Icons.check, size: 18, color: notifier.getbluecolor),
+                ],
+              ],
             ),
-            if (wallet.isSharedWallet) ...[
-              SizedBox(
-                width: 2,
-              ),
-              Icon(
-                Icons.people_outline,
-                size: 17,
-                color: notifier.getbluecolor,
-              )
-            ],
-            if (!isSelected && index == selectedWalletIndex) ...[
-              SizedBox(
-                width: 2,
-              ),
-              Icon(
-                Icons.check,
-                size: 18,
-                color: notifier.getbluecolor,
-              )
-            ],
-          ],
-        ),
-        value: index,
-        // ),
-      );
-    }).toList();
+            value: index,
+            // ),
+          );
+        })
+        .toList();
   }
 
   @override
@@ -94,8 +88,8 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     if (selectedWalletIndex != null) {
-      wallet =
-          appState.userInfo!.transactionableWallets()[selectedWalletIndex!];
+      wallet = appState.userInfo!
+          .transactionableWallets()[selectedWalletIndex!];
 
       // get all assets on the curated swap list minus XBN
       var filteredList = appState.curatedSwapList
@@ -166,50 +160,44 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  height: height / 30,
-                ),
+                SizedBox(height: height / 30),
                 Row(
                   children: [
-                    SizedBox(
-                      width: width / 15,
-                    ),
+                    SizedBox(width: width / 15),
                     Text(
                       "selectwallet".tr(),
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    SizedBox(
-                      width: width / 15,
-                    ),
+                    SizedBox(width: width / 15),
                     Expanded(
-                        child: dropdown(
-                      (newValue) {
-                        setState(() {
-                          selectedWalletIndex = int.parse(newValue.toString());
-                        });
-                      },
-                      walletDropdownItems(false),
-                      selectedWalletIndex.toString().isEmpty
-                          ? null
-                          : selectedWalletIndex,
-                      null,
-                      context,
-                      (context) {
-                        return walletDropdownItems(true);
-                      },
-                    )),
-                    SizedBox(
-                      width: width / 15,
+                      child: dropdown(
+                        (newValue) {
+                          setState(() {
+                            selectedWalletIndex = int.parse(
+                              newValue.toString(),
+                            );
+                          });
+                        },
+                        walletDropdownItems(false),
+                        selectedWalletIndex.toString().isEmpty
+                            ? null
+                            : selectedWalletIndex,
+                        null,
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      ),
                     ),
+                    SizedBox(width: width / 15),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 if (selectedWalletIndex != null) ...[
                   showCuratedAssets(),
                 ] else ...[
@@ -217,8 +205,9 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -228,7 +217,9 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10.0),
+                              horizontal: 20,
+                              vertical: 10.0,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -241,9 +232,10 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                                         "selectwallet2".tr(),
                                         textAlign: TextAlign.justify,
                                         style: TextStyle(
-                                            fontSize: 15,
-                                            color: notifier.getbluewhitecolor,
-                                            fontFamily: fontbody),
+                                          fontSize: 15,
+                                          color: notifier.getbluewhitecolor,
+                                          fontFamily: fontbody,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -255,7 +247,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ),
@@ -268,12 +260,8 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     return SingleChildScrollView(
       child: Column(
         children: [
-          for (var entry in assets.entries) ...[
-            curatedAssetTiles(entry),
-          ],
-          SizedBox(
-            height: height / 50,
-          ),
+          for (var entry in assets.entries) ...[curatedAssetTiles(entry)],
+          SizedBox(height: height / 50),
           Button(
             "other".tr(),
             notifier.getbluecolor,
@@ -292,9 +280,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
               });
             },
           ),
-          SizedBox(
-            height: height / 22,
-          ),
+          SizedBox(height: height / 22),
         ],
       ),
     );
@@ -306,13 +292,13 @@ class _OptInOutAssetState extends State<OptInOutAsset>
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-            title: Row(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.white,
@@ -367,12 +353,12 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                           ),
                         ),
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ],
             ),
-            trailing: ElevatedButton(
+            ElevatedButton(
               onPressed: () async {
                 appState.viewData = {
                   'assetCode': entry.value['assetCode']!,
@@ -390,22 +376,24 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                 );
               },
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
+                backgroundColor: WidgetStateProperty.all<Color>(
                   entry.value['isRemovable']
                       ? Colors.red[400]!
                       : notifier.isDark
-                          ? notifier.getstructuredbluecolor50.backColor
-                          : notifier.getbluewhitecolor,
+                      ? notifier.getstructuredbluecolor50.backColor
+                      : notifier.getbluewhitecolor,
+                ),
+                foregroundColor: WidgetStateProperty.all<Color>(
+                  notifier.getwihitecolor,
                 ),
               ),
               child: Text(
                 entry.value['isRemovable'] ? "remove".tr() : "add".tr(),
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                  fontSize: 9,
-                ),
+                style: TextStyle(fontFamily: fontsemibold, fontSize: 9),
               ),
-            )),
+            ),
+          ],
+        ),
       ),
     );
   }

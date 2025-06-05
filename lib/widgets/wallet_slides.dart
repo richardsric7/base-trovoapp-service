@@ -89,18 +89,17 @@ class _WalletSlideState extends State<WalletSlide> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/trovo_white.png',
-                        width: 40,
-                      ),
+                      Image.asset('assets/images/trovo_white.png', width: 40),
                     ],
                   ),
                 ),
               ],
             ),
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -109,21 +108,23 @@ class _WalletSlideState extends State<WalletSlide> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        width: width / 2.3,
+                        width: width / 2.1,
                         child: Row(
                           children: [
                             ConstrainedBox(
-                              constraints:
-                                  BoxConstraints(maxWidth: width / 3.0),
+                              constraints: BoxConstraints(
+                                maxWidth: width / 3.0,
+                              ),
                               child: Container(
                                 child: Text(
                                   widget.alias,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: widget.foreColor,
-                                      fontFamily: fontsemibold),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: widget.foreColor,
+                                    fontFamily: fontsemibold,
+                                  ),
                                 ),
                               ),
                             ),
@@ -134,17 +135,11 @@ class _WalletSlideState extends State<WalletSlide> {
                               constraints: BoxConstraints(),
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(
-                                    text: widget.alias,
-                                  ),
+                                  ClipboardData(text: widget.alias),
                                 ),
                                 showSnackBar("walletalias".tr(), context),
                               },
-                              icon: Icon(
-                                Icons.copy,
-                                fill: 1.0,
-                                size: 15,
-                              ),
+                              icon: Icon(Icons.copy, fill: 1.0, size: 15),
                             ),
                           ],
                         ),
@@ -154,18 +149,17 @@ class _WalletSlideState extends State<WalletSlide> {
                           child: Text(
                             '${widget.assetCount} ${'assetplural'.tr()}',
                             style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: widget.foreColor,
-                                fontFamily: fontsemibold),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: widget.foreColor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
+                  SizedBox(height: height / 90),
                   Row(
                     children: [
                       Text(
@@ -177,9 +171,7 @@ class _WalletSlideState extends State<WalletSlide> {
                           fontFamily: fontbody,
                         ),
                       ),
-                      SizedBox(
-                        width: 15,
-                      ),
+                      SizedBox(width: 15),
                       GestureDetector(
                         onTap: () {
                           if (localHideBalance) {
@@ -229,9 +221,7 @@ class _WalletSlideState extends State<WalletSlide> {
                           ],
                         ],
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                       Container(
                         width: 40,
                         child: Row(
@@ -242,21 +232,17 @@ class _WalletSlideState extends State<WalletSlide> {
                                 Icons.people_outline,
                                 size: 17,
                                 color: widget.foreColor,
-                              )
+                              ),
                             ],
                             if (widget.walletType != 0) ...[
                               Icon(
                                 icons[widget.walletType - 1],
                                 size: 17,
                                 color: widget.foreColor,
-                              )
+                              ),
                             ],
                             if (widget.alias.contains('-distribution')) ...[
-                              Icon(
-                                icons[2],
-                                size: 17,
-                                color: widget.foreColor,
-                              )
+                              Icon(icons[2], size: 17, color: widget.foreColor),
                             ],
                           ],
                         ),

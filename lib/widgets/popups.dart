@@ -35,189 +35,201 @@ import '../screens/shared_access/shared_access.dart';
 import '../storage/state.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
-popup(context,
-    {required String title,
-    Color bodyColor = Colors.red,
-    required String message}) async {
+popup(
+  context, {
+  required String title,
+  Color bodyColor = Colors.red,
+  required String message,
+  void Function()? onClose,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              message,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: bodyColor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: bodyColor,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      child: Text(
-                        "continuee".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (onClose != null) {
+                      onClose();
+                    }
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
-Future<bool?> biometricsErrorAlert(BuildContext context,
-    {void Function()? callback}) {
+Future<bool?> biometricsErrorAlert(
+  BuildContext context, {
+  void Function()? callback,
+}) {
   var appState = Provider.of<DataProvider>(context, listen: false);
   return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("biometricsrequired".tr()),
-          actions: [
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("biometricsrequired".tr()),
+        actions: [
+          TextButton(
+            child: Text(
+              "cancel".tr(),
+              style: TextStyle(
+                fontSize: 14.0,
+                fontFamily: fontbody,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[900],
+              ),
+            ),
+            onPressed: () =>
+                Navigator.of(context, rootNavigator: true).pop(false),
+          ),
+          TextButton(
+            child: Text(
+              "gotosettings".tr(),
+              style: TextStyle(
+                fontSize: 14.0,
+                fontFamily: fontbody,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[900],
+              ),
+            ),
+            onPressed: () async {
+              await AppSettings.openAppSettings(type: AppSettingsType.security);
+            },
+          ),
+          TextButton(
+            child: Text(
+              "Disable biometrics",
+              style: TextStyle(
+                fontSize: 14.0,
+                fontFamily: fontbody,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[900],
+              ),
+            ),
+            onPressed: () async {
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SettingsViewPageConfig,
+              );
+            },
+          ),
+          if (callback != null) ...[
             TextButton(
               child: Text(
-                "cancel".tr(),
+                "usepasswordinstead".tr(),
                 style: TextStyle(
-                    fontSize: 14.0,
-                    fontFamily: fontbody,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[900]),
+                  fontSize: 14.0,
+                  fontFamily: fontbody,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[900],
+                ),
               ),
-              onPressed: () => Navigator.of(
-                context,
-                rootNavigator: true,
-              ).pop(false),
+              onPressed: () async {
+                showPasswordDialog(context, () {
+                  callback();
+                  Navigator.of(context).pop();
+                });
+              },
             ),
-            TextButton(
-                child: Text(
-                  "gotosettings".tr(),
-                  style: TextStyle(
-                      fontSize: 14.0,
-                      fontFamily: fontbody,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[900]),
-                ),
-                onPressed: () async {
-                  await AppSettings.openAppSettings(
-                      type: AppSettingsType.security);
-                }),
-            TextButton(
-                child: Text(
-                  "Disable biometrics",
-                  style: TextStyle(
-                      fontSize: 14.0,
-                      fontFamily: fontbody,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[900]),
-                ),
-                onPressed: () async {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage, page: SettingsViewPageConfig);
-                }),
-            if (callback != null) ...[
-              TextButton(
-                  child: Text(
-                    "usepasswordinstead".tr(),
-                    style: TextStyle(
-                        fontSize: 14.0,
-                        fontFamily: fontbody,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[900]),
-                  ),
-                  onPressed: () async {
-                    showPasswordDialog(context, () {
-                      callback();
-                      Navigator.of(context).pop();
-                    });
-                  }),
-            ],
           ],
-          content: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(30),
-              ),
-            ),
-            child: Text(
-              "biometricsnotenabled".tr(),
-              style: TextStyle(
-                fontFamily: fontbody,
-                fontSize: 15.0,
-                fontWeight: FontWeight.w400,
-              ),
+        ],
+        content: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(30)),
+          ),
+          child: Text(
+            "biometricsnotenabled".tr(),
+            style: TextStyle(
+              fontFamily: fontbody,
+              fontSize: 15.0,
+              fontWeight: FontWeight.w400,
             ),
           ),
-        );
-      });
+        ),
+      );
+    },
+  );
 }
 
 Future<bool?> accountNotFoundPopup(BuildContext context) {
@@ -226,140 +238,145 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "oops".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: fontbody,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "oops".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "accountnotfound".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.red,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "accountnotfound".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.red,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        appState.viewData![SignupPageConfig.key] = {
-                          'importMode': true,
-                        };
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage, page: SignupPageConfig);
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "continuee".tr(),
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    appState.viewData![SignupPageConfig.key] = {
+                      'importMode': true,
+                    };
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: SignupPageConfig,
+                    );
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(
+                      color: notifier.getwihitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 Future<bool?> accountNotFoundAfterSwitchPopup(
@@ -374,180 +391,187 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "oops".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: fontbody,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "oops".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              message != null
-                                  ? message
-                                  : "accountnotfoundafterswitch"
-                                      .tr(args: [appState.walletMode]),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.red,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (message == null) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 5.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Navigator.of(context).pop();
-                          onContinueWithCredentials();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
                         ),
                         child: Text(
-                          "continuewithcredentials".tr(),
-                          textAlign: TextAlign.center,
+                          message != null
+                              ? message
+                              : "accountnotfoundafterswitch".tr(
+                                  args: [appState.walletMode],
+                                ),
                           style: TextStyle(
-                              color: notifier.getwihitecolor,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                  ],
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onImportNewCredential();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor90),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.red,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      child: Text(
-                        "importanotherwallet".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                        onGoBackToPrevEnvironment();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "gobacktopreviousnet".tr(args: [
-                          appState.walletMode == 'Testnet'
-                              ? 'Mainnet'
-                              : 'Testnet'
-                        ]),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              if (message == null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 5.0,
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Navigator.of(context).pop();
+                      onContinueWithCredentials();
+                    },
+                    style: ButtonStyle(
+                      fixedSize: MaterialStateProperty.all(
+                        Size(width / 1.5, height / 20),
+                      ),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        notifier.getbluecolor,
+                      ),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "continuewithcredentials".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: notifier.getwihitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    onImportNewCredential();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor90,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "importanotherwallet".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: notifier.getwihitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    onGoBackToPrevEnvironment();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "gobacktopreviousnet".tr(
+                      args: [
+                        appState.walletMode == 'Testnet'
+                            ? 'Mainnet'
+                            : 'Testnet',
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void ensureBackupPrivacyDialog(context, action) {
@@ -555,131 +579,132 @@ void ensureBackupPrivacyDialog(context, action) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "important".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "ensureprivacybackup".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: action,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "continuee".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
+                        child: Text(
+                          "ensureprivacybackup".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
                             color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: action,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
                     ),
                   ),
-                  SizedBox(height: height / 50),
-                ],
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void showPasswordDialog(context, action) {
@@ -691,155 +716,156 @@ void showPasswordDialog(context, action) {
   String password = '';
 
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "password".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "password".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25.0, vertical: 5.0),
-                            child: Form(
-                              key: formKey,
-                              child: CustomPasswordFormField(
-                                "password".tr(),
-                                notifier.getbluewhitecolor,
-                                Icons.lock,
-                                notifier.getgrey,
-                                notifier.getprefixicon,
-                                notifier.getblck,
-                                70.sp,
-                                300.sp,
-                                validator: (String? value) {
-                                  if (value!.isEmpty)
-                                    return "pleaseenteryourpassword".tr();
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25.0,
+                          vertical: 5.0,
+                        ),
+                        child: Form(
+                          key: formKey,
+                          child: CustomPasswordFormField(
+                            "password".tr(),
+                            notifier.getbluewhitecolor,
+                            Icons.lock,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            70.sp,
+                            300.sp,
+                            validator: (String? value) {
+                              if (value!.isEmpty)
+                                return "pleaseenteryourpassword".tr();
 
-                                  if (value.length < 6)
-                                    return "use6charsormoreforpassword".tr();
-                                  if (password != appState.password!) {
-                                    return "invalidpassword".tr();
-                                  }
-                                  return null;
-                                },
-                                onChanged: (value) {
-                                  password = value!.trim().replaceAll(' ', '');
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
-                        action();
-                        Navigator.of(context).pop(); // dismiss dialog,
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                              if (value.length < 6)
+                                return "use6charsormoreforpassword".tr();
+                              if (password != appState.password!) {
+                                return "invalidpassword".tr();
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              password = value!.trim().replaceAll(' ', '');
+                            },
                           ),
                         ),
                       ),
-                      child: Text(
-                        "continuee".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
+                    action();
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void warnSkipBackupDialog(context, onSkip) {
@@ -848,134 +874,135 @@ void warnSkipBackupDialog(context, onSkip) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "important".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "warnskipbackup".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.red,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "warnskipbackup".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.red,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onSkip();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "skip".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onSkip();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "skip".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void updateAppMessagePopup(context, message, Function() onTap) {
@@ -983,95 +1010,95 @@ void updateAppMessagePopup(context, message, Function() onTap) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                child: Center(
+                  child: Text(
+                    "updateapp".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                    child: Center(
-                      child: Text(
-                        "updateapp".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              message,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onTap();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: notifier.getbluewhitecolor,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      child: Text(
-                        "update".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    onTap();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "update".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void showResponseMessage(context, message, successAction) {
@@ -1079,138 +1106,136 @@ void showResponseMessage(context, message, successAction) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "important".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 4.5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              message,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 4.5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: notifier.getbluewhitecolor,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        successAction();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "continuee".tr(),
-                        style: TextStyle(
-                          color: wihitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    successAction();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void mintWalletExplainerPopup(context) {
@@ -1218,98 +1243,96 @@ void mintWalletExplainerPopup(context) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "information".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "information".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 4.5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "explainmintwallet".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 4.5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "explainmintwallet".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: notifier.getbluewhitecolor,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "continuee".tr(),
-                        style: TextStyle(
-                          color: wihitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void showSuccessAlert(context, {required onTap}) {
@@ -1317,95 +1340,97 @@ void showSuccessAlert(context, {required onTap}) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "success".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: fontbody,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "success".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Image.asset(
-                              "assets/images/success.gif",
-                              height: 125.0,
-                              width: 125.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                        onTap();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getgreencolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
+                        child: Image.asset(
+                          "assets/images/success.gif",
+                          height: 125.0,
+                          width: 125.0,
                         ),
                       ),
-                      child: Text(
-                        "continuee".tr(),
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    onTap();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getgreencolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(
+                      color: notifier.getwihitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void imageSourceDialog(context, {onCamera, onGallery}) {
@@ -1415,125 +1440,125 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
   width = MediaQuery.of(context).size.width;
   appState.dialogOpen = true;
   showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "chooseimagesource".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: OutlinedButton(
+                  onPressed: () {
+                    onGallery();
+                    Navigator.of(context).pop();
+                    appState.dialogOpen = false;
+                  },
+                  // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
                     ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 20.0, horizontal: 5.0),
-                            child: Text(
-                              "chooseimagesource".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        onGallery();
-                        Navigator.of(context).pop();
-                        appState.dialogOpen = false;
-                      },
-                      // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "gallery".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                  child: Text(
+                    "gallery".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        onCamera();
-                        Navigator.of(context).pop();
-                        appState.dialogOpen = false;
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "camera".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    onCamera();
+                    Navigator.of(context).pop();
+                    appState.dialogOpen = false;
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "camera".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 customDateRangePopup(context, {required void Function() onDone}) async {
@@ -1541,259 +1566,291 @@ customDateRangePopup(context, {required void Function() onDone}) async {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           var appState = Provider.of<DataProvider>(context, listen: false);
           var initialDate = DateTime.now();
-          var startDate = appState.filterStartDate ??
+          var startDate =
+              appState.filterStartDate ??
               DateTime.now().subtract(Duration(days: 1));
           var endDate = appState.filterEndDate ?? DateTime.now();
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enterdaterange".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "enterdaterange".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              children: [
-                                quickDateRange(context, text: "pastweek".tr(),
-                                    onPressed: () {
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "pastweek".tr(),
+                                onPressed: () {
                                   appState.setFilterStartDate = DateTime.now()
                                       .subtract(Duration(days: 7));
                                   appState.setFilterEndDate = DateTime.now();
-                                }),
-                                quickDateRange(context, text: "pastmonth".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "pastmonth".tr(),
+                                onPressed: () {
                                   var date = DateTime.now();
                                   appState.setFilterEndDate = date;
                                   appState.setFilterStartDate = DateTime(
-                                      date.year, date.month - 1, date.day);
-                                }),
-                                quickDateRange(context, text: "past3month".tr(),
-                                    onPressed: () {
+                                    date.year,
+                                    date.month - 1,
+                                    date.day,
+                                  );
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "past3month".tr(),
+                                onPressed: () {
                                   var date = DateTime.now();
                                   appState.setFilterEndDate = date;
                                   appState.setFilterStartDate = DateTime(
-                                      date.year, date.month - 3, date.day);
-                                }),
-                              ],
+                                    date.year,
+                                    date.month - 3,
+                                    date.day,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10.0,
+                              horizontal: 5.0,
                             ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "startdate".tr(),
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 15,
-                                        fontFamily: fontbody),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "startdate".tr(),
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
                                   ),
-                                  SizedBox(
-                                    height: height / 70,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(10.0)),
-                                      color: notifier.isDark
-                                          ? darktilewhitecolor
-                                          : notifier.getaddsubwalletgrey,
+                                ),
+                                SizedBox(height: height / 70),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
                                     ),
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        appState.setFilterStartDate =
-                                            await showDatePicker(
-                                                  context: context,
-                                                  initialDate: appState
-                                                          .filterStartDate ??
-                                                      initialDate,
-                                                  firstDate: DateTime
-                                                      .fromMicrosecondsSinceEpoch(
-                                                          1000),
-                                                  lastDate: DateTime.now(),
-                                                ) ??
-                                                appState.filterStartDate;
-                                      },
-                                      child: Wrap(children: [
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      appState.setFilterStartDate =
+                                          await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                appState.filterStartDate ??
+                                                initialDate,
+                                            firstDate:
+                                                DateTime.fromMicrosecondsSinceEpoch(
+                                                  1000,
+                                                ),
+                                            lastDate: DateTime.now(),
+                                          ) ??
+                                          appState.filterStartDate;
+                                    },
+                                    child: Wrap(
+                                      children: [
                                         Text(
-                                          DateFormat('MMMM dd, yyyy')
-                                              .format(startDate),
+                                          DateFormat(
+                                            'MMMM dd, yyyy',
+                                          ).format(startDate),
                                           textAlign: TextAlign.start,
                                           style: TextStyle(
-                                              color: notifier.getbluewhitecolor,
-                                              fontSize: 15,
-                                              fontFamily: fontsemibold),
+                                            color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold,
+                                          ),
                                         ),
-                                        SizedBox(
-                                          width: width / 50,
-                                        ),
+                                        SizedBox(width: width / 50),
                                         Icon(
                                           Icons.edit,
                                           size: 16,
                                           color: notifier.getbluewhitecolor,
                                         ),
-                                      ]),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "enddate".tr(),
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 15,
-                                        fontFamily: fontbody),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10.0,
+                              horizontal: 5.0,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "enddate".tr(),
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
                                   ),
-                                  SizedBox(
-                                    height: height / 70,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(10.0)),
-                                      color: notifier.isDark
-                                          ? darktilewhitecolor
-                                          : notifier.getaddsubwalletgrey,
+                                ),
+                                SizedBox(height: height / 70),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
                                     ),
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        appState.setFilterEndDate =
-                                            await showDatePicker(
-                                                  context: context,
-                                                  initialDate:
-                                                      appState.filterEndDate ??
-                                                          initialDate,
-                                                  firstDate: DateTime
-                                                      .fromMicrosecondsSinceEpoch(
-                                                          1000),
-                                                  lastDate: DateTime.now(),
-                                                ) ??
-                                                appState.filterEndDate;
-                                      },
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          Text(
-                                            DateFormat('MMMM dd, yyyy')
-                                                .format(endDate),
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                                fontSize: 15,
-                                                fontFamily: fontsemibold),
-                                          ),
-                                          SizedBox(
-                                            width: width / 50,
-                                          ),
-                                          Icon(
-                                            Icons.edit,
-                                            size: 16,
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      appState.setFilterEndDate =
+                                          await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                appState.filterEndDate ??
+                                                initialDate,
+                                            firstDate:
+                                                DateTime.fromMicrosecondsSinceEpoch(
+                                                  1000,
+                                                ),
+                                            lastDate: DateTime.now(),
+                                          ) ??
+                                          appState.filterEndDate;
+                                    },
+                                    child: Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          DateFormat(
+                                            'MMMM dd, yyyy',
+                                          ).format(endDate),
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
                                             color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        SizedBox(width: width / 50),
+                                        Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        appState.setFilterStartDate =
+                            appState.filterStartDate == null
+                            ? startDate
+                            : appState.filterStartDate;
+                        appState.setFilterEndDate =
+                            appState.filterEndDate == null
+                            ? endDate
+                            : appState.filterEndDate;
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onDone();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ],
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          appState.setFilterStartDate =
-                              appState.filterStartDate == null
-                                  ? startDate
-                                  : appState.filterStartDate;
-                          appState.setFilterEndDate =
-                              appState.filterEndDate == null
-                                  ? endDate
-                                  : appState.filterEndDate;
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-Widget quickDateRange(BuildContext context,
-    {required String text, required void Function() onPressed}) {
+Widget quickDateRange(
+  BuildContext context, {
+  required String text,
+  required void Function() onPressed,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -1802,8 +1859,9 @@ Widget quickDateRange(BuildContext context,
     child: Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-        color:
-            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        color: notifier.isDark
+            ? darktilewhitecolor
+            : notifier.getaddsubwalletgrey,
       ),
       child: Wrap(
         children: [
@@ -1814,11 +1872,12 @@ Widget quickDateRange(BuildContext context,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold,
-                  fontSize: 10.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontsemibold,
+                fontSize: 10.sp,
+              ),
             ),
-          )
+          ),
         ],
       ),
     ),
@@ -1836,146 +1895,157 @@ amountRangePopup(context, {required void Function() onDone}) async {
   maxAmountTextController.text = appState.filterMaxAmount ?? "";
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "enteramountrange".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enteramountrange".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomTextFormField.textFieldWithoutIcon(
+                              "minimumamount".tr(),
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              55.sp,
+                              300.sp,
+                              onChanged: (value) {
+                                if (value != null &&
+                                    value.toString().isNotEmpty) {
+                                  appState.setFilterMinAmount = value;
+                                }
+                              },
+                              controller: minAmountTextController,
+                              keyboardtype: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                            ),
+                            SizedBox(height: height / 30),
+                            CustomTextFormField.textFieldWithoutIcon(
+                              "maximumamount".tr(),
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              55.sp,
+                              300.sp,
+                              onChanged: (value) {
+                                if (value != null &&
+                                    value.toString().isNotEmpty) {
+                                  appState.setFilterMaxAmount = value;
+                                }
+                              },
+                              controller: maxAmountTextController,
+                              keyboardtype: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomTextFormField.textFieldWithoutIcon(
-                                "minimumamount".tr(),
-                                notifier.getbluecolor,
-                                notifier.getgrey,
-                                notifier.getprefixicon,
-                                notifier.getblck,
-                                notifier.getgrey,
-                                55.sp, 300.sp,
-                                onChanged: (value) {
-                                  if (value != null &&
-                                      value.toString().isNotEmpty) {
-                                    appState.setFilterMinAmount = value;
-                                  }
-                                },
-                                controller: minAmountTextController,
-                                keyboardtype: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
-                              ),
-                              SizedBox(
-                                height: height / 30,
-                              ),
-                              CustomTextFormField.textFieldWithoutIcon(
-                                "maximumamount".tr(),
-                                notifier.getbluecolor,
-                                notifier.getgrey,
-                                notifier.getprefixicon,
-                                notifier.getblck,
-                                notifier.getgrey,
-                                55.sp, 300.sp,
-                                onChanged: (value) {
-                                  if (value != null &&
-                                      value.toString().isNotEmpty) {
-                                    appState.setFilterMaxAmount = value;
-                                  }
-                                },
-                                controller: maxAmountTextController,
-                                keyboardtype: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
-                              ),
-                            ],
-                          ),
+                  ),
+                  SizedBox(height: height / 30),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onDone();
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onDone();
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-textFieldPopup(context,
-    {required HistoryFilterType rel,
-    required void Function(String?) onDone}) async {
+textFieldPopup(
+  context, {
+  required HistoryFilterType rel,
+  required void Function(String?) onDone,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   String? textValue;
   var textController = TextEditingController();
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           var appState = Provider.of<DataProvider>(context, listen: false);
           switch (rel) {
             case HistoryFilterType.Username:
@@ -1996,174 +2066,192 @@ textFieldPopup(context,
               break;
           }
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        getLabelText(rel),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          getLabelText(rel),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: CustomTextFormField.textFieldWithoutIcon(
+                          getPlaceholder(rel),
+                          notifier.getbluecolor,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          55.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            if (value != null && value.toString().isNotEmpty) {
+                              textValue = value;
+                            }
+                          },
+                          controller: textController,
+                          keyboardtype: TextInputType.text,
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: CustomTextFormField.textFieldWithoutIcon(
-                            getPlaceholder(rel),
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            55.sp,
-                            300.sp,
-                            onChanged: (value) {
-                              if (value != null &&
-                                  value.toString().isNotEmpty) {
-                                textValue = value;
-                              }
-                            },
-                            controller: textController,
-                            keyboardtype: TextInputType.text,
-                          ),
+                  ),
+                  SizedBox(height: height / 30),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onDone(textValue);
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onDone(textValue);
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-transactionTypePopup(context,
-    {required void Function() onAllSelected,
-    required void Function() onSwapSelected,
-    required void Function() onPaymentSelected}) async {
+transactionTypePopup(
+  context, {
+  required void Function() onAllSelected,
+  required void Function() onSwapSelected,
+  required void Function() onPaymentSelected,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "selecttransactiontype".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "selecttransactiontype".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              children: [
-                                quickDateRange(context, text: "all".tr(),
-                                    onPressed: () {
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "all".tr(),
+                                onPressed: () {
                                   onAllSelected();
-                                }),
-                                quickDateRange(context, text: "swap".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "swap".tr(),
+                                onPressed: () {
                                   onSwapSelected();
-                                }),
-                                quickDateRange(context, text: "payment".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "payment".tr(),
+                                onPressed: () {
                                   onPaymentSelected();
-                                }),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 wrappedAssetTransactionTypePopup(
@@ -2175,69 +2263,77 @@ wrappedAssetTransactionTypePopup(
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "selecttransactiontype".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "selecttransactiontype".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              children: [
-                                quickDateRange(context,
-                                    text: "deposithistory".tr(), onPressed: () {
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "deposithistory".tr(),
+                                onPressed: () {
                                   onDepositSelected();
-                                }),
-                                quickDateRange(context,
-                                    text: "withdrawalhistory".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "withdrawalhistory".tr(),
+                                onPressed: () {
                                   onWithdrawSelected();
-                                }),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 wrappedAssetTransactionStatusPopup(
@@ -2249,68 +2345,77 @@ wrappedAssetTransactionStatusPopup(
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "choosestatus".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "choosestatus".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              children: [
-                                quickDateRange(context, text: "pending_2".tr(),
-                                    onPressed: () {
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "pending_2".tr(),
+                                onPressed: () {
                                   onPendingSelected();
-                                }),
-                                quickDateRange(context, text: "completed".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "completed".tr(),
+                                onPressed: () {
                                   onCompletedSelected();
-                                }),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 String getLabelText(HistoryFilterType rel) {
@@ -2339,147 +2444,148 @@ String getPlaceholder(HistoryFilterType rel) {
   }
 }
 
-void haveYouSetupSecurityQuestionsPopup(context,
-    {required void Function() onYes, required void Function() onNo}) {
+void haveYouSetupSecurityQuestionsPopup(
+  context, {
+  required void Function() onYes,
+  required void Function() onNo,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "important".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 4.5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "haveyousetupsecurityquestions".tr(),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 4.5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "haveyousetupsecurityquestions".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: notifier.getbluewhitecolor,
                           ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onYes();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "ihavesetupsecurityquestions".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: wihitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                        onNo();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "ihavenotsetupsecurityquestions".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onYes();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "ihavesetupsecurityquestions".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    onNo();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "ihavenotsetupsecurityquestions".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 shareAccessInfoPopup(context) async {
@@ -2488,161 +2594,159 @@ shareAccessInfoPopup(context) async {
   width = MediaQuery.of(context).size.width;
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            // scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(0),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
-                    child: Center(
-                      child: Text(
-                        "sharedaccess".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        // scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(0),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
+                child: Center(
+                  child: Text(
+                    "sharedaccess".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
                     ),
                   ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 1.8,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 20.0),
-                            child: RichText(
-                              text: TextSpan(
-                                text: "welcometosharedaccess".tr(),
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 1.8),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 20.0,
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            text: "welcometosharedaccess".tr(),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '${"vieweraccess".tr()} ',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "describevieweraccess".tr(),
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontFamily: fontbody,
                                   color: notifier.getbluewhitecolor,
                                 ),
-                                children: [
-                                  TextSpan(
-                                    text: '${"vieweraccess".tr()} ',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: "describevieweraccess".tr(),
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: '${"initiatoraccess".tr()} ',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: "describeinitiatoraccess".tr(),
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: '${"approveraccess".tr()} ',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: "describeapproveraccess".tr(),
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: '${"note".tr()}: ',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: "moresharedaccessdetails".tr(),
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
                               ),
-                              textAlign: TextAlign.justify,
-                            ),
+                              TextSpan(
+                                text: '${"initiatoraccess".tr()} ',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "describeinitiatoraccess".tr(),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${"approveraccess".tr()} ',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "describeapproveraccess".tr(),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${"note".tr()}: ',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "moresharedaccessdetails".tr(),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
+                          textAlign: TextAlign.justify,
                         ),
                       ),
-                      child: Text(
-                        "done".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "done".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 findCoordinatesPopup(context) async {
@@ -2651,132 +2755,128 @@ findCoordinatesPopup(context) async {
   width = MediaQuery.of(context).size.width;
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            // scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(0),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
-                    child: Center(
-                      child: Text(
-                        "howtofindcoordinates".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        // scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(0),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
+                child: Center(
+                  child: Text(
+                    "howtofindcoordinates".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
                     ),
                   ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 1.8,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 20.0),
-                            child: RichText(
-                              text: TextSpan(
-                                text: "",
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 1.8),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 20.0,
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            text: "",
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '${"findcordinatesondesktop".tr()}\n',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text:
+                                    '${"findcordinatesondesktopsteps".tr()}\n\n',
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontFamily: fontbody,
                                   color: notifier.getbluewhitecolor,
                                 ),
-                                children: [
-                                  TextSpan(
-                                    text: '${"findcordinatesondesktop".tr()}\n',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '${"findcordinatesondesktopsteps".tr()}\n\n',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '${"findcordinatesonsmartphone".tr()}\n',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        "findcordinatesonsmartphonesteps".tr(),
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
                               ),
-                              textAlign: TextAlign.justify,
-                            ),
+                              TextSpan(
+                                text: '${"findcordinatesonsmartphone".tr()}\n',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "findcordinatesonsmartphonesteps".tr(),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
+                          textAlign: TextAlign.justify,
                         ),
                       ),
-                      child: Text(
-                        "done".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "done".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void rejectionReasonPopup(context, void Function(String) action) {
@@ -2787,19 +2887,196 @@ void rejectionReasonPopup(context, void Function(String) action) {
   String reason = '';
 
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "rejecttransaction".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Center(
+                          child: Text(
+                            "rejectionreason".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25.0,
+                          vertical: 5.0,
+                        ),
+                        child: Form(
+                          key: formKey,
+                          child: CustomTextFormField.textFieldWithoutIcon(
+                            "enterreason".tr(),
+                            notifier.getbluewhitecolor,
+                            notifier.getgrey,
+                            notifier.getgrey,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            70.sp,
+                            300.sp,
+                            validator: (String? value) {
+                              if (value!.isEmpty)
+                                return "pleaseenterreason".tr();
+
+                              if (value.length < 5)
+                                return "reasonmustbe5ormorechars".tr();
+
+                              return null;
+                            },
+                            onChanged: (value) {
+                              reason = value!.trim();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
+                    action(reason);
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+approvalListTransactionTypePopup(
+  context,
+  List<String> options,
+  String label,
+  void Function(String) onSelected, {
+  ApprovalsListFilterType? rel,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  bool isChecked = appState.excludeUserApproved == 0;
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
+            insetPadding: const EdgeInsets.all(0),
             content: Container(
               decoration: BoxDecoration(
                 color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(23)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2809,264 +3086,97 @@ void rejectionReasonPopup(context, void Function(String) action) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        "rejecttransaction".tr(),
+                        label,
                         style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
                   Container(
                     constraints: BoxConstraints(
-                      maxHeight: height / 5,
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
                     // height: height / 5,
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
-                            child: Center(
-                              child: Text(
-                                "rejectionreason".tr(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize: 15,
-                                    fontFamily: fontbody),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25.0, vertical: 5.0),
-                            child: Form(
-                              key: formKey,
-                              child: CustomTextFormField.textFieldWithoutIcon(
-                                "enterreason".tr(),
-                                notifier.getbluewhitecolor,
-                                notifier.getgrey,
-                                notifier.getgrey,
-                                notifier.getblck,
-                                notifier.getgrey,
-                                70.sp,
-                                300.sp,
-                                validator: (String? value) {
-                                  if (value!.isEmpty)
-                                    return "pleaseenterreason".tr();
-
-                                  if (value.length < 5)
-                                    return "reasonmustbe5ormorechars".tr();
-
-                                  return null;
-                                },
-                                onChanged: (value) {
-                                  reason = value!.trim();
-                                },
-                              ),
-                            ),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              for (var i = 0; i < options.length; i++) ...[
+                                quickDateRange(
+                                  context,
+                                  text: options[i].capitalizeFirst!,
+                                  onPressed: () {
+                                    onSelected(options[i]);
+                                  },
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
-                        action(reason);
-                        Navigator.of(context).pop(); // dismiss dialog,
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Transform.scale(
+                        scale: 1.sp,
+                        child: Checkbox(
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(
-                              Radius.circular(10),
+                              Radius.circular(5.sp),
                             ),
                           ),
+                          activeColor: notifier.getbluecolor,
+                          side: BorderSide(color: notifier.getbluewhitecolor),
+                          value: isChecked,
+                          onChanged: (value) {
+                            appState.setExcludeUserApproved =
+                                appState.excludeUserApproved == 1 ? 0 : 1;
+                            isChecked = appState.excludeUserApproved == 0;
+                            setStateForDialog(() {});
+                          },
                         ),
                       ),
-                      child: Text(
-                        "continuee".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
+                      Container(
+                        width: width / 1.7,
+                        child: Text(
+                          "includealreadysignedtransactions".tr(),
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontbody,
                             color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: height / 50),
+                  SizedBox(height: height / 70),
                 ],
               ),
-            ));
-      });
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-approvalListTransactionTypePopup(context, List<String> options, String label,
-    void Function(String) onSelected,
-    {ApprovalsListFilterType? rel}) async {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  var appState = Provider.of<DataProvider>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-  bool isChecked = appState.excludeUserApproved == 0;
-  return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
-          return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                for (var i = 0; i < options.length; i++) ...[
-                                  quickDateRange(context,
-                                      text: options[i].capitalizeFirst!,
-                                      onPressed: () {
-                                    onSelected(options[i]);
-                                  }),
-                                ]
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Transform.scale(
-                          scale: 1.sp,
-                          child: Checkbox(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(5.sp),
-                                ),
-                              ),
-                              activeColor: notifier.getbluecolor,
-                              side:
-                                  BorderSide(color: notifier.getbluewhitecolor),
-                              value: isChecked,
-                              onChanged: (value) {
-                                appState.setExcludeUserApproved =
-                                    appState.excludeUserApproved == 1 ? 0 : 1;
-                                isChecked = appState.excludeUserApproved == 0;
-                                setStateForDialog(() {});
-                              }),
-                        ),
-                        Container(
-                          width: width / 1.7,
-                          child: Text(
-                            "includealreadysignedtransactions".tr(),
-                            overflow: TextOverflow.visible,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                  ],
-                ),
-              ));
-        });
-      });
-}
-
-approvalTextFieldPopup(context,
-    {required String label,
-    required String value,
-    required String placeholder,
-    required void Function(String?) onDone}) async {
+approvalTextFieldPopup(
+  context, {
+  required String label,
+  required String value,
+  required String placeholder,
+  required void Function(String?) onDone,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -3075,108 +3185,117 @@ approvalTextFieldPopup(context,
   textController.text = value;
   textValue = value;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: CustomTextFormField.textFieldWithoutIcon(
+                          placeholder,
+                          notifier.getbluecolor,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          55.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            if (value != null && value.toString().isNotEmpty) {
+                              textValue = value;
+                            }
+                          },
+                          controller: textController,
+                          keyboardtype: TextInputType.text,
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: CustomTextFormField.textFieldWithoutIcon(
-                            placeholder,
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            55.sp,
-                            300.sp,
-                            onChanged: (value) {
-                              if (value != null &&
-                                  value.toString().isNotEmpty) {
-                                textValue = value;
-                              }
-                            },
-                            controller: textController,
-                            keyboardtype: TextInputType.text,
-                          ),
+                  ),
+                  SizedBox(height: height / 30),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onDone(textValue);
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onDone(textValue);
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-void showChooseWalletPopup(context, assetCode, assetIssuer,
-    {required void Function(String, bool) onDone,
-    required void Function() onCancel}) {
+void showChooseWalletPopup(
+  context,
+  assetCode,
+  assetIssuer, {
+  required void Function(String, bool) onDone,
+  required void Function() onCancel,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -3202,32 +3321,20 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
           child: Row(
             children: [
               Container(
-                constraints:
-                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
-                child: Text(
-                  value['alias'],
-                  overflow: TextOverflow.ellipsis,
-                ),
+                constraints: BoxConstraints(maxWidth: width / 1.8),
+                child: Text(value['alias'], overflow: TextOverflow.ellipsis),
               ),
               if (value['sharedAccessEnabled'] == 1) ...[
-                SizedBox(
-                  width: 2,
-                ),
+                SizedBox(width: 2),
                 Icon(
                   Icons.people_outline,
                   size: 17,
                   color: notifier.getbluewhitecolor,
-                )
+                ),
               ],
               if (!isSelected && key == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluewhitecolor,
-                )
+                SizedBox(width: 2),
+                Icon(Icons.check, size: 18, color: notifier.getbluewhitecolor),
               ],
             ],
           ),
@@ -3240,19 +3347,137 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
   }
 
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "selectsendingwallet".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  SizedBox(width: width / 15),
+                  Expanded(
+                    child: dropdown(
+                      (newValue) {
+                        onDone(
+                          newValue.toString(),
+                          filteredWallets[newValue]['sharedAccessEnabled'] == 1,
+                        );
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      walletDropdownItems(false),
+                      selectedWallet.toString().isEmpty ? null : selectedWallet,
+                      "choosewallet".tr(),
+                      context,
+                      (context) {
+                        return walletDropdownItems(true);
+                      },
+                    ),
+                  ),
+                  SizedBox(width: width / 15),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    onCancel();
+                  },
+                  // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+wrappedAssetsTextFieldPopup(
+  context, {
+  required FilterType rel,
+  required void Function(String?) onDone,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String? textValue;
+  var textController = TextEditingController();
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          textController.text = appState.filterWithdrawalAddress;
+          textValue = appState.filterWithdrawalAddress;
+
+          return AlertDialog(
+            // scrollable: true,
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
+            insetPadding: const EdgeInsets.all(0),
             content: Container(
               decoration: BoxDecoration(
                 color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(23)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3262,202 +3487,86 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        "selectsendingwallet".tr(),
+                        "enterwithdrawaladdress".tr(),
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: width / 15,
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: CustomTextFormField.textFieldWithoutIcon(
+                          "withdrawaladdress".tr(),
+                          notifier.getbluecolor,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          55.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            if (value != null && value.toString().isNotEmpty) {
+                              textValue = value;
+                            }
+                          },
+                          controller: textController,
+                          keyboardtype: TextInputType.text,
+                        ),
                       ),
-                      Expanded(
-                          child: dropdown(
-                        (newValue) {
-                          onDone(
-                              newValue.toString(),
-                              filteredWallets[newValue]
-                                      ['sharedAccessEnabled'] ==
-                                  1);
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        walletDropdownItems(false),
-                        selectedWallet.toString().isEmpty
-                            ? null
-                            : selectedWallet,
-                        "choosewallet".tr(),
-                        context,
-                        (context) {
-                          return walletDropdownItems(true);
-                        },
-                      )),
-                      SizedBox(
-                        width: width / 15,
-                      ),
-                    ],
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 30),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
                       onPressed: () {
-                        onCancel();
+                        onDone(textValue);
+                        Navigator.of(context).pop(); // dismiss dialog,
                       },
-                      // dismiss dialog,
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
                         backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
+                          notifier.getbluecolor,
                         ),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                       ),
                       child: Text(
-                        "cancel".tr(),
+                        "done".tr(),
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(height: height / 50),
                 ],
               ),
-            ));
-      });
-}
-
-wrappedAssetsTextFieldPopup(context,
-    {required FilterType rel, required void Function(String?) onDone}) async {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-  String? textValue;
-  var textController = TextEditingController();
-  return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
-          var appState = Provider.of<DataProvider>(context, listen: false);
-          textController.text = appState.filterWithdrawalAddress;
-          textValue = appState.filterWithdrawalAddress;
-
-          return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enterwithdrawaladdress".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: CustomTextFormField.textFieldWithoutIcon(
-                            "withdrawaladdress".tr(),
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            55.sp,
-                            300.sp,
-                            onChanged: (value) {
-                              if (value != null &&
-                                  value.toString().isNotEmpty) {
-                                textValue = value;
-                              }
-                            },
-                            controller: textController,
-                            keyboardtype: TextInputType.text,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onDone(textValue);
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 void addCustomAssetPopup(context, void Function(String, String) action) {
@@ -3469,175 +3578,175 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
   String assetCode = '';
 
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "addasset".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "addasset".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
-                    ),
-                    // height: height / 5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25.0, vertical: 5.0),
-                            child: Form(
-                              key: formKey,
-                              child: Column(
-                                children: [
-                                  CustomTextFormField.textFieldWithoutIcon(
-                                    "enterassetcode".tr(),
-                                    notifier.getbluewhitecolor,
-                                    notifier.getgrey,
-                                    notifier.getgrey,
-                                    notifier.getblck,
-                                    notifier.getgrey,
-                                    70.sp,
-                                    300.sp,
-                                    validator: (String? value) {
-                                      if (value!.isEmpty)
-                                        return "enterassetcodeplease".tr();
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25.0,
+                          vertical: 5.0,
+                        ),
+                        child: Form(
+                          key: formKey,
+                          child: Column(
+                            children: [
+                              CustomTextFormField.textFieldWithoutIcon(
+                                "enterassetcode".tr(),
+                                notifier.getbluewhitecolor,
+                                notifier.getgrey,
+                                notifier.getgrey,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                70.sp,
+                                300.sp,
+                                validator: (String? value) {
+                                  if (value!.isEmpty)
+                                    return "enterassetcodeplease".tr();
 
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      assetCode = value!.trim();
-                                    },
-                                  ),
-                                  SizedBox(height: 5),
-                                  CustomTextFormField.textFieldWithoutIcon(
-                                    "enterissuerpublickey".tr(),
-                                    notifier.getbluewhitecolor,
-                                    notifier.getgrey,
-                                    notifier.getgrey,
-                                    notifier.getblck,
-                                    notifier.getgrey,
-                                    70.sp,
-                                    300.sp,
-                                    validator: (String? value) {
-                                      if (value!.isEmpty)
-                                        return "enterissuerpublickeyplease"
-                                            .tr();
-
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      assetIssuer = value!.trim();
-                                    },
-                                  ),
-                                ],
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  assetCode = value!.trim();
+                                },
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
-                        action(assetCode, assetIssuer);
-                        Navigator.of(context).pop(); // dismiss dialog,
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                              SizedBox(height: 5),
+                              CustomTextFormField.textFieldWithoutIcon(
+                                "enterissuerpublickey".tr(),
+                                notifier.getbluewhitecolor,
+                                notifier.getgrey,
+                                notifier.getgrey,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                70.sp,
+                                300.sp,
+                                validator: (String? value) {
+                                  if (value!.isEmpty)
+                                    return "enterissuerpublickeyplease".tr();
+
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  assetIssuer = value!.trim();
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      child: Text(
-                        "continuee".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
+                ),
               ),
-            ));
-      });
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
+                    action(assetCode, assetIssuer);
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 void warnDisableSharedAccessDialog(context, void Function() onDisable) {
@@ -3645,489 +3754,494 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "important".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          "warnDisableSharedAccess".tr(),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onDisable();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
                     ),
                   ),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 5,
+                  child: Text(
+                    "disable".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
                     ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              "warnDisableSharedAccess".tr(),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void viewOnlySharedWalletOptions(
+  context,
+  void Function() onModify,
+  void Function() onDisable,
+) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "sharedaccess".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onModify();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "modifysharedaccess".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onDisable();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "disablesharedaccess".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+showDocumentUploadPopup(
+  context,
+  String title, {
+  required void Function(String selectedOption, PlatformFile file) onDone,
+  required List<DropdownMenuItem<String>> dropdownItems,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  final _formKey = GlobalKey<FormState>();
+  String selectedOption = dropdownItems.length > 0
+      ? dropdownItems.first.value!
+      : "";
+  String errorMsg = '';
+  PlatformFile? file = null;
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (dropdownItems.length > 0) ...[
+                      SizedBox(height: height / 50),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: dropdown(
+                          (value) {
+                            selectedOption = value.toString();
+                            setStateForDialog(() {});
+                          },
+                          dropdownItems,
+                          null,
+                          selectedOption,
+                          context,
+                          null,
+                        ),
+                      ),
+                    ],
+                    if (selectedOption == "Other") ...[
+                      SizedBox(height: height / 70),
+                      CustomTextFormField.textField(
+                        'enterfiletitle'.tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        notifier.getprefixicon,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        50,
+                        270,
+                        validator: (value) {
+                          if (selectedOption == "Other" &&
+                              value.toString().isEmpty) {
+                            return "pleaseenterfiletitle".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setStateForDialog(() {
+                            selectedOption = value.trim();
+                          });
+                        },
+                      ),
+                    ],
+                    if (file != null) ...[
+                      Container(
+                        width: width / 2.0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              truncate(file!.name, length: 15),
                               style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.red,
+                                decoration: TextDecoration.underline,
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
                               ),
-                              textAlign: TextAlign.center,
+                            ),
+                            IconButton(
+                              icon: Icon(CupertinoIcons.delete, size: 20),
+                              onPressed: (() {
+                                setStateForDialog(() {
+                                  file = null;
+                                });
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    SizedBox(height: height / 50),
+                    Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Container(
+                        width: width / 2.5,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
+                          color: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                        ),
+                        child: Container(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  errorMsg = '';
+                                  file = await getFile();
+                                  if (file != null && file!.size > 900000) {
+                                    errorMsg = "filesizeerror".tr();
+                                    file = null;
+                                  }
+                                  setStateForDialog(() {});
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.file_copy_outlined,
+                                      size: 20,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                    SizedBox(width: width / 50),
+                                    Text(
+                                      "selectfile".tr(),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            errorMsg,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontbody,
+                              color: Colors.red,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onDisable();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "disable".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "cancel".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
-              ),
-            ));
-      });
-}
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final form = _formKey.currentState;
+                          if (!form!.validate()) return;
 
-void viewOnlySharedWalletOptions(
-    context, void Function() onModify, void Function() onDisable) {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-  showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            content: Container(
-              decoration: BoxDecoration(
-                color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "sharedaccess".tr(),
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onModify();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "modifysharedaccess".tr(),
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onDisable();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "disablesharedaccess".tr(),
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                ],
-              ),
-            ));
-      });
-}
+                          if (file == null) {
+                            errorMsg = 'selectfiletoupload'.tr();
+                            setStateForDialog(() {});
+                            return;
+                          }
 
-showDocumentUploadPopup(context, String title,
-    {required void Function(String selectedOption, PlatformFile file) onDone,
-    required List<DropdownMenuItem<String>> dropdownItems}) async {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-  final _formKey = GlobalKey<FormState>();
-  String selectedOption =
-      dropdownItems.length > 0 ? dropdownItems.first.value! : "";
-  String errorMsg = '';
-  PlatformFile? file = null;
-  return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
-          return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Center(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15,
-                                fontFamily: fontsemibold),
+                          form.save();
+
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onDone(selectedOption, file!);
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
                           ),
-                        ),
-                      ),
-                      if (dropdownItems.length > 0) ...[
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: dropdown(
-                            (value) {
-                              selectedOption = value.toString();
-                              setStateForDialog(() {});
-                            },
-                            dropdownItems,
-                            null,
-                            selectedOption,
-                            context,
-                            null,
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor,
                           ),
-                        ),
-                      ],
-                      if (selectedOption == "Other") ...[
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        CustomTextFormField.textField(
-                          'enterfiletitle'.tr(),
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          50,
-                          270,
-                          validator: (value) {
-                            if (selectedOption == "Other" &&
-                                value.toString().isEmpty) {
-                              return "pleaseenterfiletitle".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setStateForDialog(() {
-                              selectedOption = value.trim();
-                            });
-                          },
-                        ),
-                      ],
-                      if (file != null) ...[
-                        Container(
-                          width: width / 2.0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                truncate(file!.name, length: 15),
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 12,
-                                  fontFamily: fontbody,
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  CupertinoIcons.delete,
-                                  size: 20,
-                                ),
-                                onPressed: (() {
-                                  setStateForDialog(() {
-                                    file = null;
-                                  });
-                                }),
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        child: Container(
-                          width: width / 2.5,
-                          decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10.0)),
-                            color: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          child: Container(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                TextButton(
-                                  onPressed: () async {
-                                    errorMsg = '';
-                                    file = await getFile();
-                                    if (file != null && file!.size > 900000) {
-                                      errorMsg = "filesizeerror".tr();
-                                      file = null;
-                                    }
-                                    setStateForDialog(() {});
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.file_copy_outlined,
-                                        size: 20,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                      SizedBox(
-                                        width: width / 50,
-                                      ),
-                                      Text(
-                                        "selectfile".tr(),
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                    ],
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: width,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              errorMsg,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: Colors.red,
                               ),
-                            ),
-                          ],
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final form = _formKey.currentState;
-                            if (!form!.validate()) return;
-
-                            if (file == null) {
-                              errorMsg = 'selectfiletoupload'.tr();
-                              setStateForDialog(() {});
-                              return;
-                            }
-
-                            form.save();
-
-                            Navigator.of(context).pop(); // dismiss dialog,
-                            onDone(selectedOption, file!);
-                          },
-                          style: ButtonStyle(
-                            fixedSize: MaterialStateProperty.all(
-                              Size(width / 1.5, height / 20),
-                            ),
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                notifier.getbluecolor),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            "upload".tr(),
-                            style: TextStyle(
-                                color: wihitecolor, fontFamily: fontbody),
+                        child: Text(
+                          "upload".tr(),
+                          style: TextStyle(
+                            color: wihitecolor,
+                            fontFamily: fontbody,
                           ),
                         ),
                       ),
-                      SizedBox(height: height / 50),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
                 ),
-              ));
-        });
-      });
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 Future<PlatformFile?>? getFile() async {
@@ -4159,182 +4273,192 @@ showSubscribePopup(
   final _formKey = GlobalKey<FormState>();
   final amountController = TextEditingController();
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    if (asset.expressedInterest ?? false) ...[
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Center(
-                          child: Text(
-                            "You have already indicated to invest ${formatNumberShort(asset.expressedInterestAmount ?? 0)} ${asset.assetQuoteCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15,
-                                fontFamily: fontbody),
-                          ),
-                        ),
-                      ),
-                    ] else ...[
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Center(
-                          child: Text(
-                            "enterinterestedamount".tr(args: [
-                              asset.assetQuoteCurrency!.toUpperCase()
-                            ]),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15,
-                                fontFamily: fontbody),
-                          ),
-                        ),
-                      ),
-                    ],
-                    Form(
-                      key: _formKey,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          asset.expressedInterest ?? false
-                              ? 'Update ${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}'
-                              : '${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}',
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          85,
-                          260,
-                          onChanged: (value) {
-                            setStateForDialog(() {
-                              amount = value;
-                            });
-                          },
-                          validator: (value) {
-                            if (value.toString().isEmpty) {
-                              return 'fieldcannotbeempty'.tr();
-                            }
-
-                            var parsedValue = double.tryParse(value);
-                            if (parsedValue == null ||
-                                parsedValue <= 0 ||
-                                parsedValue.isNaN) {
-                              return 'pleaseentervalidamount'.tr();
-                            }
-
-                            return null;
-                          },
-                          controller: amountController,
-                          autoFormatNumber: true,
-                          keyboardtype:
-                              TextInputType.numberWithOptions(decimal: true),
-                        ),
-                      ),
-                    ),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: height / 50),
+                  if (asset.expressedInterest ?? false) ...[
                     Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (!_formKey.currentState!.validate()) {
-                            return;
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "You have already indicated to invest ${formatNumberShort(asset.expressedInterestAmount ?? 0)} ${asset.assetQuoteCurrency} on ${asset.assetCode!.toUpperCase()} token when primary sales starts. Do you want to update it?",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "enterinterestedamount".tr(
+                            args: [asset.assetCode!.toUpperCase()],
+                          ),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  Form(
+                    key: _formKey,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        asset.expressedInterest ?? false
+                            ? 'Update ${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}'
+                            : '${"amount".tr()} ${asset.assetQuoteCurrency!.toUpperCase()}',
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        260,
+                        onChanged: (value) {
+                          setStateForDialog(() {
+                            amount = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.toString().isEmpty) {
+                            return 'fieldcannotbeempty'.tr();
                           }
 
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(amount);
+                          var parsedValue = double.tryParse(value);
+                          if (parsedValue == null ||
+                              parsedValue <= 0 ||
+                              parsedValue.isNaN) {
+                            return 'pleaseentervalidamount'.tr();
+                          }
+
+                          return null;
                         },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          asset.expressedInterest ?? false
-                              ? "Update Amount"
-                              : "expressinterest".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                        controller: amountController,
+                        autoFormatNumber: true,
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        // dismiss dialog,
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!_formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onDone(amount);
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "cancel".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        asset.expressedInterest ?? false
+                            ? "Update Amount"
+                            : "expressinterest".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getwihitecolor!,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                            color: notifier.getgrey,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                      ),
+                      child: Text(
+                        "cancel".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 showUnSubscribePopup(
@@ -4349,602 +4473,632 @@ showUnSubscribePopup(
   String selectedWalletPublicKey = '';
   bool showNoSelectedWalletError = false;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    "assets/images/thinking_man.png",
+                    height: height / 4,
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      "assets/images/thinking_man.png",
-                      height: height / 4,
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "confirmunsubscribewithwallet".tr(args: [assetCode]),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "confirmunsubscribewithwallet".tr(args: [assetCode]),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {
-                          selectedWalletPublicKey = value.toString();
-                        },
-                        dropdownItems,
-                        null,
-                        "choosewallet".tr(),
-                        context,
-                        null,
-                      ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: dropdown(
+                      (value) {
+                        selectedWalletPublicKey = value.toString();
+                      },
+                      dropdownItems,
+                      null,
+                      "choosewallet".tr(),
+                      context,
+                      null,
                     ),
-                    if (showNoSelectedWalletError) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              "pleaseselectwallet".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                  fontFamily: fontbody),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                  ),
+                  if (showNoSelectedWalletError) ...[
                     Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (selectedWalletPublicKey.isEmpty) {
-                            setStateForDialog(() {
-                              showNoSelectedWalletError = true;
-                            });
-                            return;
-                          }
-
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedWalletPublicKey);
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
+                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            "pleaseselectwallet".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontFamily: fontbody,
                             ),
                           ),
-                        ),
-                        child: Text(
-                          "unsubscribe".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
+                        ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        // dismiss dialog,
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "cancel".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
                   ],
-                ),
-              ));
-        });
-      });
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (selectedWalletPublicKey.isEmpty) {
+                          setStateForDialog(() {
+                            showNoSelectedWalletError = true;
+                          });
+                          return;
+                        }
+
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onDone(selectedWalletPublicKey);
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                      ),
+                      child: Text(
+                        "unsubscribe".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getwihitecolor!,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                            color: notifier.getgrey,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                      ),
+                      child: Text(
+                        "cancel".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-showBuyTokenPopup(context,
-    {required void Function(Wallet wallet) onDone,
-    required String assetCode,
-    required List<DropdownMenuItem<Wallet>> dropdownItems}) async {
+showBuyTokenPopup(
+  context, {
+  required void Function(Wallet wallet) onDone,
+  required String assetCode,
+  required List<DropdownMenuItem<Wallet>> dropdownItems,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   Wallet? selectedWallet = null;
   bool showNoSelectedWalletError = false;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    "assets/images/thinking_man.png",
+                    height: height / 4,
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      "assets/images/thinking_man.png",
-                      height: height / 4,
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "addmoretokens".tr(args: ['[${assetCode}]']),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "addmoretokens".tr(args: ['[${assetCode}]']),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {
-                          selectedWallet = value as Wallet;
-                        },
-                        dropdownItems,
-                        null,
-                        "choosewallet".tr(),
-                        context,
-                        null,
-                      ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: dropdown(
+                      (value) {
+                        selectedWallet = value as Wallet;
+                      },
+                      dropdownItems,
+                      null,
+                      "choosewallet".tr(),
+                      context,
+                      null,
                     ),
-                    if (showNoSelectedWalletError) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              "pleaseselectwallet".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                  fontFamily: fontbody),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                  ),
+                  if (showNoSelectedWalletError) ...[
                     Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (selectedWallet == null) {
-                            setStateForDialog(() {
-                              showNoSelectedWalletError = true;
-                            });
-                            return;
-                          }
-
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedWallet!);
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
+                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            "pleaseselectwallet".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontFamily: fontbody,
                             ),
                           ),
-                        ),
-                        child: Text(
-                          "proceedtobuytokens".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
+                        ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "cancel".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
                   ],
-                ),
-              ));
-        });
-      });
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (selectedWallet == null) {
+                          setStateForDialog(() {
+                            showNoSelectedWalletError = true;
+                          });
+                          return;
+                        }
+
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onDone(selectedWallet!);
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                      ),
+                      child: Text(
+                        "proceedtobuytokens".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getwihitecolor!,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                            color: notifier.getgrey,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                      ),
+                      child: Text(
+                        "cancel".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-showSwitchEnvironmentPopup(context,
-    {required void Function() onProceed,
-    required void Function() onCancel,
-    required String toEnvironment}) async {
+showSwitchEnvironmentPopup(
+  context, {
+  required void Function() onProceed,
+  required void Function() onCancel,
+  required String toEnvironment,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "doyouwanttoswitch".tr(args: [toEnvironment]),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "doyouwanttoswitch".tr(args: [toEnvironment]),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                          ),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "appwillrestart".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "appwillrestart".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  ),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onProceed();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onProceed();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "switchto".tr(args: [toEnvironment]),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "switchto".tr(args: [toEnvironment]),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onCancel();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onCancel();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getwihitecolor!,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                            color: notifier.getgrey,
+                            width: 1,
+                            style: BorderStyle.solid,
                           ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "cancel".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "cancel".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-showSwitchModePopup(context,
-    {required void Function() onCreateWallet,
-    required void Function() onImportWallet,
-    required String toEnvironment}) async {
+showSwitchModePopup(
+  context, {
+  required void Function() onCreateWallet,
+  required void Function() onImportWallet,
+  required String toEnvironment,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "welcometothe".tr(args: [toEnvironment]),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "welcometothe".tr(args: [toEnvironment]),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                          ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "whatwouldyouliketodo".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "whatwouldyouliketodo".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  ),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onCreateWallet();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onCreateWallet();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "createwallet".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "createwallet".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onImportWallet();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onImportWallet();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getwihitecolor!,
+                        ),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                            color: notifier.getgrey,
+                            width: 1,
+                            style: BorderStyle.solid,
                           ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "importwallet".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "importwallet".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 late List<String> walletTypes = [
@@ -4955,18 +5109,16 @@ late List<String> walletTypes = [
 
 List<DropdownMenuItem<String>> get walletTypeDropdownItems {
   var dropdownItems = walletTypes
-      .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
+      .map<DropdownMenuItem<String>>(
+        (wallet) => DropdownMenuItem(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                wallet,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            children: [Text(wallet, overflow: TextOverflow.ellipsis)],
           ),
-          value: walletTypes.indexOf(wallet).toString()))
+          value: walletTypes.indexOf(wallet).toString(),
+        ),
+      )
       .toList();
 
   return dropdownItems;
@@ -5065,20 +5217,23 @@ Future sendFullDataToServer(
       );
       // add the new subwallet to appState and
       // set the newly created subwallet as the activeWallet
-      appState.activeWallet = appState.userInfo!.wallets!
-          .firstWhere((wallet) => wallet.publicKey == subWallet.publicKey);
+      appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+        (wallet) => wallet.publicKey == subWallet.publicKey,
+      );
 
       appState.activeWallet!.secretKey = subWallet.secretKey;
       // move to next page
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
-      Navigator.of(
-        context,
-        rootNavigator: true,
-      ).pop(false);
+      appState.currentAction = PageAction(
+        state: PageState.addPage,
+        page: CongratulationsPageConfig,
+      );
+      Navigator.of(context, rootNavigator: true).pop(false);
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['error']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['error'],
+      );
     }
   } catch (e) {
     print(e);
@@ -5128,12 +5283,18 @@ Future sendDataToServer(
       }
       showResponseMessage(context, messages, () {
         sendFullDataToServer(
-            responseData['data'], context, subWallet, primaryWalletKeyPair);
+          responseData['data'],
+          context,
+          subWallet,
+          primaryWalletKeyPair,
+        );
       });
     } else {
-      popup(context,
-          title: '${"error".tr()} [${subWallet.tag}]',
-          message: responseData['data']['message']);
+      popup(
+        context,
+        title: '${"error".tr()} [${subWallet.tag}]',
+        message: responseData['data']['message'],
+      );
     }
   } catch (e) {
     print(e);
@@ -5146,8 +5307,9 @@ addSubWalletPopup(context) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
 
-  var primaryWallet = appState.userInfo!.allWallets
-      .firstWhere((wallet) => wallet.isPrimaryWallet);
+  var primaryWallet = appState.userInfo!.allWallets.firstWhere(
+    (wallet) => wallet.isPrimaryWallet,
+  );
   Asset? trov;
   Asset? xbn;
   primaryWallet.claimedAssets!.forEach((asset) {
@@ -5161,16 +5323,22 @@ addSubWalletPopup(context) async {
   });
 
   if (trov == null) {
-    popup(context,
-        title: "notrovtoken".tr(), message: "gettrovtoken".tr(args: ['3']));
+    popup(
+      context,
+      title: "notrovtoken".tr(),
+      message: "gettrovtoken".tr(args: ['3']),
+    );
     return;
   }
 
   if (trov!.amount! < 3 || xbn!.amount! < 2000) {
-    popup(context,
-        title: "insufficientbalance".tr(),
-        message:
-            "insufficienttrovbalanceforsubwallet".tr(args: ['3 TROV', '2000']));
+    popup(
+      context,
+      title: "insufficientbalance".tr(),
+      message: "insufficienttrovbalanceforsubwallet".tr(
+        args: ['3 TROV', '2000'],
+      ),
+    );
     return;
   }
 
@@ -5204,7 +5372,10 @@ addSubWalletPopup(context) async {
     if (password == appState.password!) {
       appState.backupSecrets.clear();
       await sendDataToServer(
-          context, newSubWalletKeyPair, primaryWalletKeyPair);
+        context,
+        newSubWalletKeyPair,
+        primaryWalletKeyPair,
+      );
     } else {
       popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
@@ -5269,17 +5440,26 @@ addSubWalletPopup(context) async {
             ? notifier.getbluecolor90
             : notifier.getaddsubwalletgrey,
         child: Center(
-            child: Column(
-          children: [
-            SizedBox(
-              height: 15,
-            ),
-            Container(
-              width: width / 1.4,
-              child: Text(
-                newSubWalletKeyPair.walletType == 1
-                    ? "abouttocreatetokenizationanddistributionwallets".tr()
-                    : "requesttocreatesubwallet".tr(),
+          child: Column(
+            children: [
+              SizedBox(height: 15),
+              Container(
+                width: width / 1.4,
+                child: Text(
+                  newSubWalletKeyPair.walletType == 1
+                      ? "abouttocreatetokenizationanddistributionwallets".tr()
+                      : "requesttocreatesubwallet".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                "tag".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -5287,109 +5467,8 @@ addSubWalletPopup(context) async {
                   color: notifier.getbluewhitecolor,
                 ),
               ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "tag".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            Text(
-              "${userInfo.username!}_${newSubWalletKeyPair.tag}",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "description".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            Text(
-              newSubWalletKeyPair.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "method".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            Text(
-              action == WalletAction.import
-                  ? "importsubwallet".tr()
-                  : "createnewsubwallet".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "wallettype".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            Text(
-              walletTypes[newSubWalletKeyPair.walletType],
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Text(
-              "publickey".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Text(
-                newSubWalletKeyPair.publicKey,
+              Text(
+                "${userInfo.username!}_${newSubWalletKeyPair.tag}",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -5397,13 +5476,68 @@ addSubWalletPopup(context) async {
                   color: notifier.getbluewhitecolor,
                 ),
               ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            if (newSubWalletKeyPair.distributionWalletPublicKey != null) ...[
+              SizedBox(height: 15),
               Text(
-                "distributionwalletpublickey".tr(),
+                "description".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                newSubWalletKeyPair.description,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                "method".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                action == WalletAction.import
+                    ? "importsubwallet".tr()
+                    : "createnewsubwallet".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                "wallettype".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                walletTypes[newSubWalletKeyPair.walletType],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                "publickey".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -5414,7 +5548,7 @@ addSubWalletPopup(context) async {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Text(
-                  newSubWalletKeyPair.distributionWalletPublicKey ?? "",
+                  newSubWalletKeyPair.publicKey,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -5423,27 +5557,47 @@ addSubWalletPopup(context) async {
                   ),
                 ),
               ),
-            ],
-            SizedBox(
-              height: 30,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                "willattractcharges".tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
+              SizedBox(height: 15),
+              if (newSubWalletKeyPair.distributionWalletPublicKey != null) ...[
+                Text(
+                  "distributionwalletpublickey".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Text(
+                    newSubWalletKeyPair.distributionWalletPublicKey ?? "",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  "willattractcharges".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-          ],
-        )),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -5485,9 +5639,7 @@ addSubWalletPopup(context) async {
                   child: Center(
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: 15,
-                        ),
+                        SizedBox(height: 15),
                         Container(
                           width: width / 1.4,
                           child: Text(
@@ -5500,9 +5652,7 @@ addSubWalletPopup(context) async {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 15,
-                        ),
+                        SizedBox(height: 15),
                         Text(
                           "chooseamethod".tr(),
                           textAlign: TextAlign.center,
@@ -5512,14 +5662,10 @@ addSubWalletPopup(context) async {
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        SizedBox(
-                          height: 15,
-                        ),
+                        SizedBox(height: 15),
                         Row(
                           children: [
-                            SizedBox(
-                              width: width / 10,
-                            ),
+                            SizedBox(width: width / 10),
                             SizedBox(
                               height: 20,
                               child: Transform.scale(
@@ -5529,13 +5675,12 @@ addSubWalletPopup(context) async {
                                   groupValue: action,
                                   activeColor: notifier.getbluewhitecolor,
                                   fillColor: MaterialStateColor.resolveWith(
-                                      (states) => notifier.getbluewhitecolor),
+                                    (states) => notifier.getbluewhitecolor,
+                                  ),
                                   onChanged: (value) => {
-                                    setStateForDialog(
-                                      () {
-                                        action = value;
-                                      },
-                                    )
+                                    setStateForDialog(() {
+                                      action = value;
+                                    }),
                                   },
                                 ),
                               ),
@@ -5553,9 +5698,7 @@ addSubWalletPopup(context) async {
                         SizedBox(height: 15),
                         Row(
                           children: [
-                            SizedBox(
-                              width: width / 10,
-                            ),
+                            SizedBox(width: width / 10),
                             SizedBox(
                               height: 20,
                               child: Transform.scale(
@@ -5564,14 +5707,13 @@ addSubWalletPopup(context) async {
                                   value: WalletAction.createNew,
                                   activeColor: notifier.getbluewhitecolor,
                                   fillColor: MaterialStateColor.resolveWith(
-                                      (states) => notifier.getbluewhitecolor),
+                                    (states) => notifier.getbluewhitecolor,
+                                  ),
                                   groupValue: action,
                                   onChanged: (value) => {
-                                    setStateForDialog(
-                                      () {
-                                        action = value;
-                                      },
-                                    )
+                                    setStateForDialog(() {
+                                      action = value;
+                                    }),
                                   },
                                 ),
                               ),
@@ -5594,23 +5736,20 @@ addSubWalletPopup(context) async {
                               "willattractcharges".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody,
-                                  fontSize: 12.sp),
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                                fontSize: 12.sp,
+                              ),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                       ],
                     ),
                   ),
                 ),
               ),
-              SizedBox(
-                height: 17,
-              ),
+              SizedBox(height: 17),
               // Tag name
               CustomTextFormField.textField(
                 "tag".tr(),
@@ -5689,8 +5828,10 @@ addSubWalletPopup(context) async {
                     return null;
                   },
                   onSaved: (value) {
-                    newSubWalletKeyPair.secretKey =
-                        value!.trim().replaceAll(' ', '');
+                    newSubWalletKeyPair.secretKey = value!.trim().replaceAll(
+                      ' ',
+                      '',
+                    );
                   },
                   maxLength: 56,
                 ),
@@ -5716,8 +5857,11 @@ addSubWalletPopup(context) async {
                           ),
                           value: importExistingWalletForDistribution,
                           onChanged: (bool? value) {
-                            setStateForDialog(() =>
-                                {importExistingWalletForDistribution = value!});
+                            setStateForDialog(
+                              () => {
+                                importExistingWalletForDistribution = value!,
+                              },
+                            );
                           },
                         ),
                       ),
@@ -5767,10 +5911,12 @@ addSubWalletPopup(context) async {
                       },
                       onSaved: (value) {
                         print('saving... $value');
-                        newSubWalletKeyPair.distributionWalletSecretKey =
-                            value!.trim().replaceAll(' ', '');
+                        newSubWalletKeyPair.distributionWalletSecretKey = value!
+                            .trim()
+                            .replaceAll(' ', '');
                         print(
-                            'saved... ${newSubWalletKeyPair.distributionWalletSecretKey}');
+                          'saved... ${newSubWalletKeyPair.distributionWalletSecretKey}',
+                        );
                       },
                       maxLength: 56,
                     ),
@@ -5800,23 +5946,27 @@ addSubWalletPopup(context) async {
 
                   form.save();
 
-                  primaryWalletKeyPair =
-                      TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
+                  primaryWalletKeyPair = TrovoWalletSDK().parseSecretKey(
+                    appState.secretKeys[0],
+                  );
 
                   setStateForDialog(() {
                     if (action == WalletAction.import) {
                       try {
                         // parse supplied secret to get the keypair
-                        var ac = TrovoWalletSDK()
-                            .parseSecretKey(newSubWalletKeyPair.secretKey);
+                        var ac = TrovoWalletSDK().parseSecretKey(
+                          newSubWalletKeyPair.secretKey,
+                        );
 
                         newSubWalletKeyPair.publicKey = ac.publicKey;
                         newSubWalletKeyPair.secretKey = ac.secretKey;
                         newSubWalletKeyPair.isImport = true;
                       } catch (e) {
-                        popup(context,
-                            title: "error".tr(),
-                            message: "invalidsecretkey".tr());
+                        popup(
+                          context,
+                          title: "error".tr(),
+                          message: "invalidsecretkey".tr(),
+                        );
                       }
                     } else {
                       // generate keypair for the new subwallet
@@ -5836,18 +5986,22 @@ addSubWalletPopup(context) async {
                         try {
                           // parse supplied secret to get the keypair
                           print(
-                              'secretkey...${newSubWalletKeyPair.distributionWalletSecretKey}');
+                            'secretkey...${newSubWalletKeyPair.distributionWalletSecretKey}',
+                          );
                           var ac = TrovoWalletSDK().parseSecretKey(
-                              newSubWalletKeyPair.distributionWalletSecretKey);
+                            newSubWalletKeyPair.distributionWalletSecretKey,
+                          );
 
                           newSubWalletKeyPair.distributionWalletPublicKey =
                               ac.publicKey;
                           newSubWalletKeyPair.distributionWalletSecretKey =
                               ac.secretKey;
                         } catch (e) {
-                          popup(context,
-                              title: "error".tr(),
-                              message: "invalidsecretkey".tr());
+                          popup(
+                            context,
+                            title: "error".tr(),
+                            message: "invalidsecretkey".tr(),
+                          );
                           return;
                         }
                       } else {
@@ -5863,9 +6017,11 @@ addSubWalletPopup(context) async {
 
                     password = '';
                     walletView = WalletView.confirmAddSubWallet;
-                    scrollController.animateTo(0,
-                        duration: Duration(milliseconds: 100),
-                        curve: Curves.easeInOut);
+                    scrollController.animateTo(
+                      0,
+                      duration: Duration(milliseconds: 100),
+                      curve: Curves.easeInOut,
+                    );
                   });
                 },
               ),
@@ -5884,10 +6040,7 @@ addSubWalletPopup(context) async {
                   setStateForDialog(() {
                     appState.returnView = null;
                   });
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop(false);
+                  Navigator.of(context, rootNavigator: true).pop(false);
                 },
               ),
               SizedBox(height: 30),
@@ -5899,121 +6052,123 @@ addSubWalletPopup(context) async {
   }
 
   Widget showWalletDetailsView(setStateForDialog) {
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Center(
-          child: Text(
-            "addsubwallet".tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: notifier.getbluewhitecolor,
-              fontSize: 20,
-              fontFamily: fontsemibold,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Center(
+            child: Text(
+              "addsubwallet".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: notifier.getbluewhitecolor,
+                fontSize: 20,
+                fontFamily: fontsemibold,
+              ),
             ),
           ),
         ),
-      ),
-      SizedBox(height: 15),
-      Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            walletDetailCard(),
-          ],
+        SizedBox(height: 15),
+        Form(
+          key: _formKey,
+          child: Column(children: [walletDetailCard()]),
         ),
-      ),
-      SizedBox(height: 15),
-      CustomPasswordFormField(
-        "password".tr(),
-        notifier.getbluecolor,
-        Icons.lock,
-        notifier.getgrey,
-        notifier.getbluewhitecolor,
-        notifier.getblck,
-        70,
-        300,
-        validator: validatePassword,
-        textInputAction: TextInputAction.done,
-        onChanged: (value) {
-          setStateForDialog(() {
-            password = value!.trim().replaceAll(' ', '');
-          });
-        },
-        onSaved: (value) {
-          print('email: $value');
-          newSubWalletKeyPair.secretKey = value!.trim().replaceAll(' ', '');
-        },
-      ),
-      SizedBox(height: 15),
-      if (appState.biometricEnabled && password.isEmpty) ...[
-        Button(
-          "authorizewithbiometrics".tr(),
+        SizedBox(height: 15),
+        CustomPasswordFormField(
+          "password".tr(),
           notifier.getbluecolor,
-          wihitecolor,
-          onTap: () => {toggleSwitch(context)},
-          width: width / 1.5,
+          Icons.lock,
+          notifier.getgrey,
+          notifier.getbluewhitecolor,
+          notifier.getblck,
+          70,
+          300,
+          validator: validatePassword,
+          textInputAction: TextInputAction.done,
+          onChanged: (value) {
+            setStateForDialog(() {
+              password = value!.trim().replaceAll(' ', '');
+            });
+          },
+          onSaved: (value) {
+            print('email: $value');
+            newSubWalletKeyPair.secretKey = value!.trim().replaceAll(' ', '');
+          },
         ),
-      ] else ...[
-        Button(
-          "authorize".tr(),
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: () => {handleAuthorization(_formKey, appState, context)},
-          width: width / 1.5,
-        ),
-      ],
-      SizedBox(height: 8),
-      TextButton(
+        SizedBox(height: 15),
+        if (appState.biometricEnabled && password.isEmpty) ...[
+          Button(
+            "authorizewithbiometrics".tr(),
+            notifier.getbluecolor,
+            wihitecolor,
+            onTap: () => {toggleSwitch(context)},
+            width: width / 1.5,
+          ),
+        ] else ...[
+          Button(
+            "authorize".tr(),
+            notifier.getbluecolor,
+            wihitecolor,
+            onTap: () => {handleAuthorization(_formKey, appState, context)},
+            width: width / 1.5,
+          ),
+        ],
+        SizedBox(height: 8),
+        TextButton(
           child: Text(
             "back".tr(),
             style: TextStyle(
-                fontSize: 14.0,
-                fontFamily: fontbody,
-                fontWeight: FontWeight.bold,
-                color: notifier.getbluewhitecolor),
+              fontSize: 14.0,
+              fontFamily: fontbody,
+              fontWeight: FontWeight.bold,
+              color: notifier.getbluewhitecolor,
+            ),
           ),
           onPressed: () {
             setStateForDialog(() {
               walletView = WalletView.addSubWallet;
             });
-          }),
-      SizedBox(height: 20),
-    ]);
+          },
+        ),
+        SizedBox(height: 20),
+      ],
+    );
   }
 
   var show = showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    children: [
-                      if (walletView == WalletView.addSubWallet) ...[
-                        showAddSubwalletView(setStateForDialog),
-                      ] else ...[
-                        showWalletDetailsView(setStateForDialog),
-                      ]
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    if (walletView == WalletView.addSubWallet) ...[
+                      showAddSubwalletView(setStateForDialog),
+                    ] else ...[
+                      showWalletDetailsView(setStateForDialog),
                     ],
-                  ),
+                  ],
                 ),
-              ));
-        });
-      });
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 
   return show;
 }
@@ -6024,161 +6179,159 @@ showCreateTokenizationWalletPopup(context) async {
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(20),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/empty_folder.png',
-                          // height: 50,
-                          width: 250,
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/empty_folder.png',
+                        // height: 50,
+                        width: 250,
+                      ),
+                      Text(
+                        "toproceedwithtokenization".tr(),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
                         ),
-                        Text(
-                          "toproceedwithtokenization".tr(),
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
+                      ),
+                      SizedBox(height: height / 70),
+                      Text(
+                        "step1".tr(),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 70),
+                      Text(
+                        "step2".tr(),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 70),
+                      ElevatedButton(
+                        onPressed: () async {
+                          appState.returnView = PageAction(
+                            state: PageState.addAll,
+                            pages: [
+                              BottomHomePageConfig,
+                              WalletPreparationViewPageConfig,
+                            ],
+                          );
+                          addSubWalletPopup(context);
+                        },
+                        style: ButtonStyle(
+                          overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey,
                           ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "step1".tr(),
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluewhitecolor,
                           ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "step2".tr(),
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            appState.returnView = PageAction(
-                                state: PageState.addAll,
-                                pages: [
-                                  BottomHomePageConfig,
-                                  WalletPreparationViewPageConfig
-                                ]);
-                            addSubWalletPopup(context);
-                          },
-                          style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all<Color>(
-                                notifier.getsplashgrey),
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                notifier.getbluewhitecolor),
-                            side: MaterialStateProperty.all(
-                              BorderSide(
-                                  color: notifier.getbluewhitecolor,
-                                  width: 1,
-                                  style: BorderStyle.solid),
-                            ),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                              style: BorderStyle.solid,
                             ),
                           ),
-                          child: Container(
-                            // width: width / 1.5,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_circle_rounded,
-                                  size: 20,
-                                  color: notifier.getwihitecolor,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Text(
-                                  "createnewwallet".tr(),
-                                  style: TextStyle(
-                                      fontFamily: fontsemibold,
-                                      fontSize: 12,
-                                      color: notifier.getwihitecolor),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            TextButton(
-                                child: Text(
-                                  "close".tr(),
-                                  style: TextStyle(
-                                    fontSize: 14.0,
-                                    fontFamily: fontbody,
-                                    fontWeight: FontWeight.bold,
-                                    color: notifier.getbluecolor,
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
                                   ),
                                 ),
-                                onPressed: () {
-                                  appState.returnView = null;
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop(false);
-                                }),
-                          ],
+                              ),
                         ),
-                        SizedBox(height: height / 50),
-                      ],
-                    ),
+                        child: Container(
+                          // width: width / 1.5,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_circle_rounded,
+                                size: 20,
+                                color: notifier.getwihitecolor,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                "createnewwallet".tr(),
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  color: notifier.getwihitecolor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: height / 90),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            child: Text(
+                              "close".tr(),
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontFamily: fontbody,
+                                fontWeight: FontWeight.bold,
+                                color: notifier.getbluecolor,
+                              ),
+                            ),
+                            onPressed: () {
+                              appState.returnView = null;
+                              Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(false);
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
                   ),
                 ),
-              ));
-        });
-      });
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 confirmAccountDeletionPopup(
@@ -6207,167 +6360,170 @@ confirmAccountDeletionPopup(
   }
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(20),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: height / 50),
-                        Text(
-                          "confirmaccountdeletion".tr(),
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold,
-                            fontSize: 16,
-                          ),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: height / 50),
+                      Text(
+                        "confirmaccountdeletion".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 16,
                         ),
-                        SizedBox(height: height / 50),
-                        Text(
-                          "authorizeaccountdeletion".tr(),
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        "authorizeaccountdeletion".tr(),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(15.0)),
-                              color: notifier.isDark
-                                  ? notifier.getbluecolor50
-                                  : Colors.blue[50],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(15.0),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10.0, vertical: 15.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    appState.userInfo!.fullName,
-                                    style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold,
-                                      fontSize: 13,
-                                    ),
+                            color: notifier.isDark
+                                ? notifier.getbluecolor50
+                                : Colors.blue[50],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0,
+                              vertical: 15.0,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  appState.userInfo!.fullName,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                    fontSize: 13,
                                   ),
-                                  Text(
-                                    appState.userInfo!.email!,
-                                    style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 13,
-                                    ),
+                                ),
+                                Text(
+                                  appState.userInfo!.email!,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                    fontSize: 13,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        CustomPasswordFormField(
-                          "password".tr(),
+                      ),
+                      SizedBox(height: height / 50),
+                      CustomPasswordFormField(
+                        "password".tr(),
+                        notifier.getbluecolor,
+                        Icons.lock,
+                        notifier.getgrey,
+                        notifier.getbluewhitecolor,
+                        notifier.getblck,
+                        70,
+                        300,
+                        validator: (String? value) {
+                          if (value!.isEmpty)
+                            return "pleaseenteryourpassword".tr();
+
+                          if (value.length < 6)
+                            return "use6charsormoreforpassword".tr();
+
+                          return null;
+                        },
+                        textInputAction: TextInputAction.done,
+                        onChanged: (value) {
+                          setStateForDialog(() {
+                            password = value!.trim().replaceAll(' ', '');
+                          });
+                        },
+                        onSaved: (value) {},
+                      ),
+                      SizedBox(height: height / 50),
+                      if (appState.biometricEnabled && password.isEmpty) ...[
+                        Button(
+                          "authorizewithbiometrics".tr(),
                           notifier.getbluecolor,
-                          Icons.lock,
-                          notifier.getgrey,
-                          notifier.getbluewhitecolor,
-                          notifier.getblck,
-                          70,
-                          300,
-                          validator: (String? value) {
-                            if (value!.isEmpty)
-                              return "pleaseenteryourpassword".tr();
-
-                            if (value.length < 6)
-                              return "use6charsormoreforpassword".tr();
-
-                            return null;
+                          wihitecolor,
+                          onTap: () {
+                            authFingerprint(context);
                           },
-                          textInputAction: TextInputAction.done,
-                          onChanged: (value) {
-                            setStateForDialog(() {
-                              password = value!.trim().replaceAll(' ', '');
-                            });
-                          },
-                          onSaved: (value) {},
+                          width: width / 1.5,
                         ),
-                        SizedBox(height: height / 50),
-                        if (appState.biometricEnabled && password.isEmpty) ...[
-                          Button(
-                            "authorizewithbiometrics".tr(),
-                            notifier.getbluecolor,
-                            wihitecolor,
+                      ] else ...[
+                        Button(
+                          "authorize".tr(),
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            if (password == appState.password!) {
+                              onConfirmationSuccess();
+                            } else {
+                              popup(
+                                context,
+                                title: "oops".tr(),
+                                message: "invalidpassword".tr(),
+                              );
+                            }
+                          },
+                          width: width / 1.5,
+                        ),
+                      ],
+                      SizedBox(height: height / 90),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ButtonOutlined(
+                            "close".tr(),
+                            notifier.getwihitecolor,
+                            notifier.getbluewhitecolor,
                             onTap: () {
-                              authFingerprint(context);
-                            },
-                            width: width / 1.5,
-                          ),
-                        ] else ...[
-                          Button(
-                            "authorize".tr(),
-                            notifier.getbluecolor,
-                            wihitecolor,
-                            onTap: () {
-                              if (password == appState.password!) {
-                                onConfirmationSuccess();
-                              } else {
-                                popup(context,
-                                    title: "oops".tr(),
-                                    message: "invalidpassword".tr());
-                              }
+                              Navigator.of(context).pop();
                             },
                             width: width / 1.5,
                           ),
                         ],
-                        SizedBox(
-                          height: height / 90,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ButtonOutlined(
-                              "close".tr(),
-                              notifier.getwihitecolor,
-                              notifier.getbluewhitecolor,
-                              onTap: () {
-                                Navigator.of(context).pop();
-                              },
-                              width: width / 1.5,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: height / 50),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
                   ),
                 ),
-              ));
-        });
-      });
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 confirmTokenizationDeletePopup(
@@ -6379,93 +6535,91 @@ confirmTokenizationDeletePopup(
   width = MediaQuery.of(context).size.width;
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(20),
-              content: Container(
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: height / 50),
+                      Text(
+                        "confirmatokenizationdeletion".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        "areyousuredeletetokenization".tr(),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Button(
+                        "yesdelete".tr(),
+                        Colors.red,
+                        wihitecolor,
+                        width: width / 1.5,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          onConfirmationSuccess();
+                        },
+                      ),
+                      SizedBox(height: height / 90),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ButtonOutlined(
+                            "nocancel".tr(),
+                            notifier.getwihitecolor,
+                            notifier.getbluewhitecolor,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            width: width / 1.5,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: height / 50),
-                        Text(
-                          "confirmatokenizationdeletion".tr(),
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: height / 50),
-                        Text(
-                          "areyousuredeletetokenization".tr(),
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Button(
-                          "yesdelete".tr(),
-                          Colors.red,
-                          wihitecolor,
-                          width: width / 1.5,
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            onConfirmationSuccess();
-                          },
-                        ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ButtonOutlined(
-                              "nocancel".tr(),
-                              notifier.getwihitecolor,
-                              notifier.getbluewhitecolor,
-                              onTap: () {
-                                Navigator.of(context).pop();
-                              },
-                              width: width / 1.5,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: height / 50),
-                      ],
-                    ),
-                  ),
-                ),
-              ));
-        });
-      });
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 uploadTokenizationFeePopup(
   context, {
   required void Function(PlatformFile? file, String transactionReference)
-      onSubmit,
+  onSubmit,
   bool requireFile = true,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
@@ -6476,10 +6630,11 @@ uploadTokenizationFeePopup(
   String errorMsg = '';
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
             // scrollable: true,
             backgroundColor: Colors.transparent,
@@ -6488,9 +6643,7 @@ uploadTokenizationFeePopup(
               width: width / 1.1,
               decoration: BoxDecoration(
                 color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(23)),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -6542,9 +6695,12 @@ uploadTokenizationFeePopup(
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                  color: notifier.getbluewhitecolor, width: 1),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(15.0)),
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(15.0),
+                              ),
                               color: notifier.isDark
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
@@ -6573,9 +6729,10 @@ uploadTokenizationFeePopup(
                                           textAlign: TextAlign.center,
                                           overflow: TextOverflow.visible,
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: notifier.getbluewhitecolor,
-                                              fontFamily: fontbody),
+                                            fontSize: 15,
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontbody,
+                                          ),
                                         ),
                                       ),
                                       SizedBox(height: height / 70),
@@ -6601,9 +6758,7 @@ uploadTokenizationFeePopup(
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: CustomTextFormField.textField(
@@ -6646,19 +6801,23 @@ uploadTokenizationFeePopup(
                             backgroundColor: MaterialStateProperty.all<Color>(
                               notifier.getbluecolor,
                             ),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
+                            shape:
+                                MaterialStateProperty.all<
+                                  RoundedRectangleBorder
+                                >(
+                                  const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
                           ),
                           child: Text(
                             "upload".tr(),
                             style: TextStyle(
-                                color: wihitecolor, fontFamily: fontbody),
+                              color: wihitecolor,
+                              fontFamily: fontbody,
+                            ),
                           ),
                         ),
                       ),
@@ -6672,153 +6831,168 @@ uploadTokenizationFeePopup(
                               Size(width / 1.5, height / 20),
                             ),
                             overlayColor: MaterialStateProperty.all<Color>(
-                                notifier.getsplashgrey),
+                              notifier.getsplashgrey,
+                            ),
                             elevation: MaterialStateProperty.all<double>(0),
                             backgroundColor: MaterialStateProperty.all<Color>(
-                                notifier.getwihitecolor!),
+                              notifier.getwihitecolor!,
+                            ),
                             side: MaterialStateProperty.all(
                               BorderSide(
-                                  color: notifier.getgrey,
-                                  width: 1,
-                                  style: BorderStyle.solid),
-                            ),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
+                                color: notifier.getgrey,
+                                width: 1,
+                                style: BorderStyle.solid,
                               ),
                             ),
+                            shape:
+                                MaterialStateProperty.all<
+                                  RoundedRectangleBorder
+                                >(
+                                  const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
+                                  ),
+                                ),
                           ),
                           child: Text(
                             "cancel".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 20)
+                      SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
             ),
           );
-        });
-      });
+        },
+      );
+    },
+  );
 }
 
-tokenizationFilterTextFieldPopup(context,
-    {required String label,
-    String? placeholder,
-    required void Function(String?) onDone}) async {
+tokenizationFilterTextFieldPopup(
+  context, {
+  required String label,
+  String? placeholder,
+  required void Function(String?) onDone,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   String? textValue;
   var textController = TextEditingController();
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: CustomTextFormField.textFieldWithoutIcon(
+                          placeholder,
+                          notifier.getbluecolor,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          55.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            if (value != null && value.toString().isNotEmpty) {
+                              textValue = value;
+                            }
+                          },
+                          controller: textController,
+                          keyboardtype: TextInputType.text,
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: CustomTextFormField.textFieldWithoutIcon(
-                            placeholder,
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            55.sp,
-                            300.sp,
-                            onChanged: (value) {
-                              if (value != null &&
-                                  value.toString().isNotEmpty) {
-                                textValue = value;
-                              }
-                            },
-                            controller: textController,
-                            keyboardtype: TextInputType.text,
-                          ),
+                  ),
+                  SizedBox(height: height / 30),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (textValue != null) {
+                          onDone(textValue);
+                        }
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (textValue != null) {
-                            onDone(textValue);
-                          }
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 tokenizationStatusPopup(
@@ -6829,90 +7003,113 @@ tokenizationStatusPopup(
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "selecttokenizationstatus".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "selecttokenizationstatus".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                quickDateRange(context, text: "all".tr(),
-                                    onPressed: () {
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "all".tr(),
+                                onPressed: () {
                                   onSelected('0');
-                                }),
-                                quickDateRange(context,
-                                    text: "Awaiting Fee".tr(), onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Awaiting Fee".tr(),
+                                onPressed: () {
                                   onSelected('1');
-                                }),
-                                quickDateRange(context, text: "Processing".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Processing".tr(),
+                                onPressed: () {
                                   onSelected('2');
-                                }),
-                                quickDateRange(context,
-                                    text: "Primary Sales".tr(), onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Primary Sales".tr(),
+                                onPressed: () {
                                   onSelected('5');
-                                }),
-                                quickDateRange(context,
-                                    text: "Secondary Market".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Secondary Market".tr(),
+                                onPressed: () {
                                   onSelected('6');
-                                }),
-                                quickDateRange(context, text: "Liquidated".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Liquidated".tr(),
+                                onPressed: () {
                                   onSelected('7');
-                                }),
-                                quickDateRange(context, text: "Refunded".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "Refunded".tr(),
+                                onPressed: () {
                                   onSelected('8');
-                                }),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 tokenizationOfferingTypePopup(
@@ -6923,317 +7120,357 @@ tokenizationOfferingTypePopup(
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "offeringtype".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "offeringtype".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                quickDateRange(context, text: "public".tr(),
-                                    onPressed: () {
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "public".tr(),
+                                onPressed: () {
                                   onSelected('0');
-                                }),
-                                quickDateRange(context, text: "private".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "private".tr(),
+                                onPressed: () {
                                   onSelected('1');
-                                }),
-                              ],
-                            ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
-tokenizationCustomDateRangePopup(context,
-    {DateTime? initialStartDate,
-    DateTime? initialEndDate,
-    required void Function(DateTime startDate, DateTime endDate)
-        onDone}) async {
+tokenizationCustomDateRangePopup(
+  context, {
+  DateTime? initialStartDate,
+  DateTime? initialEndDate,
+  required void Function(DateTime startDate, DateTime endDate) onDone,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           var initialDate = DateTime.now();
           DateTime? startDate =
               initialStartDate ?? DateTime.now().subtract(Duration(days: 1));
           DateTime? endDate = initialEndDate ?? DateTime.now();
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enterdaterange".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "enterdaterange".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Wrap(
-                              children: [
-                                quickDateRange(context, text: "pastweek".tr(),
-                                    onPressed: () {
-                                  startDate = DateTime.now()
-                                      .subtract(Duration(days: 7));
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(
+                                context,
+                                text: "pastweek".tr(),
+                                onPressed: () {
+                                  startDate = DateTime.now().subtract(
+                                    Duration(days: 7),
+                                  );
                                   endDate = DateTime.now();
-                                }),
-                                quickDateRange(context, text: "pastmonth".tr(),
-                                    onPressed: () {
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "pastmonth".tr(),
+                                onPressed: () {
                                   var date = DateTime.now();
                                   endDate = date;
                                   startDate = DateTime(
-                                      date.year, date.month - 1, date.day);
-                                }),
-                                quickDateRange(context, text: "past3month".tr(),
-                                    onPressed: () {
+                                    date.year,
+                                    date.month - 1,
+                                    date.day,
+                                  );
+                                },
+                              ),
+                              quickDateRange(
+                                context,
+                                text: "past3month".tr(),
+                                onPressed: () {
                                   var date = DateTime.now();
                                   endDate = date;
                                   startDate = DateTime(
-                                      date.year, date.month - 3, date.day);
-                                }),
-                              ],
+                                    date.year,
+                                    date.month - 3,
+                                    date.day,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 70),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10.0,
+                              horizontal: 5.0,
                             ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "startdate".tr(),
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 15,
-                                        fontFamily: fontbody),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "startdate".tr(),
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
                                   ),
-                                  SizedBox(
-                                    height: height / 70,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(10.0)),
-                                      color: notifier.isDark
-                                          ? darktilewhitecolor
-                                          : notifier.getaddsubwalletgrey,
+                                ),
+                                SizedBox(height: height / 70),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
                                     ),
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        startDate = await showDatePicker(
-                                              context: context,
-                                              initialDate: initialDate,
-                                              firstDate: DateTime
-                                                  .fromMicrosecondsSinceEpoch(
-                                                      1000),
-                                              lastDate: DateTime.now(),
-                                            ) ??
-                                            startDate;
-                                      },
-                                      child: Wrap(children: [
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      startDate =
+                                          await showDatePicker(
+                                            context: context,
+                                            initialDate: initialDate,
+                                            firstDate:
+                                                DateTime.fromMicrosecondsSinceEpoch(
+                                                  1000,
+                                                ),
+                                            lastDate: DateTime.now(),
+                                          ) ??
+                                          startDate;
+                                    },
+                                    child: Wrap(
+                                      children: [
                                         Text(
-                                          DateFormat('MMMM dd, yyyy')
-                                              .format(startDate ?? initialDate),
+                                          DateFormat(
+                                            'MMMM dd, yyyy',
+                                          ).format(startDate ?? initialDate),
                                           textAlign: TextAlign.start,
                                           style: TextStyle(
-                                              color: notifier.getbluewhitecolor,
-                                              fontSize: 15,
-                                              fontFamily: fontsemibold),
+                                            color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold,
+                                          ),
                                         ),
-                                        SizedBox(
-                                          width: width / 50,
-                                        ),
+                                        SizedBox(width: width / 50),
                                         Icon(
                                           Icons.edit,
                                           size: 16,
                                           color: notifier.getbluewhitecolor,
                                         ),
-                                      ]),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "enddate".tr(),
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 15,
-                                        fontFamily: fontbody),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10.0,
+                              horizontal: 5.0,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "enddate".tr(),
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
                                   ),
-                                  SizedBox(
-                                    height: height / 70,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(10.0)),
-                                      color: notifier.isDark
-                                          ? darktilewhitecolor
-                                          : notifier.getaddsubwalletgrey,
+                                ),
+                                SizedBox(height: height / 70),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(10.0),
                                     ),
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        endDate = await showDatePicker(
-                                              context: context,
-                                              initialDate:
-                                                  endDate ?? initialDate,
-                                              firstDate: DateTime
-                                                  .fromMicrosecondsSinceEpoch(
-                                                      1000),
-                                              lastDate: DateTime.now(),
-                                            ) ??
-                                            endDate;
-                                      },
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          Text(
-                                            DateFormat('MMMM dd, yyyy').format(
-                                                endDate ?? DateTime.now()),
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                                fontSize: 15,
-                                                fontFamily: fontsemibold),
-                                          ),
-                                          SizedBox(
-                                            width: width / 50,
-                                          ),
-                                          Icon(
-                                            Icons.edit,
-                                            size: 16,
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      endDate =
+                                          await showDatePicker(
+                                            context: context,
+                                            initialDate: endDate ?? initialDate,
+                                            firstDate:
+                                                DateTime.fromMicrosecondsSinceEpoch(
+                                                  1000,
+                                                ),
+                                            lastDate: DateTime.now(),
+                                          ) ??
+                                          endDate;
+                                    },
+                                    child: Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          DateFormat(
+                                            'MMMM dd, yyyy',
+                                          ).format(endDate ?? DateTime.now()),
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
                                             color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        SizedBox(width: width / 50),
+                                        Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        if (startDate != null && endDate != null) {
+                          onDone(startDate!, endDate!);
+                        }
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
-                          ],
+                      ),
+                      child: Text(
+                        "done".tr(),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          if (startDate != null && endDate != null) {
-                            onDone(startDate!, endDate!);
-                          }
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 tokenizationAmountRangePopup(
@@ -7251,154 +7488,19 @@ tokenizationAmountRangePopup(
   maxAmountTextController.text = maxAmount.toString();
 
   return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setStateForDialog) {
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
           return AlertDialog(
-              // scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(0),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "enteramountrange".tr(),
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      constraints: BoxConstraints(
-                          maxHeight: height / 1.7, minWidth: width / 1.1),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomTextFormField.textFieldWithoutIcon(
-                                "minimumamount".tr(),
-                                notifier.getbluecolor,
-                                notifier.getgrey,
-                                notifier.getprefixicon,
-                                notifier.getblck,
-                                notifier.getgrey,
-                                55.sp, 300.sp,
-                                onChanged: (value) {
-                                  if (value != null &&
-                                      value.toString().isNotEmpty) {
-                                    minAmount =
-                                        double.tryParse(value.toString()) ?? 0;
-                                  }
-                                },
-                                controller: minAmountTextController,
-                                keyboardtype: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
-                              ),
-                              SizedBox(
-                                height: height / 30,
-                              ),
-                              CustomTextFormField.textFieldWithoutIcon(
-                                "maximumamount".tr(),
-                                notifier.getbluecolor,
-                                notifier.getgrey,
-                                notifier.getprefixicon,
-                                notifier.getblck,
-                                notifier.getgrey,
-                                55.sp, 300.sp,
-                                onChanged: (value) {
-                                  if (value != null &&
-                                      value.toString().isNotEmpty) {
-                                    maxAmount =
-                                        double.tryParse(value.toString()) ?? 0;
-                                  }
-                                },
-                                controller: maxAmountTextController,
-                                keyboardtype: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 30,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onDone(minAmount, maxAmount);
-                          Navigator.of(context).pop(); // dismiss dialog,
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "done".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              ));
-        });
-      });
-}
-
-void kycUnverifiedErrorPop(context) {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  var appState = Provider.of<DataProvider>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-  showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            scrollable: true,
+            // scrollable: true,
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
+            insetPadding: const EdgeInsets.all(0),
             content: Container(
               decoration: BoxDecoration(
                 color: notifier.getwihitecolor,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(23),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(23)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -7408,114 +7510,258 @@ void kycUnverifiedErrorPop(context) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        "important".tr(),
+                        "enteramountrange".tr(),
                         style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 18,
-                            fontFamily: fontsemibold),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
                   Container(
                     constraints: BoxConstraints(
-                      maxHeight: height / 5,
+                      maxHeight: height / 1.7,
+                      minWidth: width / 1.1,
                     ),
                     // height: height / 5,
                     child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              'You must have your KYC verification done before you can proceed with this action.',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.red,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomTextFormField.textFieldWithoutIcon(
+                              "minimumamount".tr(),
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              55.sp,
+                              300.sp,
+                              onChanged: (value) {
+                                if (value != null &&
+                                    value.toString().isNotEmpty) {
+                                  minAmount =
+                                      double.tryParse(value.toString()) ?? 0;
+                                }
+                              },
+                              controller: minAmountTextController,
+                              keyboardtype: TextInputType.numberWithOptions(
+                                decimal: true,
                               ),
-                              textAlign: TextAlign.center,
+                              // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
                             ),
-                          ),
-                        ],
+                            SizedBox(height: height / 30),
+                            CustomTextFormField.textFieldWithoutIcon(
+                              "maximumamount".tr(),
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              55.sp,
+                              300.sp,
+                              onChanged: (value) {
+                                if (value != null &&
+                                    value.toString().isNotEmpty) {
+                                  maxAmount =
+                                      double.tryParse(value.toString()) ?? 0;
+                                }
+                              },
+                              controller: maxAmountTextController,
+                              keyboardtype: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
+                  SizedBox(height: height / 30),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: KycScreenViewPageConfig,
-                        );
+                        onDone(minAmount, maxAmount);
+                        Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
                         backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "Verify Account",
-                        style:
-                            TextStyle(color: wihitecolor, fontFamily: fontbody),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getwihitecolor!),
-                        side: MaterialStateProperty.all(
-                          BorderSide(
-                              color: notifier.getgrey,
-                              width: 1,
-                              style: BorderStyle.solid),
+                          notifier.getbluecolor,
                         ),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                       ),
                       child: Text(
-                        "cancel".tr(),
+                        "done".tr(),
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(height: height / 50),
                 ],
               ),
-            ));
-      });
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+void kycUnverifiedErrorPop(context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          'You must have your KYC verification done before you can proceed with this action.',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: KycScreenViewPageConfig,
+                    );
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "Verify Account",
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: MaterialStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: MaterialStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }

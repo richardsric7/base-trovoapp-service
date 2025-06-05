@@ -43,9 +43,7 @@ class _AssetDetailsState extends State<AssetDetails>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
@@ -132,103 +130,101 @@ class _AssetDetailsState extends State<AssetDetails>
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(height / 15),
           child: AppBar(
-              centerTitle: true,
-              elevation: 0,
-              backgroundColor: notifier.getwihitecolor,
-              leading: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Image.asset("assets/images/back.png", scale: 5),
-              ),
-              actions: [
-                Container(
-                  width: width / 1.2,
-                  child: Row(
-                    children: [
-                      TopDropdowns(
-                        onWalletChanged: (newValue) {
-                          selectedWallet = newValue;
-                          this.wallet = userInfo.getWallet(selectedWallet);
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+            actions: [
+              Container(
+                width: width / 1.2,
+                child: Row(
+                  children: [
+                    TopDropdowns(
+                      onWalletChanged: (newValue) {
+                        selectedWallet = newValue;
+                        this.wallet = userInfo.getWallet(selectedWallet);
 
-                          this.asset = wallet.claimedAssets!.firstWhereOrNull((x) =>
+                        this.asset = wallet.claimedAssets!.firstWhereOrNull(
+                          (x) =>
                               "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
-                              selectedAsset);
+                              selectedAsset,
+                        );
 
-                          setState(() {});
-                        },
-                        onAssetChanged: (newValue) {
-                          setState(() {
-                            selectedAsset = newValue;
-                            newValue = newValue.toString().contains('XBN')
-                                ? '|'
-                                : newValue;
-                            for (var asset in wallet.claimedAssets!) {
-                              var splitNewValue =
-                                  newValue.toString().split('|');
-                              if (asset.assetCode == splitNewValue[0] &&
-                                  asset.assetIssuer == splitNewValue[1]) {
-                                this.asset = asset;
-                              }
+                        setState(() {});
+                      },
+                      onAssetChanged: (newValue) {
+                        setState(() {
+                          selectedAsset = newValue;
+                          newValue = newValue.toString().contains('XBN')
+                              ? '|'
+                              : newValue;
+                          for (var asset in wallet.claimedAssets!) {
+                            var splitNewValue = newValue.toString().split('|');
+                            if (asset.assetCode == splitNewValue[0] &&
+                                asset.assetIssuer == splitNewValue[1]) {
+                              this.asset = asset;
                             }
-                          });
-                        },
-                        claimedAssets: wallet.claimedAssets!,
-                        selectedAsset: selectedAsset,
-                        selectedWallet: selectedWallet,
-                      ),
-                    ],
-                  ),
+                          }
+                        });
+                      },
+                      claimedAssets: wallet.claimedAssets!,
+                      selectedAsset: selectedAsset,
+                      selectedWallet: selectedWallet,
+                    ),
+                  ],
                 ),
-                if (appState.walletMode == "Testnet") ...[
-                  Visibility(
-                    visible: true,
-                    child: Container(
-                      color: Color(0xFFAA453E),
-                      width: 18,
-                      child: RotatedBox(
-                        quarterTurns: 1,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text(
-                                "testnet".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  color: wihitecolor,
-                                  fontSize: 11,
-                                ),
+              ),
+              if (appState.walletMode == "Testnet") ...[
+                Visibility(
+                  visible: true,
+                  child: Container(
+                    color: Color(0xFFAA453E),
+                    width: 18,
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text(
+                              "testnet".tr(),
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                color: wihitecolor,
+                                fontSize: 11,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ]
-              ]),
+                ),
+              ],
+            ],
+          ),
         ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                  ),
+                  SizedBox(width: 20),
                   Text(
                     getAssetCode(asset!.assetCode),
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
@@ -244,13 +240,9 @@ class _AssetDetailsState extends State<AssetDetails>
                     '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 initialHiddenState: appState.hideBalances,
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               if (curatedAsset != null) curatedAssetInfo() else assetInfo(),
-              SizedBox(
-                height: 150,
-              ),
+              SizedBox(height: 150),
             ],
           ),
         ),
@@ -280,18 +272,21 @@ class _AssetDetailsState extends State<AssetDetails>
               (curatedAsset!.isWithdrawable ||
                   curatedAsset!.canGenerateDepositAddresses == 1)) ...[
             actionButton(
-                "assets/images/dep-with-button.png", 'Deposit/Withdraw', () {
-              appState.viewData = {
-                'walletPublicKey': wallet.publicKey,
-                'assetCode': asset!.assetCode,
-                'assetIssuer': asset!.assetIssuer,
-              };
+              "assets/images/dep-with-button.png",
+              'Deposit/Withdraw',
+              () {
+                appState.viewData = {
+                  'walletPublicKey': wallet.publicKey,
+                  'assetCode': asset!.assetCode,
+                  'assetIssuer': asset!.assetIssuer,
+                };
 
-              appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: WrappedAssetViewPageConfig,
-              );
-            }),
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: WrappedAssetViewPageConfig,
+                );
+              },
+            ),
           ],
           actionButton("assets/images/receive.png", 'Receive', () {
             appState.viewData = {
@@ -315,11 +310,9 @@ class _AssetDetailsState extends State<AssetDetails>
       onTap: action,
       child: Container(
         width: width / 3.9,
-        height: height / 9,
+        height: height / 8,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
             children: [
               Image.asset(
@@ -359,8 +352,10 @@ class _AssetDetailsState extends State<AssetDetails>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -368,15 +363,14 @@ class _AssetDetailsState extends State<AssetDetails>
                   Text(
                     '${getAssetCode(curatedAsset!.assetCode)} ${"token".tr()}',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   if (asset!.imageUrl != null) ...[
-                    SizedBox(
-                      height: height / 50.0,
-                    ),
+                    SizedBox(height: height / 50.0),
                     Container(
                       width: width / 1.3,
                       child: CircleAvatar(
@@ -401,9 +395,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ),
                   ],
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Text(
                     curatedAsset!.website!,
                     style: TextStyle(
@@ -413,9 +405,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       fontFamily: fontbody,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.3,
                     child: Text(
@@ -429,20 +419,17 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Text(
                     'Price',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 90.0,
-                  ),
+                  SizedBox(height: height / 90.0),
                   SizedBox(
                     width: width / 1.3,
                     child: Padding(
@@ -459,36 +446,34 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   if (asset!.assetIssuer.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                     SizedBox(
                       width: width / 1.3,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                           Expanded(
                             flex: 3,
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 truncate(asset!.assetIssuer!, length: 5) +
                                     asset!.assetIssuer!.toString().substring(
-                                        asset!.assetIssuer!.toString().length -
-                                            5),
+                                      asset!.assetIssuer!.toString().length - 5,
+                                    ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -504,9 +489,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding: EdgeInsets.zero,
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(
-                                    text: asset!.assetIssuer!,
-                                  ),
+                                  ClipboardData(text: asset!.assetIssuer!),
                                 ),
                                 showSnackBar("issuerpubkey".tr(), context),
                               },
@@ -514,23 +497,20 @@ class _AssetDetailsState extends State<AssetDetails>
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     if (curatedAsset!.contactEmail!.toString().isNotEmpty) ...[
                       Text(
                         "contactemail".tr(),
                         style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       SizedBox(
                         width: width / 1.3,
@@ -540,7 +520,8 @@ class _AssetDetailsState extends State<AssetDetails>
                               flex: 3,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0),
+                                  horizontal: 20.0,
+                                ),
                                 child: Text(
                                   curatedAsset!.contactEmail!,
                                   textAlign: TextAlign.center,
@@ -552,7 +533,7 @@ class _AssetDetailsState extends State<AssetDetails>
                                   ),
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -582,8 +563,10 @@ class _AssetDetailsState extends State<AssetDetails>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -591,14 +574,13 @@ class _AssetDetailsState extends State<AssetDetails>
                   Text(
                     '${getAssetCode(asset!.assetCode!)} ${"token".tr()}',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.3,
                     child: Image.network(
@@ -614,20 +596,17 @@ class _AssetDetailsState extends State<AssetDetails>
                       },
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Text(
                     'Price',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 90.0,
-                  ),
+                  SizedBox(height: height / 90.0),
                   SizedBox(
                     width: width / 1.3,
                     child: Padding(
@@ -644,17 +623,16 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   if (asset!.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                     SizedBox(
                       width: width / 1.5,
@@ -663,13 +641,14 @@ class _AssetDetailsState extends State<AssetDetails>
                           Expanded(
                             flex: 3,
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 truncate(asset!.assetIssuer!, length: 5) +
                                     asset!.assetIssuer!.toString().substring(
-                                        asset!.assetIssuer!.toString().length -
-                                            5),
+                                      asset!.assetIssuer!.toString().length - 5,
+                                    ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -685,9 +664,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding: EdgeInsets.zero,
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(
-                                    text: asset!.assetIssuer!,
-                                  ),
+                                  ClipboardData(text: asset!.assetIssuer!),
                                 ),
                                 showSnackBar("issuerpubkey".tr(), context),
                               },
@@ -698,9 +675,7 @@ class _AssetDetailsState extends State<AssetDetails>
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                   ],
                   SizedBox(height: 2),
                 ],

@@ -55,12 +55,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   List<DropdownMenuItem<Wallet>> get getStandardWallets {
     List<DropdownMenuItem<Wallet>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet,
+        ),
+      );
     });
     return wallets;
   }
@@ -74,9 +74,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     var assetTypes = appState.tokenizationData['assetTypes'];
     var quoteCurrencyCode = '';
 
-    for (var i = 0;
-        i < appState.tokenizationData['countryConfigs'].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData['countryConfigs'].length;
+      i++
+    ) {
       if (appState.tokenizationData['countryConfigs'][i]['countryCode']
               .toString()
               .toLowerCase() ==
@@ -88,15 +90,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
       }
     }
 
-    for (var i = 0;
-        i < appState.tokenizationData['tokenizationCurrencies'].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData['tokenizationCurrencies'].length;
+      i++
+    ) {
       if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
               .toString()
               .toLowerCase() ==
           quoteCurrencyCode.toString().toLowerCase()) {
-        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
-                ['label']
+        fiatCurrency = appState
+            .tokenizationData['tokenizationCurrencies'][i]['label']
             .toString()
             .toUpperCase();
       }
@@ -120,10 +124,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
       });
     });
 
-    _daysProgress =
-        DateTime.now().difference(tokenizedAsset.salesStart!).inDays;
-    _totalDays =
-        tokenizedAsset.salesEnd!.difference(tokenizedAsset.salesStart!).inDays;
+    _daysProgress = DateTime.now()
+        .difference(tokenizedAsset.salesStart!)
+        .inDays;
+    _totalDays = tokenizedAsset.salesEnd!
+        .difference(tokenizedAsset.salesStart!)
+        .inDays;
   }
 
   @override
@@ -134,9 +140,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     appState = Provider.of<DataProvider>(context, listen: true);
     inspect(appState.tokenizedAsset);
     _tokensBought = tokenizedAsset.quantityOfTokensSold ?? 0;
-    _tokensRemaining = (tokenizedAsset.numberOfTokenToBeSold! -
+    _tokensRemaining =
+        (tokenizedAsset.numberOfTokenToBeSold! -
         tokenizedAsset.quantityOfTokensSold!);
-    double normalizedProgress = 1 -
+    double normalizedProgress =
+        1 -
         (_tokensBought /
             tokenizedAsset.numberOfTokenToBeSold!); // Convert to 0-1 range
 
@@ -157,9 +165,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             if (tokenizedAsset.assetLogo != null) ...[
               CircleAvatar(
                 radius: 30,
@@ -177,15 +183,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
               ),
             ] else ...[
-              Image.asset(
-                'assets/images/trovo.png',
-                height: 35,
-                width: 35,
-              ),
+              Image.asset('assets/images/trovo.png', height: 35, width: 35),
             ],
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Text(
               tokenizedAsset.assetCode!.toUpperCase(),
               style: TextStyle(
@@ -205,7 +205,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             ),
             SizedBox(height: height / 70),
             Container(
-              width: width / 2.9,
+              width: width / 2.7,
               child: Card(
                 shadowColor: Colors.black,
                 shape: RoundedRectangleBorder(
@@ -250,11 +250,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     margin: EdgeInsets.zero,
                     shadowColor: Colors.black,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                        side: BorderSide(
-                          color: notifier.getbluewhitecolor,
-                          width: 1,
-                        )),
+                      borderRadius: BorderRadius.circular(5.0),
+                      side: BorderSide(
+                        color: notifier.getbluewhitecolor,
+                        width: 1,
+                      ),
+                    ),
                     color: notifier.isDark
                         ? notifier.getbluecolor90
                         : notifier.getaddsubwalletgrey,
@@ -272,7 +273,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
             if ((tokenizedAsset.expressedInterestAmount ?? 0) > 0) ...[
@@ -291,9 +292,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               ),
             ],
             if (tokenizedAsset.tokenizationStatus == 5) ...[
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -304,65 +303,68 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         kycUnverifiedErrorPop(context);
                         return;
                       }
-                      showBuyTokenPopup(context,
-                          assetCode: tokenizedAsset.assetCode!.toUpperCase(),
-                          onDone: (wallet) {
-                        appState.setActiveWallet = wallet;
-                        appState.tokenizedAsset = tokenizedAsset;
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: BuyTokensViewPageConfig,
-                        );
-                      }, dropdownItems: getStandardWallets);
+                      showBuyTokenPopup(
+                        context,
+                        assetCode: tokenizedAsset.assetCode!.toUpperCase(),
+                        onDone: (wallet) {
+                          appState.setActiveWallet = wallet;
+                          appState.tokenizedAsset = tokenizedAsset;
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: BuyTokensViewPageConfig,
+                          );
+                        },
+                        dropdownItems: getStandardWallets,
+                      );
                     },
                     style: ButtonStyle(
                       padding: MaterialStateProperty.all(
                         EdgeInsets.symmetric(vertical: 10, horizontal: 85),
                       ),
                       overlayColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluecolor90),
+                        notifier.getbluecolor90,
+                      ),
                       backgroundColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluewhitecolor),
+                        notifier.getbluewhitecolor,
+                      ),
                       side: MaterialStateProperty.all(
                         BorderSide(
-                            color: notifier.getbluewhitecolor,
-                            width: 1,
-                            style: BorderStyle.solid),
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
                       ),
                     ),
                     child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/money.png',
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/money.png',
+                          color: notifier.getwihitecolor,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Buy',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            fontSize: 12,
                             color: notifier.getwihitecolor,
                           ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Buy',
-                            style: TextStyle(
-                              fontFamily: fontsemibold,
-                              fontSize: 12,
-                              color: notifier.getwihitecolor,
-                            ),
-                          ),
-                        ]),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 4) ...[
               if ((tokenizedAsset.expressedInterestAmount ?? 0) <= 0) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
               ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -396,7 +398,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         EdgeInsets.symmetric(vertical: 10, horizontal: 50),
                       ),
                       overlayColor: MaterialStateProperty.all<Color>(
-                          notifier.getsplashgrey),
+                        notifier.getsplashgrey,
+                      ),
                       backgroundColor: MaterialStateProperty.all<Color>(
                         tokenizedAsset.expressedInterest ?? false
                             ? notifier.getaddsubwalletgrey
@@ -404,69 +407,66 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ),
                       side: MaterialStateProperty.all(
                         BorderSide(
-                            color: tokenizedAsset.expressedInterest ?? false
-                                ? notifier.getaddsubwalletgrey
-                                : notifier.getbluewhitecolor,
-                            width: 1,
-                            style: BorderStyle.solid),
+                          color: tokenizedAsset.expressedInterest ?? false
+                              ? notifier.getaddsubwalletgrey
+                              : notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
                       ),
                     ),
                     child: Container(
                       child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            if (tokenizedAsset.expressedInterest ?? false) ...[
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 20,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          if (tokenizedAsset.expressedInterest ?? false) ...[
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 20,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Update Interest Expressed',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
                                 color: notifier.getbluewhitecolor,
                               ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Update Interest Expressed',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ] else ...[
-                              Icon(
-                                Icons.add_circle_rounded,
-                                size: 20,
+                            ),
+                          ] else ...[
+                            Icon(
+                              Icons.add_circle_rounded,
+                              size: 20,
+                              color: tokenizedAsset.expressedInterest ?? false
+                                  ? notifier.getwihitecolor
+                                  : notifier.getbluewhitecolor,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Express Interest',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
                                 color: tokenizedAsset.expressedInterest ?? false
                                     ? notifier.getwihitecolor
                                     : notifier.getbluewhitecolor,
                               ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Express Interest',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color:
-                                      tokenizedAsset.expressedInterest ?? false
-                                          ? notifier.getwihitecolor
-                                          : notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ]
-                          ]),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 6) ...[
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -485,45 +485,45 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         EdgeInsets.symmetric(vertical: 10, horizontal: 50),
                       ),
                       overlayColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluecolor90),
+                        notifier.getbluecolor90,
+                      ),
                       backgroundColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluewhitecolor),
+                        notifier.getbluewhitecolor,
+                      ),
                       side: MaterialStateProperty.all(
                         BorderSide(
-                            color: notifier.getbluewhitecolor,
-                            width: 1,
-                            style: BorderStyle.solid),
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
                       ),
                     ),
                     child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/images/money.png'),
-                          SizedBox(width: 10),
-                          Text(
-                            'Buy on TrovoP2P',
-                            style: TextStyle(
-                              fontFamily: fontsemibold,
-                              fontSize: 12,
-                              color: notifier.getwihitecolor,
-                            ),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset('assets/images/money.png'),
+                        SizedBox(width: 10),
+                        Text(
+                          'Buy on TrovoP2P',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            fontSize: 12,
+                            color: notifier.getwihitecolor,
                           ),
-                        ]),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ],
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
@@ -534,8 +534,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 30.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30.0,
+                            ),
                             child: Text(
                               'Description',
                               style: TextStyle(
@@ -560,9 +561,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                     ],
                   ),
                 ),
@@ -673,8 +672,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             SizedBox(height: height / 50),
             if (tokenizedAsset.tokenizationStatus == 5) ...[
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 10,
+                ),
                 child: Container(
                   child: Card(
                     shadowColor: Colors.black,
@@ -693,12 +694,14 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           SizedBox(height: 15),
                           Row(
                             children: [
-                              Text('Tokens Remaining',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  )),
+                              Text(
+                                'Tokens Remaining',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
                             ],
                           ),
                           SizedBox(height: 5),
@@ -717,24 +720,29 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           Row(
                             children: [
                               Text(
-                                  '${formatHistoryNumber(_tokensRemaining, 6)} ${tokenizedAsset.assetCode} ',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor)),
-                              Text('remaining out of ',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  )),
+                                '${formatHistoryNumber(_tokensRemaining, 6)} ${tokenizedAsset.assetCode} ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
                               Text(
-                                  '${formatHistoryNumber(tokenizedAsset.numberOfTokenToBeSold!, 6)} ${tokenizedAsset.assetCode}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  )),
+                                'remaining out of ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                              Text(
+                                '${formatHistoryNumber(tokenizedAsset.numberOfTokenToBeSold!, 6)} ${tokenizedAsset.assetCode}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
                             ],
                           ),
                           SizedBox(height: height / 50),
@@ -743,12 +751,14 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             children: [
                               Row(
                                 children: [
-                                  Text('Days Remaining',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontFamily: fontsemibold,
-                                        color: notifier.getbluewhitecolor,
-                                      )),
+                                  Text(
+                                    'Days Remaining',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
                                 ],
                               ),
                               SizedBox(height: 5),
@@ -769,22 +779,29 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                 Row(
                                   children: [
                                     Text(
-                                        (_totalDays - _daysProgress).toString(),
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontFamily: fontbody,
-                                            color: notifier.getbluewhitecolor)),
-                                    Text(' days remaining out of ',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        )),
-                                    Text('${_totalDays} days',
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontFamily: fontbody,
-                                            color: notifier.getbluewhitecolor)),
+                                      (_totalDays - _daysProgress).toString(),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' days remaining out of ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${_totalDays} days',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -840,29 +857,31 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               'Sector': tokenizedAsset.assetSector ?? '',
                               'Sub-Sector': tokenizedAsset.assetSubSector ?? '',
                               'Type': assetType,
-                              'Asset Country': iso2Countries[
-                                      tokenizedAsset.assetCountryLocation] ??
+                              'Asset Country':
+                                  iso2Countries[tokenizedAsset
+                                      .assetCountryLocation] ??
                                   "",
                               'Address':
                                   tokenizedAsset.assetPhysicalAddress ?? '',
                               'Project Strategic Objectives':
                                   tokenizedAsset.projectStrategicObjectives ??
-                                      "",
+                                  "",
                               "Project Development Timeline":
                                   tokenizedAsset.projectDevelopmentTimeline ??
-                                      "",
+                                  "",
                               "Key Milestones & Dates":
                                   tokenizedAsset.projectKeyMilestoneAndDates ??
-                                      "",
+                                  "",
                               "Project Scope":
                                   tokenizedAsset.projectScope ?? "",
                               "Project Economic Benefits":
                                   tokenizedAsset.projectEconomicBenefits ?? "",
                               "Expected No. of Job to be Created":
                                   tokenizedAsset.assetAlreadyExists == 0
-                                      ? tokenizedAsset.projectExpectedNoOfJobs
-                                      : "",
-                              "Project Intended Social Benefits": tokenizedAsset
+                                  ? tokenizedAsset.projectExpectedNoOfJobs
+                                  : "",
+                              "Project Intended Social Benefits":
+                                  tokenizedAsset
                                       .projectIntendedSocialBenefits ??
                                   "",
                               "Technical Partners":
@@ -888,8 +907,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   '${getFiatValue(tokenizedAsset.capQuantity!)} ${tokenizedAsset.assetCode!.toUpperCase()}',
                               'Cap Duration':
                                   '${tokenizedAsset.capDurationInDays} days',
-                              'Proceed Payout Cycle': tokenizedAsset
-                                      .proceedCycle
+                              'Proceed Payout Cycle':
+                                  tokenizedAsset.proceedCycle
                                       ?.toLowerCase()
                                       .capitalizeEachWord() ??
                                   '',
@@ -897,7 +916,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
                             };
                             displayDetails(
-                                'Asset Token & Sale Information', details);
+                              'Asset Token & Sale Information',
+                              details,
+                            );
                           },
                         ),
                         SizedBox(height: 10),
@@ -909,22 +930,26 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             onTap: () {
                               var details = {
                                 "Estimated Project IRR": formatNumber(
-                                    tokenizedAsset.estimatedProjectIRR ?? 0),
+                                  tokenizedAsset.estimatedProjectIRR ?? 0,
+                                ),
                                 "Estimated Project ROI": formatNumber(
-                                    tokenizedAsset.estimatedProjectROI ?? 0),
+                                  tokenizedAsset.estimatedProjectROI ?? 0,
+                                ),
                                 "Estimated Project NPV at Launch (Day 1)":
                                     formatNumber(
-                                        tokenizedAsset.estimatedProjectNPV ??
-                                            0),
+                                      tokenizedAsset.estimatedProjectNPV ?? 0,
+                                    ),
                                 "Estimated Project Payback Periods (in Months)":
                                     tokenizedAsset
-                                            .estimatedProjectPaybackPeriodsInMonths ??
-                                        '',
+                                        .estimatedProjectPaybackPeriodsInMonths ??
+                                    '',
                                 "All Key Assumptions Including Values Assumed":
                                     tokenizedAsset.keyAssumptionsList ?? '',
                               };
                               displayDetails(
-                                  'Asset Financial Information', details);
+                                'Asset Financial Information',
+                                details,
+                              );
                             },
                           ),
                           SizedBox(height: 10),
@@ -934,25 +959,31 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             imageUrl: 'assets/images/proof.png',
                             onTap: () {
                               var details = {
-                                "Legal Risks Identified": tokenizedAsset
+                                "Legal Risks Identified":
+                                    tokenizedAsset
                                         .projectIdentifiedLegalRisks ??
                                     '',
-                                "Regulatory Risks Identified": tokenizedAsset
+                                "Regulatory Risks Identified":
+                                    tokenizedAsset
                                         .projectIdentifiedRegulatoryRisks ??
                                     '',
                                 "Operational/Execution Risks Identified":
                                     tokenizedAsset
-                                            .projectIdentifiedOperationalOrExecutionRisks ??
-                                        '',
-                                "Market Risks Identified": tokenizedAsset
+                                        .projectIdentifiedOperationalOrExecutionRisks ??
+                                    '',
+                                "Market Risks Identified":
+                                    tokenizedAsset
                                         .projectIdentifiedMarketRisks ??
                                     '',
-                                "Other Relevant Risks Identified": tokenizedAsset
+                                "Other Relevant Risks Identified":
+                                    tokenizedAsset
                                         .projectIdentifiedOtherRelevantRisks ??
                                     '',
                               };
                               displayDetails(
-                                  "Project Risk Assessment", details);
+                                "Project Risk Assessment",
+                                details,
+                              );
                             },
                           ),
                           SizedBox(height: 10),
@@ -966,21 +997,25 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               'Regulator': regulatorName
                                   .toLowerCase()
                                   .capitalizeEachWord(),
-                              'Asset Custodian': tokenizedAsset
+                              'Asset Custodian':
+                                  tokenizedAsset
                                       .approvedAssetCustodianInfo
                                       ?.assetCustodianName ??
                                   '',
-                              'Asset Manager': tokenizedAsset
-                                      .assetManagerInfo?.assetManagerName ??
+                              'Asset Manager':
+                                  tokenizedAsset
+                                      .assetManagerInfo
+                                      ?.assetManagerName ??
                                   '',
-                              'Issuing House': tokenizedAsset
+                              'Issuing House':
+                                  tokenizedAsset
                                       .assetIssuingHouseInfo
                                       ?.assetIssuingHouseName
                                       ?.toLowerCase()
                                       .capitalizeEachWord() ??
                                   '',
-                              'Legal/Professional Advisor': tokenizedAsset
-                                      .legalAdvisor
+                              'Legal/Professional Advisor':
+                                  tokenizedAsset.legalAdvisor
                                       ?.toLowerCase()
                                       .capitalizeEachWord() ??
                                   '',
@@ -1024,7 +1059,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
                             };
                             displayDetails(
-                                "Legal & Compliance Information", details);
+                              "Legal & Compliance Information",
+                              details,
+                            );
                           },
                         ),
                         SizedBox(height: 10),
@@ -1056,7 +1093,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
       backgroundColor: notifier.getwihitecolor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16)), // Rounded top corners
+          top: Radius.circular(16),
+        ), // Rounded top corners
       ),
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
@@ -1085,9 +1123,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Icon(
-                            Icons.cancel_outlined,
-                          ),
+                          child: Icon(Icons.cancel_outlined),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -1097,20 +1133,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             foregroundColor: notifier.getbluewhitecolor,
                             backgroundColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero),
+                              borderRadius: BorderRadius.zero,
+                            ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
                   SizedBox(height: 20),
                   for (var item in items.entries) ...[
                     if (item.value.toString().isNotEmpty) ...[
-                      infoTile(
-                        notifier,
-                        item.key,
-                        item.value,
-                      ),
+                      infoTile(notifier, item.key, item.value),
                     ],
                   ],
                   SizedBox(height: 60),
@@ -1129,7 +1162,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16)), // Rounded top corners
+          top: Radius.circular(16),
+        ), // Rounded top corners
       ),
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
@@ -1143,8 +1177,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 child: Column(
                   crossAxisAlignment:
                       tokenizedAsset.assetTokenizationDocuments!.isNotEmpty
-                          ? CrossAxisAlignment.start
-                          : CrossAxisAlignment.center,
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(height: 10),
@@ -1162,9 +1196,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Icon(
-                            Icons.cancel_outlined,
-                          ),
+                          child: Icon(Icons.cancel_outlined),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -1174,30 +1206,34 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             foregroundColor: notifier.getbluewhitecolor,
                             backgroundColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero),
+                              borderRadius: BorderRadius.zero,
+                            ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                     SizedBox(height: 20),
                     if (tokenizedAsset
-                        .assetTokenizationDocuments!.isNotEmpty) ...[
+                        .assetTokenizationDocuments!
+                        .isNotEmpty) ...[
                       for (var item
                           in tokenizedAsset.assetTokenizationDocuments!) ...[
                         TextButton(
                           style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size(50, 30),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              alignment: Alignment.centerLeft),
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size(50, 30),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            alignment: Alignment.centerLeft,
+                          ),
                           onPressed: () {
                             var fileUrl = item.documentUrl;
                             if (fileUrl!.isNotEmpty &&
                                 fileUrl.endsWith('.pdf')) {
                               appState.pdfUrl = fileUrl;
                               appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: PdfViewPageConfig);
+                                state: PageState.addPage,
+                                page: PdfViewPageConfig,
+                              );
 
                               return;
                             }
@@ -1236,14 +1272,14 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     );
   }
 
-  subscribeTokenizedAsset(
-      {required double amount, required String tokenizedAssetID}) async {
+  subscribeTokenizedAsset({
+    required double amount,
+    required String tokenizedAssetID,
+  }) async {
     try {
       showLoader(context);
 
-      String requestBody = jsonEncode({
-        'amount': amount,
-      });
+      String requestBody = jsonEncode({'amount': amount});
 
       print(requestBody);
 

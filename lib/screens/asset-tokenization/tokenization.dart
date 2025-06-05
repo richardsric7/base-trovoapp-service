@@ -73,12 +73,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   List<DropdownMenuItem<TokenizationStatus>> get getTokenizationStatusList {
     List<DropdownMenuItem<TokenizationStatus>> items = [];
     tokenizationStatuses.forEach((key, value) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      items.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return items;
   }
@@ -86,12 +86,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   List<DropdownMenuItem<TokenizationFilterMode>> get getTokenizationFilterList {
     List<DropdownMenuItem<TokenizationFilterMode>> items = [];
     tokenizationFilters.forEach((key, value) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      items.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return items;
   }
@@ -99,12 +99,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet.publicKey,
+        ),
+      );
     });
     return wallets;
   }
@@ -146,29 +146,22 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
                   wallet.alias!,
-                  overflow:
-                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+                  overflow: isSelected
+                      ? TextOverflow.ellipsis
+                      : TextOverflow.visible,
                 ),
               ),
               if (wallet.isSharedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
+                SizedBox(width: 2),
                 Icon(
                   Icons.people_outline,
                   size: 17,
                   color: notifier.getbluewhitecolor,
-                )
+                ),
               ],
               if (!isSelected && wallet.publicKey == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
+                SizedBox(width: 2),
+                Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
@@ -190,18 +183,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     listOfTokenizations = fetchTokenizationList();
     wallets = appState.userInfo!.allWallets;
 
-    for (var i = 0;
-        i < appState.tokenizationData['countryConfigs'].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData['countryConfigs'].length;
+      i++
+    ) {
       if (appState.tokenizationData['countryConfigs'][i]['countryCode']
               .toString()
               .toLowerCase() ==
           "ng") {
-        tokenizationApplicationFee = appState.tokenizationData['countryConfigs']
-            [i]['tokenizationApplicationFee'];
+        tokenizationApplicationFee = appState
+            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
         tokenizationApplicationFeeAsset = appState
-            .tokenizationData['countryConfigs'][i]
-                ['tokenizationApplicationFeeAsset']
+            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
             .toString()
             .split(':')[0]
             .toUpperCase();
@@ -231,18 +225,22 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
 
   void startTokenizationPressed() {
     if (appState.tokenizationData.isEmpty) {
-      popup(context,
-          title: "error".tr(),
-          message:
-              "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.");
+      popup(
+        context,
+        title: "error".tr(),
+        message:
+            "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.",
+      );
       return;
     }
 
     if (!canCreateNewTokenization) {
-      popup(context,
-          title: "error".tr(),
-          message:
-              "You must complete the active tokenization process before starting a new one.");
+      popup(
+        context,
+        title: "error".tr(),
+        message:
+            "You must complete the active tokenization process before starting a new one.",
+      );
       return;
     }
 
@@ -252,10 +250,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     }
 
     if (!hasEnoughTrov) {
-      popup(context,
-          title: "error".tr(),
-          message:
-              "You must have at least ${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset tokens (\$500 worth) in your wallet ${appState.primaryWallet.alias!.toUpperCase()} to begin a new tokenization process.");
+      popup(
+        context,
+        title: "error".tr(),
+        message:
+            "You must have at least ${formatNumber(tokenizationApplicationFee)} $tokenizationApplicationFeeAsset tokens (\$500 worth) in your wallet ${appState.primaryWallet.alias!.toUpperCase()} to begin a new tokenization process.",
+      );
       return;
     }
 
@@ -306,9 +306,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   child: Center(
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: height / 70,
-                        ),
+                        SizedBox(height: height / 70),
                         Text(
                           "welcometoassettokenization2".tr(),
                           textAlign: TextAlign.center,
@@ -318,9 +316,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
+                        SizedBox(height: height / 70),
                         Text(
                           "welcometoassettokenization3".tr(),
                           textAlign: TextAlign.center,
@@ -332,9 +328,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           ),
                         ),
                         if (records.length > 0) ...[
-                          SizedBox(
-                            height: height / 70,
-                          ),
+                          SizedBox(height: height / 70),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
@@ -343,27 +337,31 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 style: ButtonStyle(
                                   overlayColor:
                                       MaterialStateProperty.all<Color>(
-                                          notifier.getsplashgrey),
+                                        notifier.getsplashgrey,
+                                      ),
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
-                                    notifier.isDark
-                                        ? notifier.getbluecolor90
-                                        : notifier.getaddsubwalletgrey,
-                                  ),
+                                        notifier.isDark
+                                            ? notifier.getbluecolor90
+                                            : notifier.getaddsubwalletgrey,
+                                      ),
                                   side: MaterialStateProperty.all(
                                     BorderSide(
-                                        color: notifier.getbluewhitecolor,
-                                        width: 1,
-                                        style: BorderStyle.solid),
-                                  ),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                    const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10),
-                                      ),
+                                      color: notifier.getbluewhitecolor,
+                                      width: 1,
+                                      style: BorderStyle.solid,
                                     ),
                                   ),
+                                  shape:
+                                      MaterialStateProperty.all<
+                                        RoundedRectangleBorder
+                                      >(
+                                        const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(10),
+                                          ),
+                                        ),
+                                      ),
                                 ),
                                 child: Container(
                                   width: width / 1.5,
@@ -375,26 +373,23 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         size: 20,
                                         color: notifier.getbluewhitecolor,
                                       ),
-                                      SizedBox(
-                                        width: 4,
-                                      ),
+                                      SizedBox(width: 4),
                                       Text(
                                         "Tokenize Another Asset",
                                         style: TextStyle(
-                                            fontFamily: fontsemibold,
-                                            fontSize: 12,
-                                            color: notifier.getbluewhitecolor),
+                                          fontFamily: fontsemibold,
+                                          fontSize: 12,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
                             ],
-                          )
+                          ),
                         ],
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                       ],
                     ),
                   ),
@@ -406,9 +401,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   width: width,
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: width / 50,
-                      ),
+                      SizedBox(width: width / 50),
                       Expanded(
                         flex: 2,
                         child: dropdown(
@@ -425,13 +418,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           null,
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: getContent(filterMode),
-                      ),
-                      SizedBox(
-                        width: width / 50,
-                      ),
+                      Expanded(flex: 2, child: getContent(filterMode)),
+                      SizedBox(width: width / 50),
                     ],
                   ),
                 ),
@@ -465,9 +453,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 "somethingwentwrong".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               ElevatedButton(
                                 onPressed: () {
@@ -479,13 +468,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
-                                          notifier.getbluecolor!),
+                                        notifier.getbluecolor!,
+                                      ),
                                 ),
                                 child: Text(
                                   "retry".tr(),
-                                  style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                  ),
+                                  style: TextStyle(fontFamily: fontsemibold),
                                 ),
                               ),
                             ],
@@ -503,35 +491,36 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           if (asset.tokenizationStatus! == 0) {
                             canCreateNewTokenization = false;
                           }
-                          assets.add(GestureDetector(
-                            onTap: () async {
-                              appState.viewData = tokenizedAssets[i];
+                          assets.add(
+                            GestureDetector(
+                              onTap: () async {
+                                appState.viewData = tokenizedAssets[i];
 
-                              if (records[i].tokenizationStatus == 0) {
+                                if (records[i].tokenizationStatus == 0) {
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page: SetupAndComplianceViewPageConfig,
+                                  );
+
+                                  return;
+                                }
+
+                                if (records[i].tokenizationStatus! <= 3) {
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page:
+                                        ConfirmTokenizationDetailsViewPageConfig,
+                                  );
+                                  return;
+                                }
+
+                                appState.tokenizedAsset = records[i];
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
-                                  page: SetupAndComplianceViewPageConfig,
+                                  page: AssetDashboardViewPageConfig,
                                 );
-
-                                return;
-                              }
-
-                              if (records[i].tokenizationStatus! <= 3) {
-                                appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page:
-                                      ConfirmTokenizationDetailsViewPageConfig,
-                                );
-                                return;
-                              }
-
-                              appState.tokenizedAsset = records[i];
-                              appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: AssetDashboardViewPageConfig,
-                              );
-                            },
-                            child: assetTile(
+                              },
+                              child: assetTile(
                                 records[i].assetLogo ?? '',
                                 '${records[i].assetName?.length == 0 ? 'No name yet' : records[i].assetName} ${records[i].assetCode?.length == 0 ? '' : '(${records[i].assetCode})'}',
                                 '${records[i].assetSubSector}',
@@ -539,21 +528,23 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         records[i].vettingStatus == 0
                                     ? 'Pending Vetting'
                                     : getTokenizationStatus(
-                                        records[i].tokenizationStatus!),
-                                records[i].assetAlreadyExists!),
-                            // getTokenizationStatus(
-                            //     records[i].tokenizationStatus)),
-                          ));
+                                        records[i].tokenizationStatus!,
+                                      ),
+                                records[i].assetAlreadyExists!,
+                              ),
+                              // getTokenizationStatus(
+                              //     records[i].tokenizationStatus)),
+                            ),
+                          );
                         }
 
                         return Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -624,17 +615,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Image.asset(
                       'assets/images/tokenize.png',
                       // height: 50,
                       width: 250,
                     ),
-                    SizedBox(
-                      height: height / 60,
-                    ),
+                    SizedBox(height: height / 60),
                     Text(
                       "welcometoassettokenization4".tr(),
                       textAlign: TextAlign.center,
@@ -644,9 +631,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     Text(
                       "welcometoassettokenization5".tr(),
                       textAlign: TextAlign.center,
@@ -657,9 +642,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     Text(
                       "welcometoassettokenization6".tr(),
                       textAlign: TextAlign.center,
@@ -670,9 +653,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     Text(
                       "welcometoassettokenization7".tr(),
                       textAlign: TextAlign.center,
@@ -683,30 +664,31 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     ElevatedButton(
                       onPressed: startTokenizationPressed,
                       style: ButtonStyle(
                         overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
+                          notifier.getsplashgrey,
+                        ),
                         backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluewhitecolor),
+                          notifier.getbluewhitecolor,
+                        ),
                         side: MaterialStateProperty.all(
                           BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                              style: BorderStyle.solid),
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
                         ),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                       ),
                       child: Container(
                         width: width / 1.5,
@@ -718,23 +700,20 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                               size: 20,
                               color: notifier.getwihitecolor,
                             ),
-                            SizedBox(
-                              width: 4,
-                            ),
+                            SizedBox(width: 4),
                             Text(
                               "proceedtokenizeasset".tr(),
                               style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color: notifier.getwihitecolor),
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
+                                color: notifier.getwihitecolor,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                   ],
                 ),
               ),
@@ -745,111 +724,111 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type, String status,
-      int assetAlreadyExists) {
+  Widget assetTile(
+    String imageUrl,
+    String name,
+    String type,
+    String status,
+    int assetAlreadyExists,
+  ) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-          title: Row(
-            children: [
-              if (imageUrl.length == 0) ...[
-                Image.asset(
-                  'assets/images/trovo.png',
-                  height: 35,
-                  width: 35,
-                ),
-              ] else ...[
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: assetAlreadyExists == 1
-                      ? notifier.getgreencolor
-                      : notifier.getbluecolor90,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100.0),
-                    child: Image.network(
-                      imageUrl,
-                      height: 35,
-                      width: 35,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/images/trovo.png',
-                          height: 35,
-                          width: 35,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-              SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: width / 2.7,
-                    child: Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Container(
-                      width: width / 2.7,
-                      child: Text(
-                        type,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
-                        ),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                if (imageUrl.length == 0) ...[
+                  Image.asset('assets/images/trovo.png', height: 35, width: 35),
+                ] else ...[
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: assetAlreadyExists == 1
+                        ? notifier.getgreencolor
+                        : notifier.getbluecolor90,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.0),
+                      child: Image.network(
+                        imageUrl,
+                        height: 35,
+                        width: 35,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/trovo.png',
+                            height: 35,
+                            width: 35,
+                          );
+                        },
                       ),
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-          trailing: Container(
-            width: width / 4,
-            child: Card(
-              shadowColor: Colors.black,
-              shape: RoundedRectangleBorder(
+                SizedBox(width: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      constraints: BoxConstraints(maxWidth: 170),
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getblck,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: 170),
+                        child: Text(
+                          type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: notifier.getblck,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Container(
+              width: width / 4,
+              child: Card(
+                shadowColor: Colors.black,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5.0),
-                  side: BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                  )),
-              color: notifier.isDark
-                  ? notifier.getbluecolor90
-                  : notifier.getaddsubwalletgrey,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text(
-                  status,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                    overflow: TextOverflow.visible,
+                  side: BorderSide(color: notifier.getbluewhitecolor, width: 1),
+                ),
+                color: notifier.isDark
+                    ? notifier.getbluecolor90
+                    : notifier.getaddsubwalletgrey,
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Text(
+                    status,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                      overflow: TextOverflow.visible,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -936,24 +915,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'Asset Description',
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'Asset Description',
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty
                           ? "enterdescription".tr()
@@ -988,24 +968,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'assetname'.tr(),
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'assetname'.tr(),
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty ? "enterassetname".tr() : filterValue,
                       textAlign: TextAlign.start,
@@ -1038,24 +1019,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'assetcode'.tr(),
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'assetcode'.tr(),
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty ? "enterassetcode".tr() : filterValue,
                       textAlign: TextAlign.start,
@@ -1088,24 +1070,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'assetsubsector'.tr(),
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'assetsubsector'.tr(),
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty
                           ? "enterassetsubsector".tr()
@@ -1140,24 +1123,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'assettype'.tr(),
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'assettype'.tr(),
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty ? "enterassettype".tr() : filterValue,
                       textAlign: TextAlign.start,
@@ -1190,24 +1174,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationFilterTextFieldPopup(context,
-                    label: 'initiatorusername'.tr(),
-                    placeholder: 'Enter text here', onDone: (value) async {
-                  setState(() {
-                    filterValue = value!;
-                  });
-                  if (value != null && value.isNotEmpty) {
-                    appState.setFilterQuery = "&name=${value}";
-                  }
-                });
+                tokenizationFilterTextFieldPopup(
+                  context,
+                  label: 'initiatorusername'.tr(),
+                  placeholder: 'Enter text here',
+                  onDone: (value) async {
+                    setState(() {
+                      filterValue = value!;
+                    });
+                    if (value != null && value.isNotEmpty) {
+                      appState.setFilterQuery = "&name=${value}";
+                    }
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty ? "enterusername".tr() : filterValue,
                       textAlign: TextAlign.start,
@@ -1254,9 +1239,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       filterValue.isEmpty
                           ? "chooseofferingtype".tr()
@@ -1291,24 +1274,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationAmountRangePopup(context,
-                    minAmount: filterMinAmount, maxAmount: filterMaxAmount,
-                    onDone: (minAmount, maxAmount) async {
-                  setState(() {
-                    filterMinAmount = minAmount;
-                    filterMaxAmount = maxAmount;
-                    filterValue =
-                        "&amount=${filterMinAmount}%7C${filterMaxAmount}";
-                  });
-                });
+                tokenizationAmountRangePopup(
+                  context,
+                  minAmount: filterMinAmount,
+                  maxAmount: filterMaxAmount,
+                  onDone: (minAmount, maxAmount) async {
+                    setState(() {
+                      filterMinAmount = minAmount;
+                      filterMaxAmount = maxAmount;
+                      filterValue =
+                          "&amount=${filterMinAmount}%7C${filterMaxAmount}";
+                    });
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: width / 2.9,
-                    ),
+                    constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
                       appState.filterMinAmount != null &&
                               appState.filterMaxAmount != null
@@ -1317,12 +1301,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterMinAmount != null &&
-                                  appState.filterMaxAmount != null
-                              ? 12
-                              : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize:
+                            appState.filterMinAmount != null &&
+                                appState.filterMaxAmount != null
+                            ? 12
+                            : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -1346,17 +1332,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ),
             child: TextButton(
               onPressed: () {
-                tokenizationCustomDateRangePopup(context,
-                    initialStartDate: filterStartDate,
-                    initialEndDate: filterEndDate,
-                    onDone: (startDate, endDate) async {
-                  setState(() {
-                    filterStartDate = startDate;
-                    filterEndDate = endDate;
-                    filterValue =
-                        "&dateBetween=${DateFormat('yyyy-MM-dd').format(startDate)}%7C${DateFormat('yyyy-MM-dd').format(endDate)}";
-                  });
-                });
+                tokenizationCustomDateRangePopup(
+                  context,
+                  initialStartDate: filterStartDate,
+                  initialEndDate: filterEndDate,
+                  onDone: (startDate, endDate) async {
+                    setState(() {
+                      filterStartDate = startDate;
+                      filterEndDate = endDate;
+                      filterValue =
+                          "&dateBetween=${DateFormat('yyyy-MM-dd').format(startDate)}%7C${DateFormat('yyyy-MM-dd').format(endDate)}";
+                    });
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1370,12 +1358,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterStartDate != null &&
-                                  appState.filterEndDate != null
-                              ? 13
-                              : 15,
-                          fontFamily: fontsemibold),
+                        color: notifier.getbluewhitecolor,
+                        fontSize:
+                            appState.filterStartDate != null &&
+                                appState.filterEndDate != null
+                            ? 13
+                            : 15,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   Icon(
@@ -1416,12 +1406,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     getTokenizationValue(),
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: appState.filterStartDate != null &&
-                                appState.filterEndDate != null
-                            ? 13
-                            : 15,
-                        fontFamily: fontsemibold),
+                      color: notifier.getbluewhitecolor,
+                      fontSize:
+                          appState.filterStartDate != null &&
+                              appState.filterEndDate != null
+                          ? 13
+                          : 15,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   Icon(
                     Icons.keyboard_arrow_down_rounded,
@@ -1469,99 +1461,123 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   void showPopup(TokenizationFilterMode type) {
     switch (type) {
       case TokenizationFilterMode.AssetDescription:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'Asset Description',
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'Asset Description',
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.AmountRange:
-        tokenizationAmountRangePopup(context,
-            minAmount: filterMinAmount,
-            maxAmount: filterMaxAmount, onDone: (minAmount, maxAmount) async {
-          setState(() {
-            filterMinAmount = minAmount;
-            filterMaxAmount = maxAmount;
-            filterValue = "&amount=${filterMinAmount}%7C${filterMaxAmount}";
-          });
-        });
+        tokenizationAmountRangePopup(
+          context,
+          minAmount: filterMinAmount,
+          maxAmount: filterMaxAmount,
+          onDone: (minAmount, maxAmount) async {
+            setState(() {
+              filterMinAmount = minAmount;
+              filterMaxAmount = maxAmount;
+              filterValue = "&amount=${filterMinAmount}%7C${filterMaxAmount}";
+            });
+          },
+        );
         break;
       case TokenizationFilterMode.AssetCode:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'assetcode'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'assetcode'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.DateRange:
-        tokenizationCustomDateRangePopup(context,
-            initialStartDate: filterStartDate,
-            initialEndDate: filterEndDate, onDone: (startDate, endDate) async {
-          setState(() {
-            filterStartDate = startDate;
-            filterEndDate = endDate;
-            filterValue =
-                "&dateBetween=${DateFormat('yyyy-MM-dd').format(startDate)}%7C${DateFormat('yyyy-MM-dd').format(endDate)}";
-          });
-        });
+        tokenizationCustomDateRangePopup(
+          context,
+          initialStartDate: filterStartDate,
+          initialEndDate: filterEndDate,
+          onDone: (startDate, endDate) async {
+            setState(() {
+              filterStartDate = startDate;
+              filterEndDate = endDate;
+              filterValue =
+                  "&dateBetween=${DateFormat('yyyy-MM-dd').format(startDate)}%7C${DateFormat('yyyy-MM-dd').format(endDate)}";
+            });
+          },
+        );
         break;
       case TokenizationFilterMode.AssetSector:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'assetsector'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'assetsector'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.AssetSubSector:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'assetsubsector'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'assetsubsector'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.AssetType:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'assettype'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'assettype'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.InitiatorUsername:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'initiatorusername'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'initiatorusername'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       case TokenizationFilterMode.OfferingType:
         tokenizationOfferingTypePopup(
@@ -1575,16 +1591,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         );
         break;
       case TokenizationFilterMode.AssetName:
-        tokenizationFilterTextFieldPopup(context,
-            label: 'assetname'.tr(),
-            placeholder: 'Enter text here', onDone: (value) async {
-          setState(() {
-            filterValue = value!;
-          });
-          if (value != null && value.isNotEmpty) {
-            appState.setFilterQuery = "&name=${value}";
-          }
-        });
+        tokenizationFilterTextFieldPopup(
+          context,
+          label: 'assetname'.tr(),
+          placeholder: 'Enter text here',
+          onDone: (value) async {
+            setState(() {
+              filterValue = value!;
+            });
+            if (value != null && value.isNotEmpty) {
+              appState.setFilterQuery = "&name=${value}";
+            }
+          },
+        );
         break;
       default:
         tokenizationStatusPopup(

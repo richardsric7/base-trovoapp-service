@@ -49,9 +49,7 @@ void showSnackBar(String rel, BuildContext context) {
       action: SnackBarAction(
         label: "dismiss".tr(),
         textColor: wihitecolor,
-        onPressed: () => {
-          ScaffoldMessenger.of(context).clearSnackBars(),
-        },
+        onPressed: () => {ScaffoldMessenger.of(context).clearSnackBars()},
       ),
     ),
   );
@@ -75,9 +73,7 @@ void showSnackBarForInfo(String message, BuildContext context) {
       action: SnackBarAction(
         label: "dismiss".tr(),
         textColor: wihitecolor,
-        onPressed: () => {
-          ScaffoldMessenger.of(context).clearSnackBars(),
-        },
+        onPressed: () => {ScaffoldMessenger.of(context).clearSnackBars()},
       ),
     ),
   );
@@ -122,9 +118,11 @@ String truncateToDecimalPlaces(double number, {int decimalPlaces = 7}) {
   List<String> parts = numStr.split('.');
   if (parts.length < 2 || decimalPlaces <= 0) {
     return NumberFormat(
-            decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
-        .format(number
-            .truncateToDouble()); // No decimal part or no decimals requested
+      decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######",
+      "en_US",
+    ).format(
+      number.truncateToDouble(),
+    ); // No decimal part or no decimals requested
   }
 
   String integerPart = parts[0];
@@ -137,8 +135,9 @@ String truncateToDecimalPlaces(double number, {int decimalPlaces = 7}) {
   // Combine and parse back to double
   String truncatedStr = '$integerPart.$fractionalPart';
   return NumberFormat(
-          decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######", "en_US")
-      .format(double.parse(truncatedStr));
+    decimalPlaces == 2 ? "#,##0.##" : "#,##0.#######",
+    "en_US",
+  ).format(double.parse(truncatedStr));
 }
 
 formatNumber(double number) {
@@ -250,17 +249,20 @@ class doubleTypeFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     return TextEditingValue(
-        text:
-            formatNumberShort(double.parse(newValue.text.replaceAll(',', ''))),
-        selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
+      text: formatNumberShort(double.parse(newValue.text.replaceAll(',', ''))),
+      selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
+    );
   }
 }
 
 void changeTabPage(appState, index) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (appState.bottomTabPageController!.hasClients) {
-      appState.bottomTabPageController!.animateToPage(index,
-          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+      appState.bottomTabPageController!.animateToPage(
+        index,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
 
       // set this to the current tab page index
       appState.currentBottomTabIndex = index;
@@ -268,32 +270,50 @@ void changeTabPage(appState, index) {
   });
 }
 
-String calculateFiatValue(String assetBalance, String usdPrice, String currency,
-        DataProvider appState) =>
-    formatNumber(double.parse(getFiatRate(usdPrice, currency, appState,
-                getUnFormatted: true)) *
-            double.parse(assetBalance))
-        .toString();
+String calculateFiatValue(
+  String assetBalance,
+  String usdPrice,
+  String currency,
+  DataProvider appState,
+) => formatNumber(
+  double.parse(
+        getFiatRate(usdPrice, currency, appState, getUnFormatted: true),
+      ) *
+      double.parse(assetBalance),
+).toString();
 
-String getFiatRate(String usdPrice, String currency, DataProvider appState,
-    {bool getUnFormatted = false}) {
+String getFiatRate(
+  String usdPrice,
+  String currency,
+  DataProvider appState, {
+  bool getUnFormatted = false,
+}) {
   usdPrice = usdPrice.isEmpty ? '0' : usdPrice;
   if (getUnFormatted)
     return (appState.fiatRate[currency] * double.parse(usdPrice)).toString();
 
-  return NumberFormat("#,##0.00", "en_US")
-      .format(appState.fiatRate[currency] * double.parse(usdPrice))
-      .toString();
+  return NumberFormat(
+    "#,##0.00",
+    "en_US",
+  ).format(appState.fiatRate[currency] * double.parse(usdPrice)).toString();
 }
 
 String getTotalFiatBalanceOfAllAssetsInWallet(
-    String currency, DataProvider appState, List<Asset> assets) {
+  String currency,
+  DataProvider appState,
+  List<Asset> assets,
+) {
   double balance = 0;
   if (assets.length > 0) {
     for (var asset in assets) {
-      balance += double.parse(calculateFiatValue(asset.amount.toString(),
-              asset.usdPrice.toString(), currency, appState)
-          .replaceAll(',', ''));
+      balance += double.parse(
+        calculateFiatValue(
+          asset.amount.toString(),
+          asset.usdPrice.toString(),
+          currency,
+          appState,
+        ).replaceAll(',', ''),
+      );
     }
   }
   return formatHistoryNumber(
@@ -309,123 +329,127 @@ Widget buildExpandable(context) {
   width = MediaQuery.of(context).size.width;
 
   return ExpandableNotifier(
-      child: ScrollOnExpand(
-    child: Container(
-      child: Column(
-        children: <Widget>[
-          ExpandablePanel(
-            theme: const ExpandableThemeData(
-              headerAlignment: ExpandablePanelHeaderAlignment.center,
-              tapBodyToExpand: true,
-              tapBodyToCollapse: true,
-              hasIcon: false,
-            ),
-            header: Container(
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
+    child: ScrollOnExpand(
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ExpandablePanel(
+              theme: const ExpandableThemeData(
+                headerAlignment: ExpandablePanelHeaderAlignment.center,
+                tapBodyToExpand: true,
+                tapBodyToCollapse: true,
+                hasIcon: false,
+              ),
+              header: Container(
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        "learnmore".tr(),
+                        style: TextStyle(
+                          color: notifier.getbluecolor,
+                          fontFamily: fontbody,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                      ExpandableIcon(
+                        theme: ExpandableThemeData(
+                          expandIcon: Icons.keyboard_arrow_right,
+                          collapseIcon: Icons.keyboard_arrow_down_outlined,
+                          iconColor: notifier.getbluecolor,
+                          iconSize: 28.0,
+                          iconRotationAngle: 1.9 / 2,
+                          iconPadding: EdgeInsets.only(right: 5),
+                          hasIcon: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              collapsed: Container(),
+              expanded: Container(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(
-                      "learnmore".tr(),
-                      style: TextStyle(
-                        color: notifier.getbluecolor,
-                        fontFamily: fontbody,
-                        fontSize: 13.sp,
-                      ),
+                    SizedBox(width: width / 6),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "whatissharedaccess".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluecolor90,
+                            fontFamily: fontsemibold,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                        SizedBox(height: height / 50),
+                        SizedBox(
+                          width: width / 1.7,
+                          child: Text(
+                            "Lorem ipsum dolor emmet what does shared access mean?",
+                            style: TextStyle(
+                              color: notifier.getbluecolor90,
+                              fontFamily: fontbody,
+                              fontSize: 13.sp,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: height / 50),
+                        SizedBox(
+                          width: width / 1.7,
+                          child: Text(
+                            "We can also explain more or emphasise very important information here.",
+                            style: TextStyle(
+                              color: notifier.getbluecolor90,
+                              fontFamily: fontbody,
+                              fontSize: 13.sp,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
                     ),
-                    ExpandableIcon(
-                      theme: ExpandableThemeData(
-                        expandIcon: Icons.keyboard_arrow_right,
-                        collapseIcon: Icons.keyboard_arrow_down_outlined,
-                        iconColor: notifier.getbluecolor,
-                        iconSize: 28.0,
-                        iconRotationAngle: 1.9 / 2,
-                        iconPadding: EdgeInsets.only(right: 5),
-                        hasIcon: false,
-                      ),
-                    )
                   ],
                 ),
               ),
             ),
-            collapsed: Container(),
-            expanded: Container(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: width / 6,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "whatissharedaccess".tr(),
-                        style: TextStyle(
-                          color: notifier.getbluecolor90,
-                          fontFamily: fontsemibold,
-                          fontSize: 13.sp,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      SizedBox(
-                        width: width / 1.7,
-                        child: Text(
-                          "Lorem ipsum dolor emmet what does shared access mean?",
-                          style: TextStyle(
-                            color: notifier.getbluecolor90,
-                            fontFamily: fontbody,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      SizedBox(
-                        width: width / 1.7,
-                        child: Text(
-                          "We can also explain more or emphasise very important information here.",
-                          style: TextStyle(
-                            color: notifier.getbluecolor90,
-                            fontFamily: fontbody,
-                            fontSize: 13.sp,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
-  ));
+  );
 }
 
-postProcessData(context, messageShown, messageLength, data,
-    {required void Function() callback}) {
+postProcessData(
+  context,
+  messageShown,
+  messageLength,
+  data, {
+  required void Function() callback,
+}) {
   // we would like to display all messages returned from the initial
   // request to server using a popup. In order to achieve that we
   // employ the use of a little recursion here. Please recursive
   // functions can turn into a nightmare fast so be carefull here.
   if (messageShown <= messageLength - 1) {
     showResponseMessage(
-        context,
-        data['messages'][messageShown],
-        () => {
-              print('postProcessData: $messageShown'),
-              postProcessData(context, messageShown, messageLength, data,
-                  callback: callback),
-            });
+      context,
+      data['messages'][messageShown],
+      () => {
+        print('postProcessData: $messageShown'),
+        postProcessData(
+          context,
+          messageShown,
+          messageLength,
+          data,
+          callback: callback,
+        ),
+      },
+    );
 
     messageShown++;
     return;
@@ -446,8 +470,9 @@ Widget userItem(
     padding: const EdgeInsets.all(3.0),
     child: Container(
       decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+        color: backColor,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Wrap(
@@ -459,21 +484,23 @@ Widget userItem(
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
+                color: foreColor,
+                fontFamily: fontbody,
+                fontSize: fontSize,
+              ),
             ),
-            SizedBox(
-              width: width / 70,
-            ),
+            SizedBox(width: width / 70),
             if (onClick != null) ...[
               GestureDetector(
-                  onTap: () {
-                    onClick();
-                  },
-                  child: Icon(
-                    restoreMode ? Icons.replay_sharp : Icons.cancel_outlined,
-                    color: wihitecolor,
-                  ))
-            ]
+                onTap: () {
+                  onClick();
+                },
+                child: Icon(
+                  restoreMode ? Icons.replay_sharp : Icons.cancel_outlined,
+                  color: wihitecolor,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -526,8 +553,9 @@ Widget iconDropdown(
       selectedItemBuilder: selectedItemBuilder,
       isDense: true,
       isExpanded: true,
-      dropdownColor:
-          notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      dropdownColor: notifier.isDark
+          ? darktilewhitecolor
+          : notifier.getaddsubwalletgrey,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
         enabledBorder: OutlineInputBorder(
@@ -539,8 +567,9 @@ Widget iconDropdown(
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
-        fillColor:
-            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        fillColor: notifier.isDark
+            ? darktilewhitecolor
+            : notifier.getaddsubwalletgrey,
       ),
       value: value,
       hint: Icon(
@@ -650,46 +679,57 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   final appDir = await syspaths.getTemporaryDirectory();
   String fileName = '${appDir.path}/receipt.png';
 
-  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
-      .findRenderObject()! as RenderRepaintBoundary;
+  RenderRepaintBoundary boundary =
+      snapshotAreaKey.currentContext!.findRenderObject()!
+          as RenderRepaintBoundary;
 
   var image = await boundary.toImage();
   var byteData = await image.toByteData(format: ImageByteFormat.png);
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
-  await Share.shareXFiles([XFile(fileName)],
-      text: message, sharePositionOrigin: boundary.paintBounds);
+  await Share.shareXFiles(
+    [XFile(fileName)],
+    text: message,
+    sharePositionOrigin: boundary.paintBounds,
+  );
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
   final appDir = await syspaths.getTemporaryDirectory();
   String fileName = '${appDir.path}/receipt.pdf';
-  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
-      .findRenderObject()! as RenderRepaintBoundary;
+  RenderRepaintBoundary boundary =
+      snapshotAreaKey.currentContext!.findRenderObject()!
+          as RenderRepaintBoundary;
   final pdf = pw.Document();
 
   var image = await boundary.toImage();
   var byteData = await image.toByteData(format: ImageByteFormat.png);
 
-  final pdfImage = pw.MemoryImage(
-    byteData!.buffer.asUint8List(),
-  );
+  final pdfImage = pw.MemoryImage(byteData!.buffer.asUint8List());
 
-  pdf.addPage(pw.Page(build: (pw.Context context) {
-    return pw.Center(
-      child: pw.Image(pdfImage),
-    ); // Center
-  }));
+  pdf.addPage(
+    pw.Page(
+      build: (pw.Context context) {
+        return pw.Center(child: pw.Image(pdfImage)); // Center
+      },
+    ),
+  );
 
   File file = await File(fileName).create();
   file.writeAsBytesSync(await pdf.save());
-  await Share.shareXFiles([XFile(fileName)],
-      text: message, sharePositionOrigin: boundary.paintBounds);
+  await Share.shareXFiles(
+    [XFile(fileName)],
+    text: message,
+    sharePositionOrigin: boundary.paintBounds,
+  );
 }
 
 void disableSharedAccess(
-    BuildContext context, DataProvider appState, Wallet wallet,
-    {bool viewOnly = false}) async {
+  BuildContext context,
+  DataProvider appState,
+  Wallet wallet, {
+  bool viewOnly = false,
+}) async {
   try {
     showLoader(context);
 
@@ -709,15 +749,27 @@ void disableSharedAccess(
       var messageShown = 0;
       print('messagelenth: $messageLength');
       postProcessData(
-          context, messageShown, messageLength, responseData['data'],
-          callback: () {
-        signAndCommitTransaction(
-            responseData['data'], context, appState, wallet, viewOnly);
-      });
+        context,
+        messageShown,
+        messageLength,
+        responseData['data'],
+        callback: () {
+          signAndCommitTransaction(
+            responseData['data'],
+            context,
+            appState,
+            wallet,
+            viewOnly,
+          );
+        },
+      );
       hideLoader(context);
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
       hideLoader(context);
     }
   } catch (e) {
@@ -726,13 +778,20 @@ void disableSharedAccess(
   }
 }
 
-void signAndCommitTransaction(responseFromServer, BuildContext context,
-    DataProvider appState, Wallet wallet, bool viewOnly) async {
+void signAndCommitTransaction(
+  responseFromServer,
+  BuildContext context,
+  DataProvider appState,
+  Wallet wallet,
+  bool viewOnly,
+) async {
   try {
-    String viewOnlySuccess =
-        "sharedaccessdisabledsuccessfully".tr(args: [wallet.alias!]);
-    String sharedAccessSuccess =
-        "sharedaccessdisablerequestsuccessful".tr(args: [wallet.alias!]);
+    String viewOnlySuccess = "sharedaccessdisabledsuccessfully".tr(
+      args: [wallet.alias!],
+    );
+    String sharedAccessSuccess = "sharedaccessdisablerequestsuccessful".tr(
+      args: [wallet.alias!],
+    );
     showLoader(context);
 
     //sign the transaction and the submit again
@@ -770,18 +829,23 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
         'message': viewOnly ? viewOnlySuccess : sharedAccessSuccess,
         'useOnDone': true,
         'onDone': () {
-          appState.currentAction = PageAction(state: PageState.addAll, pages: [
-            BottomHomePageConfig,
-            SharedAccessViewPageConfig,
-          ]);
+          appState.currentAction = PageAction(
+            state: PageState.addAll,
+            pages: [BottomHomePageConfig, SharedAccessViewPageConfig],
+          );
         },
       };
-      appState.currentAction =
-          PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.replace,
+        page: SuccessViewPageConfig,
+      );
       hideLoader(context);
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
       hideLoader(context);
     }
   } catch (e) {
@@ -801,9 +865,7 @@ Widget tokenizedAssetTile({
     shadowColor: Colors.black,
     color: notifier.gettilewihitecolor,
     margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(15.0),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
@@ -833,8 +895,9 @@ Widget tokenizedAssetTile({
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
                           border: Border.all(
                             color: notifier.getwihitecolor,
                             width: 1,
@@ -847,11 +910,7 @@ Widget tokenizedAssetTile({
                     ],
                   ),
                 ] else ...[
-                  Image.asset(
-                    'assets/images/trovo.png',
-                    height: 35,
-                    width: 35,
-                  ),
+                  Image.asset('assets/images/trovo.png', height: 35, width: 35),
                 ],
                 SizedBox(width: 10),
                 Column(
@@ -863,17 +922,38 @@ Widget tokenizedAssetTile({
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '${asset.assetName!.capitalizeEachWord()} (${asset.assetCode!.toUpperCase()})',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getblck,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(maxWidth: 200),
+                                    child: Text(
+                                      asset.assetName!.capitalizeEachWord(),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: fontsemibold,
+                                        color: notifier.getblck,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    ' (${asset.assetCode!.toUpperCase()})',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getblck,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                                padding: const EdgeInsets.fromLTRB(
+                                  0,
+                                  3.0,
+                                  0,
+                                  0,
+                                ),
                                 child: Text(
                                   asset.assetSector!,
                                   style: TextStyle(
@@ -906,79 +986,79 @@ Widget tokenizedAssetTile({
                         onSubscribe();
                       },
                       style: ButtonStyle(
-                        padding: MaterialStateProperty.all(
+                        padding: WidgetStateProperty.all(
                           EdgeInsets.symmetric(vertical: 0, horizontal: 6),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            notifier.getsplashgrey),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
+                          notifier.getsplashgrey,
+                        ),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           asset.expressedInterest ?? false
                               ? notifier.getbluewhitecolor
                               : notifier.getwihitecolor,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                              style: BorderStyle.solid),
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                           const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
                         ),
                       ),
                       child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            if (asset.expressedInterest ?? false) ...[
-                              Container(
-                                width: 70,
-                                child: Text(
-                                  'Interest Expressed',
-                                  style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                    fontSize: 12,
-                                    overflow: TextOverflow.visible,
-                                    color: asset.expressedInterest ?? false
-                                        ? notifier.getwihitecolor
-                                        : notifier.getbluewhitecolor,
-                                  ),
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          if (asset.expressedInterest ?? false) ...[
+                            Container(
+                              width: 70,
+                              child: Text(
+                                'Interest Expressed',
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  overflow: TextOverflow.visible,
+                                  color: asset.expressedInterest ?? false
+                                      ? notifier.getwihitecolor
+                                      : notifier.getbluewhitecolor,
                                 ),
                               ),
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 20,
-                                color: asset.expressedInterest ?? false
-                                    ? notifier.getwihitecolor
-                                    : notifier.getbluewhitecolor,
-                              ),
-                            ] else ...[
-                              Container(
-                                width: 53,
-                                child: Text(
-                                  'Express Interest',
-                                  style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                    fontSize: 12,
-                                    color: asset.expressedInterest ?? false
-                                        ? notifier.getwihitecolor
-                                        : notifier.getbluewhitecolor,
-                                  ),
+                            ),
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 20,
+                              color: asset.expressedInterest ?? false
+                                  ? notifier.getwihitecolor
+                                  : notifier.getbluewhitecolor,
+                            ),
+                          ] else ...[
+                            Container(
+                              width: 53,
+                              child: Text(
+                                'Express Interest',
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  color: asset.expressedInterest ?? false
+                                      ? notifier.getwihitecolor
+                                      : notifier.getbluewhitecolor,
                                 ),
                               ),
-                              Icon(
-                                Icons.add_circle_rounded,
-                                size: 20,
-                                color: asset.expressedInterest ?? false
-                                    ? notifier.getwihitecolor
-                                    : notifier.getbluewhitecolor,
-                              ),
-                            ]
-                          ]),
+                            ),
+                            Icon(
+                              Icons.add_circle_rounded,
+                              size: 20,
+                              color: asset.expressedInterest ?? false
+                                  ? notifier.getwihitecolor
+                                  : notifier.getbluewhitecolor,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -991,11 +1071,12 @@ Widget tokenizedAssetTile({
                         margin: EdgeInsets.zero,
                         shadowColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5.0),
-                            side: BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                            )),
+                          borderRadius: BorderRadius.circular(5.0),
+                          side: BorderSide(
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                          ),
+                        ),
                         color: notifier.isDark
                             ? notifier.getbluecolor90
                             : notifier.getaddsubwalletgrey,
@@ -1016,43 +1097,47 @@ Widget tokenizedAssetTile({
                       ElevatedButton(
                         onPressed: onBuyToken,
                         style: ButtonStyle(
-                          padding: MaterialStateProperty.all(EdgeInsets.zero),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor90),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluewhitecolor),
-                          side: MaterialStateProperty.all(
+                          padding: WidgetStateProperty.all(EdgeInsets.zero),
+                          overlayColor: WidgetStateProperty.all<Color>(
+                            notifier.getbluecolor90,
+                          ),
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getbluewhitecolor,
+                          ),
+                          side: WidgetStateProperty.all(
                             BorderSide(
-                                color: notifier.getbluewhitecolor,
-                                width: 1,
-                                style: BorderStyle.solid),
+                              color: notifier.getbluewhitecolor,
+                              width: 1,
+                              style: BorderStyle.solid,
+                            ),
                           ),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Buy',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color: notifier.getwihitecolor,
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
                                 ),
                               ),
-                              Image.asset(
-                                'assets/images/money.png',
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Buy',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
                                 color: notifier.getwihitecolor,
                               ),
-                            ]),
+                            ),
+                            Image.asset(
+                              'assets/images/money.png',
+                              color: notifier.getwihitecolor,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -1070,20 +1155,23 @@ String getFiatValue(double amount) {
   if (amount < 99000000000) {
     return formatNumberShort(amount);
   }
-  return formatHistoryNumber(amount, 99000000000)
-      .toString()
-      .replaceAll(',', '');
+  return formatHistoryNumber(
+    amount,
+    99000000000,
+  ).toString().replaceAll(',', '');
 }
 
-Widget infoCard(ColorNotifier notifier,
-    {required String label, required String value, String? extraValue}) {
+Widget infoCard(
+  ColorNotifier notifier, {
+  required String label,
+  required String value,
+  String? extraValue,
+}) {
   return Container(
     width: width / 2.1,
     child: Card(
       shadowColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       color: notifier.isDark ? notifier.getbluecolor90 : notifier.getpillbg,
       child: TextButton(
         onPressed: () {},
@@ -1093,28 +1181,26 @@ Widget infoCard(ColorNotifier notifier,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: width / 2.5,
+                  width: width / 2.7,
                   child: Text(
                     label,
                     textAlign: TextAlign.start,
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ),
+                SizedBox(height: 6),
                 SizedBox(
-                  height: 6,
-                ),
-                SizedBox(
-                  width: width / 2.5,
+                  width: width / 2.7,
                   child: Text(
                     value,
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -1157,7 +1243,7 @@ Widget categoryTile(
                       label,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1195,25 +1281,25 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: width / 1.18,
+                  width: width / 1.3,
                   child: Text(
                     key,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ),
                 Container(
-                  width: width / 1.2,
+                  width: width / 1.3,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
                       value.isEmpty ? 'Nil' : value,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1241,8 +1327,9 @@ Widget pill(
     padding: const EdgeInsets.all(3.0),
     child: Container(
       decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+        color: backColor,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Wrap(
@@ -1256,9 +1343,10 @@ Widget pill(
                   textAlign: TextAlign.center,
                   softWrap: true,
                   style: TextStyle(
-                      color: foreColor,
-                      fontFamily: fontbody,
-                      fontSize: fontSize),
+                    color: foreColor,
+                    fontFamily: fontbody,
+                    fontSize: fontSize,
+                  ),
                 ),
                 if (!hideDirectionUp) ...[
                   Icon(
@@ -1271,9 +1359,7 @@ Widget pill(
                 ],
               ],
             ),
-            SizedBox(
-              width: width / 70,
-            ),
+            SizedBox(width: width / 70),
           ],
         ),
       ),
@@ -1333,8 +1419,11 @@ initiateKyc(context, DataProvider appState, String kycLevel) async {
       hideLoader(context);
       return responseData['data'];
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
       hideLoader(context);
     }
   } catch (e) {
@@ -1362,8 +1451,11 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
       hideLoader(context);
       return responseData['data'];
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
       hideLoader(context);
     }
   } catch (e) {
@@ -1388,10 +1480,12 @@ void launchSDK(context, DataProvider appState) async {
   }
 
   if (kycLevel.isEmpty) {
-    popup(context,
-        title: 'Error',
-        message:
-            'You cannot initiate another KYC at this moment. Please wait for your initiated KYC to complete.');
+    popup(
+      context,
+      title: 'Error',
+      message:
+          'You cannot initiate another KYC at this moment. Please wait for your initiated KYC to complete.',
+    );
     return;
   }
 
@@ -1421,28 +1515,34 @@ void launchSDK(context, DataProvider appState) async {
 
   final SNSStatusChangedHandler onStatusChanged =
       (SNSMobileSDKStatus newStatus, SNSMobileSDKStatus prevStatus) {
-    print("The SDK status was changed: $prevStatus -> $newStatus");
-  };
+        print("The SDK status was changed: $prevStatus -> $newStatus");
+      };
 
   final snsMobileSDK = SNSMobileSDK.init(accessToken, onTokenExpiration)
       .withHandlers(
-          // optional handlers
-          onStatusChanged: onStatusChanged)
+        // optional handlers
+        onStatusChanged: onStatusChanged,
+      )
       .withDebug(true) // set debug mode if required
-      .withLocale(Locale(
-          "en")) // optional, for cases when you need to override the system locale
+      .withLocale(
+        Locale("en"),
+      ) // optional, for cases when you need to override the system locale
       .build();
 
   final SNSMobileSDKResult result = await snsMobileSDK.launch();
 
   print(
-      "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result");
+    "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result",
+  );
   await completeKyc(context, appState, kycLevel);
   showSuccessAlert(context, onTap: () {});
 }
 
 Widget getDrawer(
-    BuildContext context, DataProvider appState, ColorNotifier notifier) {
+  BuildContext context,
+  DataProvider appState,
+  ColorNotifier notifier,
+) {
   return Drawer(
     backgroundColor: notifier.getwihitecolor,
     child: ListView(
@@ -1452,12 +1552,12 @@ Widget getDrawer(
         GestureDetector(
           onTap: () {
             appState.currentAction = PageAction(
-                state: PageState.addPage, page: ProfileDetailsViewPageConfig);
+              state: PageState.addPage,
+              page: ProfileDetailsViewPageConfig,
+            );
           },
           child: UserAccountsDrawerHeader(
-            decoration: BoxDecoration(
-              color: notifier.getwihitecolor,
-            ),
+            decoration: BoxDecoration(color: notifier.getwihitecolor),
             margin: const EdgeInsets.only(bottom: 8.0),
             accountName: Text(
               '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
@@ -1465,6 +1565,7 @@ Widget getDrawer(
               style: TextStyle(
                 fontFamily: fontsemibold,
                 color: notifier.getbluewhitecolor,
+                fontSize: 14,
               ),
             ),
             accountEmail: Column(
@@ -1476,6 +1577,7 @@ Widget getDrawer(
                   style: TextStyle(
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
+                    fontSize: 14,
                   ),
                 ),
                 SizedBox(height: 4),
@@ -1487,10 +1589,12 @@ Widget getDrawer(
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: fontsemibold,
-                    color: appState.userInfo!.kycVerified != null &&
+                    color:
+                        appState.userInfo!.kycVerified != null &&
                             appState.userInfo!.kycVerified! > 0
                         ? notifier.getgreencolor
                         : Colors.red,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -1507,15 +1611,15 @@ Widget getDrawer(
                         child: GestureDetector(
                           onTap: () {
                             appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: ProfileDetailsViewPageConfig);
+                              state: PageState.addPage,
+                              page: ProfileDetailsViewPageConfig,
+                            );
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(100.0),
                             child: Image.network(
                               appState.userInfo!.imageThumbnailURL!,
                               width: width / 6.8,
-                              // height: width / 10,
                               fit: BoxFit.fill,
                               errorBuilder: (context, error, stackTrace) {
                                 return Image.asset(
@@ -1565,6 +1669,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1589,6 +1694,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1632,13 +1738,15 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
             Navigator.pop(context);
             appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: WelcomeSubscriptionsViewPageConfig);
+              state: PageState.addPage,
+              page: WelcomeSubscriptionsViewPageConfig,
+            );
           },
         ),
         ListTile(
@@ -1653,6 +1761,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1675,12 +1784,15 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
             Navigator.pop(context);
             appState.currentAction = PageAction(
-                state: PageState.addPage, page: ImportWalletPageConfig);
+              state: PageState.addPage,
+              page: ImportWalletPageConfig,
+            );
           },
         ),
         ListTile(
@@ -1695,21 +1807,22 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
             // go to the definition of appState.viewData
             // to learn more about viewData
             if (appState.viewData?[EnsurePrivacyPageConfig.key] == null) {
-              appState.viewData = {
-                EnsurePrivacyPageConfig.key: {},
-              };
+              appState.viewData = {EnsurePrivacyPageConfig.key: {}};
             }
             appState.viewData?[EnsurePrivacyPageConfig.key] = {
               'rel': 'backupAll',
             };
             appState.currentAction = PageAction(
-                state: PageState.addPage, page: EnsurePrivacyPageConfig);
+              state: PageState.addPage,
+              page: EnsurePrivacyPageConfig,
+            );
             Navigator.pop(context);
           },
         ),
@@ -1725,6 +1838,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1732,8 +1846,9 @@ Widget getDrawer(
             //           ? "Enabled"
             //           : ""
             if (appState.userInfo!.hasSecurityQuestions == 0) {
-              var primaryWallet = appState.userInfo!.wallets!
-                  .firstWhere((wallet) => wallet.primaryWallet == 1);
+              var primaryWallet = appState.userInfo!.wallets!.firstWhere(
+                (wallet) => wallet.primaryWallet == 1,
+              );
 
               appState.returnView = PageAction(
                 state: PageState.addAll,
@@ -1749,19 +1864,22 @@ Widget getDrawer(
                   'publicKey': primaryWallet.publicKey,
                   'secretKey': appState.secretKeys[0],
                   'username': appState.userInfo!.username,
-                }
+                },
               };
               appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: SecurityQuestionsViewPageConfig);
+                state: PageState.addPage,
+                page: SecurityQuestionsViewPageConfig,
+              );
             } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
               appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: SetupAccountRecoveryViewPageConfig);
+                state: PageState.addPage,
+                page: SetupAccountRecoveryViewPageConfig,
+              );
             } else {
               appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: DisableAccountRecoveryInfoViewPageConfig);
+                state: PageState.addPage,
+                page: DisableAccountRecoveryInfoViewPageConfig,
+              );
             }
             Navigator.pop(context);
           },
@@ -1777,6 +1895,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1798,6 +1917,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1816,6 +1936,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1834,6 +1955,7 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
@@ -1852,12 +1974,15 @@ Widget getDrawer(
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
+              fontSize: 14,
             ),
           ),
           onTap: () {
             Navigator.pop(context);
-            appState.currentAction =
-                PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+            appState.currentAction = PageAction(
+              state: PageState.replaceAll,
+              page: LoginPageConfig,
+            );
             appState.isLoggedIn = false;
           },
         ),

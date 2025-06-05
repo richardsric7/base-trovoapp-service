@@ -25,18 +25,23 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-      name: await StoreData().storeGetData('walletMode') ?? "Testnet",
-      options: DefaultFirebaseOptions.currentPlatform(
-          await StoreData().storeGetData('walletMode') ?? "Testnet"));
+    // name: await StoreData().storeGetData('walletMode') ?? "Testnet",
+    options: DefaultFirebaseOptions.currentPlatform(
+      await StoreData().storeGetData('walletMode') ?? "Testnet",
+    ),
+  );
   print(
-      '-----------------------------------------------this is the initialized app from main method:  ${DefaultFirebaseOptions.currentPlatform(await StoreData().storeGetData('walletMode') ?? "Testnet")}');
+    '-----------------------------------------------this is the initialized app from main method:  ${DefaultFirebaseOptions.currentPlatform(await StoreData().storeGetData('walletMode') ?? "Testnet")}',
+  );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
   if (dynamicLink != null) {
-    await StoreData()
-        .storeInsertData('initialDynamicLink', dynamicLink.link.toString());
+    await StoreData().storeInsertData(
+      'initialDynamicLink',
+      dynamicLink.link.toString(),
+    );
   }
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -63,11 +68,12 @@ void main() async {
 
   runApp(
     EasyLocalization(
-        supportedLocales: [Locale('en', 'US')],
-        path:
-            'assets/translations', // <-- change the path of the translation files
-        fallbackLocale: Locale('en-US'),
-        child: App()),
+      supportedLocales: [Locale('en', 'US')],
+      path:
+          'assets/translations', // <-- change the path of the translation files
+      fallbackLocale: Locale('en-US'),
+      child: App(),
+    ),
   );
 }
 
@@ -100,9 +106,7 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     return SafeArea(
       child: MultiProvider(
         providers: [
@@ -143,8 +147,10 @@ class _AppState extends State<App> {
       _timer!.cancel();
     }
     // setup action after 5 minutes
-    _timer = Timer(Duration(minutes: timeOut == null ? 5 : timeOut),
-        () => _handleInactivity());
+    _timer = Timer(
+      Duration(minutes: timeOut == null ? 5 : timeOut),
+      () => _handleInactivity(),
+    );
   }
 
   void _handleInactivity() async {
@@ -153,15 +159,19 @@ class _AppState extends State<App> {
 
     if (appState.isFirstTime) {
       setState(() {
-        appState.currentAction =
-            PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: OnboardingPageConfig,
+        );
       });
     } else if (appState.restartedAfterSwitch) {
       // do nothing
     } else {
       setState(() {
-        appState.currentAction =
-            PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: LoginPageConfig,
+        );
         appState.isLoggedIn = false;
       });
     }

@@ -59,33 +59,25 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             key != FilterType.WithdrawalStatus) {
           items.add(
             DropdownMenuItem(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      value,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                value: key),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text(value, overflow: TextOverflow.ellipsis)],
+              ),
+              value: key,
+            ),
           );
         }
       } else {
         items.add(
           DropdownMenuItem(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    value,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-              value: key),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [Text(value, overflow: TextOverflow.ellipsis)],
+            ),
+            value: key,
+          ),
         );
       }
     });
@@ -150,8 +142,9 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       padding: const EdgeInsets.symmetric(horizontal: 5.0),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
                           color: notifier.isDark
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
@@ -196,13 +189,14 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                                 historyMode,
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize:
-                                        appState.filterStartDate != null &&
-                                                appState.filterEndDate != null
-                                            ? 13
-                                            : 15,
-                                    fontFamily: fontsemibold),
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize:
+                                      appState.filterStartDate != null &&
+                                          appState.filterEndDate != null
+                                      ? 13
+                                      : 15,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                               Icon(
                                 Icons.keyboard_arrow_down_rounded,
@@ -227,7 +221,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
               actions: [
@@ -242,7 +236,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ),
@@ -258,9 +252,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                     width: width,
                     child: Row(
                       children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
+                        SizedBox(width: width / 50),
                         Expanded(
                           flex: 2,
                           child: dropdown(
@@ -277,20 +269,13 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                             null,
                           ),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: getContent(filterType),
-                        ),
-                        SizedBox(
-                          width: width / 50,
-                        ),
+                        Expanded(flex: 2, child: getContent(filterType)),
+                        SizedBox(width: width / 50),
                       ],
                     ),
                   ),
                 ],
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 listHistory(),
               ],
             ),
@@ -307,7 +292,8 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       return Container(
         height: (showFilter ? height / 1.24 : height / 1.14),
         child: LoadMore(
-          isFinish: (historyMode == 'Deposit history' &&
+          isFinish:
+              (historyMode == 'Deposit history' &&
                   depositHistory!.length == appState.totalRecords) ||
               (historyMode == 'Withdrawal history' &&
                   withdrawalHistory!.length == appState.totalRecords),
@@ -341,16 +327,17 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             return text;
           },
           child: ListView.separated(
-              separatorBuilder: (context, int) => Container(),
-              itemCount: historyMode == 'Deposit history'
-                  ? depositHistory!.length
-                  : withdrawalHistory!.length,
-              controller: scrollController,
-              itemBuilder: (context, index) {
-                return historyMode == 'Deposit history'
-                    ? depositHistoryTile(depositHistory![index])
-                    : withdrawalHistoryTile(withdrawalHistory![index]);
-              }),
+            separatorBuilder: (context, int) => Container(),
+            itemCount: historyMode == 'Deposit history'
+                ? depositHistory!.length
+                : withdrawalHistory!.length,
+            controller: scrollController,
+            itemBuilder: (context, index) {
+              return historyMode == 'Deposit history'
+                  ? depositHistoryTile(depositHistory![index])
+                  : withdrawalHistoryTile(withdrawalHistory![index]);
+            },
+          ),
         ),
       );
     }
@@ -369,9 +356,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 color: notifier.getbluewhitecolor,
               ),
             ),
-            SizedBox(
-              height: height / 90,
-            ),
+            SizedBox(height: height / 90),
             ElevatedButton(
               onPressed: () async {
                 await appState.fetchDepositHistory(
@@ -382,14 +367,16 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 );
               },
               style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                backgroundColor: WidgetStateProperty.all<Color>(
+                  notifier.getbluecolor!,
+                ),
+                foregroundColor: WidgetStateProperty.all<Color>(
+                  notifier.getwihitecolor,
+                ),
               ),
               child: Text(
                 "refresh".tr(),
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                ),
+                style: TextStyle(fontFamily: fontsemibold),
               ),
             ),
           ],
@@ -422,8 +409,10 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 15.0,
+            ),
             child: Row(
               children: [
                 Image.asset(
@@ -432,23 +421,20 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                   color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
-                SizedBox(
-                  width: width / 50,
-                ),
+                SizedBox(width: width / 50),
                 Container(
                   width: width / 1.5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: width / 50,
-                      ),
+                      SizedBox(width: width / 50),
                       Text(
                         formatAmount(
-                            TransactionDirection.Deposit,
-                            transaction.amount.toString(),
-                            transaction.currency),
+                          TransactionDirection.Deposit,
+                          transaction.amount.toString(),
+                          transaction.currency,
+                        ),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
@@ -470,9 +456,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: 2,
-                      ),
+                      SizedBox(height: 2),
                       Wrap(
                         children: [
                           Text(
@@ -538,8 +522,10 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 15.0,
+            ),
             child: Row(
               children: [
                 Image.asset(
@@ -548,23 +534,20 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                   color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
-                SizedBox(
-                  width: width / 50,
-                ),
+                SizedBox(width: width / 50),
                 Container(
                   width: width / 1.5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: width / 50,
-                      ),
+                      SizedBox(width: width / 50),
                       Text(
                         formatAmount(
-                            TransactionDirection.Withdraw,
-                            transaction.amountSubmitted.toString(),
-                            transaction.currency),
+                          TransactionDirection.Withdraw,
+                          transaction.amountSubmitted.toString(),
+                          transaction.currency,
+                        ),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
@@ -585,9 +568,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: 2,
-                      ),
+                      SizedBox(height: 2),
                       Wrap(
                         children: [
                           Text(
@@ -602,9 +583,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: 2,
-                      ),
+                      SizedBox(height: 2),
                       Wrap(
                         children: [
                           Text(
@@ -703,12 +682,14 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 text,
                 textAlign: TextAlign.start,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: appState.filterStartDate != null &&
-                            appState.filterEndDate != null
-                        ? 13
-                        : 15,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize:
+                      appState.filterStartDate != null &&
+                          appState.filterEndDate != null
+                      ? 13
+                      : 15,
+                  fontFamily: fontsemibold,
+                ),
               ),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
@@ -724,21 +705,24 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
   void showPopup(FilterType filterType) async {
     switch (filterType) {
       case FilterType.WithdrawalAddress:
-        wrappedAssetsTextFieldPopup(context, rel: FilterType.WithdrawalAddress,
-            onDone: (value) async {
-          appState.setFilterUsername = value;
-          if (value != null && value.isNotEmpty) {
-            appState.limit = 20;
-            appState.setFilterWithdrawalAddress = value;
-            appState.setFilterQuery = "&withdrawalAddress=${value}";
-            await appState.fetchWithdrawalHistory(
-              context,
-              publicKey: wallet.publicKey!,
-              currency: asset.assetCode,
-              // onDone: () => adjustScrollPosition(),
-            );
-          }
-        });
+        wrappedAssetsTextFieldPopup(
+          context,
+          rel: FilterType.WithdrawalAddress,
+          onDone: (value) async {
+            appState.setFilterUsername = value;
+            if (value != null && value.isNotEmpty) {
+              appState.limit = 20;
+              appState.setFilterWithdrawalAddress = value;
+              appState.setFilterQuery = "&withdrawalAddress=${value}";
+              await appState.fetchWithdrawalHistory(
+                context,
+                publicKey: wallet.publicKey!,
+                currency: asset.assetCode,
+                // onDone: () => adjustScrollPosition(),
+              );
+            }
+          },
+        );
         break;
       case FilterType.WithdrawalStatus:
         wrappedAssetTransactionStatusPopup(
@@ -772,12 +756,36 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         );
         break;
       case FilterType.AmountRange:
-        amountRangePopup(context, onDone: () async {
-          if (appState.filterMinAmount != null &&
-              appState.filterMaxAmount != null) {
+        amountRangePopup(
+          context,
+          onDone: () async {
+            if (appState.filterMinAmount != null &&
+                appState.filterMaxAmount != null) {
+              appState.limit = 20;
+              appState.setFilterQuery =
+                  "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+              historyMode == 'Deposit history'
+                  ? await appState.fetchDepositHistory(
+                      context,
+                      publicKey: wallet.publicKey!,
+                      currency: asset.assetCode!,
+                    )
+                  : await appState.fetchWithdrawalHistory(
+                      context,
+                      publicKey: wallet.publicKey!,
+                      currency: asset.assetCode!,
+                    );
+            }
+          },
+        );
+        break;
+      case FilterType.DateRange:
+        customDateRangePopup(
+          context,
+          onDone: () async {
             appState.limit = 20;
             appState.setFilterQuery =
-                "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+                "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
             historyMode == 'Deposit history'
                 ? await appState.fetchDepositHistory(
                     context,
@@ -789,26 +797,8 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                     publicKey: wallet.publicKey!,
                     currency: asset.assetCode!,
                   );
-          }
-        });
-        break;
-      case FilterType.DateRange:
-        customDateRangePopup(context, onDone: () async {
-          appState.limit = 20;
-          appState.setFilterQuery =
-              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-          historyMode == 'Deposit history'
-              ? await appState.fetchDepositHistory(
-                  context,
-                  publicKey: wallet.publicKey!,
-                  currency: asset.assetCode!,
-                )
-              : await appState.fetchWithdrawalHistory(
-                  context,
-                  publicKey: wallet.publicKey!,
-                  currency: asset.assetCode!,
-                );
-        });
+          },
+        );
         break;
       default:
     }

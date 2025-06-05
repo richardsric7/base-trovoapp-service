@@ -44,7 +44,6 @@ dependencies:
   # syncfusion_flutter_charts: ^19.1.54
   flutter_switch: ^0.3.2
   calendar_calendar: ^1.0.0
-  # flutter_share: ^2.0.0
   clipboard: ^0.1.3
   fluttertoast: ^8.0.9
   accordion: ^2.2.3
@@ -69,7 +68,7 @@ dependencies:
   toggle_switch: ^2.0.1
   webview_flutter: ^4.13.0
   flutter_inappwebview: ^6.1.5
-  local_auth: ^2.1.0
+  local_auth: ^2.3.0
   app_settings: ^6.1.1
   flutter_svg: ^2.1.0
   flutter_local_notifications: ^19.2.1
@@ -79,7 +78,7 @@ dependencies:
   # scan:
   timeago: ^3.2.2
   loadmore: ^2.0.1
-  # qr_code_scanner: ^1.0.1
+  mobile_scanner: ^7.0.0
   syncfusion_flutter_sliders: ^29.2.5
   image_picker: ^1.1.2
   intl: ^0.20.2

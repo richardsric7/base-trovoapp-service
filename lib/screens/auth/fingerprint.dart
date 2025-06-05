@@ -60,8 +60,12 @@ class _FingerPrintState extends State<FingerPrint> {
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         appBar: CustomAppBarWithoutBanner(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,9 +75,10 @@ class _FingerPrintState extends State<FingerPrint> {
                   "biometrics".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 26.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 26.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
               ),
               SizedBox(height: height / 45),
@@ -82,9 +87,10 @@ class _FingerPrintState extends State<FingerPrint> {
                   "unlockwithbiometrics".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 16.sp,
-                      color: notifier.getgrey,
-                      fontFamily: fontbody),
+                    fontSize: 16.sp,
+                    color: notifier.getgrey,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 20),
@@ -112,20 +118,22 @@ class _FingerPrintState extends State<FingerPrint> {
                   Text(
                     "enablebiometrics".tr(),
                     style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 15.sp,
-                        fontFamily: fontbody),
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody,
+                    ),
                   ),
                   const Spacer(),
                   SizedBox(width: width / 100),
                   Transform.scale(
                     scale: 0.7,
                     child: CupertinoSwitch(
-                        activeColor: notifier.isDark
-                            ? notifier.getbluecolor50
-                            : notifier.getbluecolor,
-                        value: isSwitched,
-                        onChanged: _toggleSwitch),
+                      activeTrackColor: notifier.isDark
+                          ? notifier.getbluecolor50
+                          : notifier.getbluecolor,
+                      value: isSwitched,
+                      onChanged: _toggleSwitch,
+                    ),
                   ),
                   SizedBox(width: width / 15),
                 ],
@@ -136,7 +144,7 @@ class _FingerPrintState extends State<FingerPrint> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: _handleSubmit,
-              )
+              ),
             ],
           ),
         ),
@@ -145,6 +153,7 @@ class _FingerPrintState extends State<FingerPrint> {
   }
 
   void _toggleSwitch(bool value) async {
+    print('switching...');
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
@@ -172,8 +181,10 @@ class _FingerPrintState extends State<FingerPrint> {
     appState.biometricEnabled = isSwitched;
     _persistBiometricState();
     appState.isFirstTime = false;
-    appState.currentAction =
-        PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    appState.currentAction = PageAction(
+      state: PageState.replaceAll,
+      page: BottomHomePageConfig,
+    );
     appState.isLoggedIn = true;
   }
 
@@ -185,124 +196,128 @@ class _FingerPrintState extends State<FingerPrint> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-              scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(20),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          scrollable: true,
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          content: Container(
+            decoration: BoxDecoration(
+              color: notifier.getwihitecolor,
+              borderRadius: BorderRadius.all(Radius.circular(23)),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      "important".tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: notifier.getblck,
+                      ),
+                    ),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "important".tr(),
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: notifier.getblck),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: height / 5,
-                      ),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 5.0),
-                              child: Text(
-                                "skipBiometricsMessage".tr(),
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w300,
-                                  color: Colors.red,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => {
-                              _submit(),
-                            },
-                            style: ButtonStyle(
-                              fixedSize: MaterialStateProperty.all(
-                                Size(width / 1.5, height / 20),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              "skipBiometrics".tr(),
-                              style: TextStyle(
-                                  color: wihitecolor, fontFamily: fontbody),
-                            ),
+                Container(
+                  constraints: BoxConstraints(maxHeight: height / 5),
+                  // height: height / 5,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10.0,
+                            horizontal: 5.0,
                           ),
-                          OutlinedButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop(), // dismiss dialog,
-                            child: Text(
-                              "cancel".tr(),
-                              style: TextStyle(
-                                  color: notifier.getbluecolor,
-                                  fontFamily: fontbody),
+                          child: Text(
+                            "skipBiometricsMessage".tr(),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.red,
                             ),
-                            style: ButtonStyle(
-                              fixedSize: MaterialStateProperty.all(
-                                Size(width / 1.5, height / 20),
-                              ),
-                              side: MaterialStateProperty.all(
-                                BorderSide(
-                                    color: notifier.getgrey,
-                                    width: 1,
-                                    style: BorderStyle.solid),
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: height / 50),
-                  ],
+                  ),
                 ),
-              ));
-        });
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => {_submit()},
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor,
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                        ),
+                        child: Text(
+                          "skipBiometrics".tr(),
+                          style: TextStyle(
+                            color: wihitecolor,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                      OutlinedButton(
+                        onPressed: () =>
+                            Navigator.of(context).pop(), // dismiss dialog,
+                        child: Text(
+                          "cancel".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluecolor,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid,
+                            ),
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: height / 50),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

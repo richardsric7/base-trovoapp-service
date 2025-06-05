@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -97,21 +96,17 @@ class _SharedAccessState extends State<SharedAccess>
     'BULK PAYMENT',
   ];
 
-  var transactionStatus = <String>[
-    'ALL',
-    'PENDING',
-    'COMPLETED',
-    'REJECTED',
-  ];
+  var transactionStatus = <String>['ALL', 'PENDING', 'COMPLETED', 'REJECTED'];
+  var pendingApprovalsList = [];
 
   List<DropdownMenuItem<String>> get transactionTypeDropdownItems {
     return transactionTypes
-        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-            child: Text(
-              item.capitalizeFirst!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item))
+        .map<DropdownMenuItem<String>>(
+          (item) => DropdownMenuItem(
+            child: Text(item.capitalizeFirst!, overflow: TextOverflow.ellipsis),
+            value: item,
+          ),
+        )
         .toList();
   }
 
@@ -120,17 +115,13 @@ class _SharedAccessState extends State<SharedAccess>
     filterTypesMap.forEach((key, value) {
       items.add(
         DropdownMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            value: key),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Text(value, overflow: TextOverflow.ellipsis)],
+          ),
+          value: key,
+        ),
       );
     });
 
@@ -140,56 +131,54 @@ class _SharedAccessState extends State<SharedAccess>
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return shareableWallets.map<DropdownMenuItem<String>>((wallet) {
       return DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey);
+        child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+        value: wallet.publicKey,
+      );
     }).toList();
   }
 
   List<DropdownMenuItem<String>> get accessTypeDropdownItems {
     return accessTypes
-        .map<DropdownMenuItem<String>>((accessType) => DropdownMenuItem(
-            child: Text(
-              accessType,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: accessType))
+        .map<DropdownMenuItem<String>>(
+          (accessType) => DropdownMenuItem(
+            child: Text(accessType, overflow: TextOverflow.ellipsis),
+            value: accessType,
+          ),
+        )
         .toList();
   }
 
   List<DropdownMenuItem<String>> get sortDropdownItems {
     return filter
-        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item))
+        .map<DropdownMenuItem<String>>(
+          (item) => DropdownMenuItem(
+            child: Text(item, overflow: TextOverflow.ellipsis),
+            value: item,
+          ),
+        )
         .toList();
   }
 
   List<DropdownMenuItem<String>> get accessModeDropdownItems {
     return accessMode
-        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item))
+        .map<DropdownMenuItem<String>>(
+          (item) => DropdownMenuItem(
+            child: Text(item, overflow: TextOverflow.ellipsis),
+            value: item,
+          ),
+        )
         .toList();
   }
 
   List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
     var items = <DropdownMenuItem<int>>[];
     for (var i = 3; i < 20; i++) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            i.toString(),
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: i));
+      items.add(
+        DropdownMenuItem(
+          child: Text(i.toString(), overflow: TextOverflow.ellipsis),
+          value: i,
+        ),
+      );
     }
     return items;
   }
@@ -197,15 +186,18 @@ class _SharedAccessState extends State<SharedAccess>
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
     for (var i = 2; i < noOfApprovers; i++) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            i.toString(),
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: i));
+      items.add(
+        DropdownMenuItem(
+          child: Text(i.toString(), overflow: TextOverflow.ellipsis),
+          value: i,
+        ),
+      );
     }
     return items;
   }
+
+  final ScrollController scrollController = ScrollController();
+  bool isLoadingMore = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -234,28 +226,43 @@ class _SharedAccessState extends State<SharedAccess>
       query: appState.filterQuery,
     );
     appState.sharedAccesstabController = TabController(length: 3, vsync: this);
-    selectedWallet =
-        shareableWallets.isNotEmpty ? shareableWallets.first.publicKey! : '';
+    selectedWallet = shareableWallets.isNotEmpty
+        ? shareableWallets.first.publicKey!
+        : '';
 
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
-            appState.returnView!.pages!
-                .contains(WalletPreparationViewPageConfig) ||
+            appState.returnView!.pages!.contains(
+              WalletPreparationViewPageConfig,
+            ) ||
         isNewTokenizationAndDistributionWallet) {
       appState.clearAccessList = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        appState.sharedAccesstabController.animateTo(2,
-            duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+        appState.sharedAccesstabController.animateTo(
+          2,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
       });
 
       if (appState.backupSecrets.isNotEmpty) {
-        Account account =
-            TrovoWalletSDK().parseSecretKey(appState.backupSecrets.first);
+        Account account = TrovoWalletSDK().parseSecretKey(
+          appState.backupSecrets.first,
+        );
         activeWallet = shareableWallets
             .where((wallet) => wallet.publicKey == account.publicKey)
             .first;
         selectedWallet = account.publicKey;
       }
     }
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+              scrollController.position.maxScrollExtent - 10 &&
+          !isLoadingMore &&
+          pendingApprovalsList.length < appState.totalRecords) {
+        loadMore();
+      }
+    });
   }
 
   @override
@@ -273,14 +280,13 @@ class _SharedAccessState extends State<SharedAccess>
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              shareAccessInfoPopup(context);
-            },
-            backgroundColor: notifier.getbluecolor,
-            child: Icon(
-              Icons.question_mark,
-              size: 30.sp,
-            )),
+          onPressed: () async {
+            shareAccessInfoPopup(context);
+          },
+          backgroundColor: notifier.getbluecolor,
+          foregroundColor: notifier.getwihitecolor,
+          child: Icon(Icons.question_mark, size: 30.sp),
+        ),
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
@@ -307,10 +313,7 @@ class _SharedAccessState extends State<SharedAccess>
                     fontFamily: fontsemibold,
                   ),
                   tabs: [
-                    Tab(
-                      height: 50,
-                      child: Icon(Icons.people_alt_outlined),
-                    ),
+                    Tab(height: 50, child: Icon(Icons.people_alt_outlined)),
                     Tab(
                       height: 50,
                       child: Row(
@@ -325,8 +328,8 @@ class _SharedAccessState extends State<SharedAccess>
                                   snapshot.hasData) {
                                 var noOfTransactionsToSign =
                                     appState.filterQuery.contains('PENDING')
-                                        ? snapshot.data!['totalRecords'] ?? 0
-                                        : 0;
+                                    ? snapshot.data!['totalRecords'] ?? 0
+                                    : 0;
                                 if (noOfTransactionsToSign > 0) {
                                   return Text(
                                     '($noOfTransactionsToSign)',
@@ -354,28 +357,20 @@ class _SharedAccessState extends State<SharedAccess>
                         ],
                       ),
                     ),
-                    Tab(
-                      height: 50,
-                      child: Icon(Icons.group_add_outlined),
-                    ),
+                    Tab(height: 50, child: Icon(Icons.group_add_outlined)),
                   ],
                 ),
               ),
               Container(
                 height: height / 1.22,
                 child: TabBarView(
-                    controller: appState.sharedAccesstabController,
-                    children: [
-                      SingleChildScrollView(
-                        child: accessList(),
-                      ),
-                      SingleChildScrollView(
-                        child: pendingApprovals(),
-                      ),
-                      SingleChildScrollView(
-                        child: grantAccess(),
-                      ),
-                    ]),
+                  controller: appState.sharedAccesstabController,
+                  children: [
+                    SingleChildScrollView(child: accessList()),
+                    SingleChildScrollView(child: pendingApprovals()),
+                    SingleChildScrollView(child: grantAccess()),
+                  ],
+                ),
               ),
             ],
           ),
@@ -388,6 +383,8 @@ class _SharedAccessState extends State<SharedAccess>
     return Container(
       height: height / 1.22,
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        controller: scrollController,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -396,9 +393,7 @@ class _SharedAccessState extends State<SharedAccess>
               width: width,
               child: Row(
                 children: [
-                  SizedBox(
-                    width: width / 50,
-                  ),
+                  SizedBox(width: width / 50),
                   Expanded(
                     flex: 2,
                     child: dropdown(
@@ -412,19 +407,12 @@ class _SharedAccessState extends State<SharedAccess>
                       null,
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: getContent(filterType),
-                  ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
+                  Expanded(flex: 2, child: getContent(filterType)),
+                  SizedBox(width: width / 50),
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             FutureBuilder<Map>(
               future: appState.approvals,
               builder: (context, snapshot) {
@@ -457,9 +445,10 @@ class _SharedAccessState extends State<SharedAccess>
                               "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
                             ),
                             ElevatedButton(
                               onPressed: () {
@@ -468,15 +457,13 @@ class _SharedAccessState extends State<SharedAccess>
                                 });
                               },
                               style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getbluecolor!,
+                                ),
                               ),
                               child: Text(
                                 "retry".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
+                                style: TextStyle(fontFamily: fontsemibold),
                               ),
                             ),
                           ],
@@ -484,7 +471,8 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    var records = snapshot.data!['records'];
+                    pendingApprovalsList = snapshot.data!['records'];
+                    var records = pendingApprovalsList;
                     appState.totalRecords = snapshot.data!['totalRecords'];
 
                     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -498,59 +486,35 @@ class _SharedAccessState extends State<SharedAccess>
                     });
 
                     if (records.length > 0) {
-                      return LoadMore(
-                        isFinish: records.length == appState.totalRecords,
-                        onLoadMore: () async {
-                          appState.limit += 2;
-                          await appState.getApprovals();
-                          return records.length <= appState.totalRecords!;
-                        },
-                        textBuilder: (LoadMoreStatus status) {
-                          String text;
-                          switch (status) {
-                            case LoadMoreStatus.fail:
-                              text = "taptoloadmore".tr();
-                              break;
-                            case LoadMoreStatus.idle:
-                              text = "taptoloadmore".tr();
-                              break;
-                            default:
-                              text = "";
-                          }
-                          return text;
-                        },
-                        child: Column(
-                          children: [
-                            for (var i = 0; i < records.length; i++) ...[
-                              GestureDetector(
-                                onTap: () {
-                                  appState.viewData![
-                                          ApprovalDetailsViewPageConfig.key] =
-                                      records[i];
+                      return Column(
+                        children: [
+                          for (var i = 0; i < records.length; i++) ...[
+                            GestureDetector(
+                              onTap: () {
+                                appState.viewData![ApprovalDetailsViewPageConfig
+                                        .key] =
+                                    records[i];
 
-                                  appState.currentAction = PageAction(
-                                    state: PageState.addPage,
-                                    page: ApprovalDetailsViewPageConfig,
-                                  );
-                                },
-                                child: approvalItem(
-                                  walletAlias: records[i]['alias'],
-                                  initiator: records[i]['initiator'],
-                                  transactionType: records[i]
-                                      ['transactionType'],
-                                  approvalsNeeded: records[i]
-                                      ['approvalsNeeded'],
-                                  approvalsGotten: records[i]
-                                      ['approvalsGotten'],
-                                  transactionStatus: records[i]
-                                      ['transactionStatus'],
-                                  createdAt: DateTime.tryParse(
-                                      records[i]['createdAt'])!,
-                                ),
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: ApprovalDetailsViewPageConfig,
+                                );
+                              },
+                              child: approvalItem(
+                                walletAlias: records[i]['alias'],
+                                initiator: records[i]['initiator'],
+                                transactionType: records[i]['transactionType'],
+                                approvalsNeeded: records[i]['approvalsNeeded'],
+                                approvalsGotten: records[i]['approvalsGotten'],
+                                transactionStatus:
+                                    records[i]['transactionStatus'],
+                                createdAt: DateTime.tryParse(
+                                  records[i]['createdAt'],
+                                )!,
                               ),
-                            ],
+                            ),
                           ],
-                        ),
+                        ],
                       );
                     }
 
@@ -591,31 +555,28 @@ class _SharedAccessState extends State<SharedAccess>
                 }
               },
             ),
-            SizedBox(
-              height: height / 15,
-            ),
+            SizedBox(height: height / 15),
           ],
         ),
       ),
     );
   }
 
-  Widget approvalItem(
-      {required String walletAlias,
-      required String initiator,
-      required String transactionType,
-      required int approvalsNeeded,
-      required int approvalsGotten,
-      required String transactionStatus,
-      required DateTime createdAt}) {
+  Widget approvalItem({
+    required String walletAlias,
+    required String initiator,
+    required String transactionType,
+    required int approvalsNeeded,
+    required int approvalsGotten,
+    required String transactionStatus,
+    required DateTime createdAt,
+  }) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -635,9 +596,7 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Container(
                 width: width / 1.2,
                 child: Row(
@@ -675,9 +634,7 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
               Row(
                 children: [
                   Padding(
@@ -691,9 +648,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
@@ -707,9 +662,7 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
               Row(
                 children: [
                   Padding(
@@ -723,9 +676,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
@@ -739,9 +690,7 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
               Row(
                 children: [
                   Padding(
@@ -755,9 +704,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
@@ -771,9 +718,7 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
               Row(
                 children: [
                   Padding(
@@ -829,13 +774,12 @@ class _SharedAccessState extends State<SharedAccess>
                   Text(
                     "mode".tr(),
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
-                        fontSize: 15.sp),
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                      fontSize: 15.sp,
+                    ),
                   ),
-                  SizedBox(
-                    width: width / 10,
-                  ),
+                  SizedBox(width: width / 10),
                   Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
@@ -843,8 +787,10 @@ class _SharedAccessState extends State<SharedAccess>
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
                       decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 20,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                           borderRadius: BorderRadius.circular(20),
@@ -865,10 +811,11 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                       elevation: 0,
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: 15.sp,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15.sp,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
                       onChanged: (newValue) {
                         setState(() {
                           selectedAccessMode = newValue!;
@@ -880,9 +827,7 @@ class _SharedAccessState extends State<SharedAccess>
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             if (selectedAccessMode == 'Access granted to me') ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -891,13 +836,12 @@ class _SharedAccessState extends State<SharedAccess>
                     Text(
                       "filterby".tr(),
                       style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                          fontSize: 15.sp),
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                        fontSize: 15.sp,
+                      ),
                     ),
-                    SizedBox(
-                      width: width / 10,
-                    ),
+                    SizedBox(width: width / 10),
                     Expanded(
                       child: DropdownButtonFormField(
                         isExpanded: true,
@@ -905,8 +849,10 @@ class _SharedAccessState extends State<SharedAccess>
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
                         decoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 20,
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide.none,
                             borderRadius: BorderRadius.circular(20),
@@ -927,10 +873,11 @@ class _SharedAccessState extends State<SharedAccess>
                         ),
                         elevation: 0,
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15.sp,
-                            fontFamily: fontsemibold,
-                            fontWeight: FontWeight.w500),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15.sp,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500,
+                        ),
                         onChanged: (newValue) {
                           setState(() {
                             selectedFilter = newValue!;
@@ -942,35 +889,39 @@ class _SharedAccessState extends State<SharedAccess>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               getAccessGrantedToMe(appState),
             ] else ...[
-              Builder(builder: (context) {
-                // filter the wallets to get the one that granted only viewer
-                // access to others. Once I grant others approver and initiator access
-                // the wallet no longer belongs to me.
-                var filteredWallets = <Wallet>[];
-                for (var wallet in appState.userInfo!.wallets!) {
-                  if (wallet.isSharedWallet &&
-                      wallet.walletThreshold == 1 &&
-                      wallet.permissions!.length > 0) {
-                    filteredWallets.add(wallet);
+              Builder(
+                builder: (context) {
+                  // filter the wallets to get the one that granted only viewer
+                  // access to others. Once I grant others approver and initiator access
+                  // the wallet no longer belongs to me.
+                  var filteredWallets = <Wallet>[];
+                  for (var wallet in appState.userInfo!.wallets!) {
+                    if (wallet.isSharedWallet &&
+                        wallet.walletThreshold == 1 &&
+                        wallet.permissions!.length > 0) {
+                      filteredWallets.add(wallet);
+                    }
                   }
-                }
-                filteredWallets.sort((walletA, walletB) =>
-                    walletA.alias!.compareTo(walletB.alias!));
-                return Column(
-                  children: [
-                    if (filteredWallets.length > 0) ...[
-                      for (var walletIndex = 0;
+                  filteredWallets.sort(
+                    (walletA, walletB) =>
+                        walletA.alias!.compareTo(walletB.alias!),
+                  );
+                  return Column(
+                    children: [
+                      if (filteredWallets.length > 0) ...[
+                        for (
+                          var walletIndex = 0;
                           walletIndex < filteredWallets.length;
-                          walletIndex++) ...{
-                        if (filteredWallets[walletIndex].permissions != null &&
-                            filteredWallets[walletIndex].permissions!.length >
-                                0) ...[
-                          accessGrantedByMe(
+                          walletIndex++
+                        ) ...{
+                          if (filteredWallets[walletIndex].permissions !=
+                                  null &&
+                              filteredWallets[walletIndex].permissions!.length >
+                                  0) ...[
+                            accessGrantedByMe(
                               numberOfApprovalsNeeded:
                                   filteredWallets[walletIndex]
                                       .numberOfApprovalsNeeded!,
@@ -980,32 +931,34 @@ class _SharedAccessState extends State<SharedAccess>
                                   filteredWallets[walletIndex].publicKey!,
                               walletAlias: filteredWallets[walletIndex].alias!,
                               permissions:
-                                  filteredWallets[walletIndex].permissions),
-                        ]
-                      }
-                    ] else ...[
-                      Center(
-                        heightFactor: 15.sp,
-                        child: Text(
-                          "nothingtoshowhere2".tr(),
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
+                                  filteredWallets[walletIndex].permissions,
+                            ),
+                          ],
+                        },
+                      ] else ...[
+                        Center(
+                          heightFactor: 15.sp,
+                          child: Text(
+                            "nothingtoshowhere2".tr(),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
                           ),
                         ),
-                      ),
-                    ]
-                  ],
-                );
-              })
+                      ],
+                    ],
+                  );
+                },
+              ),
             ],
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
             Padding(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom)),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+            ),
           ],
         ),
       ),
@@ -1036,8 +989,8 @@ class _SharedAccessState extends State<SharedAccess>
               'permissions': <String>[appState.sharedWallets[i]['permission']],
               'owner': appState.sharedWallets[i]['owner'],
               'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
-              'walletDescription': appState.sharedWallets[i]
-                  ['walletDescription'],
+              'walletDescription':
+                  appState.sharedWallets[i]['walletDescription'],
             };
           } else {
             // if we got here then the wallet is already on the map so we add
@@ -1048,8 +1001,8 @@ class _SharedAccessState extends State<SharedAccess>
           }
 
           if (appState.sharedWallets[i]['walletSettings'] != null) {
-            wallets[appState.sharedWallets[i]['walletAlias']]
-                    ['walletSettings'] =
+            wallets[appState
+                    .sharedWallets[i]['walletAlias']]['walletSettings'] =
                 appState.sharedWallets[i]['walletSettings'];
           }
         }
@@ -1083,7 +1036,7 @@ class _SharedAccessState extends State<SharedAccess>
                 permissions: wallets[walletKeys[i]]['permissions'],
                 walletDescription: wallets[walletKeys[i]]['walletDescription'],
               ),
-            )
+            ),
           ],
         ] else ...[
           Center(
@@ -1097,25 +1050,24 @@ class _SharedAccessState extends State<SharedAccess>
               ),
             ),
           ),
-        ]
+        ],
       ],
     );
   }
 
-  Widget accessGrantedToMe(
-      {required String walletOwner,
-      required String walletAlias,
-      required String publicKey,
-      required List<String> permissions,
-      required walletDescription}) {
+  Widget accessGrantedToMe({
+    required String walletOwner,
+    required String walletAlias,
+    required String publicKey,
+    required List<String> permissions,
+    required walletDescription,
+  }) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -1125,19 +1077,20 @@ class _SharedAccessState extends State<SharedAccess>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    walletAlias,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                  SizedBox(
+                    width: 200,
+                    child: Text(
+                      walletAlias,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1151,9 +1104,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
@@ -1180,9 +1131,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   for (var i = 0; i < permissions.length; i++) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
@@ -1208,15 +1157,11 @@ class _SharedAccessState extends State<SharedAccess>
                         ),
                       ),
                     ],
-                    SizedBox(
-                      width: width / 70,
-                    ),
-                  ]
+                    SizedBox(width: width / 70),
+                  ],
                 ],
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
             ],
           ),
         ),
@@ -1224,12 +1169,13 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget accessGrantedByMe(
-      {required String walletAlias,
-      required String walletPublicKey,
-      required int isPrimaryWallet,
-      required int numberOfApprovalsNeeded,
-      required List<Permission>? permissions}) {
+  Widget accessGrantedByMe({
+    required String walletAlias,
+    required String walletPublicKey,
+    required int isPrimaryWallet,
+    required int numberOfApprovalsNeeded,
+    required List<Permission>? permissions,
+  }) {
     // sort the list first
     List<Permission> approversList = [];
     List<Permission> initiatorsList = [];
@@ -1251,23 +1197,26 @@ class _SharedAccessState extends State<SharedAccess>
       children: [
         GestureDetector(
           onTap: () {
-            viewOnlySharedWalletOptions(context, () {
-              appState.viewData = {
-                'walletPublicKey': walletPublicKey,
-              };
-              appState.currentAction = PageAction(
+            viewOnlySharedWalletOptions(
+              context,
+              () {
+                appState.viewData = {'walletPublicKey': walletPublicKey};
+                appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: UpdateSharedAccessViewPageConfig);
-            }, () {
-              warnDisableSharedAccessDialog(context, () {
-                disableSharedAccess(
-                  context,
-                  appState,
-                  appState.userInfo!.getWallet(walletPublicKey),
-                  viewOnly: true,
+                  page: UpdateSharedAccessViewPageConfig,
                 );
-              });
-            });
+              },
+              () {
+                warnDisableSharedAccessDialog(context, () {
+                  disableSharedAccess(
+                    context,
+                    appState,
+                    appState.userInfo!.getWallet(walletPublicKey),
+                    viewOnly: true,
+                  );
+                });
+              },
+            );
           },
           child: Card(
             elevation: notifier.isDark ? 0 : 5,
@@ -1295,9 +1244,7 @@ class _SharedAccessState extends State<SharedAccess>
                     if (selectedFilter == 'All' ||
                         selectedFilter == 'Viewer') ...[
                       if (viewersList.length > 0) ...[
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Row(
                           children: [
                             Padding(
@@ -1328,16 +1275,14 @@ class _SharedAccessState extends State<SharedAccess>
                             ),
                             SizedBox(width: width / 90),
                           ],
-                        )
-                      ]
+                        ),
+                      ],
                     ],
                     // filter by approver
                     if (selectedFilter == 'All' ||
                         selectedFilter == 'Approver') ...[
                       if (approversList.length > 0) ...[
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Row(
                           children: [
                             Padding(
@@ -1353,28 +1298,28 @@ class _SharedAccessState extends State<SharedAccess>
                             ),
                           ],
                         ),
-                        Row(children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              getNames(approversList),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                              child: Text(
+                                getNames(approversList),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
                             ),
-                          ),
-                        ])
-                      ]
+                          ],
+                        ),
+                      ],
                     ],
                     // filter by initiator
                     if (selectedFilter == 'All' ||
                         selectedFilter == 'Initiator') ...[
                       if (initiatorsList.length > 0) ...[
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Row(
                           children: [
                             Padding(
@@ -1390,33 +1335,31 @@ class _SharedAccessState extends State<SharedAccess>
                             ),
                           ],
                         ),
-                        Row(children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              getNames(initiatorsList),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                              child: Text(
+                                getNames(initiatorsList),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
                             ),
-                          ),
-                        ])
+                          ],
+                        ),
                       ],
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                    ]
+                      SizedBox(height: height / 50),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
       ],
     );
   }
@@ -1426,44 +1369,41 @@ class _SharedAccessState extends State<SharedAccess>
       Step(
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 0,
-        title: Text("addvieweraccess".tr(),
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            showViewers(),
-          ],
+        title: Text(
+          "addvieweraccess".tr(),
+          style: TextStyle(
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold,
+            fontSize: 15.sp,
+          ),
         ),
+        content: Column(children: [showViewers()]),
       ),
       Step(
         state: currentStep > 1 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 1,
-        title: Text("addapproveraccess".tr(),
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            showApprovers(),
-          ],
+        title: Text(
+          "addapproveraccess".tr(),
+          style: TextStyle(
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold,
+            fontSize: 15.sp,
+          ),
         ),
+        content: Column(children: [showApprovers()]),
       ),
       Step(
         state: currentStep > 2 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 2,
-        title: Text("addinitiatoraccess".tr(),
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            showInitiators(),
-          ],
+        title: Text(
+          "addinitiatoraccess".tr(),
+          style: TextStyle(
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold,
+            fontSize: 15.sp,
+          ),
         ),
+        content: Column(children: [showInitiators()]),
       ),
     ];
   }
@@ -1488,39 +1428,38 @@ class _SharedAccessState extends State<SharedAccess>
       children: [
         if (addApprovers && activeWallet!.primaryWallet == 0) ...[
           Container(
-              height: height / 1.219,
-              width: width,
-              child: Stepper(
-                key: allKey,
-                type: StepperType.vertical,
-                currentStep: currentStep,
-                controlsBuilder: (context, _) {
-                  return Column(
-                    children: [],
-                  );
-                },
-                onStepTapped: (step) => setState(() {
-                  currentStep = step;
-                }),
-                steps: getSteps(),
-              )),
+            height: height / 1.219,
+            width: width,
+            child: Stepper(
+              key: allKey,
+              type: StepperType.vertical,
+              currentStep: currentStep,
+              controlsBuilder: (context, _) {
+                return Column(children: []);
+              },
+              onStepTapped: (step) => setState(() {
+                currentStep = step;
+              }),
+              steps: getSteps(),
+            ),
+          ),
         ] else ...[
-          SizedBox(
-            height: height / 30,
+          SizedBox(height: height / 30),
+          Text(
+            "addvieweraccess".tr(),
+            style: TextStyle(
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontsemibold,
+              fontSize: 17.sp,
+            ),
           ),
-          Text("addvieweraccess".tr(),
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold,
-                  fontSize: 17.sp)),
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           Container(
-              // height: height / 1.219,
-              width: width,
-              // color: Colors.black,
-              child: showViewers()),
+            // height: height / 1.219,
+            width: width,
+            // color: Colors.black,
+            child: showViewers(),
+          ),
         ],
       ],
     );
@@ -1587,7 +1526,9 @@ class _SharedAccessState extends State<SharedAccess>
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 15.0),
+                      horizontal: 10.0,
+                      vertical: 15.0,
+                    ),
                     child: Column(
                       children: [
                         Container(
@@ -1597,9 +1538,10 @@ class _SharedAccessState extends State<SharedAccess>
                                 .tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
-                                fontSize: 15.sp),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                              fontSize: 15.sp,
+                            ),
                           ),
                         ),
                         SizedBox(height: 2),
@@ -1610,7 +1552,7 @@ class _SharedAccessState extends State<SharedAccess>
               ),
             ),
           ),
-        ]
+        ],
       ],
     );
   }
@@ -1628,9 +1570,10 @@ class _SharedAccessState extends State<SharedAccess>
                 "noshareablewalletyet".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 16,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
+                  fontSize: 16,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -1640,14 +1583,13 @@ class _SharedAccessState extends State<SharedAccess>
                   });
                 },
                 style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getbluecolor!,
+                  ),
                 ),
                 child: Text(
                   "gotowallet".tr(),
-                  style: TextStyle(
-                    fontFamily: fontsemibold,
-                  ),
+                  style: TextStyle(fontFamily: fontsemibold),
                 ),
               ),
             ],
@@ -1659,13 +1601,9 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       children: [
         showIfNewTokenizationAndDistWallet(),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
         chooseWallet(),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Container(
           width: width / 1.1,
           decoration: BoxDecoration(
@@ -1675,35 +1613,35 @@ class _SharedAccessState extends State<SharedAccess>
                 : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 10.0,
+            ),
             child: Text(
               "describevieweraccesspersonal".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 12.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 12.sp,
+              ),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Container(
           width: width / 1.1,
           child: Text(
             "enteraccountsusernameviewers".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontbody,
+              fontSize: 15.sp,
+            ),
           ),
         ),
-        SizedBox(
-          height: height / 90,
-        ),
+        SizedBox(height: height / 90),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -1718,37 +1656,42 @@ class _SharedAccessState extends State<SharedAccess>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
-                          width: width / 1.8,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              if (viewers.length > 0) ...[
-                                for (var i = 0; i < viewers.length; i++) ...[
-                                  userItem(
-                                      '${viewers[i]} [${userFullnames[viewers[i]]}]',
-                                      () {
+                        width: width / 1.8,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          children: [
+                            if (viewers.length > 0) ...[
+                              for (var i = 0; i < viewers.length; i++) ...[
+                                userItem(
+                                  '${viewers[i]} [${userFullnames[viewers[i]]}]',
+                                  () {
                                     viewers.removeAt(i);
                                     setState(() {});
                                   },
-                                      foreColor: wihitecolor,
-                                      backColor: notifier.getbluebackcolor)
-                                ],
-                              ] else ...[
-                                Text(
-                                  "nameofviewersappearhere".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 15.sp),
+                                  foreColor: wihitecolor,
+                                  backColor: notifier.getbluebackcolor,
                                 ),
-                              ]
+                              ],
+                            ] else ...[
+                              Text(
+                                "nameofviewersappearhere".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                  fontSize: 15.sp,
+                                ),
+                              ),
                             ],
-                          )),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 2),
                     ],
                   ),
@@ -1757,9 +1700,7 @@ class _SharedAccessState extends State<SharedAccess>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: CustomTextFormField.textFieldWithoutIcon(
@@ -1781,12 +1722,13 @@ class _SharedAccessState extends State<SharedAccess>
             viewerUsernameErrorMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+              color: Colors.red,
+              fontFamily: fontbody,
+              fontSize: 11.sp,
+            ),
           ),
         ],
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () async {
             viewerUsernameErrorMessage = '';
@@ -1854,19 +1796,13 @@ class _SharedAccessState extends State<SharedAccess>
             setState(() {});
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            "add".tr(),
-            style: TextStyle(
-              fontFamily: fontsemibold,
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
             ),
           ),
+          child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
-        SizedBox(
-          height: height / 70,
-        ),
+        SizedBox(height: height / 70),
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
@@ -1879,24 +1815,23 @@ class _SharedAccessState extends State<SharedAccess>
               Transform.scale(
                 scale: 1.sp,
                 child: Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.getbluecolor,
-                    side: BorderSide(color: notifier.getbluewhitecolor),
-                    value: addApprovers,
-                    onChanged: (value) {
-                      setState(() {
-                        addApprovers = value ?? false;
-                      });
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5.sp)),
+                  ),
+                  activeColor: notifier.getbluecolor,
+                  side: BorderSide(color: notifier.getbluewhitecolor),
+                  value: addApprovers,
+                  onChanged: (value) {
+                    setState(() {
+                      addApprovers = value ?? false;
+                    });
 
-                      setState(() {
-                        // move straight to the next step
-                        currentStep = 1;
-                      });
-                    }),
+                    setState(() {
+                      // move straight to the next step
+                      currentStep = 1;
+                    });
+                  },
+                ),
               ),
               Container(
                 child: Text(
@@ -1912,15 +1847,15 @@ class _SharedAccessState extends State<SharedAccess>
             ],
           ),
         ],
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () {
             if (!addApprovers && viewers.isEmpty) {
-              popup(context,
-                  title: "error".tr(),
-                  message: "enterusernametograntaccess".tr());
+              popup(
+                context,
+                title: "error".tr(),
+                message: "enterusernametograntaccess".tr(),
+              );
               return;
             }
 
@@ -1938,13 +1873,12 @@ class _SharedAccessState extends State<SharedAccess>
             }
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
+            ),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(15),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(15)),
               ),
             ),
           ),
@@ -1952,19 +1886,16 @@ class _SharedAccessState extends State<SharedAccess>
             padding: const EdgeInsets.all(20.0),
             child: Text(
               addApprovers ? "addapproveraccess".tr() : "proceed".tr(),
-              style: TextStyle(
-                fontFamily: fontsemibold,
-                fontSize: 14.sp,
-              ),
+              style: TextStyle(fontFamily: fontsemibold, fontSize: 14.sp),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 20,
-        ),
+        SizedBox(height: height / 20),
         Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom)),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+        ),
       ],
     );
   }
@@ -1975,9 +1906,7 @@ class _SharedAccessState extends State<SharedAccess>
       child: Column(
         children: [
           // showIfNewTokenizationAndDistWallet(),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 70),
           Container(
             height: height / 10,
             child: Padding(
@@ -1995,14 +1924,13 @@ class _SharedAccessState extends State<SharedAccess>
                           child: Text(
                             "approvals".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
-                                fontSize: 15.sp),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                         Expanded(
                           child: DropdownButtonFormField(
                             isExpanded: true,
@@ -2011,7 +1939,9 @@ class _SharedAccessState extends State<SharedAccess>
                                 : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
+                                vertical: 0,
+                                horizontal: 20,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius: BorderRadius.circular(20),
@@ -2032,14 +1962,16 @@ class _SharedAccessState extends State<SharedAccess>
                             ),
                             elevation: 0,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
-                                fontFamily: fontsemibold,
-                                fontWeight: FontWeight.w500),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500,
+                            ),
                             onChanged: (newValue) {
                               setState(() {
-                                noOfApprovalsNeeded =
-                                    int.parse(newValue.toString());
+                                noOfApprovalsNeeded = int.parse(
+                                  newValue.toString(),
+                                );
                               });
                             },
                             items: getNoOfApprovalsDropdownItems,
@@ -2048,9 +1980,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: width / 20,
-                  ),
+                  SizedBox(width: width / 20),
                   Container(
                     height: height / 5,
                     width: width / 20,
@@ -2060,16 +1990,15 @@ class _SharedAccessState extends State<SharedAccess>
                         Text(
                           "of".tr(),
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody,
-                              fontSize: 15.sp),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                            fontSize: 15.sp,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: width / 20,
-                  ),
+                  SizedBox(width: width / 20),
                   Container(
                     height: height / 5,
                     width: width / 3.6,
@@ -2080,14 +2009,13 @@ class _SharedAccessState extends State<SharedAccess>
                           child: Text(
                             "approvers".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
-                                fontSize: 15.sp),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                         Expanded(
                           child: DropdownButtonFormField(
                             isExpanded: true,
@@ -2096,7 +2024,9 @@ class _SharedAccessState extends State<SharedAccess>
                                 : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
+                                vertical: 0,
+                                horizontal: 20,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius: BorderRadius.circular(20),
@@ -2117,14 +2047,16 @@ class _SharedAccessState extends State<SharedAccess>
                             ),
                             elevation: 0,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
-                                fontFamily: fontsemibold,
-                                fontWeight: FontWeight.w500),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500,
+                            ),
                             onChanged: (newValue) {
                               setState(() {
-                                var newValueInt =
-                                    int.parse(newValue.toString());
+                                var newValueInt = int.parse(
+                                  newValue.toString(),
+                                );
                                 if (noOfApprovalsNeeded >= newValueInt) {
                                   noOfApprovalsNeeded = newValueInt - 1;
                                 }
@@ -2144,20 +2076,21 @@ class _SharedAccessState extends State<SharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              "noapprovalsrequiredoutofno".tr(args: [
-                noOfApprovalsNeeded.toString(),
-                noOfApprovers.toString()
-              ]),
+              "noapprovalsrequiredoutofno".tr(
+                args: [
+                  noOfApprovalsNeeded.toString(),
+                  noOfApprovers.toString(),
+                ],
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 13.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 13.sp,
+              ),
             ),
           ),
-          SizedBox(
-            height: height / 30,
-          ),
+          SizedBox(height: height / 30),
           Container(
             width: width / 1.1,
             decoration: BoxDecoration(
@@ -2167,29 +2100,31 @@ class _SharedAccessState extends State<SharedAccess>
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 10.0,
+              ),
               child: Text(
                 "describeapproveraccesspersonal".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 12.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 12.sp,
+                ),
               ),
             ),
           ),
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           Container(
             child: Text(
               "enteraccountsusernameapprovers".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 15.sp,
+              ),
             ),
           ),
           Padding(
@@ -2206,39 +2141,42 @@ class _SharedAccessState extends State<SharedAccess>
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 15.0),
+                      horizontal: 20.0,
+                      vertical: 15.0,
+                    ),
                     child: Column(
                       children: [
                         Container(
-                            width: width / 1.8,
-                            child: Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                if (approvers.length > 0) ...[
-                                  for (var i = 0;
-                                      i < approvers.length;
-                                      i++) ...[
-                                    userItem(
-                                        '${approvers[i]} [${userFullnames[approvers[i]]}]',
-                                        () {
+                          width: width / 1.8,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              if (approvers.length > 0) ...[
+                                for (var i = 0; i < approvers.length; i++) ...[
+                                  userItem(
+                                    '${approvers[i]} [${userFullnames[approvers[i]]}]',
+                                    () {
                                       approvers.removeAt(i);
                                       setState(() {});
                                     },
-                                        foreColor: wihitecolor,
-                                        backColor: notifier.getbluebackcolor)
-                                  ],
-                                ] else ...[
-                                  Text(
-                                    "nameofapproversappearhere".tr(),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontbody,
-                                        fontSize: 15.sp),
+                                    foreColor: wihitecolor,
+                                    backColor: notifier.getbluebackcolor,
                                   ),
-                                ]
+                                ],
+                              ] else ...[
+                                Text(
+                                  "nameofapproversappearhere".tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                    fontSize: 15.sp,
+                                  ),
+                                ),
                               ],
-                            )),
+                            ],
+                          ),
+                        ),
                         SizedBox(height: 2),
                       ],
                     ),
@@ -2247,9 +2185,7 @@ class _SharedAccessState extends State<SharedAccess>
               ),
             ),
           ),
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           CustomTextFormField.textFieldWithoutIcon(
             "approver".tr(),
             notifier.getbluecolor,
@@ -2268,12 +2204,13 @@ class _SharedAccessState extends State<SharedAccess>
               approverUsernameErrorMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+                color: Colors.red,
+                fontFamily: fontbody,
+                fontSize: 11.sp,
+              ),
             ),
           ],
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           ElevatedButton(
             onPressed: () async {
               approverUsernameErrorMessage = '';
@@ -2293,9 +2230,11 @@ class _SharedAccessState extends State<SharedAccess>
               }
 
               if (approvers.length == noOfApprovers) {
-                popup(context,
-                    title: "error".tr(),
-                    message: "usernamecannotbemorethannoapprovers".tr());
+                popup(
+                  context,
+                  title: "error".tr(),
+                  message: "usernamecannotbemorethannoapprovers".tr(),
+                );
                 return;
               }
 
@@ -2337,22 +2276,14 @@ class _SharedAccessState extends State<SharedAccess>
               setState(() {});
             },
             style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-            ),
-            child: Text(
-              "add".tr(),
-              style: TextStyle(
-                fontFamily: fontsemibold,
+              backgroundColor: WidgetStateProperty.all<Color>(
+                notifier.getbluecolor!,
               ),
             ),
+            child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
           ),
-          SizedBox(
-            height: height / 20,
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 20),
+          SizedBox(height: height / 50),
           ElevatedButton(
             onPressed: () {
               if (!approversFormKey.currentState!.validate()) {
@@ -2360,16 +2291,20 @@ class _SharedAccessState extends State<SharedAccess>
               }
 
               if (approvers.isEmpty) {
-                popup(context,
-                    title: "error".tr(),
-                    message: "enterusernametograntaccess".tr());
+                popup(
+                  context,
+                  title: "error".tr(),
+                  message: "enterusernametograntaccess".tr(),
+                );
                 return;
               }
 
               if (approvers.length < noOfApprovers) {
-                popup(context,
-                    title: "error".tr(),
-                    message: "approverscannotbelessnoofapprover".tr());
+                popup(
+                  context,
+                  title: "error".tr(),
+                  message: "approverscannotbelessnoofapprover".tr(),
+                );
                 return;
               }
 
@@ -2383,13 +2318,12 @@ class _SharedAccessState extends State<SharedAccess>
               }
             },
             style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              backgroundColor: WidgetStateProperty.all<Color>(
+                notifier.getbluecolor!,
+              ),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(15),
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
               ),
             ),
@@ -2397,16 +2331,15 @@ class _SharedAccessState extends State<SharedAccess>
               padding: const EdgeInsets.all(20.0),
               child: Text(
                 "addinitiatoraccess".tr(),
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                  fontSize: 14.sp,
-                ),
+                style: TextStyle(fontFamily: fontsemibold, fontSize: 14.sp),
               ),
             ),
           ),
           Padding(
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom)),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+          ),
         ],
       ),
     );
@@ -2425,34 +2358,34 @@ class _SharedAccessState extends State<SharedAccess>
                 : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 10.0,
+            ),
             child: Text(
               "describeinitiatoraccesspersonal".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 12.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 12.sp,
+              ),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Container(
           child: Text(
             "enteraccountsusernameinitiators".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontbody,
+              fontSize: 15.sp,
+            ),
           ),
         ),
-        SizedBox(
-          height: height / 90,
-        ),
+        SizedBox(height: height / 90),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -2467,37 +2400,42 @@ class _SharedAccessState extends State<SharedAccess>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
-                          width: width / 1.8,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              if (initiators.length > 0) ...[
-                                for (var i = 0; i < initiators.length; i++) ...[
-                                  userItem(
-                                      '${initiators[i]} [${userFullnames[initiators[i]]}]',
-                                      () {
+                        width: width / 1.8,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          children: [
+                            if (initiators.length > 0) ...[
+                              for (var i = 0; i < initiators.length; i++) ...[
+                                userItem(
+                                  '${initiators[i]} [${userFullnames[initiators[i]]}]',
+                                  () {
                                     initiators.removeAt(i);
                                     setState(() {});
                                   },
-                                      foreColor: wihitecolor,
-                                      backColor: notifier.getbluebackcolor)
-                                ],
-                              ] else ...[
-                                Text(
-                                  "nameofinitiatorsappearhere".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 15.sp),
+                                  foreColor: wihitecolor,
+                                  backColor: notifier.getbluebackcolor,
                                 ),
-                              ]
+                              ],
+                            ] else ...[
+                              Text(
+                                "nameofinitiatorsappearhere".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                  fontSize: 15.sp,
+                                ),
+                              ),
                             ],
-                          )),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 2),
                     ],
                   ),
@@ -2506,9 +2444,7 @@ class _SharedAccessState extends State<SharedAccess>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         CustomTextFormField.textFieldWithoutIcon(
           "initiator".tr(),
           notifier.getbluecolor,
@@ -2527,12 +2463,13 @@ class _SharedAccessState extends State<SharedAccess>
             initiatorUsernameErrorMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+              color: Colors.red,
+              fontFamily: fontbody,
+              fontSize: 11.sp,
+            ),
           ),
         ],
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () async {
             initiatorUsernameErrorMessage = '';
@@ -2589,42 +2526,40 @@ class _SharedAccessState extends State<SharedAccess>
             setState(() {});
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            "add".tr(),
-            style: TextStyle(
-              fontFamily: fontsemibold,
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
             ),
           ),
+          child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
-        SizedBox(
-          height: height / 20,
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 20),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () {
             if (initiators.isEmpty) {
-              popup(context,
-                  title: "error".tr(),
-                  message: "enterusernametograntaccess".tr());
+              popup(
+                context,
+                title: "error".tr(),
+                message: "enterusernametograntaccess".tr(),
+              );
               return;
             }
 
             if (approvers.length < noOfApprovers) {
-              popup(context,
-                  title: "error".tr(),
-                  message: "approverscannotbelessnoofapprover".tr());
+              popup(
+                context,
+                title: "error".tr(),
+                message: "approverscannotbelessnoofapprover".tr(),
+              );
               return;
             }
 
             if (approvers.isEmpty) {
-              popup(context,
-                  title: "error".tr(),
-                  message: "cannothaveinitiatorswithoutapprovers".tr());
+              popup(
+                context,
+                title: "error".tr(),
+                message: "cannothaveinitiatorswithoutapprovers".tr(),
+              );
               return;
             }
 
@@ -2638,13 +2573,12 @@ class _SharedAccessState extends State<SharedAccess>
             }
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
+            ),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(15),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(15)),
               ),
             ),
           ),
@@ -2652,19 +2586,16 @@ class _SharedAccessState extends State<SharedAccess>
             padding: const EdgeInsets.all(20.0),
             child: Text(
               "proceed".tr(),
-              style: TextStyle(
-                fontFamily: fontsemibold,
-                fontSize: 14.sp,
-              ),
+              style: TextStyle(fontFamily: fontsemibold, fontSize: 14.sp),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 20,
-        ),
+        SizedBox(height: height / 20),
         Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom)),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+        ),
       ],
     );
   }
@@ -2679,13 +2610,12 @@ class _SharedAccessState extends State<SharedAccess>
             Text(
               "choosewallet".tr(),
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 15.sp,
+              ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Expanded(
               child: DropdownButtonFormField(
                 isExpanded: true,
@@ -2693,8 +2623,10 @@ class _SharedAccessState extends State<SharedAccess>
                     ? darktilewhitecolor
                     : notifier.getaddsubwalletgrey,
                 decoration: InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 20,
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(20),
@@ -2717,17 +2649,19 @@ class _SharedAccessState extends State<SharedAccess>
                       ),
                 elevation: 0,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 15.sp,
-                    fontFamily: fontsemibold,
-                    fontWeight: FontWeight.w500),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 15.sp,
+                  fontFamily: fontsemibold,
+                  fontWeight: FontWeight.w500,
+                ),
                 onChanged: isNewTokenizationAndDistributionWallet
                     ? null
                     : (newValue) {
                         setState(() {
                           selectedWallet = newValue?.toString() ?? '';
                           activeWallet = shareableWallets.firstWhere(
-                              (wallet) => wallet.publicKey == newValue);
+                            (wallet) => wallet.publicKey == newValue,
+                          );
                           addApprovers = false;
                           var user = appState.userInfo!;
                           userFullnames[user.username] =
@@ -2784,8 +2718,12 @@ class _SharedAccessState extends State<SharedAccess>
     }
   }
 
-  Widget dropdown(void Function(Object?) onChanged,
-      List<DropdownMenuItem<Object>> items, Object? value, String? hint) {
+  Widget dropdown(
+    void Function(Object?) onChanged,
+    List<DropdownMenuItem<Object>> items,
+    Object? value,
+    String? hint,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: DropdownButtonFormField(
@@ -2812,8 +2750,9 @@ class _SharedAccessState extends State<SharedAccess>
                 )
               : null,
         ),
-        dropdownColor:
-            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        dropdownColor: notifier.isDark
+            ? darktilewhitecolor
+            : notifier.getaddsubwalletgrey,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
           enabledBorder: OutlineInputBorder(
@@ -2856,8 +2795,9 @@ class _SharedAccessState extends State<SharedAccess>
           "selecttransactionstatus".tr(),
           (status) {
             appState.setFilterTransactionStatus = status.capitalizeFirst;
-            appState.setFilterQuery =
-                status == 'ALL' ? '' : "&transactionStatus=$status";
+            appState.setFilterQuery = status == 'ALL'
+                ? ''
+                : "&transactionStatus=$status";
             appState.getApprovals();
             Navigator.of(context).pop(); // dismiss dialog,
           },
@@ -2878,81 +2818,89 @@ class _SharedAccessState extends State<SharedAccess>
         );
         break;
       case ApprovalsListFilterType.WalletAlias:
-        approvalTextFieldPopup(context,
-            label: "enterwalletalias".tr(),
-            value: appState.filterWalletAlias,
-            placeholder: "enteralias".tr(), onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterWalletAlias = value;
-            appState.setFilterQuery = "&walletAlias=$value";
-            await appState.getApprovals(
-              onDone: () => {},
-            );
-          }
-        });
+        approvalTextFieldPopup(
+          context,
+          label: "enterwalletalias".tr(),
+          value: appState.filterWalletAlias,
+          placeholder: "enteralias".tr(),
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterWalletAlias = value;
+              appState.setFilterQuery = "&walletAlias=$value";
+              await appState.getApprovals(onDone: () => {});
+            }
+          },
+        );
         break;
       case ApprovalsListFilterType.Description:
-        approvalTextFieldPopup(context,
-            label: "enterdescription".tr(),
-            value: appState.filterDescription,
-            placeholder: "enterdescription".tr(), onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterDescription = value;
-            appState.setFilterQuery = "&description=$value";
-            await appState.getApprovals(
-              onDone: () => {},
-            );
-          }
-        });
+        approvalTextFieldPopup(
+          context,
+          label: "enterdescription".tr(),
+          value: appState.filterDescription,
+          placeholder: "enterdescription".tr(),
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterDescription = value;
+              appState.setFilterQuery = "&description=$value";
+              await appState.getApprovals(onDone: () => {});
+            }
+          },
+        );
         break;
       case ApprovalsListFilterType.TransactionId:
-        approvalTextFieldPopup(context,
-            label: "entertransactionid".tr(),
-            value: appState.filterTransactionId,
-            placeholder: "transactionid".tr(), onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterTransactionId = value;
-            appState.setFilterQuery = "&transactionID=$value";
-            await appState.getApprovals(
-              onDone: () => {},
-            );
-          }
-        });
+        approvalTextFieldPopup(
+          context,
+          label: "entertransactionid".tr(),
+          value: appState.filterTransactionId,
+          placeholder: "transactionid".tr(),
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterTransactionId = value;
+              appState.setFilterQuery = "&transactionID=$value";
+              await appState.getApprovals(onDone: () => {});
+            }
+          },
+        );
         break;
       case ApprovalsListFilterType.DateRange:
-        customDateRangePopup(context, onDone: () async {
-          appState.setFilterQuery =
-              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-          await appState.getApprovals();
-        });
+        customDateRangePopup(
+          context,
+          onDone: () async {
+            appState.setFilterQuery =
+                "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+            await appState.getApprovals();
+          },
+        );
         break;
       case ApprovalsListFilterType.WalletPublicKey:
-        approvalTextFieldPopup(context,
-            label: "enterwalletpublickey".tr(),
-            value: appState.filterWalletPublicKey,
-            placeholder: "publickey".tr(), onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterWalletPublicKey = value;
-            appState.setFilterQuery = "&walletPublicKey=$value";
-            await appState.getApprovals(
-              onDone: () => {},
-            );
-          }
-        });
+        approvalTextFieldPopup(
+          context,
+          label: "enterwalletpublickey".tr(),
+          value: appState.filterWalletPublicKey,
+          placeholder: "publickey".tr(),
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterWalletPublicKey = value;
+              appState.setFilterQuery = "&walletPublicKey=$value";
+              await appState.getApprovals(onDone: () => {});
+            }
+          },
+        );
         break;
       case ApprovalsListFilterType.Initiator:
-        approvalTextFieldPopup(context,
-            label: "enterinitiatorusername".tr(),
-            value: appState.filterInitiatorUsername,
-            placeholder: "username".tr(), onDone: (value) async {
-          if (value != null && value.toString().isNotEmpty) {
-            appState.setFilterInitiatorUsername = value;
-            appState.setFilterQuery = "&initiator=$value";
-            await appState.getApprovals(
-              onDone: () => {},
-            );
-          }
-        });
+        approvalTextFieldPopup(
+          context,
+          label: "enterinitiatorusername".tr(),
+          value: appState.filterInitiatorUsername,
+          placeholder: "username".tr(),
+          onDone: (value) async {
+            if (value != null && value.toString().isNotEmpty) {
+              appState.setFilterInitiatorUsername = value;
+              appState.setFilterQuery = "&initiator=$value";
+              await appState.getApprovals(onDone: () => {});
+            }
+          },
+        );
         break;
     }
   }
@@ -2973,17 +2921,16 @@ class _SharedAccessState extends State<SharedAccess>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                constraints: BoxConstraints(
-                  maxWidth: width / 2.9,
-                ),
+                constraints: BoxConstraints(maxWidth: width / 2.9),
                 child: Text(
                   label,
                   textAlign: TextAlign.start,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: appState.filterUsername != null ? 12 : 15,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: appState.filterUsername != null ? 12 : 15,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
               ),
               Icon(
@@ -3008,8 +2955,9 @@ class _SharedAccessState extends State<SharedAccess>
               "selecttransactionstatus".tr(),
               (status) {
                 appState.setFilterTransactionStatus = status.capitalizeFirst;
-                appState.setFilterQuery =
-                    status == 'ALL' ? '' : "&transactionStatus=$status";
+                appState.setFilterQuery = status == 'ALL'
+                    ? ''
+                    : "&transactionStatus=$status";
                 appState.getApprovals();
                 Navigator.of(context).pop(); // dismiss dialog,
               },
@@ -3023,16 +2971,19 @@ class _SharedAccessState extends State<SharedAccess>
       case ApprovalsListFilterType.WalletAlias:
         return content(
           onPressed: () {
-            approvalTextFieldPopup(context,
-                label: "enterwalletalias".tr(),
-                value: appState.filterWalletAlias,
-                placeholder: "enteralias".tr(), onDone: (value) async {
-              if (value != null && value.toString().isNotEmpty) {
-                appState.setFilterWalletAlias = value;
-                appState.setFilterQuery = "&walletAlias=$value";
-                await appState.getApprovals();
-              }
-            });
+            approvalTextFieldPopup(
+              context,
+              label: "enterwalletalias".tr(),
+              value: appState.filterWalletAlias,
+              placeholder: "enteralias".tr(),
+              onDone: (value) async {
+                if (value != null && value.toString().isNotEmpty) {
+                  appState.setFilterWalletAlias = value;
+                  appState.setFilterQuery = "&walletAlias=$value";
+                  await appState.getApprovals();
+                }
+              },
+            );
           },
           label: appState.filterWalletAlias.isEmpty
               ? "enteralias".tr()
@@ -3041,16 +2992,19 @@ class _SharedAccessState extends State<SharedAccess>
       case ApprovalsListFilterType.Description:
         return content(
           onPressed: () {
-            approvalTextFieldPopup(context,
-                label: "enterdescription".tr(),
-                value: appState.filterDescription,
-                placeholder: "enterdescription".tr(), onDone: (value) async {
-              if (value != null && value.toString().isNotEmpty) {
-                appState.setFilterDescription = value;
-                appState.setFilterQuery = "&description=$value";
-                await appState.getApprovals();
-              }
-            });
+            approvalTextFieldPopup(
+              context,
+              label: "enterdescription".tr(),
+              value: appState.filterDescription,
+              placeholder: "enterdescription".tr(),
+              onDone: (value) async {
+                if (value != null && value.toString().isNotEmpty) {
+                  appState.setFilterDescription = value;
+                  appState.setFilterQuery = "&description=$value";
+                  await appState.getApprovals();
+                }
+              },
+            );
           },
           label: appState.filterDescription.isEmpty
               ? "enterdescription".tr()
@@ -3060,32 +3014,38 @@ class _SharedAccessState extends State<SharedAccess>
       case ApprovalsListFilterType.WalletPublicKey:
         return content(
           onPressed: () {
-            approvalTextFieldPopup(context,
-                label: "enterwalletpublickey".tr(),
-                value: appState.filterWalletPublicKey,
-                placeholder: "publickey".tr(), onDone: (value) async {
-              if (value != null && value.toString().isNotEmpty) {
-                appState.setFilterWalletPublicKey = value;
-                appState.setFilterQuery = "&walletPublicKey=$value";
-                await appState.getApprovals();
-              }
-            });
+            approvalTextFieldPopup(
+              context,
+              label: "enterwalletpublickey".tr(),
+              value: appState.filterWalletPublicKey,
+              placeholder: "publickey".tr(),
+              onDone: (value) async {
+                if (value != null && value.toString().isNotEmpty) {
+                  appState.setFilterWalletPublicKey = value;
+                  appState.setFilterQuery = "&walletPublicKey=$value";
+                  await appState.getApprovals();
+                }
+              },
+            );
           },
           label: getTruncatedPublicKey(appState.filterWalletPublicKey),
         );
       case ApprovalsListFilterType.TransactionId:
         return content(
           onPressed: () {
-            approvalTextFieldPopup(context,
-                label: "entertransctionid".tr(),
-                value: appState.filterTransactionId,
-                placeholder: "transactionid".tr(), onDone: (value) async {
-              if (value != null && value.toString().isNotEmpty) {
-                appState.setFilterTransactionId = value;
-                appState.setFilterQuery = "&transactionID=$value";
-                await appState.getApprovals();
-              }
-            });
+            approvalTextFieldPopup(
+              context,
+              label: "entertransctionid".tr(),
+              value: appState.filterTransactionId,
+              placeholder: "transactionid".tr(),
+              onDone: (value) async {
+                if (value != null && value.toString().isNotEmpty) {
+                  appState.setFilterTransactionId = value;
+                  appState.setFilterQuery = "&transactionID=$value";
+                  await appState.getApprovals();
+                }
+              },
+            );
           },
           label: appState.filterTransactionId.isEmpty
               ? "enterid".tr()
@@ -3094,16 +3054,19 @@ class _SharedAccessState extends State<SharedAccess>
       case ApprovalsListFilterType.Initiator:
         return content(
           onPressed: () {
-            approvalTextFieldPopup(context,
-                label: "enterinitiatorusername".tr(),
-                value: appState.filterInitiatorUsername,
-                placeholder: "username".tr(), onDone: (value) async {
-              if (value != null && value.toString().isNotEmpty) {
-                appState.setFilterInitiatorUsername = value;
-                appState.setFilterQuery = "&initiator=$value";
-                await appState.getApprovals();
-              }
-            });
+            approvalTextFieldPopup(
+              context,
+              label: "enterinitiatorusername".tr(),
+              value: appState.filterInitiatorUsername,
+              placeholder: "username".tr(),
+              onDone: (value) async {
+                if (value != null && value.toString().isNotEmpty) {
+                  appState.setFilterInitiatorUsername = value;
+                  appState.setFilterQuery = "&initiator=$value";
+                  await appState.getApprovals();
+                }
+              },
+            );
           },
           label: appState.filterInitiatorUsername.isEmpty
               ? "enterusername2".tr()
@@ -3112,11 +3075,14 @@ class _SharedAccessState extends State<SharedAccess>
       case ApprovalsListFilterType.DateRange:
         return content(
           onPressed: () {
-            customDateRangePopup(context, onDone: () async {
-              appState.setFilterQuery =
-                  "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-              await appState.getApprovals();
-            });
+            customDateRangePopup(
+              context,
+              onDone: () async {
+                appState.setFilterQuery =
+                    "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                await appState.getApprovals();
+              },
+            );
           },
           label: getDateRangeValue(),
         );
@@ -3154,6 +3120,22 @@ class _SharedAccessState extends State<SharedAccess>
     if (publicKey.length <= 7) return publicKey;
     return truncate(publicKey, length: 7) +
         publicKey.substring(publicKey.length - 7);
+  }
+
+  loadMore() async {
+    setState(() => isLoadingMore = true);
+    appState.currentPage += 1;
+    appState
+        .fetchApprovals(
+          limit: appState.limit.toString(),
+          query: appState.filterQuery,
+        )
+        .then((value) {
+          isLoadingMore = false;
+          setState(() {
+            pendingApprovalsList.addAll(value['records']);
+          });
+        });
   }
 
   @override

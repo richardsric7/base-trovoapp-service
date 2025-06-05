@@ -135,10 +135,7 @@ class _AssetInformation extends State<AssetInformation>
     for (var i = 0; i < data.length; i++) {
       assetProtectionOptions.add(
         DropdownMenuItem(
-          child: Text(
-            data![i]['id'],
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(data![i]['id'], overflow: TextOverflow.ellipsis),
           value: data![i]['id'],
         ),
       );
@@ -153,12 +150,12 @@ class _AssetInformation extends State<AssetInformation>
     inspect(data);
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-            ? data['ownershipType']
-            : 'DIRECT';
+        ? data['ownershipType']
+        : 'DIRECT';
     thirdPartyOwnerType =
         data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-            ? data['ownershipKind']
-            : 'INDIVIDUAL';
+        ? data['ownershipKind']
+        : 'INDIVIDUAL';
     assetName = data['assetName'] ?? "";
     assetAlreadyExists = data!['assetAlreadyExists'] == 1;
     assetDescription = data['assetDescription'] ?? "";
@@ -169,14 +166,17 @@ class _AssetInformation extends State<AssetInformation>
     addressOfOwner = data['assetOwnerAddress'] ?? "";
     currentValueOfAsset =
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue = double.tryParse(
-            data['assetOwnerRetainedOrContributedValue'].toString()) ??
+    assetOwnerRetainedOrContributedValue =
+        double.tryParse(
+          data['assetOwnerRetainedOrContributedValue'].toString(),
+        ) ??
         0;
     assetMiscCost =
         double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
     valueOfTokenizedAsset =
         double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace = data['protectionMethods'] == null ||
+    assetProtectionInPlace =
+        data['protectionMethods'] == null ||
             data['protectionMethods'].toString().isEmpty
         ? []
         : data['protectionMethods'].toString().split(',');
@@ -189,12 +189,13 @@ class _AssetInformation extends State<AssetInformation>
     valueOfAssetController.text = currentValueOfAsset == 0
         ? ''
         : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text =
-        assetMiscCost == 0 ? '' : formatNumberForInput(assetMiscCost);
+    miscCostOfAssetController.text = assetMiscCost == 0
+        ? ''
+        : formatNumberForInput(assetMiscCost);
     assetOwnerRetainedOrContributedValueController.text =
         assetOwnerRetainedOrContributedValue == 0
-            ? ''
-            : formatNumberForInput(assetOwnerRetainedOrContributedValue);
+        ? ''
+        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
@@ -241,12 +242,14 @@ class _AssetInformation extends State<AssetInformation>
         data['physicalConditionNoUndisclosedEasements'] == 1;
     physicalConditionNolease = data['physicalConditionNolease'] == 1;
     hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring =
-        data['independentMonitoringList'].toString().isNotEmpty;
+    hasIndependentMonitoring = data['independentMonitoringList']
+        .toString()
+        .isNotEmpty;
     hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
     hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection =
-        data['otherAssetProtection'].toString().isNotEmpty;
+    hasOtherAssetProtection = data['otherAssetProtection']
+        .toString()
+        .isNotEmpty;
 
     projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
     projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
@@ -308,9 +311,7 @@ class _AssetInformation extends State<AssetInformation>
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Row(
@@ -326,9 +327,7 @@ class _AssetInformation extends State<AssetInformation>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -344,9 +343,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -397,9 +394,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -432,9 +427,7 @@ class _AssetInformation extends State<AssetInformation>
                 ],
               ),
               if (!assetAlreadyExists) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -450,9 +443,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -489,9 +480,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -507,9 +496,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -545,9 +532,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -563,9 +548,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -580,8 +563,8 @@ class _AssetInformation extends State<AssetInformation>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        initialValue:
-                            estimatedProjectPaybackPeriodsInMonths.toString(),
+                        initialValue: estimatedProjectPaybackPeriodsInMonths
+                            .toString(),
                         onChanged: (value) {
                           setState(() {
                             estimatedProjectPaybackPeriodsInMonths =
@@ -605,9 +588,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -623,9 +604,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -662,9 +641,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -680,9 +657,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -719,9 +694,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -737,9 +710,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -776,9 +747,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -794,9 +763,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -833,9 +800,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -851,9 +816,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -890,9 +853,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -908,9 +869,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -947,9 +906,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -965,9 +922,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Padding(
@@ -1005,9 +960,7 @@ class _AssetInformation extends State<AssetInformation>
                   ],
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1023,9 +976,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1056,9 +1007,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1074,9 +1023,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -1104,8 +1051,9 @@ class _AssetInformation extends State<AssetInformation>
                           latitude = double.parse(value!.toString());
                         });
                       },
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                     CustomTextFormField.textField(
                       "longitude".tr(),
@@ -1129,8 +1077,9 @@ class _AssetInformation extends State<AssetInformation>
                           longitude = double.parse(value!.toString());
                         });
                       },
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                   ],
                 ),
@@ -1473,9 +1422,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Container(
@@ -1494,9 +1441,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1514,9 +1459,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1542,7 +1485,8 @@ class _AssetInformation extends State<AssetInformation>
                           }
 
                           currentValueOfAsset = double.parse(
-                              value!.toString().replaceAll(',', ''));
+                            value!.toString().replaceAll(',', ''),
+                          );
                           valueOfTokenizedAsset =
                               (assetMiscCost + currentValueOfAsset);
                         });
@@ -1559,8 +1503,9 @@ class _AssetInformation extends State<AssetInformation>
                       autoFormatNumber: true,
                       isFiat: true,
                       controller: valueOfAssetController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                   ),
                 ],
@@ -1582,9 +1527,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1605,16 +1548,18 @@ class _AssetInformation extends State<AssetInformation>
                           return;
                         }
 
-                        percentageFromPromoters =
-                            double.parse(value!.toString().replaceAll(',', ''));
+                        percentageFromPromoters = double.parse(
+                          value!.toString().replaceAll(',', ''),
+                        );
 
                         assetOwnerRetainedOrContributedValue =
                             ((currentValueOfAsset * percentageFromPromoters) /
-                                100);
+                            100);
                         assetOwnerRetainedOrContributedValueController.text =
                             truncateToDecimalPlaces(
-                                assetOwnerRetainedOrContributedValue,
-                                decimalPlaces: 10);
+                              assetOwnerRetainedOrContributedValue,
+                              decimalPlaces: 10,
+                            );
                       },
                       validator: (value) {
                         if (value.isEmpty) {
@@ -1623,14 +1568,16 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        percentageFromPromoters =
-                            double.parse(value!.toString());
+                        percentageFromPromoters = double.parse(
+                          value!.toString(),
+                        );
                       },
                       autoFormatNumber: true,
                       isFiat: true,
                       controller: percentageFromPromotersController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                   ),
                 ],
@@ -1655,9 +1602,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1680,13 +1625,14 @@ class _AssetInformation extends State<AssetInformation>
                           }
 
                           assetOwnerRetainedOrContributedValue = double.parse(
-                              value!.toString().replaceAll(',', ''));
+                            value!.toString().replaceAll(',', ''),
+                          );
                         });
 
                         percentageFromPromoters =
                             ((assetOwnerRetainedOrContributedValue /
-                                    currentValueOfAsset) *
-                                100);
+                                currentValueOfAsset) *
+                            100);
                         percentageFromPromotersController.text =
                             formatNumberShort(percentageFromPromoters);
                       },
@@ -1697,15 +1643,17 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        assetOwnerRetainedOrContributedValue =
-                            double.parse(value!.toString());
+                        assetOwnerRetainedOrContributedValue = double.parse(
+                          value!.toString(),
+                        );
                       },
                       autoFormatNumber: true,
                       isFiat: true,
                       controller:
                           assetOwnerRetainedOrContributedValueController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                   ),
                 ],
@@ -1726,9 +1674,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1751,7 +1697,8 @@ class _AssetInformation extends State<AssetInformation>
                             }
 
                             assetMiscCost = double.parse(
-                                value!.toString().replaceAll(',', ''));
+                              value!.toString().replaceAll(',', ''),
+                            );
                             valueOfTokenizedAsset =
                                 (assetMiscCost + currentValueOfAsset);
                           });
@@ -1768,17 +1715,16 @@ class _AssetInformation extends State<AssetInformation>
                         autoFormatNumber: true,
                         isFiat: true,
                         controller: miscCostOfAssetController,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
               if (!assetAlreadyExists) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1794,9 +1740,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Container(
@@ -1815,9 +1759,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1833,9 +1775,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1853,8 +1793,9 @@ class _AssetInformation extends State<AssetInformation>
                         initialValue: estimatedProjectIRR.toString(),
                         onChanged: (value) {
                           setState(() {
-                            estimatedProjectIRR =
-                                double.parse(value!.toString());
+                            estimatedProjectIRR = double.parse(
+                              value!.toString(),
+                            );
                           });
                         },
                         validator: (value) {
@@ -1869,15 +1810,14 @@ class _AssetInformation extends State<AssetInformation>
                         // autoFormatNumber: true,
                         // isFiat: true,
                         // controller: valueOfAssetController,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1893,9 +1833,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1913,8 +1851,9 @@ class _AssetInformation extends State<AssetInformation>
                         initialValue: estimatedProjectROI.toString(),
                         onChanged: (value) {
                           setState(() {
-                            estimatedProjectROI =
-                                double.parse(value!.toString());
+                            estimatedProjectROI = double.parse(
+                              value!.toString(),
+                            );
                           });
                         },
                         validator: (value) {
@@ -1929,15 +1868,14 @@ class _AssetInformation extends State<AssetInformation>
                         // autoFormatNumber: true,
                         // isFiat: true,
                         // controller: valueOfAssetController,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1953,9 +1891,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1973,8 +1909,9 @@ class _AssetInformation extends State<AssetInformation>
                         initialValue: estimatedProjectNPV.toString(),
                         onChanged: (value) {
                           setState(() {
-                            estimatedProjectNPV =
-                                double.parse(value!.toString());
+                            estimatedProjectNPV = double.parse(
+                              value!.toString(),
+                            );
                           });
                         },
                         validator: (value) {
@@ -1989,15 +1926,14 @@ class _AssetInformation extends State<AssetInformation>
                         // autoFormatNumber: true,
                         // isFiat: true,
                         // controller: valueOfAssetController,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2016,9 +1952,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2053,9 +1987,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2071,9 +2003,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 70,
-                ),
+                SizedBox(height: height / 70),
                 Row(
                   children: [
                     Container(
@@ -2092,9 +2022,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2110,9 +2038,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2147,9 +2073,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2165,9 +2089,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2183,8 +2105,8 @@ class _AssetInformation extends State<AssetInformation>
                         initialValue: projectIdentifiedRegulatoryRisks,
                         onChanged: (value) {
                           setState(() {
-                            projectIdentifiedRegulatoryRisks =
-                                value!.toString();
+                            projectIdentifiedRegulatoryRisks = value!
+                                .toString();
                           });
                         },
                         validator: (value) {
@@ -2203,27 +2125,26 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "Operational/Execution Risks Identified (Provide Details)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
+                      child: SizedBox(
+                        width: 255,
+                        child: Text(
+                          "Operational/Execution Risks Identified (Provide Details)",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2251,8 +2172,8 @@ class _AssetInformation extends State<AssetInformation>
                           return null;
                         },
                         onSaved: (value) {
-                          projectIdentifiedOperationalOrExecutionRisks =
-                              value!.toString();
+                          projectIdentifiedOperationalOrExecutionRisks = value!
+                              .toString();
                         },
                         minLines: 3,
                         maxLines: null,
@@ -2261,9 +2182,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2279,9 +2198,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2316,9 +2233,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2334,9 +2249,7 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2352,8 +2265,8 @@ class _AssetInformation extends State<AssetInformation>
                         initialValue: projectIdentifiedOtherRelevantRisks,
                         onChanged: (value) {
                           setState(() {
-                            projectIdentifiedOtherRelevantRisks =
-                                value!.toString();
+                            projectIdentifiedOtherRelevantRisks = value!
+                                .toString();
                           });
                         },
                         validator: (value) {
@@ -2363,8 +2276,8 @@ class _AssetInformation extends State<AssetInformation>
                           return null;
                         },
                         onSaved: (value) {
-                          projectIdentifiedOtherRelevantRisks =
-                              value!.toString();
+                          projectIdentifiedOtherRelevantRisks = value!
+                              .toString();
                         },
                         minLines: 3,
                         maxLines: null,
@@ -2374,9 +2287,7 @@ class _AssetInformation extends State<AssetInformation>
                   ],
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -2392,9 +2303,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -2402,13 +2311,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2425,9 +2337,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: hasInsurance,
                               label: "comprehensiveinsurance".tr(),
@@ -2440,21 +2350,18 @@ class _AssetInformation extends State<AssetInformation>
                             if (hasInsurance) ...[
                               Row(
                                 children: [
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  SizedBox(width: 15),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
+                                      SizedBox(height: 10),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "insurancecompanyname".tr(),
                                               style: TextStyle(
@@ -2467,16 +2374,14 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 70,
-                                      ),
+                                      SizedBox(height: height / 70),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                              horizontal: 20.0,
+                                            ),
+                                            child: CustomTextFormField.textField(
                                               "companyname".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2504,14 +2409,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 70,
-                                      ),
+                                      SizedBox(height: height / 70),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "insurancypolicynumber".tr(),
                                               style: TextStyle(
@@ -2524,16 +2428,14 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                              horizontal: 20.0,
+                                            ),
+                                            child: CustomTextFormField.textField(
                                               "insurancypolicynumber".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2562,14 +2464,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "insurancypolicyholder".tr(),
                                               style: TextStyle(
@@ -2582,16 +2483,14 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                              horizontal: 20.0,
+                                            ),
+                                            child: CustomTextFormField.textField(
                                               "insurancypolicyholder".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2620,14 +2519,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "percentagevalueofinsurance".tr(),
                                               style: TextStyle(
@@ -2640,16 +2538,14 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child:
-                                                CustomTextFormField.textField(
+                                              horizontal: 20.0,
+                                            ),
+                                            child: CustomTextFormField.textField(
                                               "percentagevalueofinsurance".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2674,15 +2570,16 @@ class _AssetInformation extends State<AssetInformation>
                                               autoFormatNumber: true,
                                               controller:
                                                   percentValueOfInsuranceController,
-                                              keyboardtype: TextInputType
-                                                  .numberWithOptions(
-                                                      decimal: true),
+                                              keyboardtype:
+                                                  TextInputType.numberWithOptions(
+                                                    decimal: true,
+                                                  ),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ],
@@ -2690,12 +2587,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -2703,13 +2598,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2726,9 +2624,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             if (!assetAlreadyExists) ...[
                               CheckboxItem(
                                 value: contractualProtectionPerfBond,
@@ -2749,9 +2645,7 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: contractualProtectionSLA,
                               label: "slas".tr(),
@@ -2765,12 +2659,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (!assetAlreadyExists) ...[
                 Row(
                   children: [
@@ -2779,13 +2671,16 @@ class _AssetInformation extends State<AssetInformation>
                       child: Container(
                         width: width / 1.12,
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
                           color: notifier.getaddsubwalletgrey,
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 10),
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2802,9 +2697,7 @@ class _AssetInformation extends State<AssetInformation>
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: riskSharingMechanismPPPs,
                                 label: "ppps".tr(),
@@ -2838,12 +2731,10 @@ class _AssetInformation extends State<AssetInformation>
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2851,13 +2742,16 @@ class _AssetInformation extends State<AssetInformation>
                       child: Container(
                         width: width / 1.12,
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
                           color: notifier.getaddsubwalletgrey,
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 10),
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2874,9 +2768,7 @@ class _AssetInformation extends State<AssetInformation>
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: hasIndependentMonitoring,
                                 label: "independentmonitoring".tr(),
@@ -2889,22 +2781,19 @@ class _AssetInformation extends State<AssetInformation>
                               if (hasIndependentMonitoring) ...[
                                 Row(
                                   children: [
-                                    SizedBox(
-                                      width: 15,
-                                    ),
+                                    SizedBox(width: 15),
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        SizedBox(
-                                          height: 10,
-                                        ),
+                                        SizedBox(height: 10),
                                         Row(
                                           children: [
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                      horizontal: 20.0),
+                                                    horizontal: 20.0,
+                                                  ),
                                               child: Container(
                                                 width: 260,
                                                 child: Text(
@@ -2921,15 +2810,14 @@ class _AssetInformation extends State<AssetInformation>
                                             ),
                                           ],
                                         ),
-                                        SizedBox(
-                                          height: height / 50,
-                                        ),
+                                        SizedBox(height: height / 50),
                                         Row(
                                           children: [
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                      horizontal: 20.0),
+                                                    horizontal: 20.0,
+                                                  ),
                                               child: multilineInput(
                                                 "List details of independent monitors",
                                                 notifier.getbluecolor,
@@ -2966,17 +2854,15 @@ class _AssetInformation extends State<AssetInformation>
                                     ),
                                   ],
                                 ),
-                              ]
+                              ],
                             ],
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -2984,13 +2870,16 @@ class _AssetInformation extends State<AssetInformation>
                       child: Container(
                         width: width / 1.12,
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
                           color: notifier.getaddsubwalletgrey,
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 10),
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -3010,9 +2899,7 @@ class _AssetInformation extends State<AssetInformation>
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: eSGSafeguardsSusCerts,
                                 label: "sustainabilitycertifications".tr(),
@@ -3022,9 +2909,7 @@ class _AssetInformation extends State<AssetInformation>
                                   });
                                 },
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: eSGSafeguardsCommEngPlans,
                                 label: "communityengagementplans".tr(),
@@ -3038,12 +2923,10 @@ class _AssetInformation extends State<AssetInformation>
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
               ],
               Row(
                 children: [
@@ -3052,13 +2935,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3075,9 +2961,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: securityMeasuresAccessControl,
                               label: "accesscontrol".tr(),
@@ -3087,9 +2971,7 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: securityMeasuresSurveilanceSystems,
                               label: "surveillancesystems".tr(),
@@ -3099,9 +2981,7 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: securityMeasuresOnSiteSecurityPersonnel,
                               label: "onsitesecuritypersonnel".tr(),
@@ -3112,9 +2992,7 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: securityMeasuresPerimeterSecurity,
                               label: "perimetersecurity".tr(),
@@ -3124,9 +3002,7 @@ class _AssetInformation extends State<AssetInformation>
                                 });
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: securityMeasuresCriticalInfraProtections,
                               label: "criticalinfrastructureprotections".tr(),
@@ -3141,12 +3017,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3154,13 +3028,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3177,9 +3054,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: hasLegalAdvisor,
                               label: "legaladvisor".tr(),
@@ -3190,26 +3065,21 @@ class _AssetInformation extends State<AssetInformation>
                               },
                             ),
                             if (hasLegalAdvisor) ...[
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               Row(
                                 children: [
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  SizedBox(width: 15),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
+                                      SizedBox(height: 10),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "nameoflegaladvisor".tr(),
                                               style: TextStyle(
@@ -3222,14 +3092,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
@@ -3264,9 +3133,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ],
                               ),
                             ],
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: hasFinancialAdvisor,
                               label: "financialadvisor".tr(),
@@ -3279,21 +3146,18 @@ class _AssetInformation extends State<AssetInformation>
                             if (hasFinancialAdvisor) ...[
                               Row(
                                 children: [
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  SizedBox(width: 15),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
+                                      SizedBox(height: 10),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "nameoffinancialadvisor".tr(),
                                               style: TextStyle(
@@ -3306,14 +3170,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
@@ -3352,12 +3215,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3365,13 +3226,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3388,9 +3252,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: hasOtherAssetProtection,
                               label: "other".tr(),
@@ -3403,21 +3265,18 @@ class _AssetInformation extends State<AssetInformation>
                             if (hasOtherAssetProtection) ...[
                               Row(
                                 children: [
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  SizedBox(width: 15),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
+                                      SizedBox(height: 10),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: Text(
                                               "enterotherprotectionsinplace"
                                                   .tr(),
@@ -3431,14 +3290,13 @@ class _AssetInformation extends State<AssetInformation>
                                           ),
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
+                                      SizedBox(height: height / 50),
                                       Row(
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
+                                              horizontal: 20.0,
+                                            ),
                                             child: multilineInput(
                                               "",
                                               notifier.getbluecolor,
@@ -3478,12 +3336,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
@@ -3499,9 +3355,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3509,13 +3363,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3533,9 +3390,7 @@ class _AssetInformation extends State<AssetInformation>
                               ],
                             ),
                             if (assetAlreadyExists) ...[
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: undertakingNoLien,
                                 label: "confirmfreeofloans".tr(),
@@ -3545,9 +3400,7 @@ class _AssetInformation extends State<AssetInformation>
                                   });
                                 },
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: undertakingNotCollateral,
                                 label: "confirmfreeofcolateral".tr(),
@@ -3567,9 +3420,7 @@ class _AssetInformation extends State<AssetInformation>
                                   return null;
                                 },
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: undertakingNoClaims,
                                 label: "confirmfreeofthirdparties".tr(),
@@ -3590,9 +3441,7 @@ class _AssetInformation extends State<AssetInformation>
                                 },
                               ),
                             ],
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: undertakingNoForeclosure,
                               label: "confirmfreeoflegaldisputes".tr(),
@@ -3616,12 +3465,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3629,13 +3476,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3652,9 +3502,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: complianceNoViolation,
                               label: "confirmenvcompliance".tr(),
@@ -3674,9 +3522,7 @@ class _AssetInformation extends State<AssetInformation>
                                 return null;
                               },
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: complianceAllPermits,
                               label: "confirmhaspermits".tr(),
@@ -3700,12 +3546,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3713,13 +3557,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3737,9 +3584,7 @@ class _AssetInformation extends State<AssetInformation>
                               ],
                             ),
                             if (assetAlreadyExists) ...[
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: outstandingFinancialRespNoDebts,
                                 label: "confirmnooutstandingpayments".tr(),
@@ -3750,9 +3595,7 @@ class _AssetInformation extends State<AssetInformation>
                                 },
                               ),
                             ],
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value:
                                   outstandingFinancialRespNoHiddenLiabilities,
@@ -3768,12 +3611,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3781,13 +3622,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3804,9 +3648,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: riskManagementFullyInsured,
                               label: "confirmassetinsured".tr(),
@@ -3817,9 +3659,7 @@ class _AssetInformation extends State<AssetInformation>
                               },
                             ),
                             if (assetAlreadyExists) ...[
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: riskManagementDeclaredValue,
                                 label: "confirmvalueiscurrent".tr(),
@@ -3834,12 +3674,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -3847,13 +3685,16 @@ class _AssetInformation extends State<AssetInformation>
                     child: Container(
                       width: width / 1.12,
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.getaddsubwalletgrey,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3870,9 +3711,7 @@ class _AssetInformation extends State<AssetInformation>
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
                             CheckboxItem(
                               value: physicalConditionNoUndisclosedEasements,
                               label: "confirmnoundisclosedeasements".tr(),
@@ -3894,9 +3733,7 @@ class _AssetInformation extends State<AssetInformation>
                               },
                             ),
                             if (assetAlreadyExists) ...[
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: physicalConditionSound,
                                 label: "confirmassetstructuralysound".tr(),
@@ -3906,9 +3743,7 @@ class _AssetInformation extends State<AssetInformation>
                                   });
                                 },
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               CheckboxItem(
                                 value: physicalConditionNolease,
                                 label: "confirmnoexistingleaseagreements".tr(),
@@ -3933,12 +3768,10 @@ class _AssetInformation extends State<AssetInformation>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Button(
                 "saveandcontinuee".tr(),
                 notifier.getbluecolor,
@@ -3954,7 +3787,8 @@ class _AssetInformation extends State<AssetInformation>
               SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
               ),
             ],
           ),
@@ -4019,8 +3853,9 @@ class _AssetInformation extends State<AssetInformation>
 
       newData['contractualProtectionRevGuarantees'] =
           contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] =
-          contractualProtectionPerfBond ? 1 : 0;
+      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
+          ? 1
+          : 0;
       newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
       newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
       newData['riskSharingMechanismHedgeInstruments'] =
@@ -4029,8 +3864,9 @@ class _AssetInformation extends State<AssetInformation>
           riskSharingMechanismCompletionGuarantees ? 1 : 0;
       newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
       newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] =
-          securityMeasuresAccessControl ? 1 : 0;
+      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
+          ? 1
+          : 0;
       newData['securityMeasuresSurveilanceSystems'] =
           securityMeasuresSurveilanceSystems ? 1 : 0;
       newData['securityMeasuresOnSiteSecurityPersonnel'] =
@@ -4049,10 +3885,12 @@ class _AssetInformation extends State<AssetInformation>
           outstandingFinancialRespNoDebts ? 1 : 0;
       newData['outstandingFinancialRespNoHiddenLiabilities'] =
           outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] =
-          riskManagementFullyInsured ? 1 : 0;
-      newData['riskManagementDeclaredValue'] =
-          riskManagementDeclaredValue ? 1 : 0;
+      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
+          ? 1
+          : 0;
+      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
+          ? 1
+          : 0;
       newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
       newData['physicalConditionNoUndisclosedEasements'] =
           physicalConditionNoUndisclosedEasements ? 1 : 0;
@@ -4102,8 +3940,11 @@ class _AssetInformation extends State<AssetInformation>
         await refreshCurrentTokenizationInfo();
         Navigator.of(context).pop();
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
       hideLoader(context);
     } catch (e) {
@@ -4148,18 +3989,15 @@ class _AssetInformation extends State<AssetInformation>
       child: ElevatedButton(
         onPressed: onClick,
         style: ButtonStyle(
-          overlayColor:
-              MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-          elevation: MaterialStateProperty.all<double>(0),
-          backgroundColor: MaterialStateProperty.all<Color>(backColor),
-          side: MaterialStateProperty.all(
+          overlayColor: WidgetStateProperty.all<Color>(notifier.getsplashgrey),
+          elevation: WidgetStateProperty.all<double>(0),
+          backgroundColor: WidgetStateProperty.all<Color>(backColor),
+          side: WidgetStateProperty.all(
             BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
           ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(10),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
           ),
         ),
@@ -4172,7 +4010,10 @@ class _AssetInformation extends State<AssetInformation>
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
+                color: foreColor,
+                fontFamily: fontbody,
+                fontSize: fontSize,
+              ),
             ),
           ],
         ),
@@ -4198,9 +4039,7 @@ class _AssetInformation extends State<AssetInformation>
                 height: 24,
                 child: Checkbox(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(5.sp),
-                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(5.sp)),
                   ),
                   activeColor: notifier.isDark
                       ? notifier.getbluecolor50
@@ -4225,11 +4064,12 @@ class _AssetInformation extends State<AssetInformation>
             label,
             overflow: TextOverflow.visible,
             style: TextStyle(
-                fontSize: 15,
-                color: formHasError && !value && validator != null
-                    ? Colors.red
-                    : notifier.getbluewhitecolor,
-                fontFamily: fontbody),
+              fontSize: 15,
+              color: formHasError && !value && validator != null
+                  ? Colors.red
+                  : notifier.getbluewhitecolor,
+              fontFamily: fontbody,
+            ),
           ),
         ),
       ],

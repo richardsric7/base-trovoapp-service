@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:flutter_share/flutter_share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
@@ -324,10 +324,8 @@ class _ReferralInfoState extends State<ReferralInfo>
     var label = await FirebaseRemoteConfig.instance.getString(
       'wallet_referral_share_label',
     );
-    // await FlutterShare.share(
-    //   title: 'Trovo Wallet',
-    //   text: label,
-    // );
+
+    SharePlus.instance.share(ShareParams(text: label, title: 'Trovo Wallet'));
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {

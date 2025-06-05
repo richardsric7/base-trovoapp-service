@@ -92,12 +92,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
     List<DropdownMenuItem<DashboardAssetListMode>> items = [];
     listModes.forEach((key, value) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      items.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return items;
   }
@@ -122,9 +122,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       activeWallet = wallets[0].publicKey;
       claimedAssets = wallets[0].claimedAssets;
       unclaimedAssets = wallets[0].unClaimedAssets;
-      noXbnBalance = claimedAssets!
-              .firstWhere((asset) =>
-                  asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
+      noXbnBalance =
+          claimedAssets!
+              .firstWhere(
+                (asset) =>
+                    asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty,
+              )
               .amount ==
           0;
 
@@ -151,14 +154,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             children: [
               Column(
                 children: [
-                  SizedBox(
-                    height: 5,
-                  ),
+                  SizedBox(height: 5),
                   firstRow(),
                   if (userInfo.hasSecurityQuestions == 0) ...[
-                    SizedBox(
-                      height: 5,
-                    ),
+                    SizedBox(height: 5),
                     GestureDetector(
                       onTap: () {
                         var primaryWallet = appState.userInfo!.wallets!
@@ -169,12 +168,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             'publicKey': primaryWallet.publicKey,
                             'secretKey': appState.secretKeys[0],
                             'username': appState.userInfo!.username,
-                          }
+                          },
                         };
 
                         appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: SecurityQuestionsViewPageConfig);
+                          state: PageState.addPage,
+                          page: SecurityQuestionsViewPageConfig,
+                        );
                       },
                       child: Container(
                         color: Colors.red[400],
@@ -182,9 +182,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              SizedBox(
-                                width: width / 50,
-                              ),
+                              SizedBox(width: width / 50),
                               Expanded(
                                 child: Text(
                                   'You have not setup security questions yet. Tap to setup security questions.',
@@ -196,18 +194,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: width / 50,
-                              ),
+                              SizedBox(width: width / 50),
                             ],
                           ),
                         ),
                       ),
                     ),
                   ],
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   GestureDetector(
                     onTap: () {
                       changeTabPage(appState, ButtomTabPage.Wallets.index);
@@ -217,8 +211,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15.0)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
                           color: notifier.getbluecolor,
                           // color: colors[wallets.indexOf(wallet)],
                         ),
@@ -231,7 +226,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 35.0, horizontal: 20),
+                                    vertical: 35.0,
+                                    horizontal: 20,
+                                  ),
                                   child: Image.asset(
                                     'assets/images/trovo_white.png',
                                     width: 40,
@@ -241,7 +238,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 20),
+                                horizontal: 20.0,
+                                vertical: 20,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment:
@@ -260,10 +259,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                             Text(
                                               "totalaccountbalance".tr(),
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: wihitecolor,
-                                                  fontFamily: fontsemibold),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: wihitecolor,
+                                                fontFamily: fontsemibold,
+                                              ),
                                             ),
                                             SizedBox(),
                                             GestureDetector(
@@ -274,19 +274,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                   setState(() {
                                                     appState.hideBalances =
                                                         !appState.hideBalances;
-                                                    for (var i = 0;
-                                                        i <
-                                                            appState
-                                                                .hideWalletList
-                                                                .length;
-                                                        i++) {
-                                                      appState.hideWalletList[
-                                                          i] = true;
+                                                    for (
+                                                      var i = 0;
+                                                      i <
+                                                          appState
+                                                              .hideWalletList
+                                                              .length;
+                                                      i++
+                                                    ) {
+                                                      appState.hideWalletList[i] =
+                                                          true;
                                                     }
                                                     StoreData().storeInsertData(
-                                                        'hideWalletList',
-                                                        appState
-                                                            .hideWalletList);
+                                                      'hideWalletList',
+                                                      appState.hideWalletList,
+                                                    );
                                                   });
                                               },
                                               child: Icon(
@@ -301,14 +303,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       SizedBox(),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: height / 50,
-                                  ),
+                                  SizedBox(height: height / 50),
                                   Container(
                                     width: width / 1.8,
                                     child: Text(
                                       getBalance(
-                                          '${totalAccountBalanceInLocalCurrency} ${appState.defaultCurrency}'),
+                                        '${totalAccountBalanceInLocalCurrency} ${appState.defaultCurrency}',
+                                      ),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -321,7 +322,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     SizedBox(height: 10),
                                     Text(
                                       getBalance(
-                                          '${totalAccountBalanceInUSD} USD'),
+                                        '${totalAccountBalanceInUSD} USD',
+                                      ),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w300,
                                         fontSize: 13,
@@ -338,16 +340,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
                   if (!noXbnBalance) ...[
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Column(
@@ -364,7 +362,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     Flexible(
                                       child: Text(
                                         "Tokenized Assets",
-                                        textScaleFactor: 1.0,
+                                        textScaler: TextScaler.linear(1.0),
                                         style: TextStyle(
                                           fontSize: 20,
                                           color: notifier.getbluewhitecolor,
@@ -382,9 +380,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
+                          SizedBox(height: height / 70),
                         ],
                       ),
                     ),
@@ -433,26 +429,27 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             "somethingwentwrong".tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               setState(() {
-                                primaryOffersListFuture =
-                                    fetchTokenizationList(status: 0);
+                                primaryOffersListFuture = fetchTokenizationList(
+                                  status: 0,
+                                );
                               });
                             },
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor!),
+                              backgroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getbluecolor!,
+                              ),
                             ),
                             child: Text(
                               "retry".tr(),
-                              style: TextStyle(
-                                fontFamily: fontsemibold,
-                              ),
+                              style: TextStyle(fontFamily: fontsemibold),
                             ),
                           ),
                         ],
@@ -471,7 +468,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             Flexible(
                               child: Text(
                                 "Primary Offers",
-                                textScaleFactor: 1.0,
+                                textScaler: TextScaler.linear(1.0),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: notifier.getbluewhitecolor,
@@ -482,9 +479,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             TextButton(
                               onPressed: () {
-                                appState.viewData = {
-                                  'rel': 0,
-                                };
+                                appState.viewData = {'rel': 0};
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page: SeeAllTokenizedAssetsViewPageConfig,
@@ -494,18 +489,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 padding:
                                     EdgeInsets.zero, // removes default padding
                                 minimumSize: Size(
-                                    0, 0), // removes minimum size constraints
+                                  0,
+                                  0,
+                                ), // removes minimum size constraints
                                 tapTargetSize: MaterialTapTargetSize
                                     .shrinkWrap, // adjusts tap target size
                               ),
                               child: Text(
                                 "View all",
-                                textScaleFactor: 1.0,
+                                textScaler: TextScaler.linear(1.0),
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 12.0),
+                                  color: notifier.getbluewhitecolor,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12.0,
+                                ),
                               ),
                             ),
                           ],
@@ -529,18 +527,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   return;
                                 }
 
-                                showSubscribePopup(context, asset: item,
-                                    onDone: (amount) async {
-                                  await subscribeTokenizedAsset(
-                                    amount: double.parse(amount),
-                                    tokenizedAssetID: item.id!,
-                                  );
-                                  setState(() {
-                                    item.expressedInterest = true;
-                                    item.expressedInterestAmount =
-                                        double.parse(amount);
-                                  });
-                                });
+                                showSubscribePopup(
+                                  context,
+                                  asset: item,
+                                  onDone: (amount) async {
+                                    await subscribeTokenizedAsset(
+                                      amount: double.parse(amount),
+                                      tokenizedAssetID: item.id!,
+                                    );
+                                    setState(() {
+                                      item.expressedInterest = true;
+                                      item.expressedInterestAmount =
+                                          double.parse(amount);
+                                    });
+                                  },
+                                );
                               },
                               onBuyToken: () {
                                 if (userInfo.kycVerified == null ||
@@ -549,16 +550,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   return;
                                 }
 
-                                showBuyTokenPopup(context,
-                                    assetCode: item.assetCode!,
-                                    onDone: (wallet) {
-                                  appState.setActiveWallet = wallet;
-                                  appState.tokenizedAsset = item;
-                                  appState.currentAction = PageAction(
-                                    state: PageState.addPage,
-                                    page: BuyTokensViewPageConfig,
-                                  );
-                                }, dropdownItems: getStandardWallets);
+                                showBuyTokenPopup(
+                                  context,
+                                  assetCode: item.assetCode!,
+                                  onDone: (wallet) {
+                                    appState.setActiveWallet = wallet;
+                                    appState.tokenizedAsset = item;
+                                    appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: BuyTokensViewPageConfig,
+                                    );
+                                  },
+                                  dropdownItems: getStandardWallets,
+                                );
                               },
                             ),
                           ),
@@ -574,9 +578,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 "notokenizedasset".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                               SizedBox(height: 10),
                               Text(
@@ -584,14 +589,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     .tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               SizedBox(height: 30),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ],
                   );
@@ -646,7 +652,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             Flexible(
                               child: Text(
                                 "Secondary Listing",
-                                textScaleFactor: 1.0,
+                                textScaler: TextScaler.linear(1.0),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: notifier.getbluewhitecolor,
@@ -657,9 +663,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             TextButton(
                               onPressed: () {
-                                appState.viewData = {
-                                  'rel': 1,
-                                };
+                                appState.viewData = {'rel': 1};
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page: SeeAllTokenizedAssetsViewPageConfig,
@@ -669,18 +673,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 padding:
                                     EdgeInsets.zero, // removes default padding
                                 minimumSize: Size(
-                                    0, 0), // removes minimum size constraints
+                                  0,
+                                  0,
+                                ), // removes minimum size constraints
                                 tapTargetSize: MaterialTapTargetSize
                                     .shrinkWrap, // adjusts tap target size
                               ),
                               child: Text(
                                 "View all",
-                                textScaleFactor: 1.0,
+                                textScaler: TextScaler.linear(1.0),
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 12.0),
+                                  color: notifier.getbluewhitecolor,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12.0,
+                                ),
                               ),
                             ),
                           ],
@@ -700,7 +707,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                           ),
                         ],
-                      ]
+                      ],
                     ],
                   );
                 }
@@ -732,9 +739,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               children: [
                 Row(
                   children: [
-                    SizedBox(
-                      width: width / 40,
-                    ),
+                    SizedBox(width: width / 40),
                     IconButton(
                       onPressed: () {
                         key.currentState!.openDrawer();
@@ -745,9 +750,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
-                    SizedBox(
-                      width: width / 20,
-                    ),
+                    SizedBox(width: width / 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -760,12 +763,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             fontFamily: fontbody,
                           ),
                         ),
-                        SizedBox(
-                          height: 5,
-                        ),
+                        SizedBox(height: 5),
                         Text(
-                          truncate(userInfo.username!.capitalizeFirst!,
-                              length: 8),
+                          truncate(
+                            userInfo.username!.capitalizeFirst!,
+                            length: 8,
+                          ),
                           style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontSize: 17,
@@ -773,7 +776,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ],
@@ -784,22 +787,27 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () {
                     appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: SharedAccessViewPageConfig);
+                      state: PageState.addPage,
+                      page: SharedAccessViewPageConfig,
+                    );
 
                     if (noOfTransactionsToSign != null &&
                         noOfTransactionsToSign > 0) {
                       // take the user to the pending approvals tab on the shared access view
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        appState.sharedAccesstabController.animateTo(1,
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOut);
+                        appState.sharedAccesstabController.animateTo(
+                          1,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                        );
                       });
                     }
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 10.0),
+                      vertical: 8.0,
+                      horizontal: 10.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -816,8 +824,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 snapshot.hasData) {
                               noOfTransactionsToSign =
                                   appState.filterQuery.contains('PENDING')
-                                      ? snapshot.data!['totalRecords'] ?? 0
-                                      : 0;
+                                  ? snapshot.data!['totalRecords'] ?? 0
+                                  : 0;
                               if (noOfTransactionsToSign > 0) {
                                 return Text(
                                   '($noOfTransactionsToSign)',
@@ -850,14 +858,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () {
                     appState.currentAction = PageAction(
-                        state: PageState.addPage, page: QrScannerPageConfig);
+                      state: PageState.addPage,
+                      page: QrScannerPageConfig,
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 10.0),
+                      vertical: 8.0,
+                      horizontal: 10.0,
+                    ),
                     child: SvgPicture.asset(
                       "assets/images/scan.svg",
-                      color: notifier.getbluewhitecolor,
+                      // colorFilter: ColorFilter.mode(
+                      //   notifier.getbluewhitecolor,
+                      //   BlendMode.clear,
+                      // ),
                       height: height / 40,
                     ),
                   ),
@@ -865,25 +880,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () {
                     appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: NotificationsViewPageConfig);
+                      state: PageState.addPage,
+                      page: NotificationsViewPageConfig,
+                    );
                     appState.hasNewAnnouncement = false;
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 10.0),
+                      vertical: 8.0,
+                      horizontal: 10.0,
+                    ),
                     child: SvgPicture.asset(
                       appState.hasNewAnnouncement
                           ? "assets/images/notifications-active.svg"
                           : "assets/images/notifications.svg",
-                      color: notifier.getbluewhitecolor,
+                      // colorFilter: ColorFilter.mode(
+                      //   notifier.getbluewhitecolor,
+                      //   BlendMode.srcOver,
+                      // ),
                       height: height / 40,
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: height / 50,
-                ),
+                SizedBox(width: height / 50),
                 if (appState.walletMode == "Testnet") ...[
                   Visibility(
                     visible: true,
@@ -896,8 +915,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 7),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                              ),
                               child: Text(
                                 "testnet".tr(),
                                 style: TextStyle(
@@ -912,7 +932,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ],
@@ -924,12 +944,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<DropdownMenuItem<Wallet>> get getStandardWallets {
     List<DropdownMenuItem<Wallet>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet,
+        ),
+      );
     });
     return wallets;
   }
@@ -937,10 +957,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      claimedAssets!.forEach((asset) => asset.userPreferredIndex =
-          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      claimedAssets!
-          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
+      claimedAssets!.forEach(
+        (asset) => asset.userPreferredIndex =
+            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+      );
+      claimedAssets!.sort(
+        (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
+      );
     }
   }
 
@@ -970,21 +993,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Image.asset(
                     'assets/images/rafiki-buy-xbn.png',
                     // height: 50,
                     width: 180,
                   ),
-                  SizedBox(
-                    height: height / 60,
-                  ),
+                  SizedBox(height: height / 60),
                   Text(
                     "yourwalletisready".tr(),
                     textAlign: TextAlign.center,
@@ -994,9 +1015,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
+                  SizedBox(height: height / 90),
                   Text(
                     "butyoucannotuseityet".tr(),
                     textAlign: TextAlign.center,
@@ -1006,9 +1025,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Text(
                     "youcangetbantutokens".tr(),
                     textAlign: TextAlign.center,
@@ -1018,17 +1035,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                 ],
               ),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1041,13 +1054,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               height: 60,
               onTap: () {
                 appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: BuyXBNWithFiatViewPageConfig);
+                  state: PageState.addPage,
+                  page: BuyXBNWithFiatViewPageConfig,
+                );
               },
             ),
-            SizedBox(
-              width: 10,
-            ),
+            SizedBox(width: 10),
             HalfButtonWithIcon(
               "buyfromp2p".tr(),
               notifier.getbluecolor,
@@ -1067,9 +1079,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
           ],
         ),
-        SizedBox(
-          height: 10,
-        ),
+        SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1087,13 +1097,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   'walletPublicKey': activeWallet,
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: RequestSpecificPaymentViewPageConfig);
+                  state: PageState.addPage,
+                  page: RequestSpecificPaymentViewPageConfig,
+                );
               },
             ),
-            SizedBox(
-              width: 10,
-            ),
+            SizedBox(width: 10),
             HalfButtonWithIcon(
               "sendxbntoyourwallet".tr(),
               notifier.getbluecolor,
@@ -1103,18 +1112,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               height: 60,
               onTap: () {
                 Clipboard.setData(
-                  ClipboardData(
-                    text: appState.primaryWallet.publicKey!,
-                  ),
+                  ClipboardData(text: appState.primaryWallet.publicKey!),
                 );
                 showSnackBar("publickey".tr(), context);
               },
             ),
           ],
         ),
-        SizedBox(
-          height: height / 20,
-        ),
+        SizedBox(height: height / 20),
       ],
     );
   }
@@ -1184,14 +1189,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
-          balance += double.parse(calculateFiatValue(asset.amount.toString(),
-                  asset.usdPrice.toString(), appState.defaultCurrency, appState)
-              .replaceAll(',', ''));
+          balance += double.parse(
+            calculateFiatValue(
+              asset.amount.toString(),
+              asset.usdPrice.toString(),
+              appState.defaultCurrency,
+              appState,
+            ).replaceAll(',', ''),
+          );
         }
       }
     }
-    return formatHistoryNumber(double.parse(balance.toString()), 1000000,
-        isShort: true);
+    return formatHistoryNumber(
+      double.parse(balance.toString()),
+      1000000,
+      isShort: true,
+    );
   }
 
   String get totalAccountBalanceInUSD {
@@ -1199,14 +1212,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
-          balance += double.parse(calculateFiatValue(asset.amount.toString(),
-                  asset.usdPrice.toString(), 'USD', appState)
-              .replaceAll(',', ''));
+          balance += double.parse(
+            calculateFiatValue(
+              asset.amount.toString(),
+              asset.usdPrice.toString(),
+              'USD',
+              appState,
+            ).replaceAll(',', ''),
+          );
         }
       }
     }
-    return formatHistoryNumber(double.parse(balance.toString()), 1000000,
-        isShort: true);
+    return formatHistoryNumber(
+      double.parse(balance.toString()),
+      1000000,
+      isShort: true,
+    );
   }
 
   Future<void> fetchTokenizationData() async {
@@ -1223,8 +1244,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  Future<List<TokenizedAsset>> fetchTokenizationList(
-      {required int status}) async {
+  Future<List<TokenizedAsset>> fetchTokenizationList({
+    required int status,
+  }) async {
     try {
       Future.wait([
         if (appState.tokenizationData.isEmpty) fetchTokenizationData(),
@@ -1249,13 +1271,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             if (appState.expressedInterests[a.id] != null) {
               a.expressedInterest = appState.expressedInterests[a.id] != null;
               a.expressedInterestAmount = double.parse(
-                  appState.expressedInterests[a.id]['amount'].toString());
+                appState.expressedInterests[a.id]['amount'].toString(),
+              );
             }
 
             if (appState.subscriptions[a.id] != null) {
               a.isSubscribed = appState.subscriptions[a.id] != null;
               a.subscriptionAmount = double.parse(
-                  appState.subscriptions[a.id]['amount'].toString());
+                appState.subscriptions[a.id]['amount'].toString(),
+              );
             }
             tokenizedAssets.add(a);
           }
@@ -1328,14 +1352,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  subscribeTokenizedAsset(
-      {required double amount, required String tokenizedAssetID}) async {
+  subscribeTokenizedAsset({
+    required double amount,
+    required String tokenizedAssetID,
+  }) async {
     try {
       showLoader(context);
 
-      String requestBody = jsonEncode({
-        'amount': amount,
-      });
+      String requestBody = jsonEncode({'amount': amount});
 
       print(requestBody);
 

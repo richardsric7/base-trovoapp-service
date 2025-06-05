@@ -5,6 +5,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 // import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -299,10 +300,9 @@ class _SettingsState extends State<Settings> {
       buffer.write('${line}\n\n');
     }
 
-    // await FlutterShare.share(
-    //   title: 'Trovo Wallet',
-    //   text: buffer.toString().trim(),
-    // );
+    SharePlus.instance.share(
+      ShareParams(text: buffer.toString().trim(), title: 'Trovo Wallet'),
+    );
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {

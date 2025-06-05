@@ -61,14 +61,14 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Row(
             children: [
               Container(
-                constraints:
-                    isSelected
-                        ? BoxConstraints(maxWidth: width / 4)
-                        : BoxConstraints(maxWidth: width / 2.5),
+                constraints: isSelected
+                    ? BoxConstraints(maxWidth: width / 4)
+                    : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
                   wallet.alias!,
-                  overflow:
-                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+                  overflow: isSelected
+                      ? TextOverflow.ellipsis
+                      : TextOverflow.visible,
                 ),
               ),
               if (wallet.isSharedWallet) ...[
@@ -157,9 +157,9 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     selectedWallet =
         (appState.viewData != null &&
-                appState.viewData!['walletPublicKey'] != null)
-            ? appState.viewData!['walletPublicKey']
-            : appState.primaryWallet.publicKey!;
+            appState.viewData!['walletPublicKey'] != null)
+        ? appState.viewData!['walletPublicKey']
+        : appState.primaryWallet.publicKey!;
 
     wallets = appState.userInfo!.allWallets;
     wallet = appState.userInfo!.getWallet(selectedWallet);
@@ -186,33 +186,32 @@ class Payment_HistoryState extends State<PaymentHistory>
       drawer: getDrawer(context, appState, notifier),
       appBar: AppBar(
         centerTitle: true,
-        leading:
-            isFromSharedWalletsView
-                ? GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Image.asset("assets/images/back.png", scale: 5),
-                )
-                : IconButton(
-                  onPressed: () {
-                    key.currentState!.openDrawer();
-                  },
-                  icon: Icon(
-                    Icons.menu,
-                    size: 35,
-                    color: notifier.getbluewhitecolor,
-                  ),
+        leading: isFromSharedWalletsView
+            ? GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Image.asset("assets/images/back.png", scale: 5),
+              )
+            : IconButton(
+                onPressed: () {
+                  key.currentState!.openDrawer();
+                },
+                icon: Icon(
+                  Icons.menu,
+                  size: 35,
+                  color: notifier.getbluewhitecolor,
                 ),
+              ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // SizedBox(width: width / 15),
             Text(
               "transactionHistory".tr(),
               style: TextStyle(
                 color: notifier.getblck,
                 fontFamily: fontsemibold,
+                height: 12,
               ),
             ),
             TextButton(
@@ -227,6 +226,21 @@ class Payment_HistoryState extends State<PaymentHistory>
                   height: height / 35,
                   color: notifier.getbluewhitecolor,
                 ),
+              ),
+              style: ButtonStyle(
+                padding: WidgetStateProperty.all(EdgeInsets.zero),
+                minimumSize: WidgetStateProperty.all(Size.zero),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                backgroundColor: WidgetStateProperty.all(Colors.transparent),
+                elevation: WidgetStateProperty.all(0),
+                shadowColor: WidgetStateProperty.all(Colors.transparent),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                ),
+                foregroundColor: WidgetStateProperty.all(
+                  Colors.black,
+                ), // Optional
               ),
             ),
           ],
@@ -379,16 +393,15 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height:
-            isFromSharedWalletsView
-                ? (showFilter ? height / 1.3950 : height / 1.14)
-                : (showFilter ? height / 1.47 : height / 1.19),
+        height: isFromSharedWalletsView
+            ? (showFilter ? height / 1.3950 : height / 1.14)
+            : (showFilter ? height / 1.49 : height / 1.19),
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
             appState.limit += 20;
             await appState.getHistory(context, selectedWallet);
-            return historyData!.length <= appState.totalRecords!;
+            return historyData!.length <= appState.totalRecords;
           },
           textBuilder: (LoadMoreStatus status) {
             String text;
@@ -442,8 +455,11 @@ class Payment_HistoryState extends State<PaymentHistory>
                 await appState.getHistory(context, selectedWallet);
               },
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
+                backgroundColor: WidgetStateProperty.all<Color>(
                   notifier.getbluecolor!,
+                ),
+                foregroundColor: WidgetStateProperty.all<Color>(
+                  notifier.getwihitecolor,
                 ),
               ),
               child: Text(
@@ -497,10 +513,9 @@ class Payment_HistoryState extends State<PaymentHistory>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color:
-                notifier.isDark
-                    ? darktilewhitecolor
-                    : notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -534,9 +549,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                           fontWeight: FontWeight.w400,
                           color:
                               transaction.transactionDirection ==
-                                      TransactionDirection.Send
-                                  ? Colors.red
-                                  : notifier.getgreencolor,
+                                  TransactionDirection.Send
+                              ? Colors.red
+                              : notifier.getgreencolor,
                           fontFamily: fontbody,
                         ),
                       ),
@@ -631,10 +646,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -687,10 +701,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -743,10 +756,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -777,8 +789,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize:
-                            appState.filterFromPublicKey != null ? 12 : 15,
+                        fontSize: appState.filterFromPublicKey != null
+                            ? 12
+                            : 15,
                         fontFamily: fontsemibold,
                       ),
                     ),
@@ -798,10 +811,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -852,10 +864,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -888,9 +899,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                         color: notifier.getbluewhitecolor,
                         fontSize:
                             appState.filterMinAmount != null &&
-                                    appState.filterMaxAmount != null
-                                ? 12
-                                : 15,
+                                appState.filterMaxAmount != null
+                            ? 12
+                            : 15,
                         fontFamily: fontsemibold,
                       ),
                     ),
@@ -910,10 +921,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -940,9 +950,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                       color: notifier.getbluewhitecolor,
                       fontSize:
                           appState.filterStartDate != null &&
-                                  appState.filterEndDate != null
-                              ? 13
-                              : 15,
+                              appState.filterEndDate != null
+                          ? 13
+                          : 15,
                       fontFamily: fontsemibold,
                     ),
                   ),
@@ -962,10 +972,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              color:
-                  notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: TextButton(
               onPressed: () {
@@ -1010,9 +1019,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                       color: notifier.getbluewhitecolor,
                       fontSize:
                           appState.filterStartDate != null &&
-                                  appState.filterEndDate != null
-                              ? 13
-                              : 15,
+                              appState.filterEndDate != null
+                          ? 13
+                          : 15,
                       fontFamily: fontsemibold,
                     ),
                   ),

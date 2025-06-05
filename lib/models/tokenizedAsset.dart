@@ -63,7 +63,7 @@ class TokenizedAsset {
   String? additionalKYCRequirements;
   int? investorAccreditationRequired;
   int?
-      tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
+  tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
   List<ProofOfPaymentDocument>? proofOfPaymentDocuments;
   String? lastUpdatedBy;
   DateTime? createdAt;
@@ -342,25 +342,31 @@ class TokenizedAsset {
       assetManagerInfo: ManagerInfo().deserializeJson(m),
       assetQuoteCurrency: m["assetQuoteCurrency"],
       assetCurrentValue: double.parse(m["assetCurrentValue"].toString()),
-      assetOwnerRetainedOrContributedValue:
-          double.parse(m["assetOwnerRetainedOrContributedValue"].toString()),
-      valueOfTokenizedAsset:
-          double.parse(m["valueOfTokenizedAsset"].toString()),
+      assetOwnerRetainedOrContributedValue: double.parse(
+        m["assetOwnerRetainedOrContributedValue"].toString(),
+      ),
+      valueOfTokenizedAsset: double.parse(
+        m["valueOfTokenizedAsset"].toString(),
+      ),
       protectionMethods: m["protectionMethods"],
       insuranceCompanyName: m["insuranceCompanyName"],
       insurancePolicyNumber: m["insurance_policy_number"],
       insurancePolicyHolder: m["insurancePolicyHolder"],
-      percentageValueOfInsurance:
-          double.parse(m["percentageValueOfInsurance"].toString()),
+      percentageValueOfInsurance: double.parse(
+        m["percentageValueOfInsurance"].toString(),
+      ),
       isFreeFromLiensAndEncumbrances: m["isFreeFromLiensAndEncumbrances"],
       tokenizationFeeId: m["tokenizationFeeId"],
-      numberOfTokenToBeSold:
-          double.parse(m["numberOfTokenToBeSold"].toString()),
-      numberOfTokenToBeIssued:
-          double.parse(m["numberOfTokenToBeIssued"].toString()),
+      numberOfTokenToBeSold: double.parse(
+        m["numberOfTokenToBeSold"].toString(),
+      ),
+      numberOfTokenToBeIssued: double.parse(
+        m["numberOfTokenToBeIssued"].toString(),
+      ),
       walletToHoldAssetsNotForSale: m["walletToHoldAssetsNotForSale"],
-      totalTokenHeldByManager:
-          double.parse(m["totalTokenHeldByManager"].toString()),
+      totalTokenHeldByManager: double.parse(
+        m["totalTokenHeldByManager"].toString(),
+      ),
       pricePerToken: double.parse(m["pricePerToken"].toString()),
       salesStart: DateTime.parse(m["salesStart"]),
       salesEnd: DateTime.parse(m["salesEnd"]),
@@ -378,21 +384,25 @@ class TokenizedAsset {
       lastUpdatedBy: m["lastUpdatedBy"],
       createdAt: DateTime.parse(m["createdAt"]),
       updatedAt: DateTime.parse(m["updatedAt"]),
-      approvedAssetCustodianInfo:
-          CustodianInfo().deserializeJson(m["approvedAssetCustodianInfo"]),
-      assetIssuingHouseInfo:
-          IssuingHouseInfo().deserializeJson(m["assetIssuingHouseInfo"]),
+      approvedAssetCustodianInfo: CustodianInfo().deserializeJson(
+        m["approvedAssetCustodianInfo"],
+      ),
+      assetIssuingHouseInfo: IssuingHouseInfo().deserializeJson(
+        m["assetIssuingHouseInfo"],
+      ),
       initiatorUsername: m["initiatorUsername"],
       closedGroupId: m["closedGroupId"],
       closedGroupInfo: ClosedGroupInfo().deserializeJson(m["closedGroupInfo"]),
-      assetTokenizationDocuments:
-          deserializeDocuments(m["AssetTokenizationDocuments"]),
+      assetTokenizationDocuments: deserializeDocuments(
+        m["AssetTokenizationDocuments"],
+      ),
       tokenizationStatus: m["assetTokenizationStatus"],
       agreeTransferTitleToCustodian: m["agreeTransferTitleToCustodian"],
       contractualProtectionRevGuarantees:
           m["contractualProtectionRevGuarantees"],
-      proofOfPaymentDocuments:
-          deserializeProofOfPaymentDocuments(m["ProofOfPaymentDocuments"]),
+      proofOfPaymentDocuments: deserializeProofOfPaymentDocuments(
+        m["ProofOfPaymentDocuments"],
+      ),
       contractualProtectionPerfBond: m["contractualProtectionPerfBond"],
       contractualProtectionSLA: m["contractualProtectionSLA"],
       riskSharingMechanismPPPs: m["riskSharingMechanismPPPs"],
@@ -429,45 +439,62 @@ class TokenizedAsset {
       physicalConditionNolease: m["physicalConditionNolease"],
       physicalConditionNoUndisclosedEasements:
           m["physicalConditionNoUndisclosedEasements"],
-      assetMscCostOutisdeOfValuation:
-          double.tryParse(m["assetMscCostOutisdeOfValuation"].toString()),
-      SECTokenizationFeePercent:
-          double.tryParse(m["SECTokenizationFeePercent"].toString()),
-      SECTokenizationFeeValue:
-          double.tryParse(m["SECTokenizationFeeValue"].toString()),
-      SECTokenizationFeeFixed:
-          double.tryParse(m["SECTokenizationFeeFixed"].toString()),
+      assetMscCostOutisdeOfValuation: double.tryParse(
+        m["assetMscCostOutisdeOfValuation"].toString(),
+      ),
+      SECTokenizationFeePercent: double.tryParse(
+        m["SECTokenizationFeePercent"].toString(),
+      ),
+      SECTokenizationFeeValue: double.tryParse(
+        m["SECTokenizationFeeValue"].toString(),
+      ),
+      SECTokenizationFeeFixed: double.tryParse(
+        m["SECTokenizationFeeFixed"].toString(),
+      ),
       custodianFeeValue: double.tryParse(m["custodianFeeValue"].toString()),
       custodianFeePercent: double.tryParse(m["custodianFeePercent"].toString()),
       custodianFeeFixed: double.tryParse(m["custodianFeeFixed"].toString()),
-      assetManagerFeeValue:
-          double.tryParse(m["assetManagerFeeValue"].toString()),
-      assetManagerFeePercent:
-          double.tryParse(m["assetManagerFeePercent"].toString()),
-      assetManagerFeeFixed:
-          double.tryParse(m["assetManagerFeeFixed"].toString()),
-      issuingHouseFeePercent:
-          double.tryParse(m["issuingHouseFeePercent"].toString()),
-      issuingHouseFeeValue:
-          double.tryParse(m["issuingHouseFeeValue"].toString()),
-      issuingHouseFeeFixed:
-          double.tryParse(m["issuingHouseFeeFixed"].toString()),
-      legalAndProfessionalFeePercent:
-          double.tryParse(m["legalAndProfessionalFeePercent"].toString()),
-      legalAndProfessionalFeeValue:
-          double.tryParse(m["legalAndProfessionalFeeValue"].toString()),
-      legalAndProfessionalFeeFixed:
-          double.tryParse(m["legalAndProfessionalFeeFixed"].toString()),
-      ratingAgencyFeePercent:
-          double.tryParse(m["ratingAgencyFeePercent"].toString()),
-      ratingAgencyFeeValue:
-          double.tryParse(m["ratingAgencyFeeValue"].toString()),
-      ratingAgencyFeeFixed:
-          double.tryParse(m["ratingAgencyFeeFixed"].toString()),
-      tokenizationApplicationFee:
-          double.tryParse(m["tokenizationApplicationFee"].toString()),
-      tokenizationApplicationFeeAsset:
-          m["tokenizationApplicationFeeAsset"].toString(),
+      assetManagerFeeValue: double.tryParse(
+        m["assetManagerFeeValue"].toString(),
+      ),
+      assetManagerFeePercent: double.tryParse(
+        m["assetManagerFeePercent"].toString(),
+      ),
+      assetManagerFeeFixed: double.tryParse(
+        m["assetManagerFeeFixed"].toString(),
+      ),
+      issuingHouseFeePercent: double.tryParse(
+        m["issuingHouseFeePercent"].toString(),
+      ),
+      issuingHouseFeeValue: double.tryParse(
+        m["issuingHouseFeeValue"].toString(),
+      ),
+      issuingHouseFeeFixed: double.tryParse(
+        m["issuingHouseFeeFixed"].toString(),
+      ),
+      legalAndProfessionalFeePercent: double.tryParse(
+        m["legalAndProfessionalFeePercent"].toString(),
+      ),
+      legalAndProfessionalFeeValue: double.tryParse(
+        m["legalAndProfessionalFeeValue"].toString(),
+      ),
+      legalAndProfessionalFeeFixed: double.tryParse(
+        m["legalAndProfessionalFeeFixed"].toString(),
+      ),
+      ratingAgencyFeePercent: double.tryParse(
+        m["ratingAgencyFeePercent"].toString(),
+      ),
+      ratingAgencyFeeValue: double.tryParse(
+        m["ratingAgencyFeeValue"].toString(),
+      ),
+      ratingAgencyFeeFixed: double.tryParse(
+        m["ratingAgencyFeeFixed"].toString(),
+      ),
+      tokenizationApplicationFee: double.tryParse(
+        m["tokenizationApplicationFee"].toString(),
+      ),
+      tokenizationApplicationFeeAsset: m["tokenizationApplicationFeeAsset"]
+          .toString(),
       vatPercent: double.tryParse(m["vatPercent"].toString()),
       vatValue: double.tryParse(m["vatValue"].toString()),
       vatFixed: double.tryParse(m["vatFixed"].toString()),
@@ -477,8 +504,8 @@ class TokenizedAsset {
       projectScope: m["projectScope"].toString(),
       projectEconomicBenefits: m["projectEconomicBenefits"].toString(),
       projectExpectedNoOfJobs: m["projectExpectedNoOfJobs"].toString(),
-      projectIntendedSocialBenefits:
-          m["projectIntendedSocialBenefits"].toString(),
+      projectIntendedSocialBenefits: m["projectIntendedSocialBenefits"]
+          .toString(),
       projectTechnicalPartners: m["projectTechnicalPartners"].toString(),
       projectFinancialPartners: m["projectFinancialPartners"].toString(),
       estimatedProjectIRR: double.tryParse(m["estimatedProjectIRR"].toString()),
@@ -488,21 +515,23 @@ class TokenizedAsset {
           m["estimatedProjectPaybackPeriodsInMonths"].toString(),
       keyAssumptionsList: m["keyAssumptionsList"].toString(),
       projectIdentifiedLegalRisks: m["projectIdentifiedLegalRisks"].toString(),
-      projectIdentifiedRegulatoryRisks:
-          m["projectIdentifiedRegulatoryRisks"].toString(),
+      projectIdentifiedRegulatoryRisks: m["projectIdentifiedRegulatoryRisks"]
+          .toString(),
       projectIdentifiedOperationalOrExecutionRisks:
           m["projectIdentifiedOperationalOrExecutionRisks"].toString(),
-      projectIdentifiedMarketRisks:
-          m["projectIdentifiedMarketRisks"].toString(),
+      projectIdentifiedMarketRisks: m["projectIdentifiedMarketRisks"]
+          .toString(),
       projectIdentifiedOtherRelevantRisks:
           m["projectIdentifiedOtherRelevantRisks"].toString(),
       feeInAsset: double.tryParse(m["feeInAsset"].toString()),
       feeInAssetPercent: double.tryParse(m["feeInAssetPercent"].toString()),
-      numberOfExpressedInterests:
-          int.tryParse(m["numberOfExpressedInterests"].toString()),
+      numberOfExpressedInterests: int.tryParse(
+        m["numberOfExpressedInterests"].toString(),
+      ),
       numberOfSubscribers: int.tryParse(m["numberOfSubscribers"].toString()),
-      quantityOfTokensSold:
-          double.tryParse(m["quantityOfTokensSold"].toString()),
+      quantityOfTokensSold: double.tryParse(
+        m["quantityOfTokensSold"].toString(),
+      ),
     );
   }
 
@@ -521,6 +550,7 @@ class TokenizedAsset {
     }
     return docs;
   }
+
   // bool get isWithdrawable => withdrawable == 1;
   // bool get canGenerateDepositAddresses => generateDepositAddress == 1;
 }
@@ -592,12 +622,13 @@ class ProofOfPaymentDocument {
   });
 
   ProofOfPaymentDocument deserializeJson(Map<String, dynamic> m) {
-    var info =
-        m["ProofOfPaymentDocument"] != null ? m["ProofOfPaymentDocument"] : m;
+    var info = m["ProofOfPaymentDocument"] != null
+        ? m["ProofOfPaymentDocument"]
+        : m;
     return ProofOfPaymentDocument(
       createdAt: DateTime.parse(m["CreatedAt"]),
       id: info["id"] != null ? info["id"] : null,
-      tokenizationFeePaymentMethodID: info["tokenizationFeePaymentMethodID"],
+      tokenizationFeePaymentMethodID: info["tokenizationFeePaymentMethodId"],
       tokenizedAssetId: info["tokenizedAssetId"],
       transactionReference: info["transactionReference"],
       documentUrl: info["documentUrl"],
