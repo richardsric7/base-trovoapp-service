@@ -310,7 +310,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                     publicKey: wallet.publicKey!,
                     currency: asset.assetCode!,
                   );
-            return depositHistory!.length <= appState.totalRecords!;
+            return depositHistory!.length <= appState.totalRecords;
           },
           textBuilder: (LoadMoreStatus status) {
             String text;
