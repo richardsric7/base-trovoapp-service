@@ -1365,7 +1365,7 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 					//check if it has been minted.
 					_, err := userModels.BantuAsset{AssetCode: *asset.AssetCode, AssetIssuer: *asset.IssuingWalletPublicKey}.GetBlockchainAssetProperty(gc)
 					if err != nil {
-						log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO CONFIRM MINTING of %v on blockchain due to: %v\n", asset.AssetCode, err)
+						log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO CONFIRM MINTING of %v on blockchain due to: %v\n", *asset.AssetCode, err)
 
 						continue
 					}
