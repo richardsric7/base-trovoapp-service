@@ -1414,7 +1414,7 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 
 					asset.AssetTokenizationStatus = 6
 
-					e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+					e := gc.DB.Omit(clause.Associations).Save(&asset).Error
 					if e != nil {
 						//saving model failed
 						log.Printf("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
