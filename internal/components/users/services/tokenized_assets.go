@@ -1360,7 +1360,7 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 		e := gc.DB.Where("Sales_Start::date <= now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
 			result := gc.DB.Where("Sales_Start::date <= now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
-				for i, asset := range assets {
+				for _, asset := range assets {
 
 					//check if it has been minted.
 					_, err := userModels.BantuAsset{AssetCode: *asset.AssetCode, AssetIssuer: *asset.IssuingWalletPublicKey}.GetBlockchainAssetProperty(gc)
@@ -1368,16 +1368,16 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 						continue
 					}
 
-					assets[i].AssetTokenizationStatus = 5
-
+					// assets[i].AssetTokenizationStatus = 5
+					asset.AssetTokenizationStatus = 5
+					e := gc.DB.Omit(clause.Associations).Save(&asset).Error
+					if e != nil {
+						//saving model failed
+						log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET  with status due to: %v\n", e)
+					}
 					gc.ChannelOfTokenizedAssetIDs <- asset.ID
 				}
 
-				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
-				if e != nil {
-					//saving model failed
-					log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
-				}
 				time.Sleep(200 * time.Millisecond)
 
 				return nil
@@ -1410,16 +1410,17 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 		e := gc.DB.Where("Sales_End::date <= now()::date AND Asset_Tokenization_Status = ?", 5).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
 			result := gc.DB.Where("Sales_End::date <= now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
-				for i, _ := range assets {
+				for _, asset := range assets {
 
-					assets[i].AssetTokenizationStatus = 6
+					asset.AssetTokenizationStatus = 6
+
+					e := gc.DB.Omit(clause.Associations).Save(&assets).Error
+					if e != nil {
+						//saving model failed
+						log.Printf("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
+					}
 				}
 
-				e := gc.DB.Omit(clause.Associations).Save(&assets).Error
-				if e != nil {
-					//saving model failed
-					log.Printf("[ActivateSecondarySalesRoutine][CHECK SECONDARY SALES DATES]()()()@@@()()()()FAILED TO UPDATE ASSET LIST with status due to: %v\n", e)
-				}
 				time.Sleep(200 * time.Millisecond)
 
 				return nil
