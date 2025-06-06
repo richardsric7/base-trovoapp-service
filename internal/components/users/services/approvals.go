@@ -1052,11 +1052,6 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 				return &tErrors.ErrorTemporaryServerError{}
 			}
 
-			e = dbTX.Omit(clause.Associations).Save(&ta).Error
-			if e != nil {
-				log.Println("[RejectTransaction]error saving/reverting to previous tokenized asset state:", e)
-				return &tErrors.ErrorTemporaryServerError{}
-			}
 			var issuingWallet, distroWallet userModels.UserWallet
 			//now remove the wallets from the trovo ecosystem.
 			issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
@@ -1124,8 +1119,16 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			}
 
 			issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
-			issuerOwner.InvalidateUserCache(gc)
+			if len(issuerOwner.ID) > 0 {
 
+				issuerOwner.InvalidateUserCache(gc)
+			}
+
+			e = dbTX.Omit(clause.Associations).Save(&ta).Error
+			if e != nil {
+				log.Println("[RejectTransaction]error saving/reverting to previous tokenized asset state:", e)
+				return &tErrors.ErrorTemporaryServerError{}
+			}
 		}
 
 	}
