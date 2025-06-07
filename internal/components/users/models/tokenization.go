@@ -1417,7 +1417,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			}
 
 			{
-				ra := RatingAgencyID(t.TrusteeID).GetRatingAgency(gc)
+				ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
 				t.RatingAgencyFeeFixed = ra.FeeFixed
 				t.RatingAgencyFeePercent = ra.FeePercent
 				ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
@@ -1785,7 +1785,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 
 		{
-			ra := RatingAgencyID(t.LegalAndProfesionalPartnerID).GetRatingAgency(gc)
+			ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
 			t.RatingAgencyFeeFixed = ra.FeeFixed
 			t.RatingAgencyFeePercent = ra.FeePercent
 			ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
