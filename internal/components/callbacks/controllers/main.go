@@ -1,6 +1,9 @@
 package callbacks
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
@@ -57,6 +60,47 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, "success")
 		}
 
+	})
+
+	router.POST("/v1/callbacks/doja/webhook", func(c *gin.Context) {
+
+		secret := gc.GetKycConfig("doja").SecretKey
+		if secret == "" {
+			c.JSON(http.StatusInternalServerError, "error")
+			return
+		}
+
+		// Read body
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, "Unable to read request body")
+			return
+		}
+		// save record
+		gc.SaveKycWebhookData("doja", string(body))
+		// Compute HMAC
+		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write(body)
+		expectedMAC := hex.EncodeToString(mac.Sum(nil))
+
+		// Get signature from headers
+		signature := c.GetHeader("x-dojah-signature")
+
+		if hmac.Equal([]byte(expectedMAC), []byte(signature)) {
+			var event map[string]interface{}
+			if err := json.Unmarshal(body, &event); err != nil {
+				c.JSON(http.StatusBadRequest, "Invalid JSON")
+				return
+			}
+
+			// Do something with event
+			log.Println("Valid webhook received:", event)
+		} else {
+			c.JSON(http.StatusUnauthorized, "Invalid signature")
+			return
+		}
+
+		c.JSON(http.StatusOK, "success")
 	})
 
 }

@@ -498,6 +498,12 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AppVersion: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.KycWebhookRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KycWebhookRequest: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)

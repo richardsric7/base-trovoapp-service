@@ -48,6 +48,18 @@ type ClientUploader struct {
 	BucketName string
 	UploadPath string
 }
+type KYCConfig struct {
+	ID              uint64 `json:"-"`
+	ServiceProvider string `json:"serviceProvider"`
+	Token           string `json:"token"`
+	SecretKey       string `json:"secretKey"`
+}
+
+type KycWebhookRequest struct {
+	ID              uint64
+	ServiceProvider string
+	Data            string
+}
 
 func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThumbnailURL string) (string, error) {
 
@@ -449,6 +461,23 @@ func (gc *GlobalConfig) GetTokenizedAssetByCode(assetCode string) (t TokenizedAs
 	gc.DB.Where("asset_code = upper(?)", assetCode).First(&t)
 
 	return t
+}
+
+func (gc *GlobalConfig) GetKycConfig(provider string) (t KYCConfig) {
+
+	gc.DB.Where("service_provider = ?", provider).First(&t)
+
+	return t
+}
+
+func (gc *GlobalConfig) SaveKycWebhookData(provider, data string) error {
+
+	t := KycWebhookRequest{
+		ServiceProvider: provider,
+		Data:            data,
+	}
+
+	return gc.DB.Save(&t).Error
 }
 
 func (gc *GlobalConfig) GetTokenizedAssetByID(tokenizedAssetID string) (t TokenizedAsset) {

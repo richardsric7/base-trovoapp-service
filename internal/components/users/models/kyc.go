@@ -113,3 +113,9 @@ type SumsubAccessToken struct {
 	Token  string `json:"token"`
 	UserId string `json:"userId"`
 }
+
+type KycWebhookRequest struct {
+	ID              uint64
+	ServiceProvider string
+	Data            string
+}
