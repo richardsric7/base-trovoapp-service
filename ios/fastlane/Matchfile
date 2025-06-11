@@ -1,5 +1,4 @@
-git_url("https://kent2cky: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@github.com/trovotech-technologies/fastlane-private.git")
-# git_url("git@github.com:trovotech-technologies/fastlane-private.git")
+git_url("git@github.com:trovotech-technologies/fastlane-private.git")
 
 storage_mode("git")
 
