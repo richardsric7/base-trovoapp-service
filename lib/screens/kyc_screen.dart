@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 /*
@@ -9,9 +11,7 @@ import 'package:trovo_app/widgets/popups.dart';
   verificatio of users
 */
 class KYCScreen extends StatefulWidget {
-  const KYCScreen({
-    Key? key,
-  }) : super(key: key);
+  const KYCScreen({Key? key}) : super(key: key);
 
   @override
   State<KYCScreen> createState() => _KYCScreenState();
@@ -19,15 +19,17 @@ class KYCScreen extends StatefulWidget {
 
 class _KYCScreenState extends State<KYCScreen> {
   bool granted = false;
-  final String userID = '';
+  String userID = '';
 
   @override
   void initState() {
     checkPermission();
     super.initState();
+    var appState = Provider.of<DataProvider>(context, listen: false);
+    userID = appState.userInfo!.username!;
   }
 
-// check that the user allows for permission to use their camera
+  // check that the user allows for permission to use their camera
   Future checkPermission() async {
     var status = await Permission.camera.request();
     granted = true;
@@ -51,7 +53,7 @@ class _KYCScreenState extends State<KYCScreen> {
     setState(() {});
   }
 
-// the various parameters that are submitted and are fetched from .env variables
+  // the various parameters that are submitted and are fetched from .env variables
   final appID = '67e69361a7d4138770eac9e2';
   final publicKey = 'test_pk_MNldwKATpyKxLjJoEfjkgH8hK';
   final widgetID = '67e6968cc5f45aec8ae35e0a';
@@ -74,7 +76,8 @@ class _KYCScreenState extends State<KYCScreen> {
           // initialOptions: options,
           initialUrlRequest: URLRequest(url: WebUri("https://widget.dojah.io")),
           initialData: InAppWebViewInitialData(
-            data: """
+            data:
+                """
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -244,8 +247,9 @@ class _KYCScreenState extends State<KYCScreen> {
           // ),
           onPermissionRequest: (controller, request) async {
             return PermissionResponse(
-                resources: request.resources,
-                action: PermissionResponseAction.GRANT);
+              resources: request.resources,
+              action: PermissionResponseAction.GRANT,
+            );
           },
         ),
       ),

@@ -26,6 +26,19 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(EXECUTABLE_NAME)</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationQueriesSchemes</key>
@@ -46,14 +59,16 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Let us take a photo.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Time to record a video.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app requires access to Biometrics for authentication</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Let us pick a photo.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Please provide us with your geolocation data to prove your current location.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Time to record a video.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Let us pick a photo.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -68,36 +83,9 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>en</string>
-	</array>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>CFBundleURLTypes</key>
-	<array>
-	<dict>
-		<key>CFBundleTypeRole</key>
-		<string>Editor</string>
-		<key>CFBundleURLName</key>
-		<!-- You can find it on /ios/project.pbxproj - 'PRODUCT_BUNDLE_IDENTIFIER' -->
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-		<key>CFBundleURLSchemes</key>
-		<array>
-		<!-- Your app title -->
-		<string>$(EXECUTABLE_NAME)</string>
-		</array>
-	</dict>
-</array>
 </dict>
 </plist>

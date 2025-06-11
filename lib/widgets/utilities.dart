@@ -28,7 +28,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/countdown.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
-import 'package:flutter_idensic_mobile_sdk_plugin/flutter_idensic_mobile_sdk_plugin.dart';
+// import 'package:flutter_idensic_mobile_sdk_plugin/flutter_idensic_mobile_sdk_plugin.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 
 void showSnackBar(String rel, BuildContext context) {
@@ -1464,79 +1464,79 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
   }
 }
 
-void launchSDK(context, DataProvider appState) async {
-  var response = await fetchKycConfig(appState);
-  String kycLevel = '';
-  var kycVerified = appState.userInfo!.kycVerified;
+// void launchSDK(context, DataProvider appState) async {
+//   var response = await fetchKycConfig(appState);
+//   String kycLevel = '';
+//   var kycVerified = appState.userInfo!.kycVerified;
 
-  if (kycVerified == 0 && response['kycProgress']['kycLevel1Done'] == 0) {
-    kycLevel = 'individual-level-1';
-  } else if (kycVerified == 1 &&
-      response['kycProgress']['kycLevel2Done'] == 0) {
-    kycLevel = 'individual-level-2';
-  } else if (kycVerified == 2 &&
-      response['kycProgress']['kycLevel3Done'] == 0) {
-    kycLevel = 'individual-level-3';
-  }
+//   if (kycVerified == 0 && response['kycProgress']['kycLevel1Done'] == 0) {
+//     kycLevel = 'individual-level-1';
+//   } else if (kycVerified == 1 &&
+//       response['kycProgress']['kycLevel2Done'] == 0) {
+//     kycLevel = 'individual-level-2';
+//   } else if (kycVerified == 2 &&
+//       response['kycProgress']['kycLevel3Done'] == 0) {
+//     kycLevel = 'individual-level-3';
+//   }
 
-  if (kycLevel.isEmpty) {
-    popup(
-      context,
-      title: 'Error',
-      message:
-          'You cannot initiate another KYC at this moment. Please wait for your initiated KYC to complete.',
-    );
-    return;
-  }
+//   if (kycLevel.isEmpty) {
+//     popup(
+//       context,
+//       title: 'Error',
+//       message:
+//           'You cannot initiate another KYC at this moment. Please wait for your initiated KYC to complete.',
+//     );
+//     return;
+//   }
 
-  var res = await initiateKyc(context, appState, kycLevel);
+//   var res = await initiateKyc(context, appState, kycLevel);
 
-  print('res ======> $res');
-  String accessToken = res['applicantToken'];
-  print('accessToken $accessToken');
+//   print('res ======> $res');
+//   String accessToken = res['applicantToken'];
+//   print('accessToken $accessToken');
 
-  // From your backend get an access token for the applicant to be verified.
-  // The token must be generated with `levelName` and `userId`,
-  // where `levelName` is the name of a level configured in your dashboard.
-  //
-  // The sdk will work in the production or in the sandbox environment
-  // depend on which one the `accessToken` has been generated on.
-  //
+//   // From your backend get an access token for the applicant to be verified.
+//   // The token must be generated with `levelName` and `userId`,
+//   // where `levelName` is the name of a level configured in your dashboard.
+//   //
+//   // The sdk will work in the production or in the sandbox environment
+//   // depend on which one the `accessToken` has been generated on.
+//   //
 
-  // // The access token has a limited lifespan and when it's expired, you must provide another one.
-  // So be prepared to get a new token from your backend.
-  final onTokenExpiration = () async {
-    // call your backend to fetch a new access token (this is just an example)
-    return Future<String>.delayed(Duration(seconds: 2), () async {
-      response = await initiateKyc(context, appState, kycLevel);
-      return response['applicantToken'];
-    });
-  };
+//   // // The access token has a limited lifespan and when it's expired, you must provide another one.
+//   // So be prepared to get a new token from your backend.
+//   final onTokenExpiration = () async {
+//     // call your backend to fetch a new access token (this is just an example)
+//     return Future<String>.delayed(Duration(seconds: 2), () async {
+//       response = await initiateKyc(context, appState, kycLevel);
+//       return response['applicantToken'];
+//     });
+//   };
 
-  final SNSStatusChangedHandler onStatusChanged =
-      (SNSMobileSDKStatus newStatus, SNSMobileSDKStatus prevStatus) {
-        print("The SDK status was changed: $prevStatus -> $newStatus");
-      };
+//   final SNSStatusChangedHandler onStatusChanged =
+//       (SNSMobileSDKStatus newStatus, SNSMobileSDKStatus prevStatus) {
+//         print("The SDK status was changed: $prevStatus -> $newStatus");
+//       };
 
-  final snsMobileSDK = SNSMobileSDK.init(accessToken, onTokenExpiration)
-      .withHandlers(
-        // optional handlers
-        onStatusChanged: onStatusChanged,
-      )
-      .withDebug(true) // set debug mode if required
-      .withLocale(
-        Locale("en"),
-      ) // optional, for cases when you need to override the system locale
-      .build();
+//   final snsMobileSDK = SNSMobileSDK.init(accessToken, onTokenExpiration)
+//       .withHandlers(
+//         // optional handlers
+//         onStatusChanged: onStatusChanged,
+//       )
+//       .withDebug(true) // set debug mode if required
+//       .withLocale(
+//         Locale("en"),
+//       ) // optional, for cases when you need to override the system locale
+//       .build();
 
-  final SNSMobileSDKResult result = await snsMobileSDK.launch();
+//   final SNSMobileSDKResult result = await snsMobileSDK.launch();
 
-  print(
-    "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result",
-  );
-  await completeKyc(context, appState, kycLevel);
-  showSuccessAlert(context, onTap: () {});
-}
+//   print(
+//     "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result",
+//   );
+//   await completeKyc(context, appState, kycLevel);
+//   showSuccessAlert(context, onTap: () {});
+// }
 
 Widget getDrawer(
   BuildContext context,
