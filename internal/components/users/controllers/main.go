@@ -604,6 +604,31 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, progress)
 	})
 
+	router.GET("/v1/users/kyc/doja/progress", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/kyc/doja/progress %v", user.Username), gc.DB)
+
+		progress := userServices.GetUserDojaKYCProgress(user.Username, gc)
+
+		c.JSON(http.StatusOK, progress)
+	})
+
 	router.POST("/v1/users/kyc/sumsub/complete/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
@@ -680,6 +705,42 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		kycProgress := userServices.GetUserKYCProgress(user.Username, gc)
 
 		c.JSON(http.StatusOK, gin.H{"kycProgress": kycProgress, "kycLevels": kycLevels})
+
+	})
+
+	router.GET("/v1/users/kyc/doja/configs", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error//true-client-ip
+
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		ws := userServices.GetDojaWidgets(gc)
+		kycProgress := userServices.GetUserDojaKYCProgress(user.Username, gc)
+
+		c.JSON(http.StatusOK, gin.H{"kycProgress": kycProgress, "widgets": ws})
 
 	})
 

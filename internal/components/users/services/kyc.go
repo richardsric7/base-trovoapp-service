@@ -22,7 +22,21 @@ func GetKYCLevels(gc *sharedconfig.GlobalConfig) (levels []userModels.KYCLevel) 
 	return
 }
 
+func GetDojaWidgets(gc *sharedconfig.GlobalConfig) (ws []userModels.DojaWidget) {
+	ws = make([]userModels.DojaWidget, 0)
+	gc.DB.Order("level ASC, entity ASC").Find(&ws)
+	return
+}
+
 func GetUserKYCProgress(username string, gc *sharedconfig.GlobalConfig) (progress userModels.UserKYCProgress) {
+	gc.DB.Where("username = ?", username).First(&progress)
+	if len(progress.Username) == 0 {
+		progress.Username = username
+	}
+	return
+}
+
+func GetUserDojaKYCProgress(username string, gc *sharedconfig.GlobalConfig) (progress userModels.UserDojaKYCProgress) {
 	gc.DB.Where("username = ?", username).First(&progress)
 	if len(progress.Username) == 0 {
 		progress.Username = username

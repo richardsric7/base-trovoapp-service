@@ -15,6 +15,7 @@ import (
 	cs "cloud.google.com/go/storage"
 	"firebase.google.com/go/messaging"
 	"firebase.google.com/go/storage"
+	"github.com/ecnepsnai/discord"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
@@ -705,4 +706,12 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
 	return t
 
+}
+
+func (gc *GlobalConfig) LogDiscordFailedRequest(msg string) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	discord.Say(msg)
 }

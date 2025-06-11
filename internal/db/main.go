@@ -503,6 +503,14 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating KycWebhookRequest: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.DojaWidget{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DojaWidget: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserDojaKYCProgress{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserDojaKYCProgress: ", errMigrate)
+		}
 
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
