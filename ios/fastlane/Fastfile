@@ -41,12 +41,12 @@ platform :ios do
     puts "*** Starting iOS release for commit(#{commit[:abbreviated_commit_hash]}) ***"
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
-    # match(type: "development", readonly: true, app_identifier: ["com.trovo.wallet"])
-    match(type: "appstore", readonly: true, app_identifier: ["com.trovo.wallet"])
+    match(type: "development", readonly: true, app_identifier: ["com.trovo.wallet"])
+    # match(type: "appstore", readonly: true, app_identifier: ["com.trovo.wallet"])
 
     sync_code_signing(
       api_key: api_key,
-      type: "appstore",
+      type: "development",
       readonly: true,
       app_identifier: "com.trovo.wallet"
     )
