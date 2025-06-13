@@ -46,7 +46,7 @@ platform :ios do
 
     sync_code_signing(
       api_key: api_key,
-      type: "appstore",
+      type: "distribution",
       readonly: true,
       app_identifier: "com.trovo.wallet"
     )
