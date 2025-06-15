@@ -3313,8 +3313,11 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			if err != nil {
 				log.Printf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\n", candidate.PublicKey, err)
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing first trustline call command %v, err: %v", candidate.PublicKey, err))
-				return
+				continue
 			}
+
+			
+
 			//go ahead to initiate the second call with commit
 			returnedTrustLineInfo.Commit = 1
 
@@ -3322,7 +3325,7 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			if err != nil {
 				log.Printf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\n", candidate.PublicKey, err)
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing 2nd trustline call command %v, err: %v", candidate.PublicKey, err))
-				return
+				continue
 			}
 
 			if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {

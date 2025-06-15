@@ -952,6 +952,18 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
+
+		//check for duplicate
+		if CheckDuplicatePendingApproval(pendingAuth.WalletPublicKey, pendingAuth.TransactionType, pendingAuth.Description, gc.DB) {
+			//duplicate exists. resist the duplicate
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "transaction",
+				Err:        "error-duplicate-operation-exists",
+				ErrMessage: "There is an existing duplicate transaction pending approval. Please Approve or reject that one before continuing with this.",
+				Code:       http.StatusBadRequest,
+			}
+		}
+
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[TrustAsset] Error saving opt in txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())

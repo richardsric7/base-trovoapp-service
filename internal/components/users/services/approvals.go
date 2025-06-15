@@ -1151,3 +1151,11 @@ func CheckPendingSharedAccessApproval(walletPublicKey string, db *gorm.DB) (exis
 	return e == nil
 
 }
+
+func CheckDuplicatePendingApproval(walletPublicKey, transactionType, description string, db *gorm.DB) (exists bool) {
+
+	var pendingApproval userModels.PendingAuth
+	e := db.Where("wallet_public_key = ? AND transaction_type = ? AND description = ? AND transaction_status = ?", walletPublicKey, transactionType, description, "PENDING").First(&pendingApproval).Error
+	return e == nil
+
+}
