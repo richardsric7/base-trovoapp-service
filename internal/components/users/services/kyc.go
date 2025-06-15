@@ -24,7 +24,7 @@ func GetKYCLevels(gc *sharedconfig.GlobalConfig) (levels []userModels.KYCLevel) 
 
 func GetDojaWidgets(gc *sharedconfig.GlobalConfig) (ws []userModels.DojaWidget) {
 	ws = make([]userModels.DojaWidget, 0)
-	gc.DB.Order("level ASC, entity ASC").Find(&ws)
+	gc.DB.Order("level ASC, corporate ASC").Find(&ws)
 	return
 }
 
