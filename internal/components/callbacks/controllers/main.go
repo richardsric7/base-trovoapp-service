@@ -66,7 +66,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.POST("/v1/callbacks/doja/webhook", func(c *gin.Context) {
 		// log headers
-		log.Printf("<><><><><><><><><>%+v\n<><><><><><><><><><><>\n", c.Request.Header)
+		log.Printf("[KYC WEBHOOK ERROR] <><><><><><><><><>%+v\n<><><><><><><><><><><>\n", c.Request.Header)
 		secret := gc.GetKycConfig("doja").SecretKey
 		if secret == "" {
 			c.JSON(http.StatusInternalServerError, "error")
@@ -93,12 +93,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var event userModels.DojaKYCResponse
 		if hmac.Equal([]byte(expectedMAC), []byte(signature)) {
 
-			if err := json.Unmarshal([]byte(body), &event); err != nil {
-				log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
+			// if err := json.Unmarshal([]byte(body), &event); err != nil {
+			// 	log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
 
-				c.JSON(http.StatusBadRequest, "Invalid JSON")
-				return
-			}
+			// 	c.JSON(http.StatusBadRequest, "Invalid JSON")
+			// 	return
+			// }
 
 			// Do something with event
 			log.Println("[KYC WEBHOOK] Valid webhook received:", event)
