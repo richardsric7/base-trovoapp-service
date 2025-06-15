@@ -180,7 +180,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			e := dbTx.Omit(clause.Associations).Save(&user).Error
 			if e != nil {
-				errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save progressfor [%v] due to [%v]", event.Metadata.UserID, e)
+				errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save progress for [%v] due to [%v]", event.Metadata.UserID, e)
 				gc.LogDiscordFailedRequest(errMsg)
 				log.Println(errMsg)
 
