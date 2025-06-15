@@ -84,7 +84,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		gc.SaveKycWebhookData("doja", string(body))
 		// Compute HMAC
 		mac := hmac.New(sha256.New, []byte(secret))
-		mac.Write([]byte(strings.TrimSpace(string(body))))
+		mac.Write(body)
 		expectedMAC := hex.EncodeToString(mac.Sum(nil))
 
 		// Get signature from headers
@@ -93,7 +93,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var event userModels.DojaKYCResponse
 		if hmac.Equal([]byte(expectedMAC), []byte(signature)) {
 
-			if err := json.Unmarshal([]byte(strings.TrimSpace(string(body))), &event); err != nil {
+			if err := json.Unmarshal([]byte(body), &event); err != nil {
 				log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
 
 				c.JSON(http.StatusBadRequest, "Invalid JSON")
@@ -107,6 +107,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			// c.JSON(http.StatusUnauthorized, "Invalid signature")
 			// return
+		}
+		if err := json.Unmarshal([]byte(body), &event); err != nil {
+			log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
+
+			c.JSON(http.StatusBadRequest, "Invalid JSON")
+			return
 		}
 		// get the KYC widget info
 		widget := userModels.DojaWidgetID(event.WidgetID).GetByID(gc.DB)
