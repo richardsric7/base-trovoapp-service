@@ -898,9 +898,9 @@ type PostTokenizationTrustlineCandidate struct {
 	Description string
 }
 
-func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *sharedconfig.GlobalConfig) (unknown []string) {
-	known := make(map[string]struct{})
-	unknown = make([]string, 0)
+func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *sharedconfig.GlobalConfig) (untrusted []string) {
+	knownAssets := make(map[string]struct{})
+	known := make([]string, 0)
 	//get curated tokenized assets
 	assets := gc.GetCuratedAssetByClassID(3, false)
 	//get account balance
@@ -910,16 +910,28 @@ func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *shar
 	}
 
 	for _, a := range assets {
-		known[a.AssetCode+":"+a.AssetIssuer] = struct{}{}
+		knownAssets[a.AssetCode+":"+a.AssetIssuer] = struct{}{}
 	}
 
 	for _, b := range account.Balances {
 		key := b.Code + ":" + b.Issuer
-		if _, exists := known[key]; !exists {
-			unknown = append(unknown, key)
+		if _, exists := knownAssets[key]; exists {
+			known = append(known, key)
 		}
 	}
-	return unknown
+	//range through known and remove the ones that exists
+	if len(known) > 0 {
+		//remove the ones that exists
+		for _, v := range known {
+			delete(knownAssets, v)
+		}
+	}
+
+	for key, _ := range knownAssets {
+		untrusted = append(untrusted, key)
+	}
+
+	return untrusted
 }
 
 func (p *ProceedPayout) CreateBatch() error {
