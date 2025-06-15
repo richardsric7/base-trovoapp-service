@@ -313,6 +313,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			//log user current location
 			accountSignerUser.PublicIP = c.ClientIP()
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				accountSignerUser.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -697,7 +700,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			//log user current location
 			accountSignerUser.PublicIP = c.ClientIP()
-
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				accountSignerUser.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", sourceWalletOwnerAlias)

@@ -121,7 +121,7 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 
 	}
 
-	if !user.SignerIsValid(data.Signer, false,gc) && authEnable {
+	if !user.SignerIsValid(data.Signer, false, gc) && authEnable {
 		auth.Auth = false
 		auth.Message = "signer mismatch"
 		message := gin.H{"stream": auth, "streamType": "auth"}
@@ -133,7 +133,12 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	auth.Message = "success"
 	message := gin.H{"stream": auth, "streamType": "auth"}
 	ws.WriteJSON(message)
-	announcements, err := announcementServices.HandleGetAnnouncement(c.ClientIP(), gc.DB)
+	ip := c.ClientIP()
+	if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+		ip = c.GetHeader("Cf-Connecting-Ip")
+
+	}
+	announcements, err := announcementServices.HandleGetAnnouncement(ip, gc.DB)
 	if err == nil {
 		message := gin.H{"stream": announcements, "streamType": "announcements"}
 		ws.WriteJSON(message)
