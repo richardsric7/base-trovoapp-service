@@ -91,7 +91,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		signature := c.GetHeader("x-dojah-signature")
 		// var event map[string]interface{}
 		var event userModels.DojaKYCResponse
-		if hmac.Equal([]byte(expectedMAC), []byte(signature)) {
+		dojahIP := c.ClientIP()
+		if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+			dojahIP = c.GetHeader("Cf-Connecting-Ip")
+		}
+		if dojahIP == "20.112.64.208" {
 
 			// if err := json.Unmarshal([]byte(body), &event); err != nil {
 			// 	log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
@@ -101,9 +105,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			// }
 
 			// Do something with event
-			log.Println("[KYC WEBHOOK] Valid webhook received:", event)
+			log.Println("[KYC WEBHOOK] ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ Valid webhook received:", event)
 		} else {
-			log.Printf("[KYC WEBHOOK ERROR] Invalid signature. x-dojah-signature: [%v], Expected Mac: [%v]\n", signature, expectedMAC)
+			// log.Printf("[KYC WEBHOOK ERROR] Invalid signature. x-dojah-signature: [%v], Expected Mac: [%v]\n", signature, expectedMAC)
+			log.Printf("[KYC WEBHOOK ERROR] Invalid IP. x-dojah-signature: [%v], Expected Mac: [%v], IP: [%v]\n", signature, expectedMAC, dojahIP)
 
 			// c.JSON(http.StatusUnauthorized, "Invalid signature")
 			// return

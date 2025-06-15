@@ -385,6 +385,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
 		userRegistrationInfo.PrimarySigner = middleware.ExtractSigner(c)
 		userRegistrationInfo.PublicIP = c.ClientIP()
+		if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+			userRegistrationInfo.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+		}
 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
