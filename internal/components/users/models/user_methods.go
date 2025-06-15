@@ -762,6 +762,59 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 	return clientAccount, true, nil
 }
 
+// GetBlockchainAccountDetail fetches the bantu account information using public key
+func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
+	cacheKey := fmt.Sprintf("bca_%v", string(id))
+
+	client := network.GetBlockchainClient()
+	var accountRequest horizonclient.AccountRequest
+
+	// account
+	accountRequest = horizonclient.AccountRequest{AccountID: string(id)}
+
+	{
+
+		// search cache
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+
+		if ok {
+
+			json.Unmarshal(rawdata, &clientAccount)
+			return
+		}
+
+	}
+
+	clientAccount, err = client.AccountDetail(accountRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
+			}
+
+		}
+		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
+	if cacheTimeStr == "" {
+		cacheTimeStr = "94608000" //3yrs
+	}
+	cacheTime, _ := strconv.Atoi(cacheTimeStr)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
+	return clientAccount, true, nil
+}
+
 // GetBlockchainAssets fetches the blockchain asset information using public key
 func (u *UserWallet) GetBlockchainAssets() (assetsPage horizon.AssetsPage, err error) {
 	client := network.GetBlockchainClient()

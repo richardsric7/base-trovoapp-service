@@ -2,6 +2,7 @@ package sharedconfig
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -23,6 +24,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const TOKEN_LIMIT float64 = 922337203685.00
@@ -60,6 +62,32 @@ type KycWebhookRequest struct {
 	ID              uint64
 	ServiceProvider string
 	Data            string
+}
+
+// CuratedAsset model struct for CuratedAsset.
+type CuratedAsset struct {
+	ID                          uint64    `gorm:"primaryKey" json:"-"`
+	CreatedAt                   time.Time `json:"-"`
+	UpdatedAt                   time.Time `json:"-"`
+	AssetCode                   string    `gorm:"size:12;unique;not null; default:''" json:"assetCode"`
+	AssetName                   string    `gorm:"size:50;null; default:''" json:"assetName"`
+	AssetIssuer                 string    `gorm:"size:56;not null; default:''" json:"assetIssuer"`
+	Description                 string    `gorm:"not null" json:"description"`
+	ImageURL                    *string   `gorm:"null" json:"imageUrl"`
+	Website                     string    `gorm:"null;size:100" json:"website"`
+	AssetConditions             string    `gorm:"null;size:100" json:"assetConditions"`
+	AssetLimit                  float64   `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
+	AssetRedemptionInstructions string    `gorm:"null;" json:"assetRedemptionInstructions"`
+	ContactEmail                string    `gorm:"null;size:100" json:"contactEmail"`
+	Priority                    uint64    `gorm:"null;" json:"-"`
+	AssetClassID                uint64    `gorm:"not null; default:1" json:"assetClassId"`
+	Organization                string    `gorm:"null;size:100" json:"organization"`
+	Withdrawable                uint64    `gorm:"type:integer;not null;default:0" json:"withdrawable"`
+	GenerateDepositAddress      uint64    `gorm:"type:integer;not null;default:0" json:"generateDepositAddress"`
+	DecimalPlaces               uint64    `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
+	RealAssetImageURL           *string   `gorm:"null;" json:"realAssetImageUrl"`
+	Inactive                    uint64    `gorm:"type:integer;not null;default:0" json:"-"`
+	ClosedGroup                 *string   `gorm:"null;" json:"closedGroup"`
 }
 
 func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThumbnailURL string) (string, error) {
@@ -464,6 +492,39 @@ func (gc *GlobalConfig) GetTokenizedAssetByCode(assetCode string) (t TokenizedAs
 	return t
 }
 
+//GetCuratedAssetByClassID
+/**
+  1	"Token"
+  2	"Stablecoin"
+  3	"Tokenized Asset"
+  4	"Non Fungible Token (NFT)"
+  5	"Reward"
+  **/
+func (gc *GlobalConfig) GetCuratedAssetByClassID(assetClassID uint64, includeInactive bool) (tas []CuratedAsset) {
+	if includeInactive {
+		gc.DB.Where("Asset_Class_ID = ?", assetClassID).Find(&tas)
+
+	} else {
+		gc.DB.Where("Asset_Class_ID = ? AND inactive = 0", assetClassID).Find(&tas)
+
+	}
+
+	return tas
+}
+
+type PostTokenizationTrustlineCandidate struct {
+	ID          uint64
+	PublicKey   string
+	Description string
+}
+
+func (gc *GlobalConfig) GetPostTokenizationTrustlineCandidates() (tas []PostTokenizationTrustlineCandidate) {
+	tas = make([]PostTokenizationTrustlineCandidate, 0)
+	gc.DB.Find(&tas)
+	return tas
+}
+
+
 func (gc *GlobalConfig) GetKycConfig(provider string) (t KYCConfig) {
 
 	gc.DB.Where("service_provider = ?", provider).First(&t)
@@ -486,6 +547,75 @@ func (gc *GlobalConfig) GetTokenizedAssetByID(tokenizedAssetID string) (t Tokeni
 	gc.DB.Where("id = ?", tokenizedAssetID).First(&t)
 
 	return t
+}
+
+// GetCuratedAssets returns list of Curated Assets
+func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[string]CuratedAsset) {
+	var fetchedAssets []CuratedAsset
+	tempAssets := make(map[string]CuratedAsset)
+	assets = make(map[string]CuratedAsset)
+
+	cacheKeyInfo := "curatedAssets_"
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			// log.Printf("[GetCuratedAssets] %v, served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &assets)
+			return
+		}
+
+	}
+
+	var m sync.Mutex
+	var dberr error
+	if !includeInactive {
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ?", 0).Find(&fetchedAssets).Error
+
+	} else {
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Find(&fetchedAssets).Error
+	}
+
+	if dberr != nil {
+		log.Printf("[GetCuratedAssets]error getting assets: %v\n", dberr)
+		return assets
+	}
+	// usdPrice, _ := blockchain.GetXBNDollarAskPrice(db)
+	var wg sync.WaitGroup
+	for _, v := range fetchedAssets {
+
+		wg.Add(1)
+		go func(v CuratedAsset) {
+			defer wg.Done()
+			//get native price
+			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.AssetIssuer)
+			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.AssetIssuer)
+			// v.NativePrice = nativePrice
+			// usdPriceFloat := decimal.RequireFromString(usdPrice)
+			// nativePriceFloat := decimal.RequireFromString(nativePrice)
+			// v.UsdPrice = nativePriceFloat.Mul(usdPriceFloat).Truncate(7).String()
+			m.Lock()
+			tempAssets[v.AssetCode+":"+v.AssetIssuer] = v
+			m.Unlock()
+		}(v)
+
+	}
+	wg.Wait()
+	// tempAssets[":"] = models.CuratedAsset{
+	// 	ImageURL:     nativeLogo(),
+	// 	AssetName:    "Bantu Network Token",
+	// 	Description:  "XBN is the native network utility token issued by the Bantu Blockchain Foundation, it is used as gas to power transactions on the blockchain network.",
+	// 	Website:      "www.bantufoundation.org",
+	// 	ContactEmail: "ops@bantufoundation.org",
+	// 	Priority:     1,
+	// }
+	assets = tempAssets
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, assets, 0)
+
+	return assets
 }
 
 func (gc *GlobalConfig) TokenLimit() float64 {

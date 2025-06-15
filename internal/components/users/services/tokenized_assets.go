@@ -3262,6 +3262,98 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	return ato, nil
 
 }
+func GetPostTokenizationTrustlineCandidates(gc *sharedconfig.GlobalConfig) (tas []userModels.PostTokenizationTrustlineCandidate) {
+	tas = make([]userModels.PostTokenizationTrustlineCandidate, 0)
+	gc.DB.Find(&tas)
+	return tas
+}
+
+func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
+	//get all candidates.
+	candidates := GetPostTokenizationTrustlineCandidates(gc)
+	for _, candidate := range candidates {
+		log.Printf("[ProcessPostTokenizationTrustline] starting to process candidate [%+v]\n", candidate)
+
+		//get untrusted assets
+		uts := candidate.GetUntrustedTokenizedAssets(gc)
+		if len(uts) == 0 {
+			continue
+
+		}
+		log.Printf("[ProcessPostTokenizationTrustline] starting to process candidate's UNTRUSTED ASSETS [%v]\n", uts)
+
+		// get wallet
+		wallet, err := userModels.UserWalletID(candidate.PublicKey).GetWallet(gc.DB, gc)
+		if err != nil {
+			log.Printf("[ProcessPostTokenizationTrustline] error getting candidate wallet info %v, err: %v\n", candidate.PublicKey, err)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error getting candidate wallet info %v, err: %v", candidate.PublicKey, err))
+			continue
+		}
+		signerUser, err := userModels.Username("tinitiator").GetSimpleUser(gc.DB, gc)
+		if err != nil {
+			log.Printf("[ProcessPostTokenizationTrustline] error getting tinitator user info %v, err: %v\n", candidate.PublicKey, err)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error getting  tinitator user info %v, err: %v", candidate.PublicKey, err))
+			continue
+		}
+
+		//use the list to now send
+		for _, ut := range uts {
+			data := strings.Split(ut, ":")
+			assetCode, assetIssuer := data[0], data[1]
+			// prepare trustline for it.
+
+			trustLineInfo := userModels.Trustline{
+				AssetCode:   assetCode,
+				AssetIssuer: assetIssuer,
+			}
+
+			//call the func to process the trustline
+
+			returnedTrustLineInfo, err := TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
+			if err != nil {
+				log.Printf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\n", candidate.PublicKey, err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing first trustline call command %v, err: %v", candidate.PublicKey, err))
+				return
+			}
+			//go ahead to initiate the second call with commit
+			returnedTrustLineInfo.Commit = 1
+
+			returnedTrustLineInfo, err = TrustAsset(&signerUser, &wallet, returnedTrustLineInfo, gc)
+			if err != nil {
+				log.Printf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\n", candidate.PublicKey, err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing 2nd trustline call command %v, err: %v", candidate.PublicKey, err))
+				return
+			}
+
+			if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {
+				//start push notificationMessage
+				notificationList := make(map[string]string)
+				permissionList := wallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+					if u.PushNotificationToken == nil {
+						continue
+					}
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingApproval"
+
+					u.SendPushMessage(fmt.Sprintf("%v opt-in request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+
+				}
+			}
+
+		}
+	}
+}
 
 func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.TokenizedAsset, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
 
