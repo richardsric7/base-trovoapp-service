@@ -3312,8 +3312,8 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			returnedTrustLineInfo, err := TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
 			if err != nil {
 				if err.Error() != "error-duplicate-operation-exists" {
-					log.Printf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\n", candidate.PublicKey, err)
-					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing first trustline call command %v, err: %v", candidate.PublicKey, err))
+					log.Printf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo)
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
 				}
 				continue
 			}
@@ -3324,8 +3324,8 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			returnedTrustLineInfo, err = TrustAsset(&signerUser, &wallet, returnedTrustLineInfo, gc)
 			if err != nil {
 				if err.Error() != "error-duplicate-operation-exists" {
-					log.Printf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\n", candidate.PublicKey, err)
-					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error  executing 2nd trustline call command %v, err: %v", candidate.PublicKey, err))
+					log.Printf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v,err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo)
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
 
 				}
 				continue
