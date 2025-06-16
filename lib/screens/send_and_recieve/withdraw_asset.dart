@@ -54,11 +54,12 @@ class _WithdrawAsset extends State<WithdrawAsset>
     return networks
         .mapIndexed<DropdownMenuItem<String>>(
           (index, item) => DropdownMenuItem(
-              child: Text(
-                item['name'].toString(),
-                overflow: TextOverflow.ellipsis,
-              ),
-              value: '${item['network']}|$index'),
+            child: Text(
+              item['name'].toString(),
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: '${item['network']}|$index',
+          ),
         )
         .toList();
   }
@@ -114,17 +115,16 @@ class _WithdrawAsset extends State<WithdrawAsset>
                     Text(
                       '${"withdraw".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    )
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               FutureBuilder<Map>(
                 future: fetchNetworksFuture,
                 builder: (context, snapshot) {
@@ -158,9 +158,10 @@ class _WithdrawAsset extends State<WithdrawAsset>
                               "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
                             ),
                             ElevatedButton(
                               onPressed: () {
@@ -169,15 +170,16 @@ class _WithdrawAsset extends State<WithdrawAsset>
                                 });
                               },
                               style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getbluecolor!,
+                                ),
+                                foregroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getwihitecolor,
+                                ),
                               ),
                               child: Text(
                                 "retry".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
+                                style: TextStyle(fontFamily: fontsemibold),
                               ),
                             ),
                           ],
@@ -189,9 +191,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                       return Column(
                         children: [
                           formFields(),
-                          SizedBox(
-                            height: height / 40,
-                          ),
+                          SizedBox(height: height / 40),
                           Button(
                             "proceed".tr(),
                             notifier.getbluecolor,
@@ -200,9 +200,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                               handleSubmit();
                             },
                           ),
-                          SizedBox(
-                            height: height / 20,
-                          ),
+                          SizedBox(height: height / 20),
                         ],
                       );
                     }
@@ -220,8 +218,10 @@ class _WithdrawAsset extends State<WithdrawAsset>
                 },
               ),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -241,22 +241,24 @@ class _WithdrawAsset extends State<WithdrawAsset>
                 : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             style: TextStyle(
-                color: notifier.getdarkgrey,
-                fontWeight: FontWeight.w400,
-                fontSize: 12.0.sp),
+              color: notifier.getdarkgrey,
+              fontWeight: FontWeight.w400,
+              fontSize: 12.0.sp,
+            ),
           ),
         ),
         Flexible(
-            child: Visibility(
-          visible: true,
-          replacement: Container(),
-          child: Text(
-            "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
-            textScaleFactor: 1.0,
-            textAlign: TextAlign.right,
-            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+          child: Visibility(
+            visible: true,
+            replacement: Container(),
+            child: Text(
+              "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
+              textScaleFactor: 1.0,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -267,176 +269,174 @@ class _WithdrawAsset extends State<WithdrawAsset>
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
-              width: 300.sp,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              ),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: height / 50,
+            width: 300.sp,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            ),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: height / 50),
+                  Text(
+                    "network".tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
                     ),
-                    Text(
-                      "network".tr(),
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField(
-                            isExpanded: true,
-                            validator: validateDropdown,
-                            dropdownColor: notifier.isDark
+                  ),
+                  SizedBox(height: height / 50),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField(
+                          isExpanded: true,
+                          validator: validateDropdown,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 20,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            filled: true,
+                            fillColor: notifier.isDark
                                 ? darktilewhitecolor
                                 : notifier.getaddsubwalletgrey,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              filled: true,
-                              fillColor: notifier.isDark
-                                  ? darktilewhitecolor
-                                  : notifier.getaddsubwalletgrey,
-                            ),
-                            hint: Text(
-                              "selectnetwork".tr(),
-                              style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-                            icon: Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                            elevation: 0,
+                          ),
+                          hint: Text(
+                            "selectnetwork".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15,
-                                fontFamily: fontbody,
-                                fontWeight: FontWeight.w500),
-                            onChanged: (newValue) {
-                              setState(() {
-                                selectedNetwork = newValue!;
-                              });
-                            },
-                            items: networksDropdownItems,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    if (selectedNetwork.toString().isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0)),
-                            color: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              children: [
-                                myKeyValueRow("networkfee".tr(),
-                                    '${networks[index]['withdrawFee']} ${asset!.assetCode}'),
-                                SizedBox(
-                                  height: height / 90,
-                                ),
-                                myKeyValueRow("min".tr(),
-                                    '${networks[index]['withdrawMin']} ${asset!.assetCode}'),
-                                SizedBox(
-                                  height: height / 90,
-                                ),
-                                myKeyValueRow("max".tr(),
-                                    '${networks[index]['withdrawMax']} ${asset!.assetCode}'),
-                                SizedBox(
-                                  height: height / 90,
-                                ),
-                                myKeyValueRow("eta".tr(),
-                                    '${networks[index]['estimatedArrivalTime'].toString()} min(s)'),
-                              ],
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
                             ),
+                            textAlign: TextAlign.end,
                           ),
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          elevation: 0,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedNetwork = newValue!;
+                            });
+                          },
+                          items: networksDropdownItems,
                         ),
-                      ),
-                      SizedBox(
-                        height: height / 50,
                       ),
                     ],
-                    GestureDetector(
-                      child: CustomTextFormField.textField(
-                        "${"withdraw".tr()} ${"to".tr()}",
-                        notifier.getbluecolor,
-                        Icons.send,
-                        notifier.getgrey,
-                        notifier.getprefixicon,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        80.sp,
-                        300.sp,
-                        controller: toController,
-                        validator: validateTo,
-                        onSaved: (value) =>
-                            to = value.trim().replaceAll(' ', ''),
+                  ),
+                  SizedBox(height: height / 50),
+                  if (selectedNetwork.toString().isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
+                          color: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              myKeyValueRow(
+                                "networkfee".tr(),
+                                '${networks[index]['withdrawFee']} ${asset!.assetCode}',
+                              ),
+                              SizedBox(height: height / 90),
+                              myKeyValueRow(
+                                "min".tr(),
+                                '${networks[index]['withdrawMin']} ${asset!.assetCode}',
+                              ),
+                              SizedBox(height: height / 90),
+                              myKeyValueRow(
+                                "max".tr(),
+                                '${networks[index]['withdrawMax']} ${asset!.assetCode}',
+                              ),
+                              SizedBox(height: height / 90),
+                              myKeyValueRow(
+                                "eta".tr(),
+                                '${networks[index]['estimatedArrivalTime'].toString()} min(s)',
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(height: height / 50),
-                    CustomTextFormField.textField(
-                      "amount".tr(),
+                  ],
+                  GestureDetector(
+                    child: CustomTextFormField.textField(
+                      "${"withdraw".tr()} ${"to".tr()}",
                       notifier.getbluecolor,
-                      Icons.currency_exchange,
+                      Icons.send,
                       notifier.getgrey,
                       notifier.getprefixicon,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      80.sp,
                       300.sp,
-                      onChanged: (value) {
-                        setState(() {
-                          amount = trim(value.toString(), '.');
-                        });
-                      },
-                      controller: amountController,
-                      autoFormatNumber: true,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: validateAmount,
-                      onSaved: (value) =>
-                          amount = value.trim().replaceAll(' ', ''),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
-                      ],
+                      controller: toController,
+                      validator: validateTo,
+                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
-                    if (!appState.hideBalances) ...[availableBalance()],
-                    SizedBox(height: height / 20),
-                  ],
-                ),
-              )),
+                  ),
+                  SizedBox(height: height / 50),
+                  CustomTextFormField.textField(
+                    "amount".tr(),
+                    notifier.getbluecolor,
+                    Icons.currency_exchange,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    300.sp,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = trim(value.toString(), '.');
+                      });
+                    },
+                    controller: amountController,
+                    autoFormatNumber: true,
+                    keyboardtype: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: validateAmount,
+                    onSaved: (value) =>
+                        amount = value.trim().replaceAll(' ', ''),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]')),
+                    ],
+                  ),
+                  if (!appState.hideBalances) ...[availableBalance()],
+                  SizedBox(height: height / 20),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -449,16 +449,18 @@ class _WithdrawAsset extends State<WithdrawAsset>
         Text(
           key,
           style: TextStyle(
-              fontSize: 13,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontsemibold),
+            fontSize: 13,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold,
+          ),
         ),
         Text(
           value,
           style: TextStyle(
-              fontSize: 13,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontbody),
+            fontSize: 13,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontbody,
+          ),
         ),
       ],
     );
@@ -601,8 +603,11 @@ class _WithdrawAsset extends State<WithdrawAsset>
           page: ConfirmWithdrawViewPageConfig,
         );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       popup(context, title: "error".tr(), message: e.toString());

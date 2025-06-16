@@ -446,6 +446,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               backgroundColor: WidgetStateProperty.all<Color>(
                                 notifier.getbluecolor!,
                               ),
+                              foregroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getwihitecolor,
+                              ),
                             ),
                             child: Text(
                               "retry".tr(),

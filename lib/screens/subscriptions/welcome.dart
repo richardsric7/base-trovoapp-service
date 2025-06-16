@@ -115,9 +115,10 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                         "somethingwentwrong".tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 16,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          fontSize: 16,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -126,14 +127,16 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                           });
                         },
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor!),
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getbluecolor!,
+                          ),
+                          foregroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getwihitecolor,
+                          ),
                         ),
                         child: Text(
                           "retry".tr(),
-                          style: TextStyle(
-                            fontFamily: fontsemibold,
-                          ),
+                          style: TextStyle(fontFamily: fontsemibold),
                         ),
                       ),
                     ],
@@ -152,8 +155,9 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                 var myset = Set<String>();
 
                 for (var log in logs) {
-                  patronSubscriptionLogs
-                      .add(PatronSubscriptionLog.deserializeJson(log));
+                  patronSubscriptionLogs.add(
+                    PatronSubscriptionLog.deserializeJson(log),
+                  );
                 }
 
                 for (var asset in paymentAssets) {
@@ -202,26 +206,27 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       if (p['id'] == grade['patronPackage']) {
                         package.description = p['description'];
                         package.packageListTitle = p['packageListTitle'];
-                        package.packageList =
-                            p['packageList'].toString().split('|');
+                        package.packageList = p['packageList'].toString().split(
+                          '|',
+                        );
                         package.logo =
                             p['id'].toString().toLowerCase() == 'gold'
-                                ? "assets/images/gold.png"
-                                : p['id'].toString().toLowerCase() == 'diamond'
-                                    ? "assets/images/diamond.png"
-                                    : "assets/images/platinum.png";
+                            ? "assets/images/gold.png"
+                            : p['id'].toString().toLowerCase() == 'diamond'
+                            ? "assets/images/diamond.png"
+                            : "assets/images/platinum.png";
                       }
                     }
 
                     patronInfoList.add(package);
                   } else {
                     patronInfoList
-                        .firstWhere((item) =>
-                            item.patronPackage == grade['patronPackage'])
+                        .firstWhere(
+                          (item) =>
+                              item.patronPackage == grade['patronPackage'],
+                        )
                         .patronTiers
-                        .addAll(
-                          tierList,
-                        );
+                        .addAll(tierList);
                   }
                 }
 
@@ -237,33 +242,37 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             "currentplan".tr(),
                             textAlign: TextAlign.start,
                             style: TextStyle(
-                                color: notifier.getgrey,
-                                fontSize: 13.sp,
-                                fontFamily: fontbody),
+                              color: notifier.getgrey,
+                              fontSize: 13.sp,
+                              fontFamily: fontbody,
+                            ),
                           ),
                           Row(
                             children: [
-                              Image.asset(patronMembership!.getLogo(),
-                                  height: height / 30),
-                              SizedBox(
-                                width: 5,
+                              Image.asset(
+                                patronMembership!.getLogo(),
+                                height: height / 30,
                               ),
+                              SizedBox(width: 5),
                               Text(
-                                "currentpatronplan".tr(args: [
-                                  patronMembership?.patronPackageId
-                                          .toString()
-                                          .capitalizeFirst ??
-                                      'null',
-                                  patronMembership?.patronTierId
-                                          .toString()
-                                          .capitalizeFirst ??
-                                      'null',
-                                ]),
+                                "currentpatronplan".tr(
+                                  args: [
+                                    patronMembership?.patronPackageId
+                                            .toString()
+                                            .capitalizeFirst ??
+                                        'null',
+                                    patronMembership?.patronTierId
+                                            .toString()
+                                            .capitalizeFirst ??
+                                        'null',
+                                  ],
+                                ),
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize: 17.sp,
-                                    fontFamily: fontsemibold),
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 17.sp,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                             ],
                           ),
@@ -274,29 +283,36 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                               "billingamount".tr(),
                               textAlign: TextAlign.start,
                               style: TextStyle(
-                                  color: notifier.getgrey,
-                                  fontSize: 13.sp,
-                                  fontFamily: fontbody),
+                                color: notifier.getgrey,
+                                fontSize: 13.sp,
+                                fontFamily: fontbody,
+                              ),
                             ),
                             Text(
                               patronMembership?.patronTierId!.toLowerCase() ==
                                       'monthly'
-                                  ? "amountpermonth".tr(args: [
-                                      patronMembership?.price.toString() ?? '',
-                                    ])
+                                  ? "amountpermonth".tr(
+                                      args: [
+                                        patronMembership?.price.toString() ??
+                                            '',
+                                      ],
+                                    )
                                   : patronMembership?.patronTierId!
-                                              .toLowerCase() ==
-                                          'annual'
-                                      ? "amountperyear".tr(args: [
-                                          patronMembership?.price.toString() ??
-                                              '',
-                                        ])
-                                      : "lifetimenobilling".tr(),
+                                            .toLowerCase() ==
+                                        'annual'
+                                  ? "amountperyear".tr(
+                                      args: [
+                                        patronMembership?.price.toString() ??
+                                            '',
+                                      ],
+                                    )
+                                  : "lifetimenobilling".tr(),
                               textAlign: TextAlign.start,
                               style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 17.sp,
-                                  fontFamily: fontsemibold),
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 17.sp,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
                             SizedBox(height: height / 70),
                           ],
@@ -304,21 +320,24 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             "nextbilldate".tr(),
                             textAlign: TextAlign.start,
                             style: TextStyle(
-                                color: notifier.getgrey,
-                                fontSize: 13.sp,
-                                fontFamily: fontbody),
+                              color: notifier.getgrey,
+                              fontSize: 13.sp,
+                              fontFamily: fontbody,
+                            ),
                           ),
                           Text(
                             patronMembership?.patronTierId!.toLowerCase() ==
                                     'lifetime'
                                 ? "lifetimenobilling".tr()
-                                : DateFormat('dd MMM, y')
-                                    .format(patronMembership!.validTill!),
+                                : DateFormat(
+                                    'dd MMM, y',
+                                  ).format(patronMembership!.validTill!),
                             textAlign: TextAlign.start,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 17.sp,
-                                fontFamily: fontsemibold),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 17.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ],
                       ),
@@ -331,8 +350,9 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       borderColor: notifier.getbluewhitecolor,
                       onTap: () {
                         appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: CreatePasswordPageConfig);
+                          state: PageState.addPage,
+                          page: CreatePasswordPageConfig,
+                        );
                       },
                     ),
                     SizedBox(height: height / 50),
@@ -342,8 +362,9 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       wihitecolor,
                       onTap: () {
                         appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: SubscriptionPlansViewPageConfig);
+                          state: PageState.addPage,
+                          page: SubscriptionPlansViewPageConfig,
+                        );
                       },
                     ),
                     SizedBox(height: height / 15),
@@ -355,16 +376,15 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             "activity".tr(),
                             textAlign: TextAlign.start,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 17.sp,
-                                fontFamily: fontsemibold),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 17.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    for (var log in patronSubscriptionLogs) ...[
-                      logItem(log),
-                    ]
+                    for (var log in patronSubscriptionLogs) ...[logItem(log)],
                   ],
                 );
               }
@@ -393,30 +413,36 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
         SizedBox(height: height / 10),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: width / 15),
-          child: Column(children: [
-            Text(
-              "unlockfulltrovotechpotential".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
+          child: Column(
+            children: [
+              Text(
+                "unlockfulltrovotechpotential".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: notifier.getblck,
                   fontSize: 22.sp,
-                  fontFamily: fontsemibold),
-            ),
-          ]),
+                  fontFamily: fontsemibold,
+                ),
+              ),
+            ],
+          ),
         ),
         SizedBox(height: height / 15),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: width / 15),
-          child: Column(children: [
-            Text(
-              "youarenotatrovopatron".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
+          child: Column(
+            children: [
+              Text(
+                "youarenotatrovopatron".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   color: notifier.getbluewhitecolor,
                   fontSize: 17.sp,
-                  fontFamily: fontbody),
-            ),
-          ]),
+                  fontFamily: fontbody,
+                ),
+              ),
+            ],
+          ),
         ),
         SizedBox(height: height / 10),
         Button(
@@ -425,8 +451,9 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
           wihitecolor,
           onTap: () {
             appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: SubscriptionPlansViewPageConfig);
+              state: PageState.addPage,
+              page: SubscriptionPlansViewPageConfig,
+            );
           },
         ),
       ],
@@ -444,7 +471,8 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
 
       if (responseData['statusCode'] == 200) {
         print(
-            '=======================> patron response: ${responseData['data']}');
+          '=======================> patron response: ${responseData['data']}',
+        );
         return responseData['data'];
       } else {
         return Future.error("somethingwentwrong".tr());
@@ -467,8 +495,10 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 children: [
                   Container(
@@ -477,19 +507,19 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
+                        SizedBox(width: width / 50),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
                               width: width / 1.5,
                               child: Text(
-                                "subscribedto".tr(args: [
-                                  log.patronPackageId,
-                                  log.patronTierId.capitalizeFirst!
-                                ]),
+                                "subscribedto".tr(
+                                  args: [
+                                    log.patronPackageId,
+                                    log.patronTierId.capitalizeFirst!,
+                                  ],
+                                ),
                                 style: TextStyle(
                                   fontSize: 13,
                                   // fontWeight: FontWeight.w400,
@@ -509,9 +539,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height: 20),
                         Text(
                           timeago.format(log.createdAt),
                           style: TextStyle(

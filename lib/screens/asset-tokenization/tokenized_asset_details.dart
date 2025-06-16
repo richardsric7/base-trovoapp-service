@@ -318,16 +318,16 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       );
                     },
                     style: ButtonStyle(
-                      padding: MaterialStateProperty.all(
+                      padding: WidgetStateProperty.all(
                         EdgeInsets.symmetric(vertical: 10, horizontal: 85),
                       ),
-                      overlayColor: MaterialStateProperty.all<Color>(
+                      overlayColor: WidgetStateProperty.all<Color>(
                         notifier.getbluecolor90,
                       ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
+                      backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluewhitecolor,
                       ),
-                      side: MaterialStateProperty.all(
+                      side: WidgetStateProperty.all(
                         BorderSide(
                           color: notifier.getbluewhitecolor,
                           width: 1,
@@ -335,7 +335,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         ),
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
@@ -394,18 +394,18 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       );
                     },
                     style: ButtonStyle(
-                      padding: MaterialStateProperty.all(
+                      padding: WidgetStateProperty.all(
                         EdgeInsets.symmetric(vertical: 10, horizontal: 50),
                       ),
-                      overlayColor: MaterialStateProperty.all<Color>(
+                      overlayColor: WidgetStateProperty.all<Color>(
                         notifier.getsplashgrey,
                       ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
+                      backgroundColor: WidgetStateProperty.all<Color>(
                         tokenizedAsset.expressedInterest ?? false
                             ? notifier.getaddsubwalletgrey
                             : notifier.getwihitecolor,
                       ),
-                      side: MaterialStateProperty.all(
+                      side: WidgetStateProperty.all(
                         BorderSide(
                           color: tokenizedAsset.expressedInterest ?? false
                               ? notifier.getaddsubwalletgrey
@@ -414,7 +414,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                           style: BorderStyle.solid,
                         ),
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
@@ -481,16 +481,16 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       // _launchUrl();
                     },
                     style: ButtonStyle(
-                      padding: MaterialStateProperty.all(
+                      padding: WidgetStateProperty.all(
                         EdgeInsets.symmetric(vertical: 10, horizontal: 50),
                       ),
-                      overlayColor: MaterialStateProperty.all<Color>(
+                      overlayColor: WidgetStateProperty.all<Color>(
                         notifier.getbluecolor90,
                       ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
+                      backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluewhitecolor,
                       ),
-                      side: MaterialStateProperty.all(
+                      side: WidgetStateProperty.all(
                         BorderSide(
                           color: notifier.getbluewhitecolor,
                           width: 1,
@@ -498,7 +498,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         ),
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),

@@ -53,9 +53,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool isCountryPickerOpen = false;
   late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
-  final Map<String, String> allowedCountries = {
-    'NG': 'Nigeria',
-  };
+  final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -89,17 +87,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
-      for (var i = 0;
-          i < appState.tokenizationData['countryConfigs'].length;
-          i++) {
+      for (
+        var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++
+      ) {
         if (appState.tokenizationData['countryConfigs'][i]['countryCode']
                 .toString()
                 .toLowerCase() ==
             selectedCountry.toString().toLowerCase()) {
-          proceedPayoutCurrency = appState.tokenizationData['countryConfigs'][i]
-              ['quoteCurrencyCode'];
-          assetQuoteCurrency = appState.tokenizationData['countryConfigs'][i]
-              ['quoteCurrencyCode'];
+          proceedPayoutCurrency = appState
+              .tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
+          assetQuoteCurrency = appState
+              .tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
         }
       }
     }
@@ -144,28 +144,22 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         useSafeArea: true,
         countryFilter: ['NG'],
         countryListTheme: CountryListThemeData(
-          backgroundColor:
-              notifier.isDark ? notifier.getbluecolor50 : Colors.white,
+          backgroundColor: notifier.isDark
+              ? notifier.getbluecolor50
+              : Colors.white,
           textStyle: TextStyle(color: notifier.getblck),
           searchTextStyle: TextStyle(color: notifier.getblck),
           inputDecoration: InputDecoration(
-            errorStyle: TextStyle(
-              fontFamily: fontbody,
-            ),
+            errorStyle: TextStyle(fontFamily: fontbody),
             labelText: 'Search',
-            helperStyle: TextStyle(
-              fontSize: 12,
-              fontFamily: fontbody,
-            ),
+            helperStyle: TextStyle(fontSize: 12, fontFamily: fontbody),
             // label: Text(labletext),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
             ),
             prefixIcon: Icon(Icons.search, color: notifier.getblck),
             labelStyle: TextStyle(color: notifier.getblck),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: notifier.getgrey, width: 1),
               borderRadius: BorderRadius.circular(15),
@@ -179,17 +173,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         onSelect: (Country country) {
           setState(() {
             selectedCountry = country.countryCode;
-            for (var i = 0;
-                i < appState.tokenizationData['countryConfigs'].length;
-                i++) {
+            for (
+              var i = 0;
+              i < appState.tokenizationData['countryConfigs'].length;
+              i++
+            ) {
               if (appState.tokenizationData['countryConfigs'][i]['countryCode']
                       .toString()
                       .toLowerCase() ==
                   selectedCountry.toString().toLowerCase()) {
                 proceedPayoutCurrency = appState
                     .tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
-                assetQuoteCurrency = appState.tokenizationData['countryConfigs']
-                    [i]['quoteCurrencyCode'];
+                assetQuoteCurrency = appState
+                    .tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
               }
             }
           });
@@ -202,19 +198,26 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   Widget setupAndCompliance(dynamic tokenizationData) {
     List<DropdownMenuItem<String>> assetSectors = [];
     for (var i = 0; i < tokenizationData!['assetSectors'].length; i++) {
-      assetSectors.add(DropdownMenuItem(
+      assetSectors.add(
+        DropdownMenuItem(
           child: Text(
             tokenizationData!['assetSectors'][i]['sector'].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: tokenizationData!['assetSectors'][i]['sector'].toString()));
+          value: tokenizationData!['assetSectors'][i]['sector'].toString(),
+        ),
+      );
     }
 
-    List<DropdownMenuItem<String>> assetSubsectors =
-        getAssetSubsectorList(tokenizationData, selectedAssetSectorId);
+    List<DropdownMenuItem<String>> assetSubsectors = getAssetSubsectorList(
+      tokenizationData,
+      selectedAssetSectorId,
+    );
 
-    List<DropdownMenuItem<String>> assetTypes =
-        getAssetTypes(tokenizationData, selectedAssetSubSectorId);
+    List<DropdownMenuItem<String>> assetTypes = getAssetTypes(
+      tokenizationData,
+      selectedAssetSubSectorId,
+    );
 
     return SingleChildScrollView(
       child: Form(
@@ -222,9 +225,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -254,9 +255,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Container(
@@ -272,9 +271,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
@@ -282,7 +279,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   setState(() {
                     selectedAssetSectorId = value.toString();
                     assetSectors = getAssetSubsectorList(
-                        tokenizationData, selectedAssetSectorId);
+                      tokenizationData,
+                      selectedAssetSectorId,
+                    );
                     selectedAssetSubSectorId = '';
                   });
                 },
@@ -299,9 +298,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
@@ -318,9 +315,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
@@ -329,7 +324,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     selectedAssetSubSectorId = value.toString();
                     selectedAssetTypeId = '';
                     assetSectors = getAssetTypes(
-                        tokenizationData, selectedAssetSubSectorId);
+                      tokenizationData,
+                      selectedAssetSubSectorId,
+                    );
                   });
                 },
                 assetSubsectors,
@@ -347,9 +344,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
@@ -366,9 +361,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
@@ -390,9 +383,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -423,9 +414,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Column(
               children: [
                 Row(
@@ -437,15 +426,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                         child: Radio<bool>(
                           value: true,
                           activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
                           groupValue: assetExisting,
                           onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
+                            setState(() {
+                              assetExisting = value!;
+                            }),
                           },
                         ),
                       ),
@@ -471,14 +459,13 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                           value: false,
                           groupValue: assetExisting,
                           activeColor: notifier.getbluewhitecolor,
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor),
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
                           onChanged: (value) => {
-                            setState(
-                              () {
-                                assetExisting = value!;
-                              },
-                            )
+                            setState(() {
+                              assetExisting = value!;
+                            }),
                           },
                         ),
                       ),
@@ -495,9 +482,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -528,9 +513,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
@@ -547,9 +530,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Container(
@@ -564,7 +545,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   child: TextButton(
                     onPressed: showCountryListPopup,
                     style: ButtonStyle(
-                        elevation: MaterialStateProperty.all<double>(0)),
+                      elevation: MaterialStateProperty.all<double>(0),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -606,9 +588,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
             ],
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -639,9 +619,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -679,7 +657,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Icons.people_outline_outlined,
                       color: notifier.getbluewhitecolor,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -704,10 +682,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               child: TextButton(
                 onPressed: () {
                   if (selectedAssetSectorId.isEmpty) {
-                    popup(context,
-                        title: "info".tr(),
-                        message:
-                            'You must select an asset sector before you can view the requirements.');
+                    popup(
+                      context,
+                      title: "info".tr(),
+                      message:
+                          'You must select an asset sector before you can view the requirements.',
+                    );
                     return;
                   }
 
@@ -737,14 +717,13 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                         value: true,
                         groupValue: hasAllRequiredManagerDocuments,
                         activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
+                        fillColor: WidgetStateColor.resolveWith(
+                          (states) => notifier.getbluewhitecolor,
+                        ),
                         onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredManagerDocuments = value!;
-                            },
-                          )
+                          setState(() {
+                            hasAllRequiredManagerDocuments = value!;
+                          }),
                         },
                       ),
                     ),
@@ -765,15 +744,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       child: Radio<bool>(
                         value: false,
                         activeColor: notifier.getbluewhitecolor,
-                        fillColor: MaterialStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor),
+                        fillColor: WidgetStateColor.resolveWith(
+                          (states) => notifier.getbluewhitecolor,
+                        ),
                         groupValue: hasAllRequiredManagerDocuments,
                         onChanged: (value) => {
-                          setState(
-                            () {
-                              hasAllRequiredManagerDocuments = value!;
-                            },
-                          )
+                          setState(() {
+                            hasAllRequiredManagerDocuments = value!;
+                          }),
                         },
                       ),
                     ),
@@ -799,9 +777,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     builder: (state) {
                       return Checkbox(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(5),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
                         ),
                         activeColor: notifier.isDark
                             ? notifier.getbluecolor50
@@ -837,18 +813,17 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     "Tokenizing your asset requires ownership transfer of the asset to a licensed nominee/trustee/custodian. Agree?",
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                        fontSize: 15,
-                        color: formHasError && !agreeTransferTitleToCustodian
-                            ? Colors.red
-                            : notifier.getbluewhitecolor,
-                        fontFamily: fontbody),
+                      fontSize: 15,
+                      color: formHasError && !agreeTransferTitleToCustodian
+                          ? Colors.red
+                          : notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 20,
-            ),
+            SizedBox(height: height / 20),
             Button(
               "saveandcontinuee".tr(),
               notifier.getbluecolor,
@@ -864,15 +839,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 Colors.red,
                 wihitecolor,
                 onTap: () {
-                  confirmTokenizationDeletePopup(context,
-                      onConfirmationSuccess: deleteTokenization);
+                  confirmTokenizationDeletePopup(
+                    context,
+                    onConfirmationSuccess: deleteTokenization,
+                  );
                 },
               ),
             ],
             SizedBox(height: height / 10),
             Padding(
               padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
             ),
           ],
         ),
@@ -913,10 +891,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
           ? int.parse(selectedAssetCustodian)
           : 1;
-      data["assetManagerId"] =
-          selectedAssetManager.length > 0 ? int.parse(selectedAssetManager) : 1;
-      data["agreeTransferTitleToCustodian"] =
-          agreeTransferTitleToCustodian ? 1 : 0;
+      data["assetManagerId"] = selectedAssetManager.length > 0
+          ? int.parse(selectedAssetManager)
+          : 1;
+      data["agreeTransferTitleToCustodian"] = agreeTransferTitleToCustodian
+          ? 1
+          : 0;
       data["assetAlreadyExists"] = assetExisting ? 1 : 0;
       data["secApproval"] = hasSecApproval ? 1 : 0;
       data["secApprovalIdNumber"] = secApprovalId;
@@ -928,11 +908,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
-          uri: '/v1/tokenization',
-          body: requestBody,
-          signer: appState.primaryWallet.signer!,
-          secretKey: appState.secretKeys[0], // the primary wallet secret key
-          publicKey: appState.primaryWallet.signer!);
+        uri: '/v1/tokenization',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
       hideLoader(context);
 
       print('responseData ${responseData['data']}');
@@ -942,10 +923,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         appState.viewData = responseData['data'];
         await fetchBanksList();
         appState.currentAction = PageAction(
-            state: PageState.addPage, page: TokenizeAssetViewPageConfig);
+          state: PageState.addPage,
+          page: TokenizeAssetViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);
@@ -1083,18 +1069,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       child: ElevatedButton(
         onPressed: onClick,
         style: ButtonStyle(
-          overlayColor:
-              MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-          elevation: MaterialStateProperty.all<double>(0),
-          backgroundColor: MaterialStateProperty.all<Color>(backColor),
-          side: MaterialStateProperty.all(
+          overlayColor: WidgetStateProperty.all<Color>(notifier.getsplashgrey),
+          elevation: WidgetStateProperty.all<double>(0),
+          backgroundColor: WidgetStateProperty.all<Color>(backColor),
+          side: WidgetStateProperty.all(
             BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
           ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(10),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
           ),
         ),
@@ -1108,7 +1091,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
+                color: foreColor,
+                fontFamily: fontbody,
+                fontSize: fontSize,
+              ),
             ),
           ],
         ),
@@ -1139,8 +1125,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
           page: BottomHomePageConfig,
         );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);

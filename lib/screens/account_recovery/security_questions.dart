@@ -39,21 +39,9 @@ class _SecurityQuestions extends State<SecurityQuestions> {
   late String? signer;
   late String? secretKey;
   var questionsMap = {
-    1: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    2: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    3: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
+    1: {"q": "", "a": "", "e": false},
+    2: {"q": "", "a": "", "e": false},
+    3: {"q": "", "a": "", "e": false},
   };
 
   getdarkmodepreviousstate() async {
@@ -115,25 +103,28 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                   "setup".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 Text(
                   "securityquestions".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 SizedBox(height: height / 20),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -143,7 +134,9 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 15.0),
+                            horizontal: 20.0,
+                            vertical: 15.0,
+                          ),
                           child: Column(
                             children: [
                               Container(
@@ -152,9 +145,10 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                                   "setupsecurityquestionsdescription".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 2),
@@ -167,68 +161,77 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                 ),
                 SizedBox(height: height / 50),
                 FutureBuilder<List<Map>>(
-                    future: questions,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator(
-                          backgroundColor: notifier.getbluecolor,
-                          valueColor: new AlwaysStoppedAnimation<Color>(
-                            notifier.getgreencolor,
-                          ),
-                          strokeWidth: 3.0,
-                        );
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "somethingwentwrong".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      questions = fetchQuestions(publicKey,
-                                          secretKey, publicKey, username);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            notifier.getbluecolor!),
-                                  ),
-                                  child: Text(
-                                    "retry".tr(),
-                                    style: TextStyle(
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          return Column(
+                  future: questions,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(
+                        backgroundColor: notifier.getbluecolor,
+                        valueColor: new AlwaysStoppedAnimation<Color>(
+                          notifier.getgreencolor,
+                        ),
+                        strokeWidth: 3.0,
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
                             children: [
-                              questionView(snapshot.data!, 1),
-                              questionView(snapshot.data!, 2),
-                              questionView(snapshot.data!, 3),
+                              Text(
+                                "somethingwentwrong".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    questions = fetchQuestions(
+                                      publicKey,
+                                      secretKey,
+                                      publicKey,
+                                      username,
+                                    );
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getbluecolor!,
+                                      ),
+                                  foregroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getwihitecolor,
+                                      ),
+                                ),
+                                child: Text(
+                                  "retry".tr(),
+                                  style: TextStyle(fontFamily: fontsemibold),
+                                ),
+                              ),
                             ],
-                          );
-                        } else {
-                          return const Text('Empty data');
-                        }
+                          ),
+                        );
+                      } else if (snapshot.hasData) {
+                        return Column(
+                          children: [
+                            questionView(snapshot.data!, 1),
+                            questionView(snapshot.data!, 2),
+                            questionView(snapshot.data!, 3),
+                          ],
+                        );
                       } else {
-                        return Text('State: ${snapshot.connectionState}');
+                        return const Text('Empty data');
                       }
-                    }),
+                    } else {
+                      return Text('State: ${snapshot.connectionState}');
+                    }
+                  },
+                ),
                 SizedBox(height: height / 20),
                 Button(
                   "continuee".tr(),
@@ -240,8 +243,10 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                 ),
                 SizedBox(height: height / 10),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),
@@ -262,8 +267,10 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
             decoration: InputDecoration(
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 20,
+                horizontal: 20,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide.none,
                 borderRadius: BorderRadius.circular(10),
@@ -360,7 +367,9 @@ class _SecurityQuestions extends State<SecurityQuestions> {
   }
 
   List<DropdownMenuItem<String>> getQuestions(
-      List<Map<dynamic, dynamic>> questionsList, int rel) {
+    List<Map<dynamic, dynamic>> questionsList,
+    int rel,
+  ) {
     var filteredQuestions = questionsList.where((question) {
       // print('Q: ${questionsMap[1]!['q']} A: ${question['ID']}');
       if (rel != 1 && questionsMap[1]!['q'] == question['ID'].toString())
@@ -374,10 +383,9 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     return filteredQuestions
         .map(
           (question) => DropdownMenuItem<String>(
-              child: Text(
-                question['Question'],
-              ),
-              value: question['ID'].toString()),
+            child: Text(question['Question']),
+            value: question['ID'].toString(),
+          ),
         )
         .toList();
   }
@@ -403,7 +411,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         "q2": int.parse(questionsMap[2]!['q'].toString()),
         "a2": questionsMap[2]!['a'],
         "q3": int.parse(questionsMap[3]!['q'].toString()),
-        "a3": questionsMap[3]!['a']
+        "a3": questionsMap[3]!['a'],
       };
       String requestBody = jsonEncode(map);
       // print('this is request body $requestBody');
@@ -426,19 +434,25 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             'message': "securityquestionssuccessmessage".tr(),
             'useOnDone': true,
             'onDone': () {
-              appState.currentAction = appState.returnView ??
+              appState.currentAction =
+                  appState.returnView ??
                   PageAction(
                     state: PageState.addAll,
                     pages: [BottomHomePageConfig],
                   );
             },
-          }
+          },
         };
         appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+          state: PageState.replaceAll,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
       hideLoader(context);
     } catch (e) {
@@ -449,7 +463,11 @@ class _SecurityQuestions extends State<SecurityQuestions> {
   }
 
   Future<List<Map>> fetchQuestions(
-      signer, secretKey, publicKey, username) async {
+    signer,
+    secretKey,
+    publicKey,
+    username,
+  ) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,

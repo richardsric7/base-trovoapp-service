@@ -51,12 +51,12 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
     var items = <DropdownMenuItem<int>>[];
     for (var i = 3; i < 20; i++) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            i.toString(),
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: i));
+      items.add(
+        DropdownMenuItem(
+          child: Text(i.toString(), overflow: TextOverflow.ellipsis),
+          value: i,
+        ),
+      );
     }
     return items;
   }
@@ -64,12 +64,12 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
     for (var i = 2; i < noOfApprovers; i++) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            i.toString(),
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: i));
+      items.add(
+        DropdownMenuItem(
+          child: Text(i.toString(), overflow: TextOverflow.ellipsis),
+          value: i,
+        ),
+      );
     }
     return items;
   }
@@ -90,8 +90,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
     _tabController = TabController(length: 3, vsync: this);
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet =
-        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
     noOfApprovalsNeeded = wallet.numberOfApprovalsNeeded!;
 
     // since you can only pass around objects by reference in dart
@@ -147,16 +148,15 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                   SingleChildScrollView(
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: height / 20,
-                        ),
+                        SizedBox(height: height / 20),
                         Text(
                           "viewaccess".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold,
-                              fontSize: 18.sp),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 18.sp,
+                          ),
                         ),
                         showViewers(),
                         SizedBox(height: height / 25),
@@ -172,7 +172,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         ),
                         Padding(
                           padding: EdgeInsets.only(
-                              bottom: MediaQuery.of(context).viewInsets.bottom),
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
                         ),
                       ],
                     ),
@@ -190,18 +191,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         fontFamily: fontsemibold,
                       ),
                       tabs: [
-                        Tab(
-                          height: 50,
-                          text: "viewers".tr(),
-                        ),
-                        Tab(
-                          height: 50,
-                          text: "approvers".tr(),
-                        ),
-                        Tab(
-                          height: 50,
-                          text: "initiators".tr(),
-                        ),
+                        Tab(height: 50, text: "viewers".tr()),
+                        Tab(height: 50, text: "approvers".tr()),
+                        Tab(height: 50, text: "initiators".tr()),
                       ],
                     ),
                   ),
@@ -210,15 +202,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        SingleChildScrollView(
-                          child: showViewers(),
-                        ),
-                        SingleChildScrollView(
-                          child: showApprovers(),
-                        ),
-                        SingleChildScrollView(
-                          child: showInitiators(),
-                        ),
+                        SingleChildScrollView(child: showViewers()),
+                        SingleChildScrollView(child: showApprovers()),
+                        SingleChildScrollView(child: showInitiators()),
                       ],
                     ),
                   ),
@@ -249,9 +235,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   Widget showViewers() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -266,30 +250,34 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
-                          width: width / 1.8,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              if (viewers.length > 0) ...[
-                                for (var i = 0; i < viewers.length; i++) ...[
-                                  getPermissionItem(viewers, i, 'viewer'),
-                                ],
-                              ] else ...[
-                                Text(
-                                  "nameofviewersappearhere".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 15.sp),
+                        width: width / 1.8,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          children: [
+                            if (viewers.length > 0) ...[
+                              for (var i = 0; i < viewers.length; i++) ...[
+                                getPermissionItem(viewers, i, 'viewer'),
+                              ],
+                            ] else ...[
+                              Text(
+                                "nameofviewersappearhere".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                  fontSize: 15.sp,
                                 ),
-                              ]
+                              ),
                             ],
-                          )),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 2),
                     ],
                   ),
@@ -298,23 +286,20 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
         Container(
           width: width / 1.1,
           child: Text(
             "enteraccountsusernameviewers".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontbody,
+              fontSize: 15.sp,
+            ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: CustomTextFormField.textFieldWithoutIcon(
@@ -336,12 +321,13 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             viewerUsernameErrorMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+              color: Colors.red,
+              fontFamily: fontbody,
+              fontSize: 11.sp,
+            ),
           ),
         ],
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () async {
             viewerUsernameErrorMessage = '';
@@ -420,19 +406,16 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             setState(() {});
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            "add".tr(),
-            style: TextStyle(
-              fontFamily: fontsemibold,
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
             ),
           ),
+          child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
@@ -443,20 +426,19 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               Transform.scale(
                 scale: 1.sp,
                 child: Checkbox(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5.sp),
-                      ),
-                    ),
-                    activeColor: notifier.getbluecolor,
-                    side: BorderSide(color: notifier.getbluewhitecolor),
-                    value: addApprovers,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == false && approvers.length > 0) {
-                          showResponseMessage(
-                              context, "allexistingapproverswillberemoved".tr(),
-                              () {
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5.sp)),
+                  ),
+                  activeColor: notifier.getbluecolor,
+                  side: BorderSide(color: notifier.getbluewhitecolor),
+                  value: addApprovers,
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == false && approvers.length > 0) {
+                        showResponseMessage(
+                          context,
+                          "allexistingapproverswillberemoved".tr(),
+                          () {
                             approvers.forEach((approver) {
                               approver.permissionState =
                                   PermissionState.Revoked;
@@ -468,22 +450,24 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                             });
                             addApprovers = false;
                             setState(() {});
+                          },
+                        );
+                      } else {
+                        addApprovers = value ?? false;
+                        if (addApprovers) {
+                          approvers.forEach((approver) {
+                            approver.permissionState = null;
                           });
-                        } else {
-                          addApprovers = value ?? false;
-                          if (addApprovers) {
-                            approvers.forEach((approver) {
-                              approver.permissionState = null;
-                            });
 
-                            initiators.forEach((initiator) {
-                              initiator.permissionState = null;
-                            });
-                            _tabController.animateTo(1);
-                          }
+                          initiators.forEach((initiator) {
+                            initiator.permissionState = null;
+                          });
+                          _tabController.animateTo(1);
                         }
-                      });
-                    }),
+                      }
+                    });
+                  },
+                ),
               ),
               Container(
                 child: Text(
@@ -499,9 +483,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             ],
           ),
         ],
-        SizedBox(
-          height: height / 10,
-        ),
+        SizedBox(height: height / 10),
       ],
     );
   }
@@ -511,12 +493,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       key: approversFormKey,
       child: Column(
         children: [
-          SizedBox(
-            height: height / 50,
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 50),
+          SizedBox(height: height / 70),
           Container(
             height: height / 10,
             child: Padding(
@@ -534,14 +512,13 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                           child: Text(
                             "approvals".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
-                                fontSize: 15.sp),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                         Expanded(
                           child: DropdownButtonFormField(
                             isExpanded: true,
@@ -550,7 +527,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
+                                vertical: 0,
+                                horizontal: 20,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius: BorderRadius.circular(20),
@@ -571,14 +550,16 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                             ),
                             elevation: 0,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
-                                fontFamily: fontsemibold,
-                                fontWeight: FontWeight.w500),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500,
+                            ),
                             onChanged: (newValue) {
                               setState(() {
-                                noOfApprovalsNeeded =
-                                    int.parse(newValue.toString());
+                                noOfApprovalsNeeded = int.parse(
+                                  newValue.toString(),
+                                );
                               });
                             },
                             items: getNoOfApprovalsDropdownItems,
@@ -587,9 +568,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: width / 20,
-                  ),
+                  SizedBox(width: width / 20),
                   Container(
                     height: height / 5,
                     width: width / 20,
@@ -599,16 +578,15 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         Text(
                           'of'.tr(),
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody,
-                              fontSize: 15.sp),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                            fontSize: 15.sp,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: width / 20,
-                  ),
+                  SizedBox(width: width / 20),
                   Container(
                     height: height / 5,
                     width: width / 3.6,
@@ -619,14 +597,13 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                           child: Text(
                             "approvers".tr(),
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
-                                fontSize: 15.sp),
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                         Expanded(
                           child: DropdownButtonFormField(
                             isExpanded: true,
@@ -635,7 +612,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
+                                vertical: 0,
+                                horizontal: 20,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius: BorderRadius.circular(20),
@@ -663,8 +642,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                             ),
                             onChanged: (newValue) {
                               setState(() {
-                                var newValueInt =
-                                    int.parse(newValue.toString());
+                                var newValueInt = int.parse(
+                                  newValue.toString(),
+                                );
                                 if (noOfApprovalsNeeded > newValueInt) {
                                   noOfApprovalsNeeded = newValueInt - 1;
                                 }
@@ -684,28 +664,30 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              "noapprovalsrequiredoutofno".tr(args: [
-                noOfApprovalsNeeded.toString(),
-                noOfApprovers.toString()
-              ]),
+              "noapprovalsrequiredoutofno".tr(
+                args: [
+                  noOfApprovalsNeeded.toString(),
+                  noOfApprovers.toString(),
+                ],
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 13.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 13.sp,
+              ),
             ),
           ),
-          SizedBox(
-            height: height / 30,
-          ),
+          SizedBox(height: height / 30),
           Container(
             child: Text(
               "enteraccountsusernameapprovers".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+                fontSize: 15.sp,
+              ),
             ),
           ),
           Padding(
@@ -722,32 +704,34 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 15.0),
+                      horizontal: 20.0,
+                      vertical: 15.0,
+                    ),
                     child: Column(
                       children: [
                         Container(
-                            width: width / 1.8,
-                            child: Wrap(
-                              alignment: WrapAlignment.center,
-                              children: [
-                                if (approvers.length > 0) ...[
-                                  for (var i = 0;
-                                      i < approvers.length;
-                                      i++) ...[
-                                    getPermissionItem(approvers, i, 'approver'),
-                                  ],
-                                ] else ...[
-                                  Text(
-                                    "noapproversyet".tr(),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontbody,
-                                        fontSize: 15.sp),
+                          width: width / 1.8,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              if (approvers.length > 0) ...[
+                                for (var i = 0; i < approvers.length; i++) ...[
+                                  getPermissionItem(approvers, i, 'approver'),
+                                ],
+                              ] else ...[
+                                Text(
+                                  "noapproversyet".tr(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                    fontSize: 15.sp,
                                   ),
-                                ]
+                                ),
                               ],
-                            )),
+                            ],
+                          ),
+                        ),
                         SizedBox(height: 2),
                       ],
                     ),
@@ -756,9 +740,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               ),
             ),
           ),
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           CustomTextFormField.textFieldWithoutIcon(
             "approver".tr(),
             notifier.getbluecolor,
@@ -777,12 +759,13 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               approverUsernameErrorMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+                color: Colors.red,
+                fontFamily: fontbody,
+                fontSize: 11.sp,
+              ),
             ),
           ],
-          SizedBox(
-            height: height / 50,
-          ),
+          SizedBox(height: height / 50),
           ElevatedButton(
             onPressed: () async {
               approverUsernameErrorMessage = '';
@@ -810,47 +793,57 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                       )
                       .length ==
                   noOfApprovers) {
-                popup(context,
-                    title: "error".tr(),
-                    message: "usernamecannotbemorethannoapprovers".tr());
+                popup(
+                  context,
+                  title: "error".tr(),
+                  message: "usernamecannotbemorethannoapprovers".tr(),
+                );
                 return;
               }
 
               // if the username is already on the viewers list then there's
               // no need to check again that the username is valid so we add it to
               // to the approvers list
-              var tempViewer = viewers.where((viewer) =>
-                  viewer.targetUsername == username &&
-                  viewer.permissionState != PermissionState.Revoked);
+              var tempViewer = viewers.where(
+                (viewer) =>
+                    viewer.targetUsername == username &&
+                    viewer.permissionState != PermissionState.Revoked,
+              );
               if (tempViewer.isNotEmpty) {
-                showResponseMessage(context, "willrevokeviewonlyaccess".tr(),
-                    () {
-                  approvers.add(
-                    Permission(
-                      targetUsername: username,
-                      fullName: '${tempViewer.first.fullName}',
-                      permission: 'APPROVER',
-                      permissionState: PermissionState.Added,
-                    ),
-                  );
-                  approversController.text = '';
-                  if (tempViewer.first.permissionState ==
-                      PermissionState.Added) {
-                    viewers.removeWhere(
-                        (permission) => permission.targetUsername == username);
-                  } else {
-                    tempViewer.first.permissionState = PermissionState.Revoked;
-                  }
-                  setState(() {});
-                });
+                showResponseMessage(
+                  context,
+                  "willrevokeviewonlyaccess".tr(),
+                  () {
+                    approvers.add(
+                      Permission(
+                        targetUsername: username,
+                        fullName: '${tempViewer.first.fullName}',
+                        permission: 'APPROVER',
+                        permissionState: PermissionState.Added,
+                      ),
+                    );
+                    approversController.text = '';
+                    if (tempViewer.first.permissionState ==
+                        PermissionState.Added) {
+                      viewers.removeWhere(
+                        (permission) => permission.targetUsername == username,
+                      );
+                    } else {
+                      tempViewer.first.permissionState =
+                          PermissionState.Revoked;
+                    }
+                    setState(() {});
+                  },
+                );
                 return;
               }
 
               // if the username is already on the approvers list then there's
               // no need to check again that the username is valid so we add it to
               // to the approvers list
-              var tempInitiator = initiators
-                  .where((viewer) => viewer.targetUsername == username);
+              var tempInitiator = initiators.where(
+                (viewer) => viewer.targetUsername == username,
+              );
               if (tempInitiator.isNotEmpty) {
                 approvers.add(
                   Permission(
@@ -884,22 +877,21 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               setState(() {});
             },
             style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-            ),
-            child: Text(
-              "add".tr(),
-              style: TextStyle(
-                fontFamily: fontsemibold,
+              backgroundColor: WidgetStateProperty.all<Color>(
+                notifier.getbluecolor!,
+              ),
+              foregroundColor: WidgetStateProperty.all<Color>(
+                notifier.getwihitecolor,
               ),
             ),
+            child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
           ),
-          SizedBox(
-            height: height / 20,
-          ),
+          SizedBox(height: height / 20),
           Padding(
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom)),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+          ),
         ],
       ),
     );
@@ -924,30 +916,34 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
-                          width: width / 1.8,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              if (initiators.length > 0) ...[
-                                for (var i = 0; i < initiators.length; i++) ...[
-                                  getPermissionItem(initiators, i, 'initiator'),
-                                ],
-                              ] else ...[
-                                Text(
-                                  "noinitatorsyet".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 15.sp),
+                        width: width / 1.8,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          children: [
+                            if (initiators.length > 0) ...[
+                              for (var i = 0; i < initiators.length; i++) ...[
+                                getPermissionItem(initiators, i, 'initiator'),
+                              ],
+                            ] else ...[
+                              Text(
+                                "noinitatorsyet".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                  fontSize: 15.sp,
                                 ),
-                              ]
+                              ),
                             ],
-                          )),
+                          ],
+                        ),
+                      ),
                       SizedBox(height: 2),
                     ],
                   ),
@@ -956,22 +952,19 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Container(
           child: Text(
             "enteraccountsusernameinitiators".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontbody,
+              fontSize: 15.sp,
+            ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         CustomTextFormField.textFieldWithoutIcon(
           "initiator".tr(),
           notifier.getbluecolor,
@@ -990,12 +983,13 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             initiatorUsernameErrorMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+              color: Colors.red,
+              fontFamily: fontbody,
+              fontSize: 11.sp,
+            ),
           ),
         ],
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         ElevatedButton(
           onPressed: () async {
             initiatorUsernameErrorMessage = '';
@@ -1019,9 +1013,11 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             // if the username is already on the viewers list then there's
             // no need to check again that the username is valid so we add it to
             // to the approvers list
-            var tempViewer = viewers.where((viewer) =>
-                viewer.targetUsername == username &&
-                viewer.permissionState != PermissionState.Revoked);
+            var tempViewer = viewers.where(
+              (viewer) =>
+                  viewer.targetUsername == username &&
+                  viewer.permissionState != PermissionState.Revoked,
+            );
             if (tempViewer.isNotEmpty) {
               showResponseMessage(context, "willrevokeviewonlyaccess".tr(), () {
                 initiators.add(
@@ -1035,7 +1031,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 initiatorsController.text = '';
                 if (tempViewer.first.permissionState == PermissionState.Added) {
                   viewers.removeWhere(
-                      (permission) => permission.targetUsername == username);
+                    (permission) => permission.targetUsername == username,
+                  );
                 } else {
                   tempViewer.first.permissionState = PermissionState.Revoked;
                 }
@@ -1048,8 +1045,9 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             // if the username is already on the approvers list then there's
             // no need to check again that the username is valid so we add it to
             // to the approvers list
-            var tempApprover = approvers
-                .where((approver) => approver.targetUsername == username);
+            var tempApprover = approvers.where(
+              (approver) => approver.targetUsername == username,
+            );
             if (tempApprover.isNotEmpty) {
               initiators.add(
                 Permission(
@@ -1082,22 +1080,21 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             setState(() {});
           },
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            "add".tr(),
-            style: TextStyle(
-              fontFamily: fontsemibold,
+            backgroundColor: WidgetStateProperty.all<Color>(
+              notifier.getbluecolor!,
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
             ),
           ),
+          child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
-        SizedBox(
-          height: height / 20,
-        ),
+        SizedBox(height: height / 20),
         Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom)),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+        ),
       ],
     );
   }
@@ -1176,11 +1173,14 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         return userItem(
           '${permList[index].targetUsername} [${permList[index].fullName}]',
           () {
-            showResponseMessage(context, "abouttorevokeaccess".tr(args: [rel]),
-                () {
-              permList[index].permissionState = PermissionState.Revoked;
-              setState(() {});
-            });
+            showResponseMessage(
+              context,
+              "abouttorevokeaccess".tr(args: [rel]),
+              () {
+                permList[index].permissionState = PermissionState.Revoked;
+                setState(() {});
+              },
+            );
           },
           backColor: notifier.getbluebackcolor,
           foreColor: wihitecolor,
@@ -1205,9 +1205,11 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
       if (approversList.length < noOfApprovers ||
           approversList.length > noOfApprovers) {
-        popup(context,
-            title: "error".tr(),
-            message: "approverscannotbelessnoofapprover".tr());
+        popup(
+          context,
+          title: "error".tr(),
+          message: "approverscannotbelessnoofapprover".tr(),
+        );
         _tabController.animateTo(1);
         return false;
       }
@@ -1223,9 +1225,11 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       }
 
       if (approversList.isEmpty) {
-        popup(context,
-            title: "error".tr(),
-            message: "cannothaveinitiatorswithoutapprovers".tr());
+        popup(
+          context,
+          title: "error".tr(),
+          message: "cannothaveinitiatorswithoutapprovers".tr(),
+        );
         _tabController.animateTo(1);
         return false;
       }

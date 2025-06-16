@@ -37,21 +37,9 @@ class _SecurityQuestionsForInactiveAccounts
   late String? signer;
   late String? secretKey;
   var questionsMap = {
-    1: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    2: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    3: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
+    1: {"q": "", "a": "", "e": false},
+    2: {"q": "", "a": "", "e": false},
+    3: {"q": "", "a": "", "e": false},
   };
 
   getdarkmodepreviousstate() async {
@@ -71,18 +59,18 @@ class _SecurityQuestionsForInactiveAccounts
     appState = Provider.of<DataProvider>(context, listen: false);
     // primaryWallet = appState.userInfo!.wallets!
     //     .firstWhere((wallet) => wallet.primaryWallet == 1);
-    publicKey = appState
-            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
-        ['publicKey'];
-    signer = appState
-            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
-        ['signer'];
-    secretKey = appState
-            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
-        ['secretKey'];
-    username = appState
-            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
-        ['username'];
+    publicKey =
+        appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
+            .key]['publicKey'];
+    signer =
+        appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
+            .key]['signer'];
+    secretKey =
+        appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
+            .key]['secretKey'];
+    username =
+        appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
+            .key]['username'];
     questions = fetchQuestions(signer, secretKey, publicKey, username);
   }
 
@@ -95,9 +83,12 @@ class _SecurityQuestionsForInactiveAccounts
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 20)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 20,
+        ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
@@ -109,25 +100,28 @@ class _SecurityQuestionsForInactiveAccounts
                   "setup".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 Text(
                   "securityquestions".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 SizedBox(height: height / 20),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -137,7 +131,9 @@ class _SecurityQuestionsForInactiveAccounts
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 15.0),
+                            horizontal: 20.0,
+                            vertical: 15.0,
+                          ),
                           child: Column(
                             children: [
                               Container(
@@ -146,9 +142,10 @@ class _SecurityQuestionsForInactiveAccounts
                                   "setupsecurityquestionsdescription".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 2),
@@ -161,68 +158,77 @@ class _SecurityQuestionsForInactiveAccounts
                 ),
                 SizedBox(height: height / 50),
                 FutureBuilder<List<Map>>(
-                    future: questions,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator(
-                          backgroundColor: notifier.getbluecolor,
-                          valueColor: new AlwaysStoppedAnimation<Color>(
-                            notifier.getgreencolor,
-                          ),
-                          strokeWidth: 3.0,
-                        );
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "somethingwentwrong".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      questions = fetchQuestions(publicKey,
-                                          secretKey, publicKey, username);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            notifier.getbluecolor!),
-                                  ),
-                                  child: Text(
-                                    "retry".tr(),
-                                    style: TextStyle(
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          return Column(
+                  future: questions,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(
+                        backgroundColor: notifier.getbluecolor,
+                        valueColor: new AlwaysStoppedAnimation<Color>(
+                          notifier.getgreencolor,
+                        ),
+                        strokeWidth: 3.0,
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
                             children: [
-                              questionView(snapshot.data!, 1),
-                              questionView(snapshot.data!, 2),
-                              questionView(snapshot.data!, 3),
+                              Text(
+                                "somethingwentwrong".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    questions = fetchQuestions(
+                                      publicKey,
+                                      secretKey,
+                                      publicKey,
+                                      username,
+                                    );
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getbluecolor!,
+                                      ),
+                                  foregroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getwihitecolor,
+                                      ),
+                                ),
+                                child: Text(
+                                  "retry".tr(),
+                                  style: TextStyle(fontFamily: fontsemibold),
+                                ),
+                              ),
                             ],
-                          );
-                        } else {
-                          return const Text('Empty data');
-                        }
+                          ),
+                        );
+                      } else if (snapshot.hasData) {
+                        return Column(
+                          children: [
+                            questionView(snapshot.data!, 1),
+                            questionView(snapshot.data!, 2),
+                            questionView(snapshot.data!, 3),
+                          ],
+                        );
                       } else {
-                        return Text('State: ${snapshot.connectionState}');
+                        return const Text('Empty data');
                       }
-                    }),
+                    } else {
+                      return Text('State: ${snapshot.connectionState}');
+                    }
+                  },
+                ),
                 SizedBox(height: height / 20),
                 Button(
                   "continuee".tr(),
@@ -234,8 +240,10 @@ class _SecurityQuestionsForInactiveAccounts
                 ),
                 SizedBox(height: height / 10),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),
@@ -256,8 +264,10 @@ class _SecurityQuestionsForInactiveAccounts
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
             decoration: InputDecoration(
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 20,
+                horizontal: 20,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide.none,
                 borderRadius: BorderRadius.circular(10),
@@ -354,7 +364,9 @@ class _SecurityQuestionsForInactiveAccounts
   }
 
   List<DropdownMenuItem<String>> getQuestions(
-      List<Map<dynamic, dynamic>> questionsList, int rel) {
+    List<Map<dynamic, dynamic>> questionsList,
+    int rel,
+  ) {
     var filteredQuestions = questionsList.where((question) {
       print('Q: ${questionsMap[1]!['q']} A: ${question['ID']}');
       if (rel != 1 && questionsMap[1]!['q'] == question['ID'].toString())
@@ -368,10 +380,9 @@ class _SecurityQuestionsForInactiveAccounts
     return filteredQuestions
         .map(
           (question) => DropdownMenuItem<String>(
-              child: Text(
-                question['Question'],
-              ),
-              value: question['ID'].toString()),
+            child: Text(question['Question']),
+            value: question['ID'].toString(),
+          ),
         )
         .toList();
   }
@@ -390,18 +401,24 @@ class _SecurityQuestionsForInactiveAccounts
       "q2": int.parse(questionsMap[2]!['q'].toString()),
       "a2": questionsMap[2]!['a'],
       "q3": int.parse(questionsMap[3]!['q'].toString()),
-      "a3": questionsMap[3]!['a']
+      "a3": questionsMap[3]!['a'],
     };
     appState.setTempSecurityQuestionsAndAnswers = map;
     appState.viewData![EnsurePrivacyPageConfig.key] = {
       'rel': 'restoreUnactivatedAccount',
     };
-    appState.currentAction =
-        PageAction(state: PageState.addPage, page: RequestBackupViewPageConfig);
+    appState.currentAction = PageAction(
+      state: PageState.addPage,
+      page: RequestBackupViewPageConfig,
+    );
   }
 
   Future<List<Map>> fetchQuestions(
-      signer, secretKey, publicKey, username) async {
+    signer,
+    secretKey,
+    publicKey,
+    username,
+  ) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,

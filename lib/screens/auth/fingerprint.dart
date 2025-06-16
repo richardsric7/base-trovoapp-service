@@ -255,14 +255,17 @@ class _FingerPrintState extends State<FingerPrint> {
                       ElevatedButton(
                         onPressed: () => {_submit()},
                         style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
+                          fixedSize: WidgetStateProperty.all(
                             Size(width / 1.5, height / 20),
                           ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
+                          backgroundColor: WidgetStateProperty.all<Color>(
                             notifier.getbluecolor,
                           ),
+                          foregroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getwihitecolor,
+                          ),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                                 const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(10),
@@ -289,10 +292,10 @@ class _FingerPrintState extends State<FingerPrint> {
                           ),
                         ),
                         style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
+                          fixedSize: WidgetStateProperty.all(
                             Size(width / 1.5, height / 20),
                           ),
-                          side: MaterialStateProperty.all(
+                          side: WidgetStateProperty.all(
                             BorderSide(
                               color: notifier.getgrey,
                               width: 1,
@@ -300,7 +303,7 @@ class _FingerPrintState extends State<FingerPrint> {
                             ),
                           ),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                                 const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(10),

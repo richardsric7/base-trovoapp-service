@@ -56,42 +56,42 @@ class _ButtonState extends State<Button> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-      ),
+      decoration: BoxDecoration(borderRadius: borderRadius),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: widget.height ?? height / 15,
-              width: widget.width ?? width / 1.1,
-              child: ElevatedButton(
-                onPressed: widget.onTap,
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(widget.colorbutton!),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                height: widget.height ?? height / 15,
+                width: widget.width ?? width / 1.1,
+                child: ElevatedButton(
+                  onPressed: widget.onTap,
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      widget.colorbutton!,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      widget.buttontext!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: fontbody,
+                        fontSize: 15,
+                        color: widget.buttontextcolor,
                       ),
                     ),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    widget.buttontext!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontFamily: fontbody,
-                        fontSize: 15,
-                        color: widget.buttontextcolor),
-                  ),
-                ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -149,52 +149,46 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-      ),
+      decoration: BoxDecoration(borderRadius: borderRadius),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: widget.height ?? height / 15,
-              width: widget.width ?? width / 1.1,
-              child: ElevatedButton(
-                onPressed: widget.onTap,
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(widget.colorbutton!),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                height: widget.height ?? height / 15,
+                width: widget.width ?? width / 1.1,
+                child: ElevatedButton(
+                  onPressed: widget.onTap,
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      widget.colorbutton!,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      widget.imageUrl,
-                      height: 50,
-                      width: 50,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text(
-                      widget.buttontext!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
+                  child: Row(
+                    children: [
+                      Image.asset(widget.imageUrl, height: 50, width: 50),
+                      SizedBox(width: 5),
+                      Text(
+                        widget.buttontext!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
                           fontFamily: fontbody,
                           fontSize: 15,
-                          color: widget.buttontextcolor),
-                    ),
-                  ],
+                          color: widget.buttontextcolor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -252,52 +246,48 @@ class _HalfButtonWithIconState extends State<HalfButtonWithIcon> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-      ),
+      decoration: BoxDecoration(borderRadius: borderRadius),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: widget.height ?? height / 15,
-              width: widget.width ?? width / 1.1,
-              child: ElevatedButton(
-                onPressed: widget.onTap,
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(widget.colorbutton!),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                height: widget.height ?? height / 15,
+                width: widget.width ?? width / 1.1,
+                child: ElevatedButton(
+                  onPressed: widget.onTap,
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      widget.colorbutton!,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
                       ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      widget.imageUrl,
-                      height: 40,
-                      width: 40,
-                    ),
-                    Container(
-                      constraints: BoxConstraints(maxWidth: 100),
-                      child: Text(
-                        widget.buttontext!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+                  child: Row(
+                    children: [
+                      Image.asset(widget.imageUrl, height: 40, width: 40),
+                      Container(
+                        constraints: BoxConstraints(maxWidth: 100),
+                        child: Text(
+                          widget.buttontext!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             fontFamily: fontbody,
                             fontSize: 12,
-                            color: widget.buttontextcolor),
+                            color: widget.buttontextcolor,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -313,9 +303,16 @@ class ButtonOutlined extends StatefulWidget {
   final double? height;
   final void Function()? onTap;
 
-  const ButtonOutlined(this.buttontext, this.colorbutton, this.buttontextcolor,
-      {Key? key, this.onTap, this.width, this.height, this.borderColor})
-      : super(key: key);
+  const ButtonOutlined(
+    this.buttontext,
+    this.colorbutton,
+    this.buttontextcolor, {
+    Key? key,
+    this.onTap,
+    this.width,
+    this.height,
+    this.borderColor,
+  }) : super(key: key);
 
   @override
   State<ButtonOutlined> createState() => _ButtonOutlinedState();
@@ -348,51 +345,53 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-      ),
+      decoration: BoxDecoration(borderRadius: borderRadius),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: widget.height ?? height / 15,
-              width: widget.width ?? width / 1.1,
-              child: TextButton(
-                onPressed: widget.onTap,
-                style: ButtonStyle(
-                  overlayColor:
-                      MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-                  elevation: MaterialStateProperty.all<double>(0),
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(widget.colorbutton!),
-                  side: MaterialStateProperty.all(
-                    BorderSide(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                height: widget.height ?? height / 15,
+                width: widget.width ?? width / 1.1,
+                child: TextButton(
+                  onPressed: widget.onTap,
+                  style: ButtonStyle(
+                    overlayColor: WidgetStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      widget.colorbutton!,
+                    ),
+                    side: WidgetStateProperty.all(
+                      BorderSide(
                         color: widget.borderColor ?? notifier.getgrey,
                         width: 1,
-                        style: BorderStyle.solid),
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
                   ),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
+                  child: Center(
+                    child: Text(
+                      widget.buttontext!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: fontbody,
+                        fontSize: 15,
+                        color: widget.buttontextcolor,
                       ),
                     ),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    widget.buttontext!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontFamily: fontbody,
-                        fontSize: 15,
-                        color: widget.buttontextcolor),
-                  ),
-                ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -406,9 +405,12 @@ class SmallButtonOutlined extends StatefulWidget {
   final void Function()? onTap;
 
   const SmallButtonOutlined(
-      this.buttontext, this.colorbutton, this.buttontextcolor,
-      {Key? key, this.onTap})
-      : super(key: key);
+    this.buttontext,
+    this.colorbutton,
+    this.buttontextcolor, {
+    Key? key,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   State<SmallButtonOutlined> createState() => _SmallButtonOutlinedState();
@@ -443,19 +445,18 @@ class _SmallButtonOutlinedState extends State<SmallButtonOutlined> {
     return ElevatedButton(
       onPressed: widget.onTap,
       style: ButtonStyle(
-        overlayColor: MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-        backgroundColor: MaterialStateProperty.all<Color>(widget.colorbutton!),
-        side: MaterialStateProperty.all(
+        overlayColor: WidgetStateProperty.all<Color>(notifier.getsplashgrey),
+        backgroundColor: WidgetStateProperty.all<Color>(widget.colorbutton!),
+        side: WidgetStateProperty.all(
           BorderSide(
-              color: notifier.getbluewhitecolor,
-              width: 1,
-              style: BorderStyle.solid),
+            color: notifier.getbluewhitecolor,
+            width: 1,
+            style: BorderStyle.solid,
+          ),
         ),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(10),
-            ),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),
       ),
@@ -517,12 +518,10 @@ class _SmallButtonState extends State<SmallButton> {
     return ElevatedButton(
       onPressed: widget.onTap,
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(widget.colorbutton!),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        backgroundColor: WidgetStateProperty.all<Color>(widget.colorbutton!),
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(10),
-            ),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),
       ),

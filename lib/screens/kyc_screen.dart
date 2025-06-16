@@ -1,8 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
@@ -19,14 +23,44 @@ class KYCScreen extends StatefulWidget {
 
 class _KYCScreenState extends State<KYCScreen> {
   bool granted = false;
+  bool isCorporate = false;
   String userID = '';
+  late DataProvider appState;
+  late Future<dynamic> kycConfigFuture;
+  String demoText =
+      '''This is a demo process. Your data will not be stored or retained by Dojah and will only be used
+        for the purpose of demonstrating this process flow.''';
 
   @override
   void initState() {
     checkPermission();
     super.initState();
-    var appState = Provider.of<DataProvider>(context, listen: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
     userID = appState.userInfo!.username!;
+    isCorporate = appState.userInfo!.isCorporate;
+    kycConfigFuture = fetchKycConfigs();
+  }
+
+  Future<void> fetchKycConfigs() async {
+    try {
+      var uri = '/v1/users/kyc/doja/configs';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        return responseData['data'];
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      return Future.error('Error! ${e}');
+    }
   }
 
   // check that the user allows for permission to use their camera
@@ -56,7 +90,6 @@ class _KYCScreenState extends State<KYCScreen> {
   // the various parameters that are submitted and are fetched from .env variables
   final appID = '67e69361a7d4138770eac9e2';
   final publicKey = 'test_pk_MNldwKATpyKxLjJoEfjkgH8hK';
-  final widgetID = '67e6968cc5f45aec8ae35e0a';
 
   InAppWebViewController? _webViewController;
 
@@ -70,14 +103,159 @@ class _KYCScreenState extends State<KYCScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: InAppWebView(
-          // initialOptions: options,
-          initialUrlRequest: URLRequest(url: WebUri("https://widget.dojah.io")),
-          initialData: InAppWebViewInitialData(
-            data:
-                """
+    var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    var height = MediaQuery.of(context).size.height;
+    return FutureBuilder<dynamic>(
+      future: kycConfigFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: SafeArea(
+              child: SizedBox(
+                height: height,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    backgroundColor: notifier.getbluecolor,
+                    valueColor: new AlwaysStoppedAnimation<Color>(
+                      notifier.getgreencolor,
+                    ),
+                    strokeWidth: 3.0,
+                  ),
+                ),
+              ),
+            ),
+          );
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: height,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "somethingwentwrong".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              kycConfigFuture = fetchKycConfigs();
+                            });
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all<Color>(
+                              notifier.getbluecolor!,
+                            ),
+                            foregroundColor: WidgetStateProperty.all<Color>(
+                              notifier.getwihitecolor,
+                            ),
+                          ),
+                          child: Text(
+                            "retry".tr(),
+                            style: TextStyle(fontFamily: fontsemibold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          } else if (snapshot.hasData) {
+            var data = snapshot.data;
+            final kycProgress = data['kycProgress'];
+            final widgets = data['widgets'];
+            String? widgetId;
+            bool isAlreadySubmitted = false;
+
+            for (int level = 1; level <= 4; level++) {
+              final levelKey = 'kycLevel${level}Completed';
+
+              if (kycProgress[levelKey] == 0) {
+                if (kycProgress['kycLevel${level}Submitted'] == 1) {
+                  isAlreadySubmitted = true;
+                  break;
+                }
+
+                for (final widget in widgets) {
+                  if (widget['level'] == level) {
+                    if (!isCorporate || widget['corporate'] == 1) {
+                      widgetId = widget['id'];
+                      print('widgetId $widgetId');
+                      print(widget);
+                      break;
+                    }
+                  }
+                }
+                if (widgetId != null) break; // stop once widgetId is found
+              }
+            }
+
+            print('=========> isalreadySubmitted = $isAlreadySubmitted');
+
+            if (isAlreadySubmitted) {
+              return Scaffold(
+                body: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Your level ${appState.userInfo?.kycVerified} KYC is already submitted and is currently processing. Kindly wait for a resolution in the next few minutes.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getbluecolor!,
+                              ),
+                              foregroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getwihitecolor,
+                              ),
+                            ),
+                            child: Text(
+                              "close".tr(),
+                              style: TextStyle(fontFamily: fontsemibold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return Scaffold(
+              body: SafeArea(
+                child: InAppWebView(
+                  // initialOptions: options,
+                  initialUrlRequest: URLRequest(
+                    url: WebUri("https://widget.dojah.io"),
+                  ),
+                  initialData: InAppWebViewInitialData(
+                    data:
+                        """
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -136,47 +314,46 @@ class _KYCScreenState extends State<KYCScreen> {
   </head>
   <body>
     <div
-    style="
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh";
-    "
-  >
-    <!-- logo goes here -->
-    <img src="favicon.ico" alt="" />
-    <!-- <p>Logo</p> -->
-    <p
       style="
-      font-size: 16px;
-      color: #1b2a4e;
-      font-weight: bold;
-      margin-top: 48px;
-      margin-bottom: 21px;
-      text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh";
       "
     >
-      Verify your identity with this Demo
-    </p>
-    <div>
-      <p class="paragraphText">
-      Your data will not be stored or retained by Dojah and will only be used
-      for the purpose of demonstrating this process flow.
+      <!-- logo goes here -->
+      <img src="favicon.ico" alt="" />
+      <!-- <p>Logo</p> -->
+      <p
+        style="
+        font-size: 16px;
+        color: #1b2a4e;
+        font-weight: bold;
+        margin-top: 48px;
+        margin-bottom: 21px;
+        text-align: center;
+        "
+      >
+        Verify your identity with Dojah
       </p>
-    </div>
-  
-    <button id="custom-btn-connect">Custom Widget</button>
-    <p
-      style="
-      margin-top: 16px;
-      font-size: 12px;
-      line-height: 17.54px;
-      text-align: center;
-      "
-    >
-      By clicking the button above, you agree to <a href="https://www.dojah.io/policy" target="_blank" rel="noopener" style="text-decoration: underline; color: #1b2a4e"> Dojah's Privacy Policy </a>
-    </p>
+      <div>
+        <p class="paragraphText">
+        $demoText
+        </p>
+      </div>
+    
+      <button id="custom-btn-connect">Start Level ${appState.userInfo?.kycVerified} KYC</button>
+      <p
+        style="
+        margin-top: 16px;
+        font-size: 12px;
+        line-height: 17.54px;
+        text-align: center;
+        "
+      >
+        By clicking the button above, you agree to <a href="https://www.dojah.io/policy" target="_blank" rel="noopener" style="text-decoration: underline; color: #1b2a4e"> Dojah's Privacy Policy </a>
+      </p>
   </div>
 
   <script src="https://widget.dojah.io/widget.js"></script>
@@ -189,7 +366,7 @@ class _KYCScreenState extends State<KYCScreen> {
       user_id: '${userID}',
       },
       config: {
-      widget_id: "$widgetID"
+      widget_id: "$widgetId"
       },
       onSuccess: function (response) {
       window.flutter_inappwebview.callHandler('onSuccessCallback', response)
@@ -212,47 +389,60 @@ class _KYCScreenState extends State<KYCScreen> {
 
 </html>
                 """,
-            historyUrl: WebUri("https://widget.dojah.io"),
-            mimeType: "text/html",
-            baseUrl: WebUri("https://widget.dojah.io"),
+                    historyUrl: WebUri("https://widget.dojah.io"),
+                    mimeType: "text/html",
+                    baseUrl: WebUri("https://widget.dojah.io"),
+                  ),
+                  onWebViewCreated: (controller) {
+                    _webViewController = controller;
+
+                    _webViewController?.addJavaScriptHandler(
+                      handlerName: 'onSuccessCallback',
+                      callback: (response) {
+                        success(response);
+                      },
+                    );
+
+                    _webViewController?.addJavaScriptHandler(
+                      handlerName: 'onCancelCallback',
+                      callback: (response) {
+                        cancel(response);
+                      },
+                    );
+                  },
+                  onGeolocationPermissionsShowPrompt:
+                      (controller, origin) async {
+                        return GeolocationPermissionShowPromptResponse(
+                          origin: origin,
+                          allow: true, // Grant permission
+                          retain: true, // Retain permission for future requests
+                        );
+                      },
+                  onPermissionRequest: (controller, request) async {
+                    return PermissionResponse(
+                      resources: request.resources,
+                      action: PermissionResponseAction.GRANT,
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+        }
+        return Scaffold(
+          body: SafeArea(
+            child: Text(
+              '',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                fontFamily: fontsemibold,
+              ),
+            ),
           ),
-          onWebViewCreated: (controller) {
-            _webViewController = controller;
-
-            _webViewController?.addJavaScriptHandler(
-              handlerName: 'onSuccessCallback',
-              callback: (response) {
-                success(response);
-              },
-            );
-
-            _webViewController?.addJavaScriptHandler(
-              handlerName: 'onCancelCallback',
-              callback: (response) {
-                cancel(response);
-              },
-            );
-          },
-          onGeolocationPermissionsShowPrompt: (controller, origin) async {
-            return GeolocationPermissionShowPromptResponse(
-              origin: origin,
-              allow: true, // Grant permission
-              retain: true, // Retain permission for future requests
-            );
-          },
-          // onPermissionRequest: (
-          //   controller,
-          //   PermissionResponse(
-          //       resources: resources, action: PermissionResponseAction.GRANT)
-          // ),
-          onPermissionRequest: (controller, request) async {
-            return PermissionResponse(
-              resources: request.resources,
-              action: PermissionResponseAction.GRANT,
-            );
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 

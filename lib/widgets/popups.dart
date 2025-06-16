@@ -111,13 +111,16 @@ popup(
                     Navigator.of(context).pop(); // dismiss dialog,
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -311,13 +314,16 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                     );
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -338,24 +344,24 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -463,13 +469,13 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                       onContinueWithCredentials();
                     },
                     style: ButtonStyle(
-                      fixedSize: MaterialStateProperty.all(
+                      fixedSize: WidgetStateProperty.all(
                         Size(width / 1.5, height / 20),
                       ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
+                      backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluecolor,
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
@@ -496,13 +502,13 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                     onImportNewCredential();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor90,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -526,24 +532,24 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                     onGoBackToPrevEnvironment();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -642,13 +648,16 @@ void ensureBackupPrivacyDialog(context, action) {
                 child: ElevatedButton(
                   onPressed: action,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -666,24 +675,24 @@ void ensureBackupPrivacyDialog(context, action) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -803,13 +812,16 @@ void showPasswordDialog(context, action) {
                     Navigator.of(context).pop(); // dismiss dialog,
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -827,24 +839,24 @@ void showPasswordDialog(context, action) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -938,13 +950,16 @@ void warnSkipBackupDialog(context, onSkip) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -964,24 +979,24 @@ void warnSkipBackupDialog(context, onSkip) {
                     onSkip();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1074,13 +1089,16 @@ void updateAppMessagePopup(context, message, Function() onTap) {
                     onTap();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1172,13 +1190,16 @@ void showResponseMessage(context, message, successAction) {
                     successAction();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1197,24 +1218,24 @@ void showResponseMessage(context, message, successAction) {
                     Navigator.of(context).pop(); // dismiss dialog,
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1308,13 +1329,16 @@ void mintWalletExplainerPopup(context) {
                     Navigator.of(context).pop();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1403,13 +1427,13 @@ void showSuccessAlert(context, {required onTap}) {
                     onTap();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getgreencolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1493,13 +1517,16 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                   },
                   // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1520,24 +1547,24 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                     appState.dialogOpen = false;
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -1811,20 +1838,17 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                         onDone();
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -1995,20 +2019,17 @@ amountRangePopup(context, {required void Function() onDone}) async {
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -2129,20 +2150,17 @@ textFieldPopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -2519,13 +2537,16 @@ void haveYouSetupSecurityQuestionsPopup(
                     onYes();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -2546,24 +2567,24 @@ void haveYouSetupSecurityQuestionsPopup(
                     onNo();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -2723,13 +2744,16 @@ shareAccessInfoPopup(context) async {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -2853,13 +2877,16 @@ findCoordinatesPopup(context) async {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -2987,13 +3014,16 @@ void rejectionReasonPopup(context, void Function(String) action) {
                     Navigator.of(context).pop(); // dismiss dialog,
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3011,24 +3041,24 @@ void rejectionReasonPopup(context, void Function(String) action) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3254,20 +3284,17 @@ approvalTextFieldPopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -3409,24 +3436,24 @@ void showChooseWalletPopup(
                   },
                   // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3534,20 +3561,17 @@ wrappedAssetsTextFieldPopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -3684,13 +3708,16 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                     Navigator.of(context).pop(); // dismiss dialog,
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3708,24 +3735,24 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                   onPressed: () =>
                       Navigator.of(context).pop(), // dismiss dialog,
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3819,13 +3846,16 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                     onDisable();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3844,24 +3874,24 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                     Navigator.of(context).pop();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3934,13 +3964,16 @@ void viewOnlySharedWalletOptions(
                     onModify();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -3960,24 +3993,24 @@ void viewOnlySharedWalletOptions(
                     onDisable();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -4208,14 +4241,14 @@ showDocumentUploadPopup(
                           onDone(selectedOption, file!);
                         },
                         style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
+                          fixedSize: WidgetStateProperty.all(
                             Size(width / 1.5, height / 20),
                           ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
+                          backgroundColor: WidgetStateProperty.all<Color>(
                             notifier.getbluecolor,
                           ),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                                 const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(10),
@@ -4381,20 +4414,17 @@ showSubscribePopup(
                         onDone(amount);
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         asset.expressedInterest ?? false
@@ -4415,31 +4445,28 @@ showSubscribePopup(
                       },
                       // dismiss dialog,
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        elevation: WidgetStateProperty.all<double>(0),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getwihitecolor!,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getgrey,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "cancel".tr(),
@@ -4558,20 +4585,17 @@ showUnSubscribePopup(
                         onDone(selectedWalletPublicKey);
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "unsubscribe".tr(),
@@ -4590,31 +4614,28 @@ showUnSubscribePopup(
                       },
                       // dismiss dialog,
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        elevation: WidgetStateProperty.all<double>(0),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getwihitecolor!,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getgrey,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "cancel".tr(),
@@ -4733,20 +4754,17 @@ showBuyTokenPopup(
                         onDone(selectedWallet!);
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "proceedtobuytokens".tr(),
@@ -4764,31 +4782,28 @@ showBuyTokenPopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        elevation: WidgetStateProperty.all<double>(0),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getwihitecolor!,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getgrey,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "cancel".tr(),
@@ -4878,20 +4893,17 @@ showSwitchEnvironmentPopup(
                         onProceed();
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "switchto".tr(args: [toEnvironment]),
@@ -4910,31 +4922,28 @@ showSwitchEnvironmentPopup(
                         onCancel();
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        elevation: WidgetStateProperty.all<double>(0),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getwihitecolor!,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getgrey,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "cancel".tr(),
@@ -5023,20 +5032,17 @@ showSwitchModePopup(
                         onCreateWallet();
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "createwallet".tr(),
@@ -5055,31 +5061,28 @@ showSwitchModePopup(
                         onImportWallet();
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        elevation: WidgetStateProperty.all<double>(0),
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getwihitecolor!,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getgrey,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "importwallet".tr(),
@@ -6252,13 +6255,13 @@ showCreateTokenizationWalletPopup(context) async {
                           addSubWalletPopup(context);
                         },
                         style: ButtonStyle(
-                          overlayColor: MaterialStateProperty.all<Color>(
+                          overlayColor: WidgetStateProperty.all<Color>(
                             notifier.getsplashgrey,
                           ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
+                          backgroundColor: WidgetStateProperty.all<Color>(
                             notifier.getbluewhitecolor,
                           ),
-                          side: MaterialStateProperty.all(
+                          side: WidgetStateProperty.all(
                             BorderSide(
                               color: notifier.getbluewhitecolor,
                               width: 1,
@@ -6266,7 +6269,7 @@ showCreateTokenizationWalletPopup(context) async {
                             ),
                           ),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                                 const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(10),
@@ -6795,16 +6798,14 @@ uploadTokenizationFeePopup(
                             setStateForDialog(() {});
                           },
                           style: ButtonStyle(
-                            fixedSize: MaterialStateProperty.all(
+                            fixedSize: WidgetStateProperty.all(
                               Size(width / 1.5, height / 20),
                             ),
-                            backgroundColor: MaterialStateProperty.all<Color>(
+                            backgroundColor: WidgetStateProperty.all<Color>(
                               notifier.getbluecolor,
                             ),
                             shape:
-                                MaterialStateProperty.all<
-                                  RoundedRectangleBorder
-                                >(
+                                WidgetStateProperty.all<RoundedRectangleBorder>(
                                   const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(10),
@@ -6827,17 +6828,17 @@ uploadTokenizationFeePopup(
                           onPressed: () =>
                               Navigator.of(context).pop(), // dismiss dialog,
                           style: ButtonStyle(
-                            fixedSize: MaterialStateProperty.all(
+                            fixedSize: WidgetStateProperty.all(
                               Size(width / 1.5, height / 20),
                             ),
-                            overlayColor: MaterialStateProperty.all<Color>(
+                            overlayColor: WidgetStateProperty.all<Color>(
                               notifier.getsplashgrey,
                             ),
-                            elevation: MaterialStateProperty.all<double>(0),
-                            backgroundColor: MaterialStateProperty.all<Color>(
+                            elevation: WidgetStateProperty.all<double>(0),
+                            backgroundColor: WidgetStateProperty.all<Color>(
                               notifier.getwihitecolor!,
                             ),
-                            side: MaterialStateProperty.all(
+                            side: WidgetStateProperty.all(
                               BorderSide(
                                 color: notifier.getgrey,
                                 width: 1,
@@ -6845,9 +6846,7 @@ uploadTokenizationFeePopup(
                               ),
                             ),
                             shape:
-                                MaterialStateProperty.all<
-                                  RoundedRectangleBorder
-                                >(
+                                WidgetStateProperty.all<RoundedRectangleBorder>(
                                   const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(10),
@@ -6960,20 +6959,17 @@ tokenizationFilterTextFieldPopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -7438,20 +7434,17 @@ tokenizationCustomDateRangePopup(
                         }
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -7590,20 +7583,17 @@ tokenizationAmountRangePopup(
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
+                        fixedSize: WidgetStateProperty.all(
                           Size(width / 1.5, height / 20),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluecolor,
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Text(
                         "done".tr(),
@@ -7700,13 +7690,16 @@ void kycUnverifiedErrorPop(context) {
                     );
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getbluecolor,
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
@@ -7725,24 +7718,24 @@ void kycUnverifiedErrorPop(context) {
                     Navigator.of(context).pop();
                   },
                   style: ButtonStyle(
-                    fixedSize: MaterialStateProperty.all(
+                    fixedSize: WidgetStateProperty.all(
                       Size(width / 1.5, height / 20),
                     ),
-                    overlayColor: MaterialStateProperty.all<Color>(
+                    overlayColor: WidgetStateProperty.all<Color>(
                       notifier.getsplashgrey,
                     ),
-                    elevation: MaterialStateProperty.all<double>(0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor!,
                     ),
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),

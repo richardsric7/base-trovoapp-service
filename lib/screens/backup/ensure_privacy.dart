@@ -47,9 +47,10 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Text(
                 "backup".tr(),
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -57,9 +58,10 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 child: Text(
                   "iensuredprivacy".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 50),
@@ -68,9 +70,10 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 child: Text(
                   "iunderstandimportanceofsecretkey".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 50),
@@ -79,20 +82,22 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 child: Text(
                   "iunderstandliability".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 50),
               acceptAll(
-                  hasAccepted,
-                  (value) => {
-                        print('hasAccepted $hasAccepted'),
-                        setState(() {
-                          hasAccepted = !hasAccepted;
-                        }),
-                      }),
+                hasAccepted,
+                (value) => {
+                  print('hasAccepted $hasAccepted'),
+                  setState(() {
+                    hasAccepted = !hasAccepted;
+                  }),
+                },
+              ),
               SizedBox(height: height / 4.3),
               Button(
                 "continuee".tr(),
@@ -102,12 +107,15 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                   if (hasAccepted) {
                     gotoNext();
                   } else {
-                    popup(context,
-                        title: "important".tr(),
-                        message: "ensureaccepted".tr());
+                    popup(
+                      context,
+                      title: "important".tr(),
+                      message: "ensureaccepted".tr(),
+                    );
                   }
                 },
               ),
+              SizedBox(height: height / 20),
             ],
           ),
         ),
@@ -115,10 +123,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
     );
   }
 
-  Widget acceptAll(
-    value,
-    onChanged,
-  ) {
+  Widget acceptAll(value, onChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -126,9 +131,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
           scale: 1.sp,
           child: Checkbox(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
             ),
             activeColor: notifier.getbluecolor,
             side: BorderSide(color: notifier.getbluewhitecolor),
@@ -145,13 +148,14 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               child: Text(
                 "iunderstandall".tr(),
                 style: TextStyle(
-                    fontSize: height / 55,
-                    color: notifier.getgrey,
-                    fontFamily: fontbody),
+                  fontSize: height / 55,
+                  color: notifier.getgrey,
+                  fontFamily: fontbody,
+                ),
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -160,17 +164,25 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
     var data = appState.viewData![EnsurePrivacyPageConfig.key];
     print('gotoNext: $data');
     if (data != null && data['rel'] == 'backupAll') {
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.addPage,
+        page: BackupAllViewPageConfig,
+      );
     } else if (data != null && data['rel'] == 'accountRecovery') {
       appState.currentAction = PageAction(
-          state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
+        state: PageState.addPage,
+        page: BackupRecoverySecretViewPageConfig,
+      );
     } else if (data != null && data['rel'] == 'restoreUnactivatedAccount') {
       appState.currentAction = PageAction(
-          state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
+        state: PageState.addPage,
+        page: BackupRecoverySecretViewPageConfig,
+      );
     } else {
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: BackupPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.addPage,
+        page: BackupPageConfig,
+      );
     }
   }
 }

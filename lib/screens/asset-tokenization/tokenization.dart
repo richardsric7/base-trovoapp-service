@@ -335,17 +335,16 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                               ElevatedButton(
                                 onPressed: startTokenizationPressed,
                                 style: ButtonStyle(
-                                  overlayColor:
-                                      MaterialStateProperty.all<Color>(
-                                        notifier.getsplashgrey,
-                                      ),
+                                  overlayColor: WidgetStateProperty.all<Color>(
+                                    notifier.getsplashgrey,
+                                  ),
                                   backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                         notifier.isDark
                                             ? notifier.getbluecolor90
                                             : notifier.getaddsubwalletgrey,
                                       ),
-                                  side: MaterialStateProperty.all(
+                                  side: WidgetStateProperty.all(
                                     BorderSide(
                                       color: notifier.getbluewhitecolor,
                                       width: 1,
@@ -353,7 +352,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                     ),
                                   ),
                                   shape:
-                                      MaterialStateProperty.all<
+                                      WidgetStateProperty.all<
                                         RoundedRectangleBorder
                                       >(
                                         const RoundedRectangleBorder(
@@ -467,7 +466,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 },
                                 style: ButtonStyle(
                                   backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                         notifier.getbluecolor!,
                                       ),
                                 ),
@@ -668,27 +667,24 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     ElevatedButton(
                       onPressed: startTokenizationPressed,
                       style: ButtonStyle(
-                        overlayColor: MaterialStateProperty.all<Color>(
+                        overlayColor: WidgetStateProperty.all<Color>(
                           notifier.getsplashgrey,
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           notifier.getbluewhitecolor,
                         ),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(
                             color: notifier.getbluewhitecolor,
                             width: 1,
                             style: BorderStyle.solid,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                            ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                        ),
                       ),
                       child: Container(
                         width: width / 1.5,

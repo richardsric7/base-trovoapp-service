@@ -40,8 +40,9 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
 
-    tokenizedAssetListFuture =
-        fetchTokenizationList(status: appState.viewData!['rel']);
+    tokenizedAssetListFuture = fetchTokenizationList(
+      status: appState.viewData!['rel'],
+    );
   }
 
   @override
@@ -58,14 +59,14 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context,
-                notifier.getwihitecolor,
-                appState.viewData!['rel'] == 0
-                    ? "Primary Offers"
-                    : "Secondary Listing",
-                notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          appState.viewData!['rel'] == 0
+              ? "Primary Offers"
+              : "Secondary Listing",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -78,12 +79,12 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                   ),
                   child: primaryOffers(),
                 ),
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),
@@ -125,9 +126,10 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                             "somethingwentwrong".tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
                           ),
                           ElevatedButton(
                             onPressed: () {
@@ -137,14 +139,16 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                               });
                             },
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor!),
+                              backgroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getbluecolor80!,
+                              ),
+                              foregroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getwihitecolor,
+                              ),
                             ),
                             child: Text(
                               "retry".tr(),
-                              style: TextStyle(
-                                fontFamily: fontsemibold,
-                              ),
+                              style: TextStyle(fontFamily: fontsemibold),
                             ),
                           ),
                         ],
@@ -200,15 +204,16 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
                                   "nothingtoshowhere2".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        )
-                      ]
+                        ),
+                      ],
                     ],
                   );
                 }
@@ -232,18 +237,19 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet.publicKey,
+        ),
+      );
     });
     return wallets;
   }
 
-  Future<List<TokenizedAsset>> fetchTokenizationList(
-      {required int status}) async {
+  Future<List<TokenizedAsset>> fetchTokenizationList({
+    required int status,
+  }) async {
     try {
       await fetchExpressedInterests();
       await fetchSubscriptions();
@@ -264,14 +270,16 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
             var a = TokenizedAsset().deserializeJson(assets[i]);
             if (expressedInterests[a.id] != null) {
               a.expressedInterest = expressedInterests[a.id] != null;
-              a.expressedInterestAmount =
-                  double.parse(expressedInterests[a.id]['amount'].toString());
+              a.expressedInterestAmount = double.parse(
+                expressedInterests[a.id]['amount'].toString(),
+              );
             }
 
             if (subscriptions[a.id] != null) {
               a.isSubscribed = subscriptions[a.id] != null;
-              a.subscriptionAmount =
-                  double.parse(subscriptions[a.id]['amount'].toString());
+              a.subscriptionAmount = double.parse(
+                subscriptions[a.id]['amount'].toString(),
+              );
             }
             tokenizedAssets.add(a);
           }
@@ -343,14 +351,14 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
     }
   }
 
-  subscribeTokenizedAsset(
-      {required double amount, required String tokenizedAssetID}) async {
+  subscribeTokenizedAsset({
+    required double amount,
+    required String tokenizedAssetID,
+  }) async {
     try {
       showLoader(context);
 
-      String requestBody = jsonEncode({
-        'amount': amount,
-      });
+      String requestBody = jsonEncode({'amount': amount});
 
       print(requestBody);
 

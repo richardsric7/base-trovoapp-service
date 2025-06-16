@@ -54,9 +54,10 @@ class _BackupState extends State<Backup> {
               Text(
                 "backupwallet".tr(),
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -65,9 +66,10 @@ class _BackupState extends State<Backup> {
                   "writeitdown".tr(),
                   textAlign: TextAlign.justify,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               // display only for subwallets
@@ -79,15 +81,16 @@ class _BackupState extends State<Backup> {
                     "maynotbedisplayedagain".tr(),
                     textAlign: TextAlign.justify,
                     style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 15.sp,
-                        fontFamily: fontbody),
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody,
+                    ),
                   ),
                 ),
               ],
               SizedBox(height: height / 20),
               for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!)
+                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!),
               ],
               SizedBox(height: height / 20),
               Button(
@@ -100,8 +103,10 @@ class _BackupState extends State<Backup> {
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -113,8 +118,9 @@ class _BackupState extends State<Backup> {
     var wallets = <Wallet>[];
     secrets.forEach((secret) {
       Account account = TrovoWalletSDK().parseSecretKey(secret);
-      var wlt = user.wallets!
-          .firstWhereOrNull((wallet) => wallet.publicKey == account.publicKey);
+      var wlt = user.wallets!.firstWhereOrNull(
+        (wallet) => wallet.publicKey == account.publicKey,
+      );
       if (wlt == null) {
         wlt = state.primaryWallet;
       }
@@ -126,19 +132,26 @@ class _BackupState extends State<Backup> {
 
   gotoNext() async {
     if ((state.returnView != null && state.returnView!.pages != null) &&
-            state.returnView!.pages!
-                .contains(WalletPreparationViewPageConfig) ||
+            state.returnView!.pages!.contains(
+              WalletPreparationViewPageConfig,
+            ) ||
         state.backupSecrets.length > 1) {
       state.currentAction = PageAction(
-          state: PageState.addPage, page: SharedAccessViewPageConfig);
+        state: PageState.addPage,
+        page: SharedAccessViewPageConfig,
+      );
     } else if (state.returnView != null) {
       state.currentAction = state.returnView!;
     } else if (state.isFirstTime) {
-      state.currentAction =
-          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+      state.currentAction = PageAction(
+        state: PageState.addPage,
+        page: FingerprintPageConfig,
+      );
     } else {
-      state.currentAction =
-          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+      state.currentAction = PageAction(
+        state: PageState.replaceAll,
+        page: BottomHomePageConfig,
+      );
     }
   }
 }

@@ -37,21 +37,9 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
   late var primaryWallet;
   late Future<Map> securityQuestionsMap;
   var questionsMap = {
-    1: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    2: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
-    3: {
-      "q": "",
-      "a": "",
-      "e": false,
-    },
+    1: {"q": "", "a": "", "e": false},
+    2: {"q": "", "a": "", "e": false},
+    3: {"q": "", "a": "", "e": false},
   };
 
   getdarkmodepreviousstate() async {
@@ -69,13 +57,15 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    primaryWallet = appState.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.primaryWallet == 1);
+    primaryWallet = appState.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.primaryWallet == 1,
+    );
     securityQuestionsMap = fetchQuestions(
-        primaryWallet.signer,
-        appState.secretKeys[0],
-        primaryWallet.publicKey,
-        appState.userInfo!.username);
+      primaryWallet.signer,
+      appState.secretKeys[0],
+      primaryWallet.publicKey,
+      appState.userInfo!.username,
+    );
   }
 
   @override
@@ -104,25 +94,28 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   "disable".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 Text(
                   "accountrecovery".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 SizedBox(height: height / 20),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -132,7 +125,9 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 15.0),
+                            horizontal: 20.0,
+                            vertical: 15.0,
+                          ),
                           child: Column(
                             children: [
                               Container(
@@ -142,9 +137,10 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                                       .tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 2),
@@ -157,91 +153,108 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                 ),
                 SizedBox(height: height / 50),
                 FutureBuilder<Map>(
-                    future: securityQuestionsMap,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator(
-                          backgroundColor: notifier.getbluecolor,
-                          valueColor: new AlwaysStoppedAnimation<Color>(
-                            notifier.getgreencolor,
-                          ),
-                          strokeWidth: 3.0,
-                        );
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  "somethingwentwrong".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                  future: securityQuestionsMap,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(
+                        backgroundColor: notifier.getbluecolor,
+                        valueColor: new AlwaysStoppedAnimation<Color>(
+                          notifier.getgreencolor,
+                        ),
+                        strokeWidth: 3.0,
+                      );
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                "somethingwentwrong".tr(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      securityQuestionsMap = fetchQuestions(
-                                          primaryWallet.signer,
-                                          appState.secretKeys[0],
-                                          primaryWallet.publicKey,
-                                          appState.userInfo!.username);
-                                    });
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            notifier.getbluecolor!),
-                                  ),
-                                  child: Text(
-                                    "retry".tr(),
-                                    style: TextStyle(
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    securityQuestionsMap = fetchQuestions(
+                                      primaryWallet.signer,
+                                      appState.secretKeys[0],
+                                      primaryWallet.publicKey,
+                                      appState.userInfo!.username,
+                                    );
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getbluecolor!,
+                                      ),
+                                  foregroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                        notifier.getwihitecolor,
+                                      ),
+                                ),
+                                child: Text(
+                                  "retry".tr(),
+                                  style: TextStyle(fontFamily: fontsemibold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (snapshot.hasData) {
+                        var securityQuestions =
+                            snapshot.data!['securityQuestions'];
+                        var userSecurityAnswers =
+                            snapshot.data!['userSecurityAnswers'];
+                        return Column(
+                          children: [
+                            for (
+                              var i = 0;
+                              i < securityQuestions!.length;
+                              i++
+                            ) ...[
+                              if (securityQuestions[i]['ID'] ==
+                                  userSecurityAnswers['q1']) ...[
+                                questionView(
+                                  securityQuestions[i]['Question'],
+                                  securityQuestions[i]['ID'],
+                                  1,
                                 ),
                               ],
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          var securityQuestions =
-                              snapshot.data!['securityQuestions'];
-                          var userSecurityAnswers =
-                              snapshot.data!['userSecurityAnswers'];
-                          return Column(
-                            children: [
-                              for (var i = 0;
-                                  i < securityQuestions!.length;
-                                  i++) ...[
-                                if (securityQuestions[i]['ID'] ==
-                                    userSecurityAnswers['q1']) ...[
-                                  questionView(securityQuestions[i]['Question'],
-                                      securityQuestions[i]['ID'], 1),
-                                ],
-                                if (securityQuestions[i]['ID'] ==
-                                    userSecurityAnswers['q2']) ...[
-                                  questionView(securityQuestions[i]['Question'],
-                                      securityQuestions[i]['ID'], 2),
-                                ],
-                                if (securityQuestions[i]['ID'] ==
-                                    userSecurityAnswers['q3']) ...[
-                                  questionView(securityQuestions[i]['Question'],
-                                      securityQuestions[i]['ID'], 3),
-                                ]
-                              ]
+                              if (securityQuestions[i]['ID'] ==
+                                  userSecurityAnswers['q2']) ...[
+                                questionView(
+                                  securityQuestions[i]['Question'],
+                                  securityQuestions[i]['ID'],
+                                  2,
+                                ),
+                              ],
+                              if (securityQuestions[i]['ID'] ==
+                                  userSecurityAnswers['q3']) ...[
+                                questionView(
+                                  securityQuestions[i]['Question'],
+                                  securityQuestions[i]['ID'],
+                                  3,
+                                ),
+                              ],
                             ],
-                          );
-                        } else {
-                          return const Text('Empty data');
-                        }
+                          ],
+                        );
                       } else {
-                        return Text('State: ${snapshot.connectionState}');
+                        return const Text('Empty data');
                       }
-                    }),
+                    } else {
+                      return Text('State: ${snapshot.connectionState}');
+                    }
+                  },
+                ),
                 SizedBox(height: height / 20),
                 Button(
                   '${"disable".tr()} ${"accountrecovery".tr()}',
@@ -253,8 +266,10 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                 ),
                 SizedBox(height: height / 10),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),
@@ -276,9 +291,10 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                 child: Text(
                   '$question',
                   style: TextStyle(
-                      fontSize: 16,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
+                    fontSize: 16,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
             ),
@@ -333,12 +349,13 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
+        context,
+        data['messages'][messageShown],
+        () => {
+          print('postProcessData: $messageShown'),
+          postProcessData(messageShown, messageLength, data),
+        },
+      );
 
       messageShown++;
       return;
@@ -362,7 +379,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
           "q2": int.parse(questionsMap[2]!['q'].toString()),
           "a2": questionsMap[2]!['a'],
           "q3": int.parse(questionsMap[3]!['q'].toString()),
-          "a3": questionsMap[3]!['a']
+          "a3": questionsMap[3]!['a'],
         },
       };
       String requestBody = jsonEncode(map);
@@ -387,8 +404,11 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       print(e);
@@ -423,8 +443,13 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(primaryWallet.signer!, appState.secretKeys[0],
-            primaryWallet.publicKey!, appState.userInfo!.username, appState);
+        await updateUserInfo(
+          primaryWallet.signer!,
+          appState.secretKeys[0],
+          primaryWallet.publicKey!,
+          appState.userInfo!.username,
+          appState,
+        );
         hideLoader(context);
         // showSuccessAlert(context, onTap: () {
         //   appState.currentAction = PageAction(
@@ -434,13 +459,18 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
           SuccessViewPageConfig.key: {
             'title': "success".tr(),
             'message': "disableaccountrecoverysuccess".tr(),
-          }
+          },
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {

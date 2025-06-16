@@ -17,12 +17,7 @@ class Secret extends StatefulWidget {
   late final String alias;
   late final String secret;
   late final String publicKey;
-  Secret(
-    this.alias,
-    this.secret,
-    this.publicKey, {
-    Key? key,
-  }) : super(key: key);
+  Secret(this.alias, this.secret, this.publicKey, {Key? key}) : super(key: key);
 
   @override
   State<Secret> createState() => _SecretState();
@@ -71,9 +66,7 @@ class _SecretState extends State<Secret> {
                   ),
                   IconButton(
                     onPressed: () => {
-                      Clipboard.setData(
-                        ClipboardData(text: widget.alias),
-                      ),
+                      Clipboard.setData(ClipboardData(text: widget.alias)),
                       showSnackBar('Alias', context),
                     },
                     icon: Icon(Icons.copy),
@@ -106,9 +99,7 @@ class _SecretState extends State<Secret> {
                   ),
                   IconButton(
                     onPressed: () => {
-                      Clipboard.setData(
-                        ClipboardData(text: widget.publicKey),
-                      ),
+                      Clipboard.setData(ClipboardData(text: widget.publicKey)),
                       showSnackBar('Public Key', context),
                     },
                     icon: Icon(Icons.copy),
@@ -146,14 +137,13 @@ class _SecretState extends State<Secret> {
                       });
                     },
                     icon: Icon(
-                        show ? CupertinoIcons.eye_slash : CupertinoIcons.eye),
+                      show ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                    ),
                     color: notifier.getblck,
                   ),
                   IconButton(
                     onPressed: () => {
-                      Clipboard.setData(
-                        ClipboardData(text: widget.secret),
-                      ),
+                      Clipboard.setData(ClipboardData(text: widget.secret)),
                       showSnackBar('Secret', context),
                     },
                     icon: Icon(Icons.copy),
@@ -165,43 +155,52 @@ class _SecretState extends State<Secret> {
                 onPressed: () => {
                   Clipboard.setData(
                     ClipboardData(
-                        text:
-                            'Alias:  ${widget.alias}\n\nPublic Key:  ${widget.publicKey}\n\nSecretKey:  ${widget.secret}'),
+                      text:
+                          'Alias:  ${widget.alias}\n\nPublic Key:  ${widget.publicKey}\n\nSecretKey:  ${widget.secret}',
+                    ),
                   ),
                   showSnackBar('Wallet Details', context),
                 },
                 style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getbluecolor!,
+                  ),
+                  foregroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getwihitecolor,
+                  ),
                 ),
                 child: Text(
                   'Copy All',
-                  style: TextStyle(
-                    fontFamily: fontsemibold,
-                  ),
+                  style: TextStyle(fontFamily: fontsemibold),
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  final googleSignIn =
-                      GoogleSignIn.standard(scopes: [DriveApi.driveFileScope]);
+                  final googleSignIn = GoogleSignIn.standard(
+                    scopes: [DriveApi.driveFileScope],
+                  );
                   var account = await googleSignIn.signIn();
                   final GoogleSignInAuthentication? auth =
                       await account?.authentication;
                   print(
-                      'auth===================> ${account?.displayName} ${account?.email} ${account}');
+                    'auth===================> ${account?.displayName} ${account?.email} ${account}',
+                  );
                   final String accessToken = auth!.accessToken!;
                   var client = await GoogleDriveClient.create(
-                      googleSignIn.currentUser!, accessToken);
+                    googleSignIn.currentUser!,
+                    accessToken,
+                  );
 
                   var fileContent = await client.downloadFile();
                   print('file content... $fileContent');
 
                   if (fileContent == null ||
                       !fileContent.contains(
-                          "${widget.alias}|${widget.secret}|${widget.publicKey}")) {
+                        "${widget.alias}|${widget.secret}|${widget.publicKey}",
+                      )) {
                     client.uploadFile(
-                        '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.publicKey}');
+                      '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.publicKey}',
+                    );
                   } else {
                     print("Wallet already backed up.");
                   }
@@ -210,14 +209,16 @@ class _SecretState extends State<Secret> {
                   showSnackBarForInfo("backupsuccess".tr(), context);
                 },
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                      notifier.getbluecolor80!),
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getbluecolor80!,
+                  ),
+                  foregroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getwihitecolor,
+                  ),
                 ),
                 child: Text(
                   "backupongoogledrive".tr(),
-                  style: TextStyle(
-                    fontFamily: fontsemibold,
-                  ),
+                  style: TextStyle(fontFamily: fontsemibold),
                 ),
               ),
             ],

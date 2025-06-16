@@ -42,12 +42,12 @@ class _WalletPreparationState extends State<WalletPreparation>
     List<DropdownMenuItem<Wallet>> wallets = [];
     issuingWallets.forEach((wallet) {
       if (wallet.isSharedWalletAndCanInitiate) {
-        wallets.add(DropdownMenuItem(
-            child: Text(
-              wallet.alias!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: wallet));
+        wallets.add(
+          DropdownMenuItem(
+            child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+            value: wallet,
+          ),
+        );
       }
     });
     return wallets;
@@ -91,9 +91,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             ).getBar(),
             SizedBox(height: height / 50),
             walletPreparation(),
-            SizedBox(
-              height: height / 20,
-            ),
+            SizedBox(height: height / 20),
             Button(
               "continuee".tr(),
               notifier.getbluecolor,
@@ -115,13 +113,12 @@ class _WalletPreparationState extends State<WalletPreparation>
 
                 appState.viewData = {};
                 appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: SetupAndComplianceViewPageConfig);
+                  state: PageState.addPage,
+                  page: SetupAndComplianceViewPageConfig,
+                );
               },
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),
@@ -131,9 +128,7 @@ class _WalletPreparationState extends State<WalletPreparation>
   Widget walletPreparation() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -146,9 +141,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
         if (issuingWallets.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -175,9 +168,7 @@ class _WalletPreparationState extends State<WalletPreparation>
               ],
             ),
           ),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 70),
           // Padding(
           //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
           //   child: dropdown(
@@ -195,9 +186,7 @@ class _WalletPreparationState extends State<WalletPreparation>
           //     null,
           //   ),
           // ),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 70),
           Text(
             "oR".tr(),
             style: TextStyle(
@@ -207,15 +196,14 @@ class _WalletPreparationState extends State<WalletPreparation>
               color: notifier.getbluewhitecolor,
             ),
           ),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 70),
         ],
         TextButton(
           onPressed: () {
             appState.returnView = PageAction(
-                state: PageState.addAll,
-                pages: [BottomHomePageConfig, WalletPreparationViewPageConfig]);
+              state: PageState.addAll,
+              pages: [BottomHomePageConfig, WalletPreparationViewPageConfig],
+            );
             addSubWalletPopup(context);
           },
           child: Row(
@@ -237,9 +225,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             ],
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
       ],
     );
   }
@@ -267,18 +253,15 @@ class _WalletPreparationState extends State<WalletPreparation>
       child: ElevatedButton(
         onPressed: onClick,
         style: ButtonStyle(
-          overlayColor:
-              MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-          elevation: MaterialStateProperty.all<double>(0),
-          backgroundColor: MaterialStateProperty.all<Color>(backColor),
-          side: MaterialStateProperty.all(
+          overlayColor: WidgetStateProperty.all<Color>(notifier.getsplashgrey),
+          elevation: WidgetStateProperty.all<double>(0),
+          backgroundColor: WidgetStateProperty.all<Color>(backColor),
+          side: WidgetStateProperty.all(
             BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
           ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(10),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
           ),
         ),
@@ -292,7 +275,10 @@ class _WalletPreparationState extends State<WalletPreparation>
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
+                color: foreColor,
+                fontFamily: fontbody,
+                fontSize: fontSize,
+              ),
             ),
           ],
         ),

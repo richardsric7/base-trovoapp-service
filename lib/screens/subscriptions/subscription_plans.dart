@@ -111,9 +111,10 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
                             ),
                             ElevatedButton(
                               onPressed: () {
@@ -122,15 +123,16 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                 });
                               },
                               style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getbluecolor!,
+                                ),
+                                foregroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getwihitecolor,
+                                ),
                               ),
                               child: Text(
                                 "retry".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
+                                style: TextStyle(fontFamily: fontsemibold),
                               ),
                             ),
                           ],
@@ -186,47 +188,45 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                             if (p['id'] == grade['patronPackage']) {
                               package.description = p['description'];
                               package.packageListTitle = p['packageListTitle'];
-                              package.packageList =
-                                  p['packageList'].toString().split('|');
+                              package.packageList = p['packageList']
+                                  .toString()
+                                  .split('|');
                               package.logo =
                                   p['id'].toString().toLowerCase() == 'gold'
-                                      ? "assets/images/gold.png"
-                                      : p['id'].toString().toLowerCase() ==
-                                              'diamond'
-                                          ? "assets/images/diamond.png"
-                                          : "assets/images/platinum.png";
+                                  ? "assets/images/gold.png"
+                                  : p['id'].toString().toLowerCase() ==
+                                        'diamond'
+                                  ? "assets/images/diamond.png"
+                                  : "assets/images/platinum.png";
                             }
                           }
 
                           patronInfoList.add(package);
                         } else {
                           patronInfoList
-                              .firstWhere((item) =>
-                                  item.patronPackage == grade['patronPackage'])
+                              .firstWhere(
+                                (item) =>
+                                    item.patronPackage ==
+                                    grade['patronPackage'],
+                              )
                               .patronTiers
-                              .addAll(
-                                tierList,
-                              );
+                              .addAll(tierList);
                         }
                       }
 
                       return Column(
                         children: [
                           for (var info in patronInfoList) ...[
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             planItem(
                               info,
                               getColor(info.patronPackage),
                               onReadMore: () {
-                                appState.viewData = {
-                                  'patronInfo': info,
-                                };
+                                appState.viewData = {'patronInfo': info};
                                 appState.currentAction = PageAction(
-                                    state: PageState.addPage,
-                                    page:
-                                        SubscriptionPlanBenefitsViewPageConfig);
+                                  state: PageState.addPage,
+                                  page: SubscriptionPlanBenefitsViewPageConfig,
+                                );
                               },
                               onTap: () {
                                 appState.viewData = {
@@ -235,14 +235,13 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                   'paymentAssets': paymentAssetsList,
                                 };
                                 appState.currentAction = PageAction(
-                                    state: PageState.addPage,
-                                    page: AuthorizeSubscriptionViewPageConfig);
+                                  state: PageState.addPage,
+                                  page: AuthorizeSubscriptionViewPageConfig,
+                                );
                               },
                             ),
                           ],
-                          SizedBox(
-                            height: height / 10,
-                          ),
+                          SizedBox(height: height / 10),
                         ],
                       );
                     }
@@ -266,8 +265,12 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
     );
   }
 
-  Widget planItem(PatronInfo info, Color color,
-      {required void Function() onTap, required void Function() onReadMore}) {
+  Widget planItem(
+    PatronInfo info,
+    Color color, {
+    required void Function() onTap,
+    required void Function() onReadMore,
+  }) {
     return Column(
       children: [
         Padding(
@@ -284,14 +287,18 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                 Container(
                   height: 10,
                   decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(15.0),
-                          topRight: Radius.circular(15.0)),
-                      color: color),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15.0),
+                      topRight: Radius.circular(15.0),
+                    ),
+                    color: color,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 15.0),
+                    horizontal: 10.0,
+                    vertical: 15.0,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -300,9 +307,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: width / 50,
-                            ),
+                            SizedBox(width: width / 50),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -319,21 +324,31 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                     ),
                                     Text(
                                       currentTab == 0
-                                          ? "amountpermonth".tr(args: [
-                                              info.patronTiers[currentTab].price
-                                                  .toString(),
-                                            ])
+                                          ? "amountpermonth".tr(
+                                              args: [
+                                                info
+                                                    .patronTiers[currentTab]
+                                                    .price
+                                                    .toString(),
+                                              ],
+                                            )
                                           : currentTab == 1
-                                              ? "amountperyear".tr(args: [
-                                                  info.patronTiers[currentTab]
-                                                      .price
-                                                      .toString()
-                                                ])
-                                              : "lifetimeplan".tr(args: [
-                                                  info.patronTiers[currentTab]
-                                                      .price
-                                                      .toString()
-                                                ]),
+                                          ? "amountperyear".tr(
+                                              args: [
+                                                info
+                                                    .patronTiers[currentTab]
+                                                    .price
+                                                    .toString(),
+                                              ],
+                                            )
+                                          : "lifetimeplan".tr(
+                                              args: [
+                                                info
+                                                    .patronTiers[currentTab]
+                                                    .price
+                                                    .toString(),
+                                              ],
+                                            ),
                                       style: TextStyle(
                                         fontSize: 19,
                                         fontWeight: FontWeight.w400,
@@ -347,11 +362,15 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               ],
                             ),
                             if (info.patronPackage ==
-                                    appState.userInfo?.patronMembership
+                                    appState
+                                        .userInfo
+                                        ?.patronMembership
                                         ?.patronPackageId &&
                                 info.patronTiers[currentTab].price ==
                                     appState
-                                        .userInfo?.patronMembership?.price) ...[
+                                        .userInfo
+                                        ?.patronMembership
+                                        ?.price) ...[
                               SizedBox(height: 10),
                               Row(
                                 children: [
@@ -432,10 +451,11 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                     TextButton(
                       onPressed: onReadMore,
                       style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size(50, 30),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          alignment: Alignment.centerLeft),
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size(50, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        alignment: Alignment.centerLeft,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -449,13 +469,8 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               fontFamily: fontsemibold,
                             ),
                           ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 12,
-                          )
+                          SizedBox(width: 5),
+                          Icon(Icons.arrow_forward_ios, size: 12),
                         ],
                       ),
                     ),
@@ -479,32 +494,33 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
             child: ElevatedButton(
               onPressed: () => setState(() => currentTab = number),
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
+                backgroundColor: WidgetStateProperty.all<Color>(
                   notifier.isDark
                       ? darktilewhitecolor
                       : isActive
-                          ? notifier.getaddsubwalletgrey
-                          : wihitecolor,
+                      ? notifier.getaddsubwalletgrey
+                      : wihitecolor,
                 ),
-                side: MaterialStateProperty.all(
+                side: WidgetStateProperty.all(
                   BorderSide(
-                      color: isActive
-                          ? notifier.getbluewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                      width: 1.5,
-                      style: BorderStyle.solid),
+                    color: isActive
+                        ? notifier.getbluewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                    width: 1.5,
+                    style: BorderStyle.solid,
+                  ),
                 ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(15),
-                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
                 ),
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10.0,
+                  horizontal: 10,
+                ),
                 child: Text(
                   name,
                   overflow: TextOverflow.visible,
