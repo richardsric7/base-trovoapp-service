@@ -98,9 +98,12 @@ class _SignUpState extends State<SignUp> {
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -116,34 +119,35 @@ class _SignUpState extends State<SignUp> {
                           "ittakesaminute1".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 30.sp,
-                              fontFamily: fontsemibold),
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 30.sp,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                         Text(
                           "ittakesaminute2".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 30.sp,
-                              fontFamily: fontsemibold),
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 30.sp,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                         SizedBox(height: height / 20),
                         ToggleSwitch(
                           minHeight: height / 16,
-                          customWidths: [
-                            width / 2.4,
-                            width / 2.4,
-                          ],
+                          customWidths: [width / 2.4, width / 2.4],
                           customTextStyles: [
                             TextStyle(
-                                fontSize: height / 55,
-                                color: corporate == 0 ? wihitecolor : darkblck,
-                                fontFamily: fontbody),
+                              fontSize: height / 55,
+                              color: corporate == 0 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
                             TextStyle(
-                                fontSize: height / 55,
-                                color: corporate == 1 ? wihitecolor : darkblck,
-                                fontFamily: fontbody),
+                              fontSize: height / 55,
+                              color: corporate == 1 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
                           ],
                           fontSize: 16.0,
                           initialLabelIndex: corporate,
@@ -270,8 +274,10 @@ class _SignUpState extends State<SignUp> {
                               70.sp,
                               300.sp,
                               validator: (value) {
-                                var trimmedVal =
-                                    value!.trim().replaceAll(' ', '');
+                                var trimmedVal = value!.trim().replaceAll(
+                                  ' ',
+                                  '',
+                                );
                                 if (trimmedVal.isNotEmpty &&
                                     trimmedVal.length < 56) {
                                   return "secretkeyinvalid".tr();
@@ -284,7 +290,7 @@ class _SignUpState extends State<SignUp> {
                               controller: secretKeyController,
                               maxLength: 56,
                               focusNode: secretKeyFocusNode,
-                            )
+                            ),
                           ],
                           Row(
                             children: [
@@ -326,9 +332,10 @@ class _SignUpState extends State<SignUp> {
                   Text(
                     "alreadyregistered".tr(),
                     style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 13.sp,
-                        fontFamily: fontbody),
+                      color: notifier.getgrey,
+                      fontSize: 13.sp,
+                      fontFamily: fontbody,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -345,19 +352,22 @@ class _SignUpState extends State<SignUp> {
                     child: Text(
                       ' ${state.userInfo == null ? "importwallet".tr() : "signin".tr()}',
                       style: TextStyle(
-                          color: notifier.isDark
-                              ? notifier.getbluecolor50
-                              : notifier.getbluecolor90,
-                          fontSize: 13.sp,
-                          fontFamily: fontbody),
+                        color: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor90,
+                        fontSize: 13.sp,
+                        fontFamily: fontbody,
+                      ),
                     ),
                   ),
                 ],
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -431,9 +441,10 @@ class _SignUpState extends State<SignUp> {
                 Text(
                   'Import existing wallet',
                   style: TextStyle(
-                      fontSize: height / 55,
-                      color: notifier.getblck,
-                      fontFamily: fontbody),
+                    fontSize: height / 55,
+                    color: notifier.getblck,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ],
             ),
@@ -443,9 +454,7 @@ class _SignUpState extends State<SignUp> {
           scale: 1.sp,
           child: Checkbox(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
             ),
             activeColor: notifier.isDark
                 ? notifier.getbluecolor50
@@ -484,9 +493,10 @@ class _SignUpState extends State<SignUp> {
                 Text(
                   "enterpassphrase".tr(),
                   style: TextStyle(
-                      fontSize: height / 55,
-                      color: notifier.getblck,
-                      fontFamily: fontbody),
+                    fontSize: height / 55,
+                    color: notifier.getblck,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ],
             ),
@@ -496,9 +506,7 @@ class _SignUpState extends State<SignUp> {
           scale: 1.sp,
           child: Checkbox(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
             ),
             activeColor: notifier.isDark
                 ? notifier.getbluecolor50
@@ -610,17 +618,18 @@ class _SignUpState extends State<SignUp> {
       width: w,
       child: IntlPhoneField(
         autovalidateMode: AutovalidateMode.disabled,
-        disableLengthCheck: countryCode ==
+        disableLengthCheck:
+            countryCode ==
             'ID', // disable when user selects indonesia and let backend validate
         style: TextStyle(color: textcolor, fontFamily: fontbody),
         cursorColor: lablecolor,
         initialCountryCode: countryCode,
-        dropdownIcon: Icon(
-          Icons.arrow_drop_down,
+        dropdownIcon: Icon(Icons.arrow_drop_down, color: textcolor),
+        dropdownTextStyle: TextStyle(
           color: textcolor,
+          fontSize: 16,
+          fontFamily: fontbody,
         ),
-        dropdownTextStyle:
-            TextStyle(color: textcolor, fontSize: 16, fontFamily: fontbody),
         decoration: InputDecoration(
           label: Text(labletext),
           counterStyle: TextStyle(color: textcolor),
@@ -791,8 +800,9 @@ class _SignUpState extends State<SignUp> {
 
   Account? parseKey(String secretKey) {
     try {
-      Account account =
-          TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
+      Account account = TrovoWalletSDK().parseSecretKey(
+        secretKey.toUpperCase(),
+      );
       return account;
     } catch (e) {
       print(e);
@@ -867,11 +877,12 @@ class _SignUpState extends State<SignUp> {
       }
 
       Map responseData = await makePostRequest(
-          uri: '/v1/users',
-          body: jsonBody,
-          signer: state.tempPublicKey,
-          publicKey: state.tempPublicKey,
-          secretKey: state.tempSecretKey);
+        uri: '/v1/users',
+        body: jsonBody,
+        signer: state.tempPublicKey,
+        publicKey: state.tempPublicKey,
+        secretKey: state.tempSecretKey,
+      );
 
       // print('$responseData');
       hideLoader(context);
@@ -889,20 +900,27 @@ class _SignUpState extends State<SignUp> {
           corporate: corporate,
         );
 
-        state.currentAction =
-            PageAction(state: PageState.addPage, page: VerificationPageConfig);
+        state.currentAction = PageAction(
+          state: PageState.addPage,
+          page: VerificationPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context,
-          title: "error".tr(),
-          message: e.toString().contains('firebase')
-              ? 'Network error! Please check your connection and try again.'
-              : e.toString());
+      popup(
+        context,
+        title: "error".tr(),
+        message: e.toString().contains('firebase')
+            ? 'Network error! Please check your connection and try again.'
+            : e.toString(),
+      );
     }
   }
 }

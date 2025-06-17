@@ -344,7 +344,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
-                  if (!noXbnBalance) ...[
+                  if (noXbnBalance) ...[
                     SizedBox(height: height / 50),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),

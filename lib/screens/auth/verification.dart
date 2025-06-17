@@ -89,17 +89,19 @@ class _VeryficationState extends State<Veryfication> {
                       Text(
                         "enterverification".tr(),
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 23.sp,
-                            fontFamily: fontsemibold),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 23.sp,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       SizedBox(height: height / 30),
                       Text(
                         "enterfourdigitnumber".tr() + state.userInfo!.email!,
                         style: TextStyle(
-                            fontSize: 14.sp,
-                            color: notifier.getgrey,
-                            fontFamily: fontbody),
+                          fontSize: 14.sp,
+                          color: notifier.getgrey,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ],
                   ),
@@ -117,18 +119,20 @@ class _VeryficationState extends State<Veryfication> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 30),
+                      horizontal: 30,
+                      vertical: 30,
+                    ),
                     child: OTPTextField(
                       length: 6,
                       width: MediaQuery.of(context).size.width,
                       fieldWidth: 40,
                       style: TextStyle(
-                          color: notifier.getblck, fontFamily: fontbody),
+                        color: notifier.getblck,
+                        fontFamily: fontbody,
+                      ),
                       textFieldAlignment: MainAxisAlignment.spaceAround,
                       fieldStyle: FieldStyle.box,
-                      otpFieldStyle: OtpFieldStyle(
-                        borderColor: Colors.black38,
-                      ),
+                      otpFieldStyle: OtpFieldStyle(borderColor: Colors.black38),
                       onChanged: (pin) {
                         otp = pin;
                       },
@@ -149,8 +153,11 @@ class _VeryficationState extends State<Veryfication> {
                   if (otp.length == 6) {
                     completeRegistration();
                   } else {
-                    popup(context,
-                        title: "alert".tr(), message: "enterverification".tr());
+                    popup(
+                      context,
+                      title: "alert".tr(),
+                      message: "enterverification".tr(),
+                    );
                   }
                 },
               ),
@@ -200,10 +207,12 @@ class _VeryficationState extends State<Veryfication> {
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context,
-          title: "error".tr(),
-          // message: "somethingwentwrong".tr());
-          message: e.toString());
+      popup(
+        context,
+        title: "error".tr(),
+        // message: "somethingwentwrong".tr());
+        message: e.toString(),
+      );
     }
   }
 
@@ -213,8 +222,11 @@ class _VeryficationState extends State<Veryfication> {
     if (responseData['statusCode'] == 200) {
       getUserInfo();
     } else {
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
     }
   }
 
@@ -226,11 +238,11 @@ class _VeryficationState extends State<Veryfication> {
     state.backupSecrets.add(secretKey);
 
     Map responseData = await makeGetRequest(
-        uri:
-            '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
-        signer: publicKey,
-        publicKey: publicKey,
-        secretKey: secretKey);
+      uri: '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
+      signer: publicKey,
+      publicKey: publicKey,
+      secretKey: secretKey,
+    );
 
     print('response: ${responseData}');
 
@@ -242,14 +254,20 @@ class _VeryficationState extends State<Veryfication> {
       hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
       hideLoader(context);
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
     } else {
       hideLoader(context);
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      popup(
+        context,
+        title: "error".tr(),
+        message: responseData['data']['message'],
+      );
     }
   }
 
@@ -257,9 +275,8 @@ class _VeryficationState extends State<Veryfication> {
     print('userInfoMap: ${userInfoMap['userData']}');
     print('tempPublickey: ${state.tempPublicKey}');
     print('tempSecretKey: ${state.tempSecretKey}');
-    var userInfo = userInfoMap['userData'] ?? {};
-    inspect(userInfo);
-    var assetBalances = userInfoMap['assetBalances'] ?? {};
+    var userInfo = userInfoMap['userData'] as Map<String, dynamic>;
+    var assetBalances = userInfoMap['assetBalances'] as Map<String, dynamic>;
     var nfts = userInfoMap['nfts'] ?? {};
     var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
@@ -267,38 +284,55 @@ class _VeryficationState extends State<Veryfication> {
     // delete all user data already stored on the app
     await StoreData().storeDeleteData();
 
-    await StoreData().storeInsertData('userInfo', userInfo);
-    await StoreData().storeInsertData('assetBalances', assetBalances);
+    if (userInfo.isNotEmpty) {
+      await StoreData().storeInsertData('userInfo', userInfo);
+    }
+
+    if (assetBalances.isNotEmpty) {
+      await StoreData().storeInsertData('assetBalances', assetBalances);
+    }
+
     await StoreData().storeInsertData('nfts', nfts);
-    await StoreData()
-        .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
+    await StoreData().storeInsertData(
+      'walletsSharedWithUser',
+      walletsSharedWithUser,
+    );
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('password', state.tempPassword);
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);
-    await StoreData()
-        .storeInsertData('secretKey', <String>[state.tempSecretKey]);
+    await StoreData().storeInsertData('secretKey', <String>[
+      state.tempSecretKey,
+    ]);
     await StoreData().storeInsertData('restartedAfterSwitch', false);
     await StoreData().storeInsertData('walletMode', state.walletMode);
-    await StoreData()
-        .storeInsertData('biometricsEnabled', state.biometricEnabled);
+    await StoreData().storeInsertData(
+      'biometricsEnabled',
+      state.biometricEnabled,
+    );
 
     // save useInfo to appstate
-    state.setUser = UserInfo()
-        .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+    state.setUser = UserInfo().deserializeJson(
+      userInfo,
+      walletsSharedWithUser,
+      assetBalances,
+    );
     print('state.userinfo ${state.userInfo}');
     inspect(state.userInfo);
     state.setNFTs = nfts;
     state.setSharedWallets = walletsSharedWithUser;
     state.setassetBalances = assetBalances;
-    state.activeWallet = state.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.publicKey == state.tempPublicKey);
+    state.activeWallet = state.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.publicKey == state.tempPublicKey,
+    );
     state.activeWallet!.secretKey = state.tempSecretKey;
     // save secrets to appstate
     state.setSecretKeys = await StoreData().storeGetData('secretKey');
     state.setPassword = state.tempPassword;
-    state.currentAction =
-        PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
+    state.currentAction = PageAction(
+      state: PageState.addPage,
+      page: CongratulationsPageConfig,
+    );
   }
 
   @override

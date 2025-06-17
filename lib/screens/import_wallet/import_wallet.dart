@@ -81,9 +81,12 @@ class _ImportWalletState extends State<ImportWallet> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,40 +103,37 @@ class _ImportWalletState extends State<ImportWallet> {
                             Text(
                               "import".tr(),
                               style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 26.sp,
-                                  fontFamily: fontsemibold),
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 26.sp,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              width: width / 50,
-                            ),
+                            SizedBox(width: width / 50),
                             Text(
                               "wallet".tr(),
                               style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 26.sp,
-                                  fontFamily: fontsemibold),
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 26.sp,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: height / 20,
-                        ),
+                        SizedBox(height: height / 20),
                         ToggleSwitch(
                           minHeight: height / 16,
-                          customWidths: [
-                            width / 2.4,
-                            width / 2.4,
-                          ],
+                          customWidths: [width / 2.4, width / 2.4],
                           customTextStyles: [
                             TextStyle(
-                                fontSize: height / 55,
-                                color: walletMode == 0 ? wihitecolor : darkblck,
-                                fontFamily: fontbody),
+                              fontSize: height / 55,
+                              color: walletMode == 0 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
                             TextStyle(
-                                fontSize: height / 55,
-                                color: walletMode == 1 ? wihitecolor : darkblck,
-                                fontFamily: fontbody),
+                              fontSize: height / 55,
+                              color: walletMode == 1 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
                           ],
                           fontSize: 16.0,
                           initialLabelIndex: walletMode,
@@ -150,13 +150,12 @@ class _ImportWalletState extends State<ImportWallet> {
                             setState(() {
                               // walletMode = index!;
                               handleEnvironmentSwitch(
-                                  index == 0 ? 'Mainnet' : 'Testnet');
+                                index == 0 ? 'Mainnet' : 'Testnet',
+                              );
                             });
                           },
                         ),
-                        SizedBox(
-                          height: height / 30,
-                        ),
+                        SizedBox(height: height / 30),
                         // Email address
                         CustomTextFormField.textField(
                           "usernameoremail".tr(),
@@ -235,8 +234,10 @@ class _ImportWalletState extends State<ImportWallet> {
                               }
                             },
                             validator: (value) {
-                              var trimmedVal =
-                                  value!.trim().replaceAll(' ', '');
+                              var trimmedVal = value!.trim().replaceAll(
+                                ' ',
+                                '',
+                              );
                               if (trimmedVal.isEmpty) {
                                 return "entersecretkeyempty".tr();
                               }
@@ -251,12 +252,10 @@ class _ImportWalletState extends State<ImportWallet> {
                             },
                             maxLength: 56,
                             focusNode: secretKeyFocusNode,
-                          )
+                          ),
                         ],
                         if (info != null) ...[
-                          SizedBox(
-                            height: height / 90,
-                          ),
+                          SizedBox(height: height / 90),
                           Container(
                             constraints: BoxConstraints(maxWidth: width / 1.2),
                             child: Column(
@@ -275,15 +274,17 @@ class _ImportWalletState extends State<ImportWallet> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Container(
-                                      constraints:
-                                          BoxConstraints(maxWidth: width / 1.4),
+                                      constraints: BoxConstraints(
+                                        maxWidth: width / 1.4,
+                                      ),
                                       child: Text(
                                         info?.publicKey ?? '',
                                         overflow: TextOverflow.visible,
                                         style: TextStyle(
-                                            color: notifier.getblck,
-                                            fontSize: 13,
-                                            fontFamily: fontbody),
+                                          color: notifier.getblck,
+                                          fontSize: 13,
+                                          fontFamily: fontbody,
+                                        ),
                                       ),
                                     ),
                                     Expanded(
@@ -296,12 +297,11 @@ class _ImportWalletState extends State<ImportWallet> {
                                             ),
                                           ),
                                           showSnackBar(
-                                              "publickey".tr(), context),
+                                            "publickey".tr(),
+                                            context,
+                                          ),
                                         },
-                                        icon: Icon(
-                                          Icons.copy,
-                                          size: 20,
-                                        ),
+                                        icon: Icon(Icons.copy, size: 20),
                                       ),
                                     ),
                                   ],
@@ -351,7 +351,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: height / 20),
@@ -364,7 +364,8 @@ class _ImportWalletState extends State<ImportWallet> {
               SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
               ),
             ],
           ),
@@ -375,13 +376,18 @@ class _ImportWalletState extends State<ImportWallet> {
 
   void handleEnvironmentSwitch(String? newValue) async {
     if (newValue != appState.walletMode) {
-      showSwitchEnvironmentPopup(context, onProceed: () async {
-        await appState.changeWalletMode(newValue.toString());
-      }, onCancel: () {
-        setState(() {
-          walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
-        });
-      }, toEnvironment: newValue!);
+      showSwitchEnvironmentPopup(
+        context,
+        onProceed: () async {
+          await appState.changeWalletMode(newValue.toString());
+        },
+        onCancel: () {
+          setState(() {
+            walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
+          });
+        },
+        toEnvironment: newValue!,
+      );
     }
   }
 
@@ -392,9 +398,7 @@ class _ImportWalletState extends State<ImportWallet> {
           scale: 1.sp,
           child: Checkbox(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
             ),
             activeColor: notifier.isDark
                 ? notifier.getbluecolor50
@@ -425,14 +429,15 @@ class _ImportWalletState extends State<ImportWallet> {
                 Text(
                   "enterpassphrase".tr(),
                   style: TextStyle(
-                      fontSize: height / 55,
-                      color: notifier.getblck,
-                      fontFamily: fontbody),
+                    fontSize: height / 55,
+                    color: notifier.getblck,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ],
             ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -533,24 +538,30 @@ class _ImportWalletState extends State<ImportWallet> {
         var token = result.split('|').first;
 
         Map responseData = await makeGetRequest(
-            uri: '/v1/users/${username}?type=import&pnt=$token',
-            signer: creds.publicKey,
-            publicKey: creds.publicKey,
-            secretKey: creds.secretKey);
+          uri: '/v1/users/${username}?type=import&pnt=$token',
+          signer: creds.publicKey,
+          publicKey: creds.publicKey,
+          secretKey: creds.secretKey,
+        );
 
         if (responseData['statusCode'] == 200) {
           fetchNotifications(appState);
           getFiatRates(appState);
           storeUserInfo(responseData['data']);
-          appState.currentAction =
-              PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: FingerprintPageConfig,
+          );
         } else if (responseData['statusCode'] == 404) {
           accountNotFoundPopup(context);
         } else {
           // must be some sort of server error
           // let's throw it
-          popup(context,
-              title: "error".tr(), message: responseData['data']['message']);
+          popup(
+            context,
+            title: "error".tr(),
+            message: responseData['data']['message'],
+          );
         }
       }
       hideLoader(context);
@@ -561,8 +572,8 @@ class _ImportWalletState extends State<ImportWallet> {
   }
 
   storeUserInfo(userInfoMap) async {
-    var userInfo = userInfoMap['userData'] ?? {};
-    var assetBalances = userInfoMap['assetBalances'] ?? {};
+    var userInfo = userInfoMap['userData'] as Map<String, dynamic>;
+    var assetBalances = userInfoMap['assetBalances'] as Map<String, dynamic>;
     var nfts = userInfoMap['nfts'] ?? {};
     var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
@@ -570,22 +581,33 @@ class _ImportWalletState extends State<ImportWallet> {
     // delete all user data already stored on the app
     await StoreData().storeDeleteData();
 
-    await StoreData().storeInsertData('userInfo', userInfo);
-    await StoreData().storeInsertData('assetBalances', assetBalances);
+    if (userInfo.isNotEmpty) {
+      await StoreData().storeInsertData('userInfo', userInfo);
+    }
+
+    if (assetBalances.isNotEmpty) {
+      await StoreData().storeInsertData('assetBalances', assetBalances);
+    }
     await StoreData().storeInsertData('nfts', nfts);
-    await StoreData()
-        .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
+    await StoreData().storeInsertData(
+      'walletsSharedWithUser',
+      walletsSharedWithUser,
+    );
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', appState.tempPassword);
     await StoreData().storeInsertData('publicKey', appState.tempPublicKey);
     await StoreData().storeInsertData('walletMode', appState.walletMode);
-    await StoreData()
-        .storeInsertData('secretKey', <String>[appState.tempSecretKey]);
+    await StoreData().storeInsertData('secretKey', <String>[
+      appState.tempSecretKey,
+    ]);
 
     // save useInfo to appstate
-    appState.setUser = UserInfo()
-        .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+    appState.setUser = UserInfo().deserializeJson(
+      userInfo,
+      walletsSharedWithUser,
+      assetBalances,
+    );
     appState.setNFTs = nfts;
     appState.setSharedWallets = walletsSharedWithUser;
     appState.assetBalances = assetBalances;
@@ -593,8 +615,9 @@ class _ImportWalletState extends State<ImportWallet> {
     // save secrets to appstate
     appState.setSecretKeys = await StoreData().storeGetData('secretKey');
     appState.setPassword = appState.tempPassword;
-    appState.activeWallet = appState.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.primaryWallet == 1);
+    appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.primaryWallet == 1,
+    );
     fetchCuratedSwapList(appState);
   }
 

@@ -44,17 +44,18 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                SizedBox(
-                  height: height / 40,
-                ),
+                SizedBox(height: height / 40),
                 Container(
                   width: width,
                   child: Text(
@@ -68,9 +69,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
@@ -80,20 +79,18 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 15.0),
+                      horizontal: 20.0,
+                      vertical: 15.0,
+                    ),
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Image.asset(
                           'assets/images/rafiki-buy-xbn.png',
                           // height: 50,
                           width: 180,
                         ),
-                        SizedBox(
-                          height: height / 60,
-                        ),
+                        SizedBox(height: height / 60),
                         Text(
                           "aneasyoptiontoactivateaccount".tr(),
                           textAlign: TextAlign.center,
@@ -103,9 +100,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                             color: notifier.getbluewhitecolor,
                           ),
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                       ],
                     ),
                   ),
@@ -124,9 +119,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 90,
-                ),
+                SizedBox(height: height / 90),
                 CustomTextFormField.textField(
                   null,
                   notifier.getbluecolor,
@@ -137,8 +130,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   notifier.getgrey,
                   70.sp,
                   350.sp,
-                  hintText:
-                      '${appState.defaultCurrency}2000 - ${appState.defaultCurrency}5000',
+                  hintText: 'N2000 - N5000',
                   onSaved: (value) {},
                 ),
                 Row(
@@ -148,30 +140,32 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                     Flexible(
                       child: Text(
                         "250 XBN",
-                        textScaleFactor: 1.0,
+                        textScaler: TextScaler.linear(1.0),
                         style: TextStyle(
-                            color: notifier.getdarkgrey,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12.0),
+                          color: notifier.getdarkgrey,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12.0,
+                        ),
                       ),
                     ),
                     Flexible(
-                        child: Visibility(
-                      visible: true,
-                      replacement: Container(),
-                      child: Text(
-                        "0.5 TROV",
-                        textScaleFactor: 1.0,
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                            color: notifier.getdarkgrey, fontSize: 12.0),
+                      child: Visibility(
+                        visible: true,
+                        replacement: Container(),
+                        child: Text(
+                          "0.5 TROV",
+                          textScaler: TextScaler.linear(1.0),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: notifier.getdarkgrey,
+                            fontSize: 12.0,
+                          ),
+                        ),
                       ),
-                    )),
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 Button(
                   "continuee".tr(),
                   notifier.getbluecolor,
@@ -186,12 +180,12 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                     // appState.viewData![ShareReceiptViewPageConfig.key] = viewData;
                   },
                 ),
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),

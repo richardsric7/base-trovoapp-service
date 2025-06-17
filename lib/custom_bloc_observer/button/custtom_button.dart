@@ -258,6 +258,9 @@ class _HalfButtonWithIconState extends State<HalfButtonWithIcon> {
                 child: ElevatedButton(
                   onPressed: widget.onTap,
                   style: ButtonStyle(
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(horizontal: 10),
+                    ),
                     backgroundColor: WidgetStateProperty.all<Color>(
                       widget.colorbutton!,
                     ),

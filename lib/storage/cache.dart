@@ -1,19 +1,22 @@
-import 'dart:developer';
-
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/announcement.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/storage/store.dart';
 
-Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
-    {bool forceRefresh = false, String? pnt}) async {
+Future<void> updateUserInfo(
+  signer,
+  secretKey,
+  publicKey,
+  username,
+  appState, {
+  bool forceRefresh = false,
+  String? pnt,
+}) async {
   String uri = '/v1/users/$username';
   if (forceRefresh) uri += '?type=refresh';
 
   if (pnt != null) uri += '?type=import&pnt=$pnt';
-
-  print('this is uri===============>>>>>>> $uri');
 
   Map responseData = await makeGetRequest(
     uri: uri,
@@ -28,9 +31,7 @@ Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
   }
 }
 
-Future<void> fetchCuratedSwapList(
-  DataProvider appState,
-) async {
+Future<void> fetchCuratedSwapList(DataProvider appState) async {
   String uri = '/v1/curated-assets/users';
 
   Map responseData = await makeGetRequest(
@@ -40,35 +41,49 @@ Future<void> fetchCuratedSwapList(
     publicKey: appState.primaryWallet.publicKey ?? "",
   );
   if (responseData['statusCode'] == 200) {
-    await StoreData().storeInsertData('curatedSwapList', responseData['data']);
-    appState.curatedSwapList =
-        appState.deserializeSwapList(responseData['data']);
-    appState.curatedSwapList.forEach((ca) {
-      appState.curatedSwapListMap['${ca.assetIssuer}|${ca.assetCode}'] = ca;
-    });
+    if (responseData['data'].length > 0) {
+      await StoreData().storeInsertData(
+        'curatedSwapList',
+        responseData['data'],
+      );
+      appState.curatedSwapList = appState.deserializeSwapList(
+        responseData['data'],
+      );
+      appState.curatedSwapList.forEach((ca) {
+        appState.curatedSwapListMap['${ca.assetIssuer}|${ca.assetCode}'] = ca;
+      });
+    }
   }
 }
 
 storeUserInfo(userInfoMap, DataProvider state) async {
-  // print('userInfoMap: ${userInfoMap['userData']}');
-  inspect(userInfoMap);
-  var userInfo = userInfoMap['userData'] ?? {};
-  var assetBalances = userInfoMap['assetBalances'] ?? {};
+  var userInfo = userInfoMap['userData'] as Map<String, dynamic>;
+  var assetBalances = userInfoMap['assetBalances'] as Map<String, dynamic>;
   var nfts = userInfoMap['nfts'] ?? {};
   var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
   var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
-  await StoreData().storeInsertData('userInfo', userInfo);
-  await StoreData().storeInsertData('assetBalances', assetBalances);
+  if (userInfo.isNotEmpty) {
+    await StoreData().storeInsertData('userInfo', userInfo);
+  }
+
+  if (assetBalances.isNotEmpty) {
+    await StoreData().storeInsertData('assetBalances', assetBalances);
+  }
   await StoreData().storeInsertData('nfts', nfts);
-  await StoreData()
-      .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
+  await StoreData().storeInsertData(
+    'walletsSharedWithUser',
+    walletsSharedWithUser,
+  );
   await StoreData().storeInsertData('isFirstTime', false);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
   await StoreData().storeInsertData('restartedAfterSwitch', false);
   // save useInfo to appstate
-  state.setUser = UserInfo()
-      .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+  state.setUser = UserInfo().deserializeJson(
+    userInfo,
+    walletsSharedWithUser,
+    assetBalances,
+  );
   state.activeWallet = state.primaryWallet;
   state.setNFTs = nfts;
   state.setSharedWallets = walletsSharedWithUser;
@@ -77,9 +92,7 @@ storeUserInfo(userInfoMap, DataProvider state) async {
 
 Future<void> getFiatRates(appState) async {
   print('======>>>>>>>>>>>>>fetching fiat rates...:');
-  Map responseData = await makeUnSecuredGetRequest(
-    '/v1/rates',
-  );
+  Map responseData = await makeUnSecuredGetRequest('/v1/rates');
   print('======>>>>>>>>>>>>>response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
@@ -93,17 +106,16 @@ Future<void> fetchNotifications(DataProvider appState) async {
   print('fetching announcements...');
   var uri = '/v1/announcements';
 
-  Map responseData = await makeUnSecuredGetRequest(
-    Uri.encodeFull(uri),
-  );
+  Map responseData = await makeUnSecuredGetRequest(Uri.encodeFull(uri));
 
   // print('response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     //  get the date when the user viewed announcements last
     DateTime? lastNotificationViewDate = DateTime.tryParse(
-        await StoreData().storeGetData('lastNotificationViewDate') ??
-            DateTime.now().add(Duration(days: -30)).toIso8601String());
+      await StoreData().storeGetData('lastNotificationViewDate') ??
+          DateTime.now().add(Duration(days: -30)).toIso8601String(),
+    );
     // get all announcements
     var announcementsMap = await StoreData().storeGetData('announcements');
     if (announcementsMap == null) {
@@ -117,8 +129,9 @@ Future<void> fetchNotifications(DataProvider appState) async {
     // loop through the announcements
     for (var i = 0; i < responseData['data'].length; i++) {
       // deserialize the current item in this iteration
-      var announcement =
-          Announcement().deserializeJson(responseData['data'][i]);
+      var announcement = Announcement().deserializeJson(
+        responseData['data'][i],
+      );
       // if there's been any new announcements since the user opened announcements
       // last, then setHasNewAnnouncements to true
       if (lastNotificationViewDate!.isBefore(announcement.createdAt!)) {
@@ -139,8 +152,5 @@ Future<void> fetchVersionInfo(DataProvider appState) async {
 
   // print('this is response $versionInfo');
 
-  StoreData().storeInsertData(
-    'appVersion',
-    versionInfo['data'],
-  );
+  StoreData().storeInsertData('appVersion', versionInfo['data']);
 }
