@@ -653,7 +653,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		//get amount for activation
 		activationAmount, trovPercent := user.GetFiatActiationAmount(gc)
 
-		c.JSON(http.StatusOK, gin.H{"activationAmount": activationAmount, "TrovTokenPercent": trovPercent, "GasPercent": 100 - trovPercent})
+		c.JSON(http.StatusOK, gin.H{"activationAmount": activationAmount, "trovTokenPercent": trovPercent, "gasPercent": 100 - trovPercent})
 	})
 
 	router.POST("/v1/users/kyc/sumsub/complete/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
