@@ -632,6 +632,30 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, progress)
 	})
 
+	router.GET("/v1/users/activate/fiat", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//get amount for activation
+		activationAmount, trovPercent := user.GetFiatActiationAmount(gc)
+
+		c.JSON(http.StatusOK, gin.H{"activationAmount": activationAmount, "TrovTokenPercent": trovPercent, "GasPercent": 100 - trovPercent})
+	})
+
 	router.POST("/v1/users/kyc/sumsub/complete/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 

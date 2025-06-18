@@ -517,6 +517,21 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating UserDojaKYCProgress: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.FiatPaymentConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FiatPaymentConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.PaymentWebhookRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PaymentWebhookRequest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.FiatPayment{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FiatPayment: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
+
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -144,17 +146,32 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		progress := userModels.Username(event.Metadata.UserID).GetUserDojaKYCProgress(gc.DB)
 		dbTx := gc.DB.Begin()
 		defer dbTx.Rollback()
+		takeAction := false
 		//check if it is pending.
 		if strings.EqualFold(event.VerificationStatus, "Pending") {
 			//mark the user progress as pending and send push notification
 			if widget.Level == 1 {
-				progress.KYCLevel1Submitted = 1
+
+				if progress.KYCLevel1Completed == 0 {
+					takeAction = true
+					progress.KYCLevel1Submitted = 1
+				}
+
 			} else if widget.Level == 2 {
-				progress.KYCLevel2Submitted = 1
+				if progress.KYCLevel2Completed == 0 {
+					takeAction = true
+					progress.KYCLevel2Submitted = 1
+				}
 			} else if widget.Level == 3 {
-				progress.KYCLevel3Submitted = 1
+				if progress.KYCLevel3Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 1
+				}
 			} else if widget.Level == 4 {
-				progress.KYCLevel3Submitted = 1
+				if progress.KYCLevel1Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 1
+				}
 			}
 
 			//send PN
@@ -162,77 +179,114 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			title := fmt.Sprintf("KYC Level %v now pending confirmation", widget.Level)
 			msg := fmt.Sprintf("KYC Level %v has been submitted and is now pending confirmation. Please wait for it to finish before continuing to other levels.", widget.Level)
-			user.SendPushMessage(title, msg, "", dataPayload, gc)
+			if takeAction {
+
+				user.SendPushMessage(title, msg, "", dataPayload, gc)
+			}
 		}
 
 		//check if it is completed.
 		if strings.EqualFold(event.VerificationStatus, "Completed") {
 			//mark the user progress as Completed and send push notification
 			if widget.Level == 1 {
-				progress.KYCLevel1Submitted = 1
-				progress.KYCLevel1Completed = 1
-			} else if widget.Level == 2 {
-				progress.KYCLevel2Submitted = 1
-				progress.KYCLevel2Completed = 1
-			} else if widget.Level == 3 {
-				progress.KYCLevel3Submitted = 1
-				progress.KYCLevel3Completed = 1
-			} else if widget.Level == 4 {
-				progress.KYCLevel3Submitted = 1
-				progress.KYCLevel4Completed = 1
-			}
-			user.KYCVerified = widget.Level
-
-			e := dbTx.Omit(clause.Associations).Save(&user).Error
-			if e != nil {
-				errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save progress for [%v] due to [%v]", event.Metadata.UserID, e)
-				gc.LogDiscordFailedRequest(errMsg)
-				log.Println(errMsg)
-
-				c.JSON(http.StatusInternalServerError, "error")
-				return
-			}
-			//send PN
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			title := fmt.Sprintf("KYC Level %v now completed.", widget.Level)
-			nextLevel := widget.Level + 1
-			if nextLevel > 4 {
-				nextLevel = 0
-			}
-			msg := fmt.Sprintf("KYC Level %v has been completed.%v", widget.Level, func() string {
-				if nextLevel == 0 {
-					return ""
+				if progress.KYCLevel1Completed == 0 {
+					takeAction = true
+					progress.KYCLevel1Submitted = 1
+					progress.KYCLevel1Completed = 1
 				}
-				return fmt.Sprintf(" Please proceed to next level (%v) when ready.", nextLevel)
-			}())
-			user.SendPushMessage(title, msg, "", dataPayload, gc)
+
+			} else if widget.Level == 2 {
+				if progress.KYCLevel2Completed == 0 {
+					takeAction = true
+					progress.KYCLevel2Submitted = 1
+					progress.KYCLevel2Completed = 1
+				}
+
+			} else if widget.Level == 3 {
+				if progress.KYCLevel3Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 1
+					progress.KYCLevel3Completed = 1
+				}
+
+			} else if widget.Level == 4 {
+				if progress.KYCLevel4Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 1
+					progress.KYCLevel4Completed = 1
+				}
+
+			}
+			if takeAction {
+				user.KYCVerified = widget.Level
+
+				e := dbTx.Omit(clause.Associations).Save(&user).Error
+				if e != nil {
+					errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save progress for [%v] due to [%v]", event.Metadata.UserID, e)
+					gc.LogDiscordFailedRequest(errMsg)
+					log.Println(errMsg)
+
+					c.JSON(http.StatusInternalServerError, "error")
+					return
+				}
+				//send PN
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				title := fmt.Sprintf("KYC Level %v now completed.", widget.Level)
+				nextLevel := widget.Level + 1
+				if nextLevel > 4 {
+					nextLevel = 0
+				}
+				msg := fmt.Sprintf("KYC Level %v has been completed.%v", widget.Level, func() string {
+					if nextLevel == 0 {
+						return ""
+					}
+					return fmt.Sprintf(" Please proceed to next level (%v) when ready.", nextLevel)
+				}())
+				user.SendPushMessage(title, msg, "", dataPayload, gc)
+
+			}
 		}
 
 		//check if it is failed.
 		if strings.EqualFold(event.VerificationStatus, "Failed") {
 			//reset user progress and send push notification
 			if widget.Level == 1 {
-				progress.KYCLevel1Submitted = 0
-				progress.KYCLevel1Completed = 0
+				if progress.KYCLevel1Completed == 0 {
+					takeAction = true
+					progress.KYCLevel1Submitted = 0
+					progress.KYCLevel1Completed = 0
+				}
+
 			} else if widget.Level == 2 {
-				progress.KYCLevel2Submitted = 0
-				progress.KYCLevel2Completed = 0
+				if progress.KYCLevel2Completed == 0 {
+					takeAction = true
+					progress.KYCLevel2Submitted = 0
+					progress.KYCLevel2Completed = 0
+				}
 			} else if widget.Level == 3 {
-				progress.KYCLevel3Submitted = 0
-				progress.KYCLevel3Completed = 0
+				if progress.KYCLevel3Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 0
+					progress.KYCLevel3Completed = 0
+				}
 			} else if widget.Level == 4 {
-				progress.KYCLevel3Submitted = 0
-				progress.KYCLevel4Completed = 0
+				if progress.KYCLevel4Completed == 0 {
+					takeAction = true
+					progress.KYCLevel3Submitted = 0
+					progress.KYCLevel4Completed = 0
+				}
+			}
+			if takeAction {
+				//send PN
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				title := fmt.Sprintf("KYC Level %v failed.", widget.Level)
+
+				msg := fmt.Sprintf("KYC Level %v failed verification. Please resubmit your correct information to try again.", widget.Level)
+				user.SendPushMessage(title, msg, "", dataPayload, gc)
 			}
 
-			//send PN
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			title := fmt.Sprintf("KYC Level %v failed.", widget.Level)
-
-			msg := fmt.Sprintf("KYC Level %v failed verification. Please resubmit your correct information to try again.", widget.Level)
-			user.SendPushMessage(title, msg, "", dataPayload, gc)
 		}
 
 		e := dbTx.Save(&progress).Error
@@ -246,6 +300,60 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		dbTx.Commit()
+
+		c.JSON(http.StatusOK, "success")
+	})
+
+	router.POST("/v1/callbacks/flutterwave/webhook", func(c *gin.Context) {
+		// log headers
+		log.Printf("[FLUTTERWAVE WEBHOOK ERROR] <><><><><><><><><>%+v\n<><><><><><><><><><><>\n", c.Request.Header)
+		cc, err := userServices.GetPaymentConfigByServiceProvider("flutterwave", gc)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "error")
+			return
+		}
+
+		// Read body
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Println("[FLUTTERWAVE WEBHOOK ERROR] Unable to read request body")
+			c.JSON(http.StatusBadRequest, "Unable to read request body")
+			return
+		}
+		// save record
+		userServices.SavePaymentWebhookData("flutterwave", string(body), gc)
+		// Compute HMAC
+
+		// Get signature from headers
+		hash := c.GetHeader("x-dojah-signature")
+		// var event map[string]interface{}
+		var event userModels.DojaKYCResponse
+		dojahIP := c.ClientIP()
+
+		if dojahIP == "20.112.64.208" {
+
+			// if err := json.Unmarshal([]byte(body), &event); err != nil {
+			// 	log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
+
+			// 	c.JSON(http.StatusBadRequest, "Invalid JSON")
+			// 	return
+			// }
+
+			// Do something with event
+			log.Println("[FLUTTERWAVE WEBHOOK] ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ Valid webhook received:", cc)
+		} else {
+			// log.Printf("[KYC WEBHOOK ERROR] Invalid signature. x-dojah-signature: [%v], Expected Mac: [%v]\n", signature, expectedMAC)
+			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] Invalid IP. x-dojah-signature: [%v]\n", hash)
+
+			// c.JSON(http.StatusUnauthorized, "Invalid signature")
+			// return
+		}
+		if err := json.Unmarshal([]byte(body), &event); err != nil {
+			log.Println("[FLUTTERWAVE WEBHOOK ERROR] Invalid JSON")
+
+			c.JSON(http.StatusBadRequest, "Invalid JSON")
+			return
+		}
 
 		c.JSON(http.StatusOK, "success")
 	})

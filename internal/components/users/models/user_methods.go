@@ -2595,6 +2595,17 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
+func (u *User) GetFiatActiationAmount(gc *sharedconfig.GlobalConfig) (activationAmount, trovPercent float64) {
+	cc := CountryCode(*u.CountryCode).GetConfig(gc)
+	_, exists, _ := UserWalletID(u.PublicKey).GetBlockchainAccountDetail(gc)
+
+	if exists {
+		return 0, cc.TrovTokenActivationPercent
+	}
+	// get the country fiat
+
+	return cc.FiatActivationAmount, cc.TrovTokenActivationPercent
+}
 func (u *ServiceLinksUser) SendPushMessage(title, body, imageURI string, dataPayload map[string]string, gc *sharedconfig.GlobalConfig) {
 	//Send push notification to user
 	// log.Println(title, body)

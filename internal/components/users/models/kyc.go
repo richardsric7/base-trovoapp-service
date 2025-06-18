@@ -18,6 +18,8 @@ type KYCConfig struct {
 	SecretKey       string `json:"secretKey"`
 }
 
+
+
 type SumSubReviewResultInput struct {
 	ApplicantID    string       `json:"applicantId"`
 	InspectionID   string       `json:"inspectionId"`
