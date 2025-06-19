@@ -327,7 +327,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// Get signature from headers
 		hash := c.GetHeader("x-dojah-signature")
 		// var event map[string]interface{}
-		var event userModels.DojaKYCResponse
+		var event userModels.FlutterwaveWebhook
 		dojahIP := c.ClientIP()
 
 		if dojahIP == "20.112.64.208" {
@@ -353,6 +353,30 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			c.JSON(http.StatusBadRequest, "Invalid JSON")
 			return
+		}
+
+		// check if the user exists
+		user, userErr := userModels.Username(event.MetaData.UserID).GetSimpleUser(gc.DB, gc)
+
+		if userErr != nil {
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] User ID [%v] in metadata is invalid\n", event.MetaData.UserID))
+			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] User ID [%v] in metadata is invalid\n", event.MetaData.UserID)
+
+			c.JSON(http.StatusOK, "Invalid Metadata:UserID")
+			return
+		}
+		//fetch data from flutterwave using the reference id.
+		{
+			//fetch from flutterwave
+		}
+		if strings.EqualFold(event.MetaData.Product, "activation") && strings.EqualFold(event.Data.Status, "successful") {
+			//send PN
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			title := fmt.Sprintf("Account activation payment of %v%v now completed.", event.Data.Currency, event.Data.Amount)
+
+			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. Please wait for the values to be transfered to your primary wallet.", event.Data.Currency, event.Data.Amount)
+			user.SendPushMessage(title, msg, "", dataPayload, gc)
 		}
 
 		c.JSON(http.StatusOK, "success")
