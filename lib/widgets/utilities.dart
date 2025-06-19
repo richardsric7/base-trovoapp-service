@@ -1698,12 +1698,22 @@ Widget getDrawer(
             ),
           ),
           onTap: () {
-            // launchSDK(context, appState);
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: KycScreenViewPageConfig,
-            );
-            Navigator.pop(context);
+            if (appState.userInfo!.kycVerified! < 4) {
+              // launchSDK(context, appState);
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: KycScreenViewPageConfig,
+              );
+              Navigator.pop(context);
+            } else {
+              popup(
+                context,
+                title: 'Invalid',
+                message: 'You have already completed the highest level of KYC.',
+                buttonText: 'Close',
+                bodyColor: notifier.getgreencolor,
+              );
+            }
           },
         ),
         // ListTile(

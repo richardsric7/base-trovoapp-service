@@ -8,6 +8,7 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/storage/store.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 /*
@@ -25,6 +26,7 @@ class _KYCScreenState extends State<KYCScreen> {
   bool granted = false;
   bool isCorporate = false;
   String userID = '';
+  DateTime? timestamp = null;
   late DataProvider appState;
   late Future<dynamic> kycConfigFuture;
   String demoText =
@@ -43,6 +45,11 @@ class _KYCScreenState extends State<KYCScreen> {
 
   Future<void> fetchKycConfigs() async {
     try {
+      var res = await StoreData().storeGetData('lastKycSubmitted');
+      if (res != null) {
+        timestamp = DateTime.tryParse(res);
+      }
+
       var uri = '/v1/users/kyc/doja/configs';
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),
@@ -176,12 +183,18 @@ class _KYCScreenState extends State<KYCScreen> {
             final widgets = data['widgets'];
             String? widgetId;
             bool isAlreadySubmitted = false;
+            int activeLevel = 1;
 
             for (int level = 1; level <= 4; level++) {
               final levelKey = 'kycLevel${level}Completed';
+              activeLevel = level;
 
               if (kycProgress[levelKey] == 0) {
-                if (kycProgress['kycLevel${level}Submitted'] == 1) {
+                if (kycProgress['kycLevel${level}Submitted'] == 1 ||
+                    (timestamp != null &&
+                        timestamp!
+                            .add(Duration(hours: 1))
+                            .isAfter(DateTime.now()))) {
                   isAlreadySubmitted = true;
                   break;
                 }
@@ -200,7 +213,9 @@ class _KYCScreenState extends State<KYCScreen> {
               }
             }
 
-            print('=========> isalreadySubmitted = $isAlreadySubmitted');
+            print(
+              '=========> isalreadySubmitted = $isAlreadySubmitted, widget id = $widgetId',
+            );
 
             if (isAlreadySubmitted) {
               return Scaffold(
@@ -213,7 +228,7 @@ class _KYCScreenState extends State<KYCScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Your level ${appState.userInfo?.kycVerified} KYC is already submitted and is currently processing. Kindly wait for a resolution in the next few minutes.',
+                            'Your level ${activeLevel} KYC is already submitted and is currently processing. Kindly wait for a resolution in the next few minutes.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -343,7 +358,7 @@ class _KYCScreenState extends State<KYCScreen> {
         </p>
       </div>
     
-      <button id="custom-btn-connect">Start Level ${appState.userInfo?.kycVerified} KYC</button>
+      <button id="custom-btn-connect">Start Level ${activeLevel} KYC</button>
       <p
         style="
         margin-top: 16px;
@@ -448,12 +463,17 @@ class _KYCScreenState extends State<KYCScreen> {
 
   // a function that closes the webview after a successful capture
   void success(arg) {
+    String timestamp = DateTime.now().toIso8601String();
+    StoreData().storeInsertData('lastKycSubmitted', timestamp);
+    Navigator.of(context).pop();
     showSuccessAlert(
       context,
-      onTap:
-          'Your KYC procedure has been recorded successfully, you will be notified with further information',
+      text:
+          'Your KYC procedure has been recorded successfully. Please wait for a few minutes for your information to be confirmed. Please refresh at intervals by pulling down on the home screen.',
+      onTap: () {
+        // Navigator.of(context).pop();
+      },
     );
-    Navigator.of(context).pop();
   }
 
   void cancel(arg) {

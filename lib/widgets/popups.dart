@@ -40,6 +40,7 @@ popup(
   required String title,
   Color bodyColor = Colors.red,
   required String message,
+  String? buttonText,
   void Function()? onClose,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
@@ -127,7 +128,7 @@ popup(
                     ),
                   ),
                   child: Text(
-                    "continuee".tr(),
+                    buttonText ?? "continuee".tr(),
                     style: TextStyle(color: wihitecolor, fontFamily: fontbody),
                   ),
                 ),
@@ -1359,7 +1360,7 @@ void mintWalletExplainerPopup(context) {
   );
 }
 
-void showSuccessAlert(context, {required onTap}) {
+void showSuccessAlert(context, {String? text, required void Function() onTap}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -1408,12 +1409,27 @@ void showSuccessAlert(context, {required onTap}) {
                         ),
                         child: Image.asset(
                           "assets/images/success.gif",
-                          height: 125.0,
-                          width: 125.0,
+                          height: 100.0,
+                          width: 100.0,
                         ),
                       ),
                     ],
                   ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10.0,
+                  horizontal: 5.0,
+                ),
+                child: Text(
+                  text ?? '',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w300,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
               Padding(

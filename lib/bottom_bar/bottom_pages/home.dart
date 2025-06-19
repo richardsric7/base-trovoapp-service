@@ -79,8 +79,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     gas = appState.primaryWallet.claimedAssets!
         .where((asset) => asset.assetCode == '')
         .first;
-    primaryOffersListFuture = fetchTokenizationList(status: 0);
-    secondaryListItemsFuture = fetchTokenizationList(status: 1);
+    if (!noXbnBalance) {
+      primaryOffersListFuture = fetchTokenizationList(status: 0);
+      secondaryListItemsFuture = fetchTokenizationList(status: 1);
+    }
   }
 
   void tabListener() {
@@ -344,7 +346,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
-                  if (noXbnBalance) ...[
+                  if (!noXbnBalance) ...[
                     SizedBox(height: height / 50),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -972,8 +974,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   void refreshData() async {
     try {
-      primaryOffersListFuture = fetchTokenizationList(status: 0);
-      secondaryListItemsFuture = fetchTokenizationList(status: 1);
+      if (!noXbnBalance) {
+        primaryOffersListFuture = fetchTokenizationList(status: 0);
+        secondaryListItemsFuture = fetchTokenizationList(status: 1);
+      }
       await appState.refreshData();
       await appState.getApprovals();
       _refreshController.refreshCompleted();
