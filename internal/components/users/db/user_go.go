@@ -93,9 +93,12 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 		//56 char public key is supplied
 		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&userWallet).Error
 		if e == nil {
-			if identifier == *userWallet.TempPublicKey {
-				temp = true
+			if userWallet.TempPublicKey != nil {
+				if identifier == *userWallet.TempPublicKey {
+					temp = true
+				}
 			}
+
 			return
 		}
 	} else {
