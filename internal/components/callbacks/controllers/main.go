@@ -340,10 +340,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			log.Println("[FLUTTERWAVE WEBHOOK] ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ Valid webhook received:", pcc)
 		} else {
 			// log.Printf("[KYC WEBHOOK ERROR] Invalid signature. x-dojah-signature: [%v], Expected Mac: [%v]\n", signature, expectedMAC)
-			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] Invalid IP. x-dojah-signature: [%v]\n", hash)
+			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] hash [%v]\n", hash)
 
-			// c.JSON(http.StatusUnauthorized, "Invalid signature")
-			// return
+			c.JSON(http.StatusUnauthorized, "Invalid signature")
+			return
 		}
 		if err := json.Unmarshal([]byte(body), &event); err != nil {
 			log.Println("[FLUTTERWAVE WEBHOOK ERROR] Invalid JSON")
