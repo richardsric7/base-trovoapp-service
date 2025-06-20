@@ -460,7 +460,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				Amount:      gasToDispense,
 			}
 
-			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
+			rpg, _, err := userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err)
@@ -470,9 +470,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			//sign payment
-			if len(payGas.Transaction) > 0 {
-				payGas.Commit = 0
-				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), payGas.Transaction, payGas.NetworkPassPhrase)
+			if len(rpg.Transaction) > 0 {
+				rpg.Commit = 0
+				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), rpg.Transaction, gc.BantuNetworkPassphrase)
 				if err != nil {
 					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error signing gas payment for [%v]. Err: %v\n", "ACTIVATION", err))
 					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error signing gas payment for [%v]. Err: %v\n", "ACTIVATION", err)
@@ -481,10 +481,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					return
 				}
 
-				payGas.TransactionSignature = signedBase64
+				rpg.TransactionSignature = signedBase64
 			}
 
-			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, rpg, gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err)
@@ -503,7 +503,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				Amount:      trovToDispense,
 			}
 
-			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
+			rpt, _, err := userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v Trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err)
@@ -513,9 +513,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			//sign payment
-			if len(payTrov.Transaction) > 0 {
-				payTrov.Commit = 0
-				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), payTrov.Transaction, payTrov.NetworkPassPhrase)
+			if len(rpt.Transaction) > 0 {
+				rpt.Commit = 0
+				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), rpt.Transaction, gc.BantuNetworkPassphrase)
 				if err != nil {
 					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error signing trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
 					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error signing trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
@@ -524,10 +524,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					return
 				}
 
-				payTrov.TransactionSignature = signedBase64
+				rpt.TransactionSignature = signedBase64
 			}
 
-			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, rpt, gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err)
