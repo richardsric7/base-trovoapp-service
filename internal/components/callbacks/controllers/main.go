@@ -460,8 +460,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing payment for [%v]. Err: %v\n", "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing payment for [%v]. Err: %v\n", "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -484,8 +484,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg payment for [%v]. Err: %v\n", "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg payment for [%v]. Err: %v\n", "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -503,8 +503,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing Trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v Trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -527,8 +527,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
