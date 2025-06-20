@@ -3432,3 +3432,23 @@ func logDiscordFailedTokenizedAssetSubscription(msg string) {
 	}
 	discord.Say(msg)
 }
+
+func GetSwapEstimate(sourceAssetCode, sourceAssetIssuer, amount, destinationAssetCode, destinationAssetIssuer string, gc *sharedconfig.GlobalConfig) (swappedEstimate string) {
+	destAsset := ""
+
+	if len(destinationAssetIssuer) > 10 {
+		destAsset = fmt.Sprintf("%s:%s", destinationAssetCode, destinationAssetIssuer)
+	}
+	pathInput := swapModels.SwapSendPathInput{
+		DestinationAssets: destAsset,
+		SourceAssetCode:   sourceAssetCode,
+		SourceAssetIssuer: sourceAssetIssuer,
+		SourceAmount:      amount,
+	}
+	_, swappedEstimate, err := GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
+	if err != nil {
+		log.Println("[GetSwapEstimate]error fetching valid swap Path ", err)
+		return "0"
+	}
+	return swappedEstimate
+}

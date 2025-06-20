@@ -383,44 +383,46 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			trovAsset := gc.GetCuratedAssetByCode("TROV")
 			cngnAsset := gc.GetCuratedAssetByCode("CNGN")
 
-			orderBookTrov, err := gc.GetOrderBook(trovAsset.AssetCode, trovAsset.AssetIssuer, cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+			// orderBookTrov, err := gc.GetOrderBook(trovAsset.AssetCode, trovAsset.AssetIssuer, cngnAsset.AssetCode, cngnAsset.AssetIssuer)
 
-			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
+			// if err != nil {
+			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
+			// 	log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
 
-				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
-				return
-			}
-			if len(orderBookTrov.Asks) == 0 {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
+			// 	c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+			// 	return
+			// }
+			// if len(orderBookTrov.Asks) == 0 {
+			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
+			// 	log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
 
-				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
-				return
-			}
+			// 	c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+			// 	return
+			// }
 			//get the price of trov
-			priceOfTrov := orderBookTrov.Asks[0].Price
+			// priceOfTrov := orderBookTrov.Asks[0].Price
 
-			orderBookGas, err := gc.GetOrderBook(os.Getenv("NATIVE_ASSET_CODE"), "", cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+			// orderBookGas, err := gc.GetOrderBook(os.Getenv("NATIVE_ASSET_CODE"), "", cngnAsset.AssetCode, cngnAsset.AssetIssuer)
 
-			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
+			// if err != nil {
+			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
+			// 	log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
 
-				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
-				return
-			}
-			if len(orderBookGas.Asks) == 0 {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
+			// 	c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+			// 	return
+			// }
+			// if len(orderBookGas.Asks) == 0 {
+			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
+			// 	log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
 
-				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
-				return
-			}
-			priceOfGas := orderBookGas.Asks[0].Price
-			trovToDispense := trovAmount.Div(decimal.RequireFromString(priceOfTrov)).Truncate(7)
-			gasToDispense := gasAmount.Div(decimal.RequireFromString(priceOfGas)).Truncate(7)
+			// 	c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+			// 	return
+			// }
+			// priceOfGas := orderBookGas.Asks[0].Price
+			// trovToDispense := trovAmount.Div(decimal.RequireFromString(priceOfTrov)).Truncate(7)
+			// gasToDispense := gasAmount.Div(decimal.RequireFromString(priceOfGas)).Truncate(7)
+			trovToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.AssetIssuer, trovAmount.String(), trovAsset.AssetCode, trovAsset.AssetIssuer, gc)
+			gasToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.AssetIssuer, gasAmount.String(), os.Getenv("NATIVE_ASSET_CODE"), "", gc)
 			// get faucet foir activation
 			faucet, err := userServices.GetFaucetConfigByUserCase("ACTIVATION", gc)
 			if err != nil {
@@ -455,13 +457,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				Memo:        "ACTIVATION",
 				AssetIssuer: "",
 				AssetCode:   os.Getenv("NATIVE_ASSET_CODE"),
-				Amount:      gasToDispense.String(),
+				Amount:      gasToDispense,
 			}
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -484,8 +486,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense.String(), "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v gas payment for [%v]. Err: %v\n", gasToDispense, "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -498,13 +500,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				Memo:        "ACTIVATION",
 				AssetIssuer: trovAsset.AssetIssuer,
 				AssetCode:   trovAsset.AssetCode,
-				Amount:      trovToDispense.String(),
+				Amount:      trovToDispense,
 			}
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v Trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v Trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -527,8 +529,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
 			if err != nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense.String(), "ACTIVATION", err)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg %v trov payment for [%v]. Err: %v\n", trovToDispense, "ACTIVATION", err)
 
 				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 				return
@@ -546,7 +548,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			title := fmt.Sprintf("Account activation payment of %v%v now completed.", event.Data.Currency, event.Data.Amount)
 
-			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense.String(), trovToDispense.String(), "TROV", user.Username)
+			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense, trovToDispense, "TROV", user.Username)
 			user.SendPushMessage(title, msg, "", dataPayload, gc)
 		}
 		user.InvalidateUserCache(gc)
