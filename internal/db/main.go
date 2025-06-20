@@ -532,6 +532,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating FiatPayment: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.FaucetConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FaucetConfig: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)
