@@ -40,9 +40,9 @@ dependencies:
   appinio_swiper: ^2.0.2
   get: ^4.6.1
   fl_chart: ^1.0.0
+  uuid: ^4.5.1
   # charts_flutter: ^0.12.0
   # syncfusion_flutter_charts: ^19.1.54
-  flutterwave_standard: ^1.1.0
   flutter_switch: ^0.3.2
   calendar_calendar: ^1.0.0
   clipboard: ^0.1.3

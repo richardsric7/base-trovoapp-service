@@ -4,14 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
-import 'package:trovo_app/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
-
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class BuyXBNWithFiat extends StatefulWidget {
@@ -26,11 +25,13 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
   late ColorNotifier notifier;
   late DataProvider appState;
   final formKey = GlobalKey<FormState>();
+  late Map viewData;
 
   @override
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
+    viewData = appState.viewData!;
   }
 
   @override
@@ -59,7 +60,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                 Container(
                   width: width,
                   child: Text(
-                    'buyxbnwithfiat'.tr(),
+                    'Activate Account',
                     textAlign: TextAlign.start,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
@@ -106,78 +107,111 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   ),
                 ),
                 SizedBox(height: height / 50),
-                Container(
-                  width: width,
-                  child: Text(
-                    'howmuchdoyouwanttobuy'.tr(),
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
+                Text(
+                  "youpay".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+                SizedBox(height: height / 50),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(height: height / 50),
+                            Text(
+                              'NGN ${getFiatValue(double.parse(viewData['activationAmount'].toString()))}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                            SizedBox(height: height / 50.0),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(height: height / 90),
-                CustomTextFormField.textField(
-                  null,
-                  notifier.getbluecolor,
-                  null,
-                  notifier.getgrey,
-                  notifier.getprefixicon,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  70.sp,
-                  350.sp,
-                  hintText: 'N2000 - N5000',
-                  onSaved: (value) {},
+                SizedBox(height: height / 50),
+                Text(
+                  "youget".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        "250 XBN",
-                        textScaler: TextScaler.linear(1.0),
-                        style: TextStyle(
-                          color: notifier.getdarkgrey,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12.0,
-                        ),
+                SizedBox(height: height / 50),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
                       ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                     ),
-                    Flexible(
-                      child: Visibility(
-                        visible: true,
-                        replacement: Container(),
-                        child: Text(
-                          "0.5 TROV",
-                          textScaler: TextScaler.linear(1.0),
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: notifier.getdarkgrey,
-                            fontSize: 12.0,
-                          ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(height: height / 50),
+                            SizedBox(
+                              width: 300,
+                              child: Text(
+                                'NGN ${getFiatValue(getPercentageValue(double.parse(viewData['gasPercent'].toString()), double.parse(viewData['activationAmount'].toString())))} worth of Gas and NGN ${getFiatValue(getPercentageValue(double.parse(viewData['trovTokenPercent'].toString()), double.parse(viewData['activationAmount'].toString())))} worth of TROV',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: height / 50.0),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 SizedBox(height: height / 20),
                 Button(
-                  "continuee".tr(),
+                  "makepayment".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   width: width - 40,
                   onTap: () {
+                    // handlePaymentInitialization();
                     appState.currentAction = PageAction(
                       state: PageState.addPage,
-                      page: ConfirmBuyXBNWithFiatViewPageConfig,
+                      page: FlutterwaveWebViewPageConfig,
                     );
-
-                    // appState.viewData![ShareReceiptViewPageConfig.key] = viewData;
                   },
                 ),
                 SizedBox(height: height / 20),
@@ -192,5 +226,9 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         ),
       ),
     );
+  }
+
+  double getPercentageValue(double percentage, double amount) {
+    return percentage * amount / 100;
   }
 }

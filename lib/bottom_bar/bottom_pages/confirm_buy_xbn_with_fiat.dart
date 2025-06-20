@@ -2,10 +2,6 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutterwave_standard/core/flutterwave.dart';
-import 'package:flutterwave_standard/models/requests/customer.dart';
-import 'package:flutterwave_standard/models/requests/customizations.dart';
-import 'package:flutterwave_standard/models/responses/charge_response.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -170,7 +166,6 @@ class _ConfirmBuyXBNWithFiat extends State<ConfirmBuyXBNWithFiat>
                   wihitecolor,
                   width: width - 40,
                   onTap: () {
-                    handlePaymentInitialization();
                     // appState.currentAction = PageAction(
                     //   state: PageState.addPage,
                     //   page: ConfirmBuyXBNWithFiatViewPageConfig,
@@ -191,35 +186,5 @@ class _ConfirmBuyXBNWithFiat extends State<ConfirmBuyXBNWithFiat>
         ),
       ),
     );
-  }
-
-  handlePaymentInitialization() async {
-    final Customer customer = Customer(
-      name: "Flutterwave Developer",
-      phoneNumber: "1234566677777",
-      email: "customer@customer.com",
-    );
-    final Flutterwave flutterwave = Flutterwave(
-      publicKey: "FLWPUBK_TEST-45bd332ee4bdefdcacd6d2513944cd16-X",
-      currency: "ngn",
-      redirectUrl: "trovo.app.link",
-      txRef: "xdvdsw3422d",
-      amount: '2500',
-      customer: customer,
-      paymentOptions: "ussd, card, bank transfer",
-      customization: Customization(title: "Buy XBN and TROV"),
-      isTestMode: true,
-    );
-
-    final ChargeResponse response = await flutterwave.charge(context);
-    print(response);
-    // Handle the response
-    if (response.success == true) {
-      // Payment was successful
-      print('charge successful');
-    } else {
-      print('charge unsuccessful');
-      // Payment failed or was cancelled
-    }
   }
 }

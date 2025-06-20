@@ -1059,7 +1059,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               'assets/images/cash.png',
               width: width / 2.2,
               height: 60,
-              onTap: () {
+              onTap: () async {
+                await fetchFiatAmountForActivation();
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
                   page: BuyXBNWithFiatViewPageConfig,
@@ -1396,6 +1397,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  Future<void> fetchFiatAmountForActivation() async {
+    ;
+    try {
+      showLoader(context);
+      var uri = '/v1/users/activate/fiat';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      hideLoader(context);
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        appState.viewData = responseData['data'];
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      hideLoader(context);
     }
   }
 }

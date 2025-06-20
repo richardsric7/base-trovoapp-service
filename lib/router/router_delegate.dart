@@ -22,6 +22,7 @@ import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
+import 'package:trovo_app/screens/flutterwave_webview.dart';
 import 'package:trovo_app/screens/kyc_screen.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdraw_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_asset.dart';
@@ -144,7 +145,8 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
   }
 
   void addPage(PageConfiguration pageConfig) {
-    final shouldAddPage = _pages.isEmpty ||
+    final shouldAddPage =
+        _pages.isEmpty ||
         (_pages.last.arguments as PageConfiguration).uiPage !=
             pageConfig.uiPage;
     if (shouldAddPage) {
@@ -198,8 +200,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(AnnouncementsView(), NotificationsViewPageConfig);
           break;
         case Pages.CreateSubWalletSuccessView:
-          _addPageData(CreateSubWalletSuccessView(),
-              CreateSubWalletSuccessViewPageConfig);
+          _addPageData(
+            CreateSubWalletSuccessView(),
+            CreateSubWalletSuccessViewPageConfig,
+          );
           break;
         case Pages.WalletDetailsView:
           _addPageData(WalletDetails(), WalletDetailsViewPageConfig);
@@ -221,7 +225,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.PendingAssetDetailsView:
           _addPageData(
-              PendingAssetDetails(), PendingAssetDetailsViewPageConfig);
+            PendingAssetDetails(),
+            PendingAssetDetailsViewPageConfig,
+          );
           break;
         case Pages.PaymentHistoryView:
           _addPageData(PaymentHistory(), PaymentHistoryViewPageConfig);
@@ -258,62 +264,84 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.RequestSpecificPaymentView:
           _addPageData(
-              RequestSpecificPayment(), RequestSpecificPaymentViewPageConfig);
+            RequestSpecificPayment(),
+            RequestSpecificPaymentViewPageConfig,
+          );
           break;
         case Pages.RequestSpecificPaymentDetailsView:
-          _addPageData(RequestSpecificPaymentDetails(),
-              RequestSpecificPaymentDetailsViewPageConfig);
+          _addPageData(
+            RequestSpecificPaymentDetails(),
+            RequestSpecificPaymentDetailsViewPageConfig,
+          );
           break;
         case Pages.SecurityQuestionsView:
           _addPageData(SecurityQuestions(), SecurityQuestionsViewPageConfig);
           break;
         case Pages.AccountRecoverySuccessView:
           _addPageData(
-              AccountRecoverySuccess(), AccountRecoverySuccessViewPageConfig);
+            AccountRecoverySuccess(),
+            AccountRecoverySuccessViewPageConfig,
+          );
           break;
         case Pages.SharedAccessView:
           _addPageData(SharedAccess(), SharedAccessViewPageConfig);
           break;
         case Pages.SetupAccountRecoveryView:
           _addPageData(
-              SetupAccountRecovery(), SetupAccountRecoveryViewPageConfig);
+            SetupAccountRecovery(),
+            SetupAccountRecoveryViewPageConfig,
+          );
           break;
         case Pages.DisableAccountRecoveryView:
           _addPageData(
-              DisableAccountRecovery(), DisableAccountRecoveryViewPageConfig);
+            DisableAccountRecovery(),
+            DisableAccountRecoveryViewPageConfig,
+          );
           break;
         case Pages.RecoverAccountView:
           _addPageData(RecoverAccount(), RecoverAccountViewPageConfig);
           break;
         case Pages.AnswerSecurityQuestionsView:
           _addPageData(
-              AnswerSecurityQuestions(), AnswerSecurityQuestionsViewPageConfig);
+            AnswerSecurityQuestions(),
+            AnswerSecurityQuestionsViewPageConfig,
+          );
           break;
         case Pages.RequestBackupView:
           _addPageData(RequestBackup(), RequestBackupViewPageConfig);
           break;
         case Pages.BackupRecoverySecretView:
           _addPageData(
-              BackupRecoverySecret(), BackupRecoverySecretViewPageConfig);
+            BackupRecoverySecret(),
+            BackupRecoverySecretViewPageConfig,
+          );
           break;
         case Pages.CompleteAccountRecoveryView:
           _addPageData(
-              CompleteAccountRecovery(), CompleteAccountRecoveryViewPageConfig);
+            CompleteAccountRecovery(),
+            CompleteAccountRecoveryViewPageConfig,
+          );
           break;
         case Pages.DisableAccountRecoveryInfoView:
-          _addPageData(DisableAccountRecoveryInfo(),
-              DisableAccountRecoveryInfoViewPageConfig);
+          _addPageData(
+            DisableAccountRecoveryInfo(),
+            DisableAccountRecoveryInfoViewPageConfig,
+          );
           break;
         case Pages.SuccessView:
           _addPageData(SuccessView(), SuccessViewPageConfig);
           break;
         case Pages.SecurityQuestionsForInactiveAccountsView:
-          _addPageData(SecurityQuestionsForInactiveAccounts(),
-              SecurityQuestionsForInactiveAccountsViewPageConfig);
+          _addPageData(
+            SecurityQuestionsForInactiveAccounts(),
+            SecurityQuestionsForInactiveAccountsViewPageConfig,
+          );
           break;
         case Pages.AddSharedAccessDetailsView:
           _addPageData(
-              AddSharedAccessDetails(), AddSharedAccessDetailsViewPageConfig);
+            AddSharedAccessDetails(),
+            AddSharedAccessDetailsViewPageConfig,
+          );
           break;
         case Pages.SharedWalletInfoView:
           _addPageData(SharedWalletInfo(), SharedWalletInfoViewPageConfig);
@@ -325,12 +353,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(UpdateSharedAccess(), UpdateSharedAccessViewPageConfig);
           break;
         case Pages.UpdateSharedAccessDetailsView:
-          _addPageData(UpdateSharedAccessDetails(),
-              UpdateSharedAccessDetailsViewPageConfig);
+          _addPageData(
+            UpdateSharedAccessDetails(),
+            UpdateSharedAccessDetailsViewPageConfig,
+          );
           break;
         case Pages.WelcomeToSharedAccessView:
           _addPageData(
-              WelcomeToSharedAccess(), WelcomeToSharedAccessViewPageConfig);
+            WelcomeToSharedAccess(),
+            WelcomeToSharedAccessViewPageConfig,
+          );
           break;
         case Pages.GetStartedView:
           _addPageData(GetStarted(), GetStartedViewPageConfig);
@@ -346,11 +378,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.GenerateDepositAddressView:
           _addPageData(
-              GenerateDepositAddress(), GenerateDepositAddressViewPageConfig);
+            GenerateDepositAddress(),
+            GenerateDepositAddressViewPageConfig,
+          );
           break;
         case Pages.SelectDepositAddressView:
           _addPageData(
-              SelectDepositAddress(), SelectDepositAddressViewPageConfig);
+            SelectDepositAddress(),
+            SelectDepositAddressViewPageConfig,
+          );
           break;
         case Pages.WithdrawAssetView:
           _addPageData(WithdrawAsset(), WithdrawAssetViewPageConfig);
@@ -363,26 +399,36 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.DepositWithdrawHistoryView:
           _addPageData(
-              DepositWithdrawHistory(), DepositWithdrawHistoryViewPageConfig);
+            DepositWithdrawHistory(),
+            DepositWithdrawHistoryViewPageConfig,
+          );
           break;
         case Pages.DepositWithdrawDetailsView:
           _addPageData(
-              DepositWithdrawDetails(), DepositWithdrawDetailsViewPageConfig);
+            DepositWithdrawDetails(),
+            DepositWithdrawDetailsViewPageConfig,
+          );
           break;
         case Pages.WelcomeSubscriptionsView:
           _addPageData(
-              WelcomeSubscriptions(), WelcomeSubscriptionsViewPageConfig);
+            WelcomeSubscriptions(),
+            WelcomeSubscriptionsViewPageConfig,
+          );
           break;
         case Pages.SubscriptionPlansView:
           _addPageData(SubscriptionPlans(), SubscriptionPlansViewPageConfig);
           break;
         case Pages.SubscriptionPlanBenefitsView:
-          _addPageData(SubscriptionPlanBenefits(),
-              SubscriptionPlanBenefitsViewPageConfig);
+          _addPageData(
+            SubscriptionPlanBenefits(),
+            SubscriptionPlanBenefitsViewPageConfig,
+          );
           break;
         case Pages.AuthorizeSubscriptionView:
           _addPageData(
-              AuthorizeSubscription(), AuthorizeSubscriptionViewPageConfig);
+            AuthorizeSubscription(),
+            AuthorizeSubscriptionViewPageConfig,
+          );
           break;
         case Pages.OptInAssetView:
           _addPageData(OptInAsset(), OptInAssetViewPageConfig);
@@ -395,7 +441,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.TokenizationWelcomeView:
           _addPageData(
-              TokenizationWelcome(), TokenizationWelcomeViewPageConfig);
+            TokenizationWelcome(),
+            TokenizationWelcomeViewPageConfig,
+          );
           break;
         case Pages.SettingsView:
           _addPageData(Settings(), SettingsViewPageConfig);
@@ -408,15 +456,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.AssetTokenInformationView:
           _addPageData(
-              AssetTokenInformation(), AssetTokenInformationViewPageConfig);
+            AssetTokenInformation(),
+            AssetTokenInformationViewPageConfig,
+          );
           break;
         case Pages.AssetVerificationDocumentsView:
-          _addPageData(AssetVerificationDocuments(),
-              AssetVerificationDocumentsViewPageConfig);
+          _addPageData(
+            AssetVerificationDocuments(),
+            AssetVerificationDocumentsViewPageConfig,
+          );
           break;
         case Pages.TokenizedAssetDetailView:
           _addPageData(
-              TokenizedAssetDetail(), TokenizedAssetDetailViewPageConfig);
+            TokenizedAssetDetail(),
+            TokenizedAssetDetailViewPageConfig,
+          );
           break;
         case Pages.BuyTokensView:
           _addPageData(BuyTokens(), BuyTokensViewPageConfig);
@@ -458,16 +512,22 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(AllWalletsView(), AllWalletsViewPageConfig);
           break;
         case Pages.ConfirmTokenizationDetailsView:
-          _addPageData(ConfirmTokenizationDetails(),
-              ConfirmTokenizationDetailsViewPageConfig);
+          _addPageData(
+            ConfirmTokenizationDetails(),
+            ConfirmTokenizationDetailsViewPageConfig,
+          );
           break;
         case Pages.TokenizationFeePaymentView:
           _addPageData(
-              TokenizationFeePayment(), TokenizationFeePaymentViewPageConfig);
+            TokenizationFeePayment(),
+            TokenizationFeePaymentViewPageConfig,
+          );
           break;
         case Pages.DeleteAccountPrerequisitesView:
-          _addPageData(DeleteAccountPrerequisites(),
-              DeleteAccountPrerequisitesViewPageConfig);
+          _addPageData(
+            DeleteAccountPrerequisites(),
+            DeleteAccountPrerequisitesViewPageConfig,
+          );
           break;
         case Pages.DeleteAccountView:
           _addPageData(DeleteAccount(), DeleteAccountViewPageConfig);
@@ -477,11 +537,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.ConfirmBuyXBNWithFiatView:
           _addPageData(
-              ConfirmBuyXBNWithFiat(), ConfirmBuyXBNWithFiatViewPageConfig);
+            ConfirmBuyXBNWithFiat(),
+            ConfirmBuyXBNWithFiatViewPageConfig,
+          );
           break;
         case Pages.SeeAllTokenizedAssetsView:
           _addPageData(
-              SeeAllTokenizedAssets(), SeeAllTokenizedAssetsViewPageConfig);
+            SeeAllTokenizedAssets(),
+            SeeAllTokenizedAssetsViewPageConfig,
+          );
           break;
         case Pages.BuyTokensSuccessView:
           _addPageData(BuyTokensSuccess(), BuyTokensSuccessViewPageConfig);
@@ -491,6 +555,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.KycScreenView:
           _addPageData(KYCScreen(), KycScreenViewPageConfig);
+          break;
+        case Pages.FlutterwaveWebView:
+          _addPageData(FlutterwaveWebView(), FlutterwaveWebViewPageConfig);
           break;
         default:
           break;
@@ -813,6 +880,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.KycScreenView:
         KycScreenViewPageConfig.currentPageAction = action;
         break;
+      case Pages.FlutterwaveWebView:
+        FlutterwaveWebViewPageConfig.currentPageAction = action;
+        break;
       default:
         break;
     }
@@ -857,16 +927,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
 
   MaterialPage _createPage(Widget child, PageConfiguration pageConfig) {
     return MaterialPage(
-        child: child,
-        key: ValueKey(pageConfig.key),
-        name: pageConfig.path,
-        arguments: pageConfig);
+      child: child,
+      key: ValueKey(pageConfig.key),
+      name: pageConfig.path,
+      arguments: pageConfig,
+    );
   }
 
   void _addPageData(Widget child, PageConfiguration pageConfig) {
-    _pages.add(
-      _createPage(child, pageConfig),
-    );
+    _pages.add(_createPage(child, pageConfig));
   }
 
   void replace(PageConfiguration newRoute) {
@@ -902,7 +971,8 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
 
   @override
   Future<void> setNewRoutePath(PageConfiguration configuration) {
-    final shouldAddPage = _pages.isEmpty ||
+    final shouldAddPage =
+        _pages.isEmpty ||
         (_pages.last.arguments as PageConfiguration).uiPage !=
             configuration.uiPage;
     if (shouldAddPage) {
@@ -937,7 +1007,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case PageState.addWidget:
           _setPageAction(appState.currentAction);
           pushWidget(
-              appState.currentAction.widget!, appState.currentAction.page!);
+            appState.currentAction.widget!,
+            appState.currentAction.page!,
+          );
           break;
         case PageState.addAll:
           addAll(appState.currentAction.pages!);

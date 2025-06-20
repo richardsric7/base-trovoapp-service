@@ -1360,7 +1360,12 @@ void mintWalletExplainerPopup(context) {
   );
 }
 
-void showSuccessAlert(context, {String? text, required void Function() onTap}) {
+void showSuccessAlert(
+  context, {
+  String? text,
+  String? buttonText,
+  required void Function() onTap,
+}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -1456,7 +1461,7 @@ void showSuccessAlert(context, {String? text, required void Function() onTap}) {
                     ),
                   ),
                   child: Text(
-                    "continuee".tr(),
+                    buttonText ?? "continuee".tr(),
                     style: TextStyle(
                       color: notifier.getwihitecolor,
                       fontFamily: fontbody,

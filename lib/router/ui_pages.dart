@@ -113,6 +113,7 @@ const String SeeAllTokenizedAssetsViewPath = '/SeeAllTokenizedAssetsView';
 const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
 const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
 const String KycScreenViewPath = '/KycScreenView';
+const String FlutterwaveWebViewPath = '/FlutterwaveWebView';
 
 enum Pages {
   Splash,
@@ -227,7 +228,8 @@ enum Pages {
   SeeAllTokenizedAssetsView,
   BuyTokensSuccessView,
   BuyTokensReceiptView,
-  KycScreenView
+  KycScreenView,
+  FlutterwaveWebView,
 }
 
 class PageConfiguration {
@@ -236,537 +238,649 @@ class PageConfiguration {
   final Pages uiPage;
   PageAction? currentPageAction;
 
-  PageConfiguration(
-      {required this.key,
-      required this.path,
-      required this.uiPage,
-      this.currentPageAction});
+  PageConfiguration({
+    required this.key,
+    required this.path,
+    required this.uiPage,
+    this.currentPageAction,
+  });
 }
 
 PageConfiguration SplashPageConfig = PageConfiguration(
-    key: 'Splash',
-    path: SplashPath,
-    uiPage: Pages.Splash,
-    currentPageAction: null);
+  key: 'Splash',
+  path: SplashPath,
+  uiPage: Pages.Splash,
+  currentPageAction: null,
+);
 PageConfiguration LoginPageConfig = PageConfiguration(
-    key: 'Login',
-    path: LoginPath,
-    uiPage: Pages.Login,
-    currentPageAction: null);
+  key: 'Login',
+  path: LoginPath,
+  uiPage: Pages.Login,
+  currentPageAction: null,
+);
 PageConfiguration SignupPageConfig = PageConfiguration(
-    key: 'Signup',
-    path: SignupPath,
-    uiPage: Pages.Signup,
-    currentPageAction: null);
+  key: 'Signup',
+  path: SignupPath,
+  uiPage: Pages.Signup,
+  currentPageAction: null,
+);
 PageConfiguration OnboardingPageConfig = PageConfiguration(
-    key: 'Onboarding',
-    path: OnboardingPath,
-    uiPage: Pages.Onboarding,
-    currentPageAction: null);
+  key: 'Onboarding',
+  path: OnboardingPath,
+  uiPage: Pages.Onboarding,
+  currentPageAction: null,
+);
 PageConfiguration CreatePasswordPageConfig = PageConfiguration(
-    key: 'CreatePassword',
-    path: CreatePasswordPath,
-    uiPage: Pages.CreatePassword,
-    currentPageAction: null);
+  key: 'CreatePassword',
+  path: CreatePasswordPath,
+  uiPage: Pages.CreatePassword,
+  currentPageAction: null,
+);
 PageConfiguration ImportWalletPageConfig = PageConfiguration(
-    key: 'ImportWallet',
-    path: ImportWalletPath,
-    uiPage: Pages.ImportWallet,
-    currentPageAction: null);
+  key: 'ImportWallet',
+  path: ImportWalletPath,
+  uiPage: Pages.ImportWallet,
+  currentPageAction: null,
+);
 PageConfiguration VerificationPageConfig = PageConfiguration(
-    key: 'Verification',
-    path: VerificationPath,
-    uiPage: Pages.Verification,
-    currentPageAction: null);
+  key: 'Verification',
+  path: VerificationPath,
+  uiPage: Pages.Verification,
+  currentPageAction: null,
+);
 PageConfiguration CongratulationsPageConfig = PageConfiguration(
-    key: 'Congratulations',
-    path: CongratulationsPath,
-    uiPage: Pages.Congratulations,
-    currentPageAction: null);
+  key: 'Congratulations',
+  path: CongratulationsPath,
+  uiPage: Pages.Congratulations,
+  currentPageAction: null,
+);
 PageConfiguration EnsurePrivacyPageConfig = PageConfiguration(
-    key: 'EnsurePrivacy',
-    path: EnsurePrivacyPath,
-    uiPage: Pages.EnsurePrivacy,
-    currentPageAction: null);
+  key: 'EnsurePrivacy',
+  path: EnsurePrivacyPath,
+  uiPage: Pages.EnsurePrivacy,
+  currentPageAction: null,
+);
 PageConfiguration BackupPageConfig = PageConfiguration(
-    key: 'Backup',
-    path: BackupPath,
-    uiPage: Pages.Backup,
-    currentPageAction: null);
+  key: 'Backup',
+  path: BackupPath,
+  uiPage: Pages.Backup,
+  currentPageAction: null,
+);
 PageConfiguration FingerprintPageConfig = PageConfiguration(
-    key: 'Fingerprint',
-    path: FingerprintPath,
-    uiPage: Pages.Fingerprint,
-    currentPageAction: null);
+  key: 'Fingerprint',
+  path: FingerprintPath,
+  uiPage: Pages.Fingerprint,
+  currentPageAction: null,
+);
 PageConfiguration BottomHomePageConfig = PageConfiguration(
-    key: 'BottomHome',
-    path: BottomHomePath,
-    uiPage: Pages.BottomHome,
-    currentPageAction: null);
+  key: 'BottomHome',
+  path: BottomHomePath,
+  uiPage: Pages.BottomHome,
+  currentPageAction: null,
+);
 PageConfiguration WebViewPageConfig = PageConfiguration(
-    key: 'WebView',
-    path: WebViewPath,
-    uiPage: Pages.WebView,
-    currentPageAction: null);
+  key: 'WebView',
+  path: WebViewPath,
+  uiPage: Pages.WebView,
+  currentPageAction: null,
+);
 PageConfiguration PdfViewPageConfig = PageConfiguration(
-    key: 'PdfView',
-    path: PdfViewPath,
-    uiPage: Pages.PdfView,
-    currentPageAction: null);
+  key: 'PdfView',
+  path: PdfViewPath,
+  uiPage: Pages.PdfView,
+  currentPageAction: null,
+);
 PageConfiguration QrScannerPageConfig = PageConfiguration(
-    key: 'QrScanner',
-    path: QrScannerPath,
-    uiPage: Pages.QrScanner,
-    currentPageAction: null);
+  key: 'QrScanner',
+  path: QrScannerPath,
+  uiPage: Pages.QrScanner,
+  currentPageAction: null,
+);
 PageConfiguration NotificationsViewPageConfig = PageConfiguration(
-    key: 'NotificationsView',
-    path: NotificationsViewPath,
-    uiPage: Pages.NotificationsView,
-    currentPageAction: null);
+  key: 'NotificationsView',
+  path: NotificationsViewPath,
+  uiPage: Pages.NotificationsView,
+  currentPageAction: null,
+);
 PageConfiguration CreateSubWalletSuccessViewPageConfig = PageConfiguration(
-    key: 'CreateSubWalletSuccessView',
-    path: CreateSubWalletSuccessViewPath,
-    uiPage: Pages.CreateSubWalletSuccessView,
-    currentPageAction: null);
+  key: 'CreateSubWalletSuccessView',
+  path: CreateSubWalletSuccessViewPath,
+  uiPage: Pages.CreateSubWalletSuccessView,
+  currentPageAction: null,
+);
 PageConfiguration WalletDetailsViewPageConfig = PageConfiguration(
-    key: 'WalletDetailsView',
-    path: WalletDetailsViewPath,
-    uiPage: Pages.WalletDetailsView,
-    currentPageAction: null);
+  key: 'WalletDetailsView',
+  path: WalletDetailsViewPath,
+  uiPage: Pages.WalletDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration AssetDetailsViewPageConfig = PageConfiguration(
-    key: 'AssetDetailsView',
-    path: AssetDetailsViewPath,
-    uiPage: Pages.AssetDetailsView,
-    currentPageAction: null);
+  key: 'AssetDetailsView',
+  path: AssetDetailsViewPath,
+  uiPage: Pages.AssetDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration SendAssetViewPageConfig = PageConfiguration(
-    key: 'SendAssetView',
-    path: SendAssetViewPath,
-    uiPage: Pages.SendAssetView,
-    currentPageAction: null);
+  key: 'SendAssetView',
+  path: SendAssetViewPath,
+  uiPage: Pages.SendAssetView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmTransactionViewPageConfig = PageConfiguration(
-    key: 'ConfirmTransactionView',
-    path: ConfirmTransactionViewPath,
-    uiPage: Pages.ConfirmTransactionView,
-    currentPageAction: null);
+  key: 'ConfirmTransactionView',
+  path: ConfirmTransactionViewPath,
+  uiPage: Pages.ConfirmTransactionView,
+  currentPageAction: null,
+);
 PageConfiguration TransactionSuccessViewPageConfig = PageConfiguration(
-    key: 'TransactionSuccessView',
-    path: TransactionSuccessViewPath,
-    uiPage: Pages.TransactionSuccessView,
-    currentPageAction: null);
+  key: 'TransactionSuccessView',
+  path: TransactionSuccessViewPath,
+  uiPage: Pages.TransactionSuccessView,
+  currentPageAction: null,
+);
 PageConfiguration ReceiveAssetViewPageConfig = PageConfiguration(
-    key: 'ReceiveAssetView',
-    path: ReceiveAssetViewPath,
-    uiPage: Pages.ReceiveAssetView,
-    currentPageAction: null);
+  key: 'ReceiveAssetView',
+  path: ReceiveAssetViewPath,
+  uiPage: Pages.ReceiveAssetView,
+  currentPageAction: null,
+);
 PageConfiguration PendingAssetDetailsViewPageConfig = PageConfiguration(
-    key: 'PendingAssetDetailsView',
-    path: PendingAssetDetailsViewPath,
-    uiPage: Pages.PendingAssetDetailsView,
-    currentPageAction: null);
+  key: 'PendingAssetDetailsView',
+  path: PendingAssetDetailsViewPath,
+  uiPage: Pages.PendingAssetDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration PaymentHistoryViewPageConfig = PageConfiguration(
-    key: 'PaymentHistoryView',
-    path: PaymentHistoryViewPath,
-    uiPage: Pages.PaymentHistoryView,
-    currentPageAction: null);
+  key: 'PaymentHistoryView',
+  path: PaymentHistoryViewPath,
+  uiPage: Pages.PaymentHistoryView,
+  currentPageAction: null,
+);
 PageConfiguration PaymentDetailsViewPageConfig = PageConfiguration(
-    key: 'PaymentDetailsView',
-    path: PaymentDetailsViewPath,
-    uiPage: Pages.PaymentDetailsView,
-    currentPageAction: null);
+  key: 'PaymentDetailsView',
+  path: PaymentDetailsViewPath,
+  uiPage: Pages.PaymentDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration SwapAssetsViewPageConfig = PageConfiguration(
-    key: 'SwapAssetsView',
-    path: SwapAssetsViewPath,
-    uiPage: Pages.SwapAssetsView,
-    currentPageAction: null);
+  key: 'SwapAssetsView',
+  path: SwapAssetsViewPath,
+  uiPage: Pages.SwapAssetsView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmSwapViewPageConfig = PageConfiguration(
-    key: 'ConfirmSwapView',
-    path: ConfirmSwapViewPath,
-    uiPage: Pages.ConfirmSwapView,
-    currentPageAction: null);
+  key: 'ConfirmSwapView',
+  path: ConfirmSwapViewPath,
+  uiPage: Pages.ConfirmSwapView,
+  currentPageAction: null,
+);
 PageConfiguration SwapSuccessViewPageConfig = PageConfiguration(
-    key: 'SwapSuccessView',
-    path: SwapSuccessViewPath,
-    uiPage: Pages.SwapSuccessView,
-    currentPageAction: null);
+  key: 'SwapSuccessView',
+  path: SwapSuccessViewPath,
+  uiPage: Pages.SwapSuccessView,
+  currentPageAction: null,
+);
 PageConfiguration ProfileDetailsViewPageConfig = PageConfiguration(
-    key: 'ProfileDetailsView',
-    path: ProfileDetailsViewPath,
-    uiPage: Pages.ProfileDetailsView,
-    currentPageAction: null);
+  key: 'ProfileDetailsView',
+  path: ProfileDetailsViewPath,
+  uiPage: Pages.ProfileDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration ReferralInfoViewPageConfig = PageConfiguration(
-    key: 'ReferralInfoView',
-    path: ReferralInfoViewPath,
-    uiPage: Pages.ReferralInfoView,
-    currentPageAction: null);
+  key: 'ReferralInfoView',
+  path: ReferralInfoViewPath,
+  uiPage: Pages.ReferralInfoView,
+  currentPageAction: null,
+);
 PageConfiguration PasswordMgtViewPageConfig = PageConfiguration(
-    key: 'PasswordMgtView',
-    path: PasswordMgtViewPath,
-    uiPage: Pages.PasswordMgtView,
-    currentPageAction: null);
+  key: 'PasswordMgtView',
+  path: PasswordMgtViewPath,
+  uiPage: Pages.PasswordMgtView,
+  currentPageAction: null,
+);
 PageConfiguration BackupAllViewPageConfig = PageConfiguration(
-    key: 'BackupAllView',
-    path: BackupAllViewPath,
-    uiPage: Pages.BackupAllView,
-    currentPageAction: null);
+  key: 'BackupAllView',
+  path: BackupAllViewPath,
+  uiPage: Pages.BackupAllView,
+  currentPageAction: null,
+);
 PageConfiguration AuthorizeLoginViewPageConfig = PageConfiguration(
-    key: 'AuthorizeLoginView',
-    path: AuthorizeLoginViewPath,
-    uiPage: Pages.AuthorizeLoginView,
-    currentPageAction: null);
+  key: 'AuthorizeLoginView',
+  path: AuthorizeLoginViewPath,
+  uiPage: Pages.AuthorizeLoginView,
+  currentPageAction: null,
+);
 PageConfiguration AuthorizeActionViewPageConfig = PageConfiguration(
-    key: 'AuthorizeActionView',
-    path: AuthorizeActionViewPath,
-    uiPage: Pages.AuthorizeActionView,
-    currentPageAction: null);
+  key: 'AuthorizeActionView',
+  path: AuthorizeActionViewPath,
+  uiPage: Pages.AuthorizeActionView,
+  currentPageAction: null,
+);
 PageConfiguration RequestSpecificPaymentViewPageConfig = PageConfiguration(
-    key: 'RequestSpecificPaymentView',
-    path: RequestSpecificPaymentViewPath,
-    uiPage: Pages.RequestSpecificPaymentView,
-    currentPageAction: null);
+  key: 'RequestSpecificPaymentView',
+  path: RequestSpecificPaymentViewPath,
+  uiPage: Pages.RequestSpecificPaymentView,
+  currentPageAction: null,
+);
 PageConfiguration RequestSpecificPaymentDetailsViewPageConfig =
     PageConfiguration(
-        key: 'RequestSpecificPaymentDetailsView',
-        path: RequestSpecificPaymentDetailsViewPath,
-        uiPage: Pages.RequestSpecificPaymentDetailsView,
-        currentPageAction: null);
+      key: 'RequestSpecificPaymentDetailsView',
+      path: RequestSpecificPaymentDetailsViewPath,
+      uiPage: Pages.RequestSpecificPaymentDetailsView,
+      currentPageAction: null,
+    );
 PageConfiguration SecurityQuestionsViewPageConfig = PageConfiguration(
-    key: 'SecurityQuestionsView',
-    path: SecurityQuestionsViewPath,
-    uiPage: Pages.SecurityQuestionsView,
-    currentPageAction: null);
+  key: 'SecurityQuestionsView',
+  path: SecurityQuestionsViewPath,
+  uiPage: Pages.SecurityQuestionsView,
+  currentPageAction: null,
+);
 PageConfiguration AccountRecoverySuccessViewPageConfig = PageConfiguration(
-    key: 'AccountRecoverySuccessView',
-    path: AccountRecoverySuccessViewPath,
-    uiPage: Pages.AccountRecoverySuccessView,
-    currentPageAction: null);
+  key: 'AccountRecoverySuccessView',
+  path: AccountRecoverySuccessViewPath,
+  uiPage: Pages.AccountRecoverySuccessView,
+  currentPageAction: null,
+);
 PageConfiguration SharedAccessViewPageConfig = PageConfiguration(
-    key: 'SharedAccessView',
-    path: SharedAccessViewPath,
-    uiPage: Pages.SharedAccessView,
-    currentPageAction: null);
+  key: 'SharedAccessView',
+  path: SharedAccessViewPath,
+  uiPage: Pages.SharedAccessView,
+  currentPageAction: null,
+);
 PageConfiguration SetupAccountRecoveryViewPageConfig = PageConfiguration(
-    key: 'SetupAccountRecoveryView',
-    path: SetupAccountRecoveryViewPath,
-    uiPage: Pages.SetupAccountRecoveryView,
-    currentPageAction: null);
+  key: 'SetupAccountRecoveryView',
+  path: SetupAccountRecoveryViewPath,
+  uiPage: Pages.SetupAccountRecoveryView,
+  currentPageAction: null,
+);
 PageConfiguration DisableAccountRecoveryViewPageConfig = PageConfiguration(
-    key: 'DisableAccountRecoveryView',
-    path: DisableAccountRecoveryViewPath,
-    uiPage: Pages.DisableAccountRecoveryView,
-    currentPageAction: null);
+  key: 'DisableAccountRecoveryView',
+  path: DisableAccountRecoveryViewPath,
+  uiPage: Pages.DisableAccountRecoveryView,
+  currentPageAction: null,
+);
 PageConfiguration RecoverAccountViewPageConfig = PageConfiguration(
-    key: 'RecoverAccountView',
-    path: RecoverAccountViewPath,
-    uiPage: Pages.RecoverAccountView,
-    currentPageAction: null);
+  key: 'RecoverAccountView',
+  path: RecoverAccountViewPath,
+  uiPage: Pages.RecoverAccountView,
+  currentPageAction: null,
+);
 PageConfiguration AnswerSecurityQuestionsViewPageConfig = PageConfiguration(
-    key: 'AnswerSecurityQuestionsView',
-    path: AnswerSecurityQuestionsViewPath,
-    uiPage: Pages.AnswerSecurityQuestionsView,
-    currentPageAction: null);
+  key: 'AnswerSecurityQuestionsView',
+  path: AnswerSecurityQuestionsViewPath,
+  uiPage: Pages.AnswerSecurityQuestionsView,
+  currentPageAction: null,
+);
 PageConfiguration RequestBackupViewPageConfig = PageConfiguration(
-    key: 'RequestBackupView',
-    path: RequestBackupViewPath,
-    uiPage: Pages.RequestBackupView,
-    currentPageAction: null);
+  key: 'RequestBackupView',
+  path: RequestBackupViewPath,
+  uiPage: Pages.RequestBackupView,
+  currentPageAction: null,
+);
 PageConfiguration BackupRecoverySecretViewPageConfig = PageConfiguration(
-    key: 'BackupRecoverySecretView',
-    path: BackupRecoverySecretViewPath,
-    uiPage: Pages.BackupRecoverySecretView,
-    currentPageAction: null);
+  key: 'BackupRecoverySecretView',
+  path: BackupRecoverySecretViewPath,
+  uiPage: Pages.BackupRecoverySecretView,
+  currentPageAction: null,
+);
 PageConfiguration CompleteAccountRecoveryViewPageConfig = PageConfiguration(
-    key: 'CompleteAccountRecoveryView',
-    path: CompleteAccountRecoveryViewPath,
-    uiPage: Pages.CompleteAccountRecoveryView,
-    currentPageAction: null);
+  key: 'CompleteAccountRecoveryView',
+  path: CompleteAccountRecoveryViewPath,
+  uiPage: Pages.CompleteAccountRecoveryView,
+  currentPageAction: null,
+);
 PageConfiguration DisableAccountRecoveryInfoViewPageConfig = PageConfiguration(
-    key: 'DisableAccountRecoveryInfoView',
-    path: DisableAccountRecoveryInfoViewPath,
-    uiPage: Pages.DisableAccountRecoveryInfoView,
-    currentPageAction: null);
+  key: 'DisableAccountRecoveryInfoView',
+  path: DisableAccountRecoveryInfoViewPath,
+  uiPage: Pages.DisableAccountRecoveryInfoView,
+  currentPageAction: null,
+);
 PageConfiguration SuccessViewPageConfig = PageConfiguration(
-    key: 'SuccessView',
-    path: SuccessViewPath,
-    uiPage: Pages.SuccessView,
-    currentPageAction: null);
+  key: 'SuccessView',
+  path: SuccessViewPath,
+  uiPage: Pages.SuccessView,
+  currentPageAction: null,
+);
 PageConfiguration SecurityQuestionsForInactiveAccountsViewPageConfig =
     PageConfiguration(
-        key: 'SecurityQuestionsForInactiveAccountsView',
-        path: SecurityQuestionsForInactiveAccountsViewPath,
-        uiPage: Pages.SecurityQuestionsForInactiveAccountsView,
-        currentPageAction: null);
+      key: 'SecurityQuestionsForInactiveAccountsView',
+      path: SecurityQuestionsForInactiveAccountsViewPath,
+      uiPage: Pages.SecurityQuestionsForInactiveAccountsView,
+      currentPageAction: null,
+    );
 PageConfiguration AddSharedAccessDetailsViewPageConfig = PageConfiguration(
-    key: 'AddSharedAccessDetailsView',
-    path: AddSharedAccessDetailsViewPath,
-    uiPage: Pages.AddSharedAccessDetailsView,
-    currentPageAction: null);
+  key: 'AddSharedAccessDetailsView',
+  path: AddSharedAccessDetailsViewPath,
+  uiPage: Pages.AddSharedAccessDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration SharedWalletInfoViewPageConfig = PageConfiguration(
-    key: 'SharedWalletInfoView',
-    path: SharedWalletInfoViewPath,
-    uiPage: Pages.SharedWalletInfoView,
-    currentPageAction: null);
+  key: 'SharedWalletInfoView',
+  path: SharedWalletInfoViewPath,
+  uiPage: Pages.SharedWalletInfoView,
+  currentPageAction: null,
+);
 PageConfiguration ApprovalDetailsViewPageConfig = PageConfiguration(
-    key: 'ApprovalDetailsView',
-    path: ApprovalDetailsViewPath,
-    uiPage: Pages.ApprovalDetailsView,
-    currentPageAction: null);
+  key: 'ApprovalDetailsView',
+  path: ApprovalDetailsViewPath,
+  uiPage: Pages.ApprovalDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration UpdateSharedAccessViewPageConfig = PageConfiguration(
-    key: 'UpdateSharedAccessView',
-    path: UpdateSharedAccessViewPath,
-    uiPage: Pages.UpdateSharedAccessView,
-    currentPageAction: null);
+  key: 'UpdateSharedAccessView',
+  path: UpdateSharedAccessViewPath,
+  uiPage: Pages.UpdateSharedAccessView,
+  currentPageAction: null,
+);
 PageConfiguration UpdateSharedAccessDetailsViewPageConfig = PageConfiguration(
-    key: 'UpdateSharedAccessDetailsView',
-    path: UpdateSharedAccessDetailsViewPath,
-    uiPage: Pages.UpdateSharedAccessDetailsView,
-    currentPageAction: null);
+  key: 'UpdateSharedAccessDetailsView',
+  path: UpdateSharedAccessDetailsViewPath,
+  uiPage: Pages.UpdateSharedAccessDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration WelcomeToSharedAccessViewPageConfig = PageConfiguration(
-    key: 'WelcomeToSharedAccessView',
-    path: WelcomeToSharedAccessViewPath,
-    uiPage: Pages.WelcomeToSharedAccessView,
-    currentPageAction: null);
+  key: 'WelcomeToSharedAccessView',
+  path: WelcomeToSharedAccessViewPath,
+  uiPage: Pages.WelcomeToSharedAccessView,
+  currentPageAction: null,
+);
 PageConfiguration GetStartedViewPageConfig = PageConfiguration(
-    key: 'GetStartedView',
-    path: GetStartedViewPath,
-    uiPage: Pages.GetStartedView,
-    currentPageAction: null);
+  key: 'GetStartedView',
+  path: GetStartedViewPath,
+  uiPage: Pages.GetStartedView,
+  currentPageAction: null,
+);
 PageConfiguration ShareReceiptViewPageConfig = PageConfiguration(
-    key: 'ShareReceiptView',
-    path: ShareReceiptViewPath,
-    uiPage: Pages.ShareReceiptView,
-    currentPageAction: null);
+  key: 'ShareReceiptView',
+  path: ShareReceiptViewPath,
+  uiPage: Pages.ShareReceiptView,
+  currentPageAction: null,
+);
 PageConfiguration AnnouncementViewPageConfig = PageConfiguration(
-    key: 'AnnouncementView',
-    path: AnnouncementViewPath,
-    uiPage: Pages.AnnouncementView,
-    currentPageAction: null);
+  key: 'AnnouncementView',
+  path: AnnouncementViewPath,
+  uiPage: Pages.AnnouncementView,
+  currentPageAction: null,
+);
 PageConfiguration WrappedAssetViewPageConfig = PageConfiguration(
-    key: 'WrappedAssetView',
-    path: WrappedAssetViewPath,
-    uiPage: Pages.WrappedAssetView,
-    currentPageAction: null);
+  key: 'WrappedAssetView',
+  path: WrappedAssetViewPath,
+  uiPage: Pages.WrappedAssetView,
+  currentPageAction: null,
+);
 PageConfiguration GenerateDepositAddressViewPageConfig = PageConfiguration(
-    key: 'GenerateDepositAddressView',
-    path: GenerateDepositAddressViewPath,
-    uiPage: Pages.GenerateDepositAddressView,
-    currentPageAction: null);
+  key: 'GenerateDepositAddressView',
+  path: GenerateDepositAddressViewPath,
+  uiPage: Pages.GenerateDepositAddressView,
+  currentPageAction: null,
+);
 PageConfiguration SelectDepositAddressViewPageConfig = PageConfiguration(
-    key: 'SelectDepositAddressView',
-    path: SelectDepositAddressViewPath,
-    uiPage: Pages.SelectDepositAddressView,
-    currentPageAction: null);
+  key: 'SelectDepositAddressView',
+  path: SelectDepositAddressViewPath,
+  uiPage: Pages.SelectDepositAddressView,
+  currentPageAction: null,
+);
 PageConfiguration WithdrawAssetViewPageConfig = PageConfiguration(
-    key: 'WithdrawAssetView',
-    path: WithdrawAssetViewPath,
-    uiPage: Pages.WithdrawAssetView,
-    currentPageAction: null);
+  key: 'WithdrawAssetView',
+  path: WithdrawAssetViewPath,
+  uiPage: Pages.WithdrawAssetView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmWithdrawViewPageConfig = PageConfiguration(
-    key: 'ConfirmWithdrawView',
-    path: ConfirmWithdrawViewPath,
-    uiPage: Pages.ConfirmWithdrawView,
-    currentPageAction: null);
+  key: 'ConfirmWithdrawView',
+  path: ConfirmWithdrawViewPath,
+  uiPage: Pages.ConfirmWithdrawView,
+  currentPageAction: null,
+);
 PageConfiguration TransactionStatusViewPageConfig = PageConfiguration(
-    key: 'TransactionStatusView',
-    path: TransactionStatusViewPath,
-    uiPage: Pages.TransactionStatusView,
-    currentPageAction: null);
+  key: 'TransactionStatusView',
+  path: TransactionStatusViewPath,
+  uiPage: Pages.TransactionStatusView,
+  currentPageAction: null,
+);
 PageConfiguration DepositWithdrawHistoryViewPageConfig = PageConfiguration(
-    key: 'DepositWithdrawHistoryView',
-    path: DepositWithdrawHistoryViewPath,
-    uiPage: Pages.DepositWithdrawHistoryView,
-    currentPageAction: null);
+  key: 'DepositWithdrawHistoryView',
+  path: DepositWithdrawHistoryViewPath,
+  uiPage: Pages.DepositWithdrawHistoryView,
+  currentPageAction: null,
+);
 PageConfiguration DepositWithdrawDetailsViewPageConfig = PageConfiguration(
-    key: 'DepositWithdrawDetailsView',
-    path: DepositWithdrawDetailsViewPath,
-    uiPage: Pages.DepositWithdrawDetailsView,
-    currentPageAction: null);
+  key: 'DepositWithdrawDetailsView',
+  path: DepositWithdrawDetailsViewPath,
+  uiPage: Pages.DepositWithdrawDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration WelcomeSubscriptionsViewPageConfig = PageConfiguration(
-    key: 'WelcomeSubscriptionsView',
-    path: WelcomeSubscriptionsViewPath,
-    uiPage: Pages.WelcomeSubscriptionsView,
-    currentPageAction: null);
+  key: 'WelcomeSubscriptionsView',
+  path: WelcomeSubscriptionsViewPath,
+  uiPage: Pages.WelcomeSubscriptionsView,
+  currentPageAction: null,
+);
 PageConfiguration SubscriptionPlansViewPageConfig = PageConfiguration(
-    key: 'SubscriptionPlansView',
-    path: SubscriptionPlansViewPath,
-    uiPage: Pages.SubscriptionPlansView,
-    currentPageAction: null);
+  key: 'SubscriptionPlansView',
+  path: SubscriptionPlansViewPath,
+  uiPage: Pages.SubscriptionPlansView,
+  currentPageAction: null,
+);
 PageConfiguration SubscriptionPlanBenefitsViewPageConfig = PageConfiguration(
-    key: 'SubscriptionPlanBenefitsView',
-    path: SubscriptionPlanBenefitsViewPath,
-    uiPage: Pages.SubscriptionPlanBenefitsView,
-    currentPageAction: null);
+  key: 'SubscriptionPlanBenefitsView',
+  path: SubscriptionPlanBenefitsViewPath,
+  uiPage: Pages.SubscriptionPlanBenefitsView,
+  currentPageAction: null,
+);
 PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
-    key: 'AuthorizeSubscriptionView',
-    path: AuthorizeSubscriptionViewPath,
-    uiPage: Pages.AuthorizeSubscriptionView,
-    currentPageAction: null);
+  key: 'AuthorizeSubscriptionView',
+  path: AuthorizeSubscriptionViewPath,
+  uiPage: Pages.AuthorizeSubscriptionView,
+  currentPageAction: null,
+);
 PageConfiguration OptInAssetViewPageConfig = PageConfiguration(
-    key: 'OptInAssetView',
-    path: OptInAssetViewPath,
-    uiPage: Pages.OptInAssetView,
-    currentPageAction: null);
+  key: 'OptInAssetView',
+  path: OptInAssetViewPath,
+  uiPage: Pages.OptInAssetView,
+  currentPageAction: null,
+);
 PageConfiguration OptOutAssetViewPageConfig = PageConfiguration(
-    key: 'OptOutAssetView',
-    path: OptOutAssetViewPath,
-    uiPage: Pages.OptOutAssetView,
-    currentPageAction: null);
+  key: 'OptOutAssetView',
+  path: OptOutAssetViewPath,
+  uiPage: Pages.OptOutAssetView,
+  currentPageAction: null,
+);
 PageConfiguration OptInOutAssetViewPageConfig = PageConfiguration(
-    key: 'OptInOutAssetView',
-    path: OptInOutAssetViewPath,
-    uiPage: Pages.OptInOutAssetView,
-    currentPageAction: null);
+  key: 'OptInOutAssetView',
+  path: OptInOutAssetViewPath,
+  uiPage: Pages.OptInOutAssetView,
+  currentPageAction: null,
+);
 PageConfiguration TokenizationWelcomeViewPageConfig = PageConfiguration(
-    key: 'TokenizationWelcomeView',
-    path: TokenizationWelcomeViewPath,
-    uiPage: Pages.TokenizationWelcomeView,
-    currentPageAction: null);
+  key: 'TokenizationWelcomeView',
+  path: TokenizationWelcomeViewPath,
+  uiPage: Pages.TokenizationWelcomeView,
+  currentPageAction: null,
+);
 PageConfiguration SettingsViewPageConfig = PageConfiguration(
-    key: 'SettingsView',
-    path: SettingsViewPath,
-    uiPage: Pages.SettingsView,
-    currentPageAction: null);
+  key: 'SettingsView',
+  path: SettingsViewPath,
+  uiPage: Pages.SettingsView,
+  currentPageAction: null,
+);
 PageConfiguration TokenizeAssetViewPageConfig = PageConfiguration(
-    key: 'TokenizeAssetView',
-    path: TokenizeAssetViewPath,
-    uiPage: Pages.TokenizeAssetView,
-    currentPageAction: null);
+  key: 'TokenizeAssetView',
+  path: TokenizeAssetViewPath,
+  uiPage: Pages.TokenizeAssetView,
+  currentPageAction: null,
+);
 PageConfiguration AssetInformationViewPageConfig = PageConfiguration(
-    key: 'AssetInformationView',
-    path: AssetInformationViewPath,
-    uiPage: Pages.AssetInformationView,
-    currentPageAction: null);
+  key: 'AssetInformationView',
+  path: AssetInformationViewPath,
+  uiPage: Pages.AssetInformationView,
+  currentPageAction: null,
+);
 PageConfiguration AssetTokenInformationViewPageConfig = PageConfiguration(
-    key: 'AssetTokenInformationView',
-    path: AssetTokenInformationViewPath,
-    uiPage: Pages.AssetTokenInformationView,
-    currentPageAction: null);
+  key: 'AssetTokenInformationView',
+  path: AssetTokenInformationViewPath,
+  uiPage: Pages.AssetTokenInformationView,
+  currentPageAction: null,
+);
 PageConfiguration AssetVerificationDocumentsViewPageConfig = PageConfiguration(
-    key: 'AssetVerificationDocumentsView',
-    path: AssetVerificationDocumentsViewPath,
-    uiPage: Pages.AssetVerificationDocumentsView,
-    currentPageAction: null);
+  key: 'AssetVerificationDocumentsView',
+  path: AssetVerificationDocumentsViewPath,
+  uiPage: Pages.AssetVerificationDocumentsView,
+  currentPageAction: null,
+);
 PageConfiguration TokenizedAssetDetailViewPageConfig = PageConfiguration(
-    key: 'TokenizedAssetDetailView',
-    path: TokenizedAssetDetailViewPath,
-    uiPage: Pages.TokenizedAssetDetailView,
-    currentPageAction: null);
+  key: 'TokenizedAssetDetailView',
+  path: TokenizedAssetDetailViewPath,
+  uiPage: Pages.TokenizedAssetDetailView,
+  currentPageAction: null,
+);
 PageConfiguration BuyTokensViewPageConfig = PageConfiguration(
-    key: 'BuyTokensView',
-    path: BuyTokensViewPath,
-    uiPage: Pages.BuyTokensView,
-    currentPageAction: null);
+  key: 'BuyTokensView',
+  path: BuyTokensViewPath,
+  uiPage: Pages.BuyTokensView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmBuyViewPageConfig = PageConfiguration(
-    key: 'ConfirmBuyView',
-    path: ConfirmBuyViewPath,
-    uiPage: Pages.ConfirmBuyView,
-    currentPageAction: null);
+  key: 'ConfirmBuyView',
+  path: ConfirmBuyViewPath,
+  uiPage: Pages.ConfirmBuyView,
+  currentPageAction: null,
+);
 PageConfiguration AssetDashboardViewPageConfig = PageConfiguration(
-    key: 'AssetDashboardView',
-    path: AssetDashboardViewPath,
-    uiPage: Pages.AssetDashboardView,
-    currentPageAction: null);
+  key: 'AssetDashboardView',
+  path: AssetDashboardViewPath,
+  uiPage: Pages.AssetDashboardView,
+  currentPageAction: null,
+);
 PageConfiguration AssetSubscribersViewPageConfig = PageConfiguration(
-    key: 'AssetSubscribersView',
-    path: AssetSubscribersViewPath,
-    uiPage: Pages.AssetSubscribersView,
-    currentPageAction: null);
+  key: 'AssetSubscribersView',
+  path: AssetSubscribersViewPath,
+  uiPage: Pages.AssetSubscribersView,
+  currentPageAction: null,
+);
 PageConfiguration TotalSalesViewPageConfig = PageConfiguration(
-    key: 'TotalSalesView',
-    path: TotalSalesViewPath,
-    uiPage: Pages.TotalSalesView,
-    currentPageAction: null);
+  key: 'TotalSalesView',
+  path: TotalSalesViewPath,
+  uiPage: Pages.TotalSalesView,
+  currentPageAction: null,
+);
 PageConfiguration ProceedsPayOutViewPageConfig = PageConfiguration(
-    key: 'ProceedsPayOutView',
-    path: ProceedsPayOutViewPath,
-    uiPage: Pages.ProceedsPayOutView,
-    currentPageAction: null);
+  key: 'ProceedsPayOutView',
+  path: ProceedsPayOutViewPath,
+  uiPage: Pages.ProceedsPayOutView,
+  currentPageAction: null,
+);
 PageConfiguration LiquidateAssetViewPageConfig = PageConfiguration(
-    key: 'LiquidateAssetView',
-    path: LiquidateAssetViewPath,
-    uiPage: Pages.LiquidateAssetView,
-    currentPageAction: null);
+  key: 'LiquidateAssetView',
+  path: LiquidateAssetViewPath,
+  uiPage: Pages.LiquidateAssetView,
+  currentPageAction: null,
+);
 PageConfiguration WalletPreparationViewPageConfig = PageConfiguration(
-    key: 'WalletPreparationView',
-    path: WalletPreparationViewPath,
-    uiPage: Pages.WalletPreparationView,
-    currentPageAction: null);
+  key: 'WalletPreparationView',
+  path: WalletPreparationViewPath,
+  uiPage: Pages.WalletPreparationView,
+  currentPageAction: null,
+);
 PageConfiguration MarketTradeViewPageConfig = PageConfiguration(
-    key: 'MarketTradeView',
-    path: MarketTradeViewPath,
-    uiPage: Pages.MarketTradeView,
-    currentPageAction: null);
+  key: 'MarketTradeView',
+  path: MarketTradeViewPath,
+  uiPage: Pages.MarketTradeView,
+  currentPageAction: null,
+);
 PageConfiguration MarketTradeInfoViewPageConfig = PageConfiguration(
-    key: 'MarketTradeInfoView',
-    path: MarketTradeInfoViewPath,
-    uiPage: Pages.MarketTradeInfoView,
-    currentPageAction: null);
+  key: 'MarketTradeInfoView',
+  path: MarketTradeInfoViewPath,
+  uiPage: Pages.MarketTradeInfoView,
+  currentPageAction: null,
+);
 PageConfiguration MarketPairsViewPageConfig = PageConfiguration(
-    key: 'MarketPairsView',
-    path: MarketPairsViewPath,
-    uiPage: Pages.MarketPairsView,
-    currentPageAction: null);
+  key: 'MarketPairsView',
+  path: MarketPairsViewPath,
+  uiPage: Pages.MarketPairsView,
+  currentPageAction: null,
+);
 PageConfiguration SetupAndComplianceViewPageConfig = PageConfiguration(
-    key: 'SetupAndComplianceView',
-    path: SetupAndComplianceViewPath,
-    uiPage: Pages.SetupAndComplianceView,
-    currentPageAction: null);
+  key: 'SetupAndComplianceView',
+  path: SetupAndComplianceViewPath,
+  uiPage: Pages.SetupAndComplianceView,
+  currentPageAction: null,
+);
 PageConfiguration AllWalletsViewPageConfig = PageConfiguration(
-    key: 'AllWalletsView',
-    path: AllWalletsViewPath,
-    uiPage: Pages.AllWalletsView,
-    currentPageAction: null);
+  key: 'AllWalletsView',
+  path: AllWalletsViewPath,
+  uiPage: Pages.AllWalletsView,
+  currentPageAction: null,
+);
 PageConfiguration AssetTokenDetailsViewPageConfig = PageConfiguration(
-    key: 'AssetTokenDetailsView',
-    path: AssetTokenDetailsViewPath,
-    uiPage: Pages.AssetTokenDetailsView,
-    currentPageAction: null);
+  key: 'AssetTokenDetailsView',
+  path: AssetTokenDetailsViewPath,
+  uiPage: Pages.AssetTokenDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmTokenizationDetailsViewPageConfig = PageConfiguration(
-    key: 'ConfirmTokenizationDetailsView',
-    path: ConfirmTokenizationDetailsViewPath,
-    uiPage: Pages.ConfirmTokenizationDetailsView,
-    currentPageAction: null);
+  key: 'ConfirmTokenizationDetailsView',
+  path: ConfirmTokenizationDetailsViewPath,
+  uiPage: Pages.ConfirmTokenizationDetailsView,
+  currentPageAction: null,
+);
 PageConfiguration TokenizationFeePaymentViewPageConfig = PageConfiguration(
-    key: 'TokenizationFeePaymentView',
-    path: TokenizationFeePaymentViewPath,
-    uiPage: Pages.TokenizationFeePaymentView,
-    currentPageAction: null);
+  key: 'TokenizationFeePaymentView',
+  path: TokenizationFeePaymentViewPath,
+  uiPage: Pages.TokenizationFeePaymentView,
+  currentPageAction: null,
+);
 PageConfiguration DeleteAccountPrerequisitesViewPageConfig = PageConfiguration(
-    key: 'DeleteAccountPrerequisitesView',
-    path: DeleteAccountPrerequisitesViewPath,
-    uiPage: Pages.DeleteAccountPrerequisitesView,
-    currentPageAction: null);
+  key: 'DeleteAccountPrerequisitesView',
+  path: DeleteAccountPrerequisitesViewPath,
+  uiPage: Pages.DeleteAccountPrerequisitesView,
+  currentPageAction: null,
+);
 PageConfiguration DeleteAccountViewPageConfig = PageConfiguration(
-    key: 'DeleteAccountView',
-    path: DeleteAccountViewPath,
-    uiPage: Pages.DeleteAccountView,
-    currentPageAction: null);
+  key: 'DeleteAccountView',
+  path: DeleteAccountViewPath,
+  uiPage: Pages.DeleteAccountView,
+  currentPageAction: null,
+);
 PageConfiguration BuyXBNWithFiatViewPageConfig = PageConfiguration(
-    key: 'BuyXBNWithFiatView',
-    path: BuyXBNWithFiatViewPath,
-    uiPage: Pages.BuyXBNWithFiatView,
-    currentPageAction: null);
+  key: 'BuyXBNWithFiatView',
+  path: BuyXBNWithFiatViewPath,
+  uiPage: Pages.BuyXBNWithFiatView,
+  currentPageAction: null,
+);
 PageConfiguration ConfirmBuyXBNWithFiatViewPageConfig = PageConfiguration(
-    key: 'ConfirmBuyXBNWithFiatView',
-    path: ConfirmBuyXBNWithFiatViewPath,
-    uiPage: Pages.ConfirmBuyXBNWithFiatView,
-    currentPageAction: null);
+  key: 'ConfirmBuyXBNWithFiatView',
+  path: ConfirmBuyXBNWithFiatViewPath,
+  uiPage: Pages.ConfirmBuyXBNWithFiatView,
+  currentPageAction: null,
+);
 PageConfiguration SeeAllTokenizedAssetsViewPageConfig = PageConfiguration(
-    key: 'SeeAllTokenizedAssetsView',
-    path: SeeAllTokenizedAssetsViewPath,
-    uiPage: Pages.SeeAllTokenizedAssetsView,
-    currentPageAction: null);
+  key: 'SeeAllTokenizedAssetsView',
+  path: SeeAllTokenizedAssetsViewPath,
+  uiPage: Pages.SeeAllTokenizedAssetsView,
+  currentPageAction: null,
+);
 PageConfiguration BuyTokensSuccessViewPageConfig = PageConfiguration(
-    key: 'BuyTokensSuccessView',
-    path: BuyTokensSuccessViewPath,
-    uiPage: Pages.BuyTokensSuccessView,
-    currentPageAction: null);
+  key: 'BuyTokensSuccessView',
+  path: BuyTokensSuccessViewPath,
+  uiPage: Pages.BuyTokensSuccessView,
+  currentPageAction: null,
+);
 PageConfiguration BuyTokensReceiptViewPageConfig = PageConfiguration(
-    key: 'BuyTokensReceiptView',
-    path: BuyTokensReceiptViewPath,
-    uiPage: Pages.BuyTokensReceiptView,
-    currentPageAction: null);
+  key: 'BuyTokensReceiptView',
+  path: BuyTokensReceiptViewPath,
+  uiPage: Pages.BuyTokensReceiptView,
+  currentPageAction: null,
+);
 PageConfiguration KycScreenViewPageConfig = PageConfiguration(
-    key: 'KycScreenView',
-    path: KycScreenViewPath,
-    uiPage: Pages.KycScreenView,
-    currentPageAction: null);
+  key: 'KycScreenView',
+  path: KycScreenViewPath,
+  uiPage: Pages.KycScreenView,
+  currentPageAction: null,
+);
+PageConfiguration FlutterwaveWebViewPageConfig = PageConfiguration(
+  key: 'FlutterwaveWebView',
+  path: FlutterwaveWebViewPath,
+  uiPage: Pages.FlutterwaveWebView,
+  currentPageAction: null,
+);
