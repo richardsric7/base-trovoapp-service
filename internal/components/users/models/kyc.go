@@ -18,8 +18,6 @@ type KYCConfig struct {
 	SecretKey       string `json:"secretKey"`
 }
 
-
-
 type SumSubReviewResultInput struct {
 	ApplicantID    string       `json:"applicantId"`
 	InspectionID   string       `json:"inspectionId"`
@@ -141,6 +139,7 @@ type SumsubAccessToken struct {
 }
 
 type KycWebhookRequest struct {
+	CreatedAt       time.Time
 	ID              uint64
 	ServiceProvider string
 	Data            string

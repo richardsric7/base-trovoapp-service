@@ -157,8 +157,8 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 
 }
 
-// getBantuOrderBookSummary gets orderbook on bantu network
-func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+// GetBantuOrderBookSummary gets orderbook on bantu network
+func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -298,7 +298,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	input.BuyingAssetCode = dollarAsset[0]
 	input.BuyingAssetIssuer = dollarAsset[1]
 
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetDollarPrice] error getting order book summary: %v\n", err)
 		//fetch from last stored in cache
@@ -363,7 +363,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	if sellingAssetCode == nativeCode && sellingAssetIssuer == nativeIssuer {
 		return "1", nil
 	}
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 
 	if len(orderBook.Asks) == 0 || err != nil {
 		return "0", &tErrors.ErrorTemporaryServerError{}
@@ -405,7 +405,7 @@ func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (
 	input.BuyingAssetCode = currencyCode
 	input.BuyingAssetIssuer = currencyIssuer
 
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetOrderBook]Error getting order book summary: %v\n", err)
 		return

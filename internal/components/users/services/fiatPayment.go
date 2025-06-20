@@ -10,6 +10,11 @@ func GetPaymentConfigByServiceProvider(serviceProvider string, gc *sharedconfig.
 	return
 }
 
+func GetFaucetConfigByUserCase(useCase string, gc *sharedconfig.GlobalConfig) (config userModels.FaucetConfig, err error) {
+	err = gc.DB.Where("use_case = ?", useCase).First(&config).Error
+	return
+}
+
 func SavePaymentWebhookData(provider, data string, gc *sharedconfig.GlobalConfig) error {
 
 	t := userModels.PaymentWebhookRequest{

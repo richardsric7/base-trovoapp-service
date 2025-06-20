@@ -27,7 +27,7 @@ type OrderBookRequestInput struct {
 }
 
 // getBantuOrderBookSummary gets orderbook on bantu network
-func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -122,7 +122,7 @@ func (gc *GlobalConfig) GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer s
 		input.BuyingAssetCode = "USDB"
 		input.BuyingAssetIssuer = "GBTNUZDIUMWZEGTNQCL5F73PIABCBJ4YQA2VJS7HXTBRDDSTWCE6UNXE"
 	}
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Println("[GetDollarAskPrice] Error fetching dollar price:", err)
 		return "0", &tErrors.ErrorTemporaryServerError{}
@@ -162,7 +162,7 @@ func (gc *GlobalConfig) GetAvalableMarketQuantity(sellingAssetCode, sellingAsset
 	input.BuyingAssetCode = buyingAssetCode
 	input.BuyingAssetIssuer = buyingAssetIssuer
 
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetAvalableMarketQuantity] Error fetching %v/%v market: %v\n", errBuyingAssetCode, errAssetCode, err)
 		return "0", "0", &tErrors.ErrorTemporaryServerError{}

@@ -13,9 +13,17 @@ type FiatPaymentConfig struct {
 }
 
 type PaymentWebhookRequest struct {
+	CreatedAt       time.Time
 	ID              uint64
 	ServiceProvider string
 	Data            string
+}
+
+type FaucetConfig struct {
+	CreatedAt time.Time
+	ID        uint64
+	UseCase   string //ACTIVATION
+	SecretKey string
 }
 
 type FiatPayment struct {

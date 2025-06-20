@@ -9,14 +9,19 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	payments "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	userServices "trovo-wallet-api/internal/components/users/services"
+	"trovo-wallet-api/internal/middleware"
 
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
+	"github.com/stellar/go/keypair"
 	"gorm.io/gorm/clause"
 )
 
@@ -307,7 +312,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.POST("/v1/callbacks/flutterwave/webhook", func(c *gin.Context) {
 		// log headers
 		log.Printf("[FLUTTERWAVE WEBHOOK ERROR] <><><><><><><><><>%+v\n<><><><><><><><><><><>\n", c.Request.Header)
-		cc, err := userServices.GetPaymentConfigByServiceProvider("flutterwave", gc)
+		pcc, err := userServices.GetPaymentConfigByServiceProvider("flutterwave", gc)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "error")
 			return
@@ -325,22 +330,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// Compute HMAC
 
 		// Get signature from headers
-		hash := c.GetHeader("x-dojah-signature")
+		hash := c.GetHeader("verif-hash")
 		// var event map[string]interface{}
 		var event userModels.FlutterwaveWebhook
-		dojahIP := c.ClientIP()
 
-		if dojahIP == "20.112.64.208" {
-
-			// if err := json.Unmarshal([]byte(body), &event); err != nil {
-			// 	log.Println("[KYC WEBHOOK ERROR] Invalid JSON")
-
-			// 	c.JSON(http.StatusBadRequest, "Invalid JSON")
-			// 	return
-			// }
+		if hash == pcc.VerificationHash {
 
 			// Do something with event
-			log.Println("[FLUTTERWAVE WEBHOOK] ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ Valid webhook received:", cc)
+			log.Println("[FLUTTERWAVE WEBHOOK] ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ Valid webhook received:", pcc)
 		} else {
 			// log.Printf("[KYC WEBHOOK ERROR] Invalid signature. x-dojah-signature: [%v], Expected Mac: [%v]\n", signature, expectedMAC)
 			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] Invalid IP. x-dojah-signature: [%v]\n", hash)
@@ -362,7 +359,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] User ID [%v] in metadata is invalid\n", event.MetaData.UserID))
 			log.Printf("[FLUTTERWAVE WEBHOOK ERROR] User ID [%v] in metadata is invalid\n", event.MetaData.UserID)
 
-			c.JSON(http.StatusOK, "Invalid Metadata:UserID")
+			c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
 			return
 		}
 		//fetch data from flutterwave using the reference id.
@@ -370,12 +367,180 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			//fetch from flutterwave
 		}
 		if strings.EqualFold(event.MetaData.Product, "activation") && strings.EqualFold(event.Data.Status, "successful") {
+
+			//process value
+
+			//get percentage for Gas
+			cc := userModels.CountryCode(*user.CountryCode).GetConfig(gc)
+			if len(cc.CountryCode) == 0 {
+				//use default
+				cc = userModels.CountryCode("NG").GetConfig(gc)
+
+			}
+			trovAmount := decimal.NewFromFloat(cc.TrovTokenActivationPercent / 100).Mul(decimal.NewFromInt(int64(event.Data.Amount)))
+			gasAmount := decimal.NewFromInt(int64(event.Data.Amount)).Sub(trovAmount)
+
+			trovAsset := gc.GetCuratedAssetByCode("TROV")
+			cngnAsset := gc.GetCuratedAssetByCode("CNGN")
+
+			orderBookTrov, err := gc.GetOrderBook(trovAsset.AssetCode, trovAsset.AssetIssuer, cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			if len(orderBookTrov.Asks) == 0 {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			//get the price of trov
+			priceOfTrov := orderBookTrov.Asks[0].Price
+
+			orderBookGas, err := gc.GetOrderBook(os.Getenv("NATIVE_ASSET_CODE"), "", cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			if len(orderBookGas.Asks) == 0 {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no market price for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			priceOfGas := orderBookGas.Asks[0].Price
+			trovToDispense := trovAmount.Div(decimal.RequireFromString(priceOfTrov)).Truncate(7)
+			gasToDispense := gasAmount.Div(decimal.RequireFromString(priceOfGas)).Truncate(7)
+			// get faucet foir activation
+			faucet, err := userServices.GetFaucetConfigByUserCase("ACTIVATION", gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET request for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET request for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+
+			faucetKP := keypair.MustParseFull(faucet.SecretKey)
+			sourceWallet, err := userModels.UserWalletID(faucetKP.Address()).GetWallet(gc.DB, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET wallet for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET wallet for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			signerUser, err := userModels.UserWalletID(faucetKP.Address()).GetWalletOwner(gc.DB, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET wallet owner for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET wallet owner for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+
+			////////////////////////START GAS
+			payGas := payments.PaymentInfo{
+				Destination: user.Username,
+				Memo:        "ACTIVATION",
+				AssetIssuer: "",
+				AssetCode:   os.Getenv("NATIVE_ASSET_CODE"),
+				Amount:      gasToDispense.String(),
+			}
+
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing payment for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+
+			//sign payment
+			if len(payGas.Transaction) > 0 {
+				payGas.Commit = 0
+				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), payGas.Transaction, payGas.NetworkPassPhrase)
+				if err != nil {
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error signing gas payment for [%v]. Err: %v\n", "ACTIVATION", err))
+					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error signing gas payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+					c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+					return
+				}
+
+				payGas.TransactionSignature = signedBase64
+			}
+
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg payment for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			////////////////////END GAS
+
+			////////////////////////START TROV
+			payTrov := payments.PaymentInfo{
+				Destination: user.Username,
+				Memo:        "ACTIVATION",
+				AssetIssuer: trovAsset.AssetIssuer,
+				AssetCode:   trovAsset.AssetCode,
+				Amount:      trovToDispense.String(),
+			}
+
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing Trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+
+			//sign payment
+			if len(payTrov.Transaction) > 0 {
+				payTrov.Commit = 0
+				signedBase64, err := middleware.SignBase64Txn(faucetKP.Seed(), payTrov.Transaction, payTrov.NetworkPassPhrase)
+				if err != nil {
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error signing trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
+					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error signing trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+					c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+					return
+				}
+
+				payTrov.TransactionSignature = signedBase64
+			}
+
+			_, _, err = userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg trov payment for [%v]. Err: %v\n", "ACTIVATION", err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error processing 2nd leg trov payment for [%v]. Err: %v\n", "ACTIVATION", err)
+
+				c.JSON(http.StatusInternalServerError, "Invalid Metadata:UserID")
+				return
+			}
+			////////////////////END TROV
+
 			//send PN
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
 			title := fmt.Sprintf("Account activation payment of %v%v now completed.", event.Data.Currency, event.Data.Amount)
 
-			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. Please wait for the values to be transfered to your primary wallet.", event.Data.Currency, event.Data.Amount)
+			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense.String(), trovToDispense.String(), "TROV", user.Username)
 			user.SendPushMessage(title, msg, "", dataPayload, gc)
 		}
 

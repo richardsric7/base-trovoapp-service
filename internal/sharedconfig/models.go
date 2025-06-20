@@ -63,6 +63,21 @@ type KycWebhookRequest struct {
 	ServiceProvider string
 	Data            string
 }
+type Asset struct {
+	AssetCode   string `json:"assetCode"`
+	AssetIssuer string `json:"assetIssuer"`
+}
+
+type OfferVolume struct {
+	Price    string `json:"price"`
+	Quantity string `json:"quantity"`
+}
+type OrderBook struct {
+	Bids     []OfferVolume `json:"bids"`
+	Asks     []OfferVolume `json:"asks"`
+	Asset    Asset         `json:"asset"`
+	Currency Asset         `json:"currency"`
+}
 
 // CuratedAsset model struct for CuratedAsset.
 type CuratedAsset struct {
@@ -524,7 +539,6 @@ func (gc *GlobalConfig) GetPostTokenizationTrustlineCandidates() (tas []PostToke
 	return tas
 }
 
-
 func (gc *GlobalConfig) GetKycConfig(provider string) (t KYCConfig) {
 
 	gc.DB.Where("service_provider = ?", provider).First(&t)
@@ -616,6 +630,20 @@ func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[strin
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, assets, 0)
 
 	return assets
+}
+
+// GetCuratedAssets returns list of Curated Assets
+func (gc *GlobalConfig) GetCuratedAssetByCode(assetCode string) (asset CuratedAsset) {
+
+
+	dberr := gc.DB.Preload(clause.Associations).Where("asset_code = ?", assetCode).First(&asset).Error
+
+	if dberr != nil {
+		log.Printf("[GetCuratedAssets]error getting asset: %v\n", dberr)
+		return asset
+	}
+
+	return asset
 }
 
 func (gc *GlobalConfig) TokenLimit() float64 {
@@ -844,4 +872,60 @@ func (gc *GlobalConfig) LogDiscordFailedRequest(msg string) {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
 	}
 	discord.Say(msg)
+}
+
+// GetOrderBook
+func (gc *GlobalConfig) GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
+	trovoOrderBook.Asks = make([]OfferVolume, 0)
+	trovoOrderBook.Bids = make([]OfferVolume, 0)
+	trovoOrderBook.Currency = Asset{
+		AssetCode:   currencyCode,
+		AssetIssuer: currencyIssuer,
+	}
+	trovoOrderBook.Asset = Asset{
+		AssetCode:   assetCode,
+		AssetIssuer: assetIssuer,
+	}
+	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		assetCode = ""
+		assetIssuer = ""
+	}
+	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		currencyCode = ""
+		currencyIssuer = ""
+	}
+
+	var input OrderBookRequestInput
+
+	input.SellingAssetCode = assetCode
+	input.SellingAssetIssuer = assetIssuer
+	input.BuyingAssetCode = currencyCode
+	input.BuyingAssetIssuer = currencyIssuer
+
+	orderBook, err := GetBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetOrderBook]Error getting order book summary: %v\n", err)
+		return
+	}
+
+	//process bids
+
+	for _, bid := range orderBook.Bids {
+		trovoOrderBook.Bids = append(trovoOrderBook.Bids, OfferVolume{
+			Price:    bid.Price,
+			Quantity: bid.Amount,
+		})
+	}
+
+	//process asks
+
+	for _, ask := range orderBook.Asks {
+		trovoOrderBook.Asks = append(trovoOrderBook.Asks, OfferVolume{
+			Price:    ask.Price,
+			Quantity: ask.Amount,
+		})
+	}
+
+	return trovoOrderBook, nil
+
 }
