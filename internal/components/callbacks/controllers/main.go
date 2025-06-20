@@ -535,6 +535,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			////////////////////END TROV
 
+			//save payment data
+			err = userServices.SaveUserPaymentData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, float64(event.Data.Amount), gc)
+			if err != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data [%+v]. Err: %v\n", event, err))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data [%+v]. Err: %v\n", event, err)
+			}
 			//send PN
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
