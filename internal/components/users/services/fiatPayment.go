@@ -37,3 +37,11 @@ func SaveUserPaymentData(username, provider, paymentType, txID string, amount fl
 
 	return gc.DB.Save(&t).Error
 }
+
+func GetUserPaymentData(username string, gc *sharedconfig.GlobalConfig) (ps []userModels.FiatPayment) {
+	ps = make([]userModels.FiatPayment, 0)
+
+	gc.DB.Order("id DESC").Where("username = ?", username).Limit(100).Find(&ps)
+
+	return
+}
