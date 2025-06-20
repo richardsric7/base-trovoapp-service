@@ -549,7 +549,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense.String(), trovToDispense.String(), "TROV", user.Username)
 			user.SendPushMessage(title, msg, "", dataPayload, gc)
 		}
-
+		user.InvalidateUserCache(gc)
 		c.JSON(http.StatusOK, "success")
 	})
 
