@@ -1474,8 +1474,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -1584,8 +1586,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -1709,8 +1713,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", wallet.Alias)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -1850,8 +1856,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", wallet.Alias)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -2627,8 +2635,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -2757,8 +2767,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -2932,8 +2944,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+		if wallet.TempPublicKey != nil {
 
-		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))

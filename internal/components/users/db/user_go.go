@@ -218,7 +218,13 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 	}
 	for _, w := range userAccount.UserWallets {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
-		cacheKey2 := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
+		cacheKey2 := fmt.Sprintf("GetBalance_%s", func() string {
+			if w.TempPublicKey != nil {
+				return *w.TempPublicKey
+			} else {
+				return "nil"
+			}
+		}())
 
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)

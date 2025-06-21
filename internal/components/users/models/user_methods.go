@@ -144,7 +144,10 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	// log.Println("xbnUsdPrice", xbnUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
-		cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+		if u.TempPublicKey != nil {
+
+			cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+		}
 
 	}
 	{
@@ -377,7 +380,10 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 	nfts = make([]NFT, 0)
 	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
 	if temp {
-		cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+		if u.TempPublicKey != nil {
+			cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+
+		}
 
 	}
 	{
@@ -717,9 +723,6 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
 	}
 	{
-		// cacheKey := fmt.Sprintf("bca_%v", u.ID)
-		// cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
-		// gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
 
 		// search cache
 		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)

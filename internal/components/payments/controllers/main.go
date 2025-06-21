@@ -334,10 +334,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			if len(destinationWallet.ID) == 56 {
 				destinationWallet.InvalidateUserCache(gc)
-				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				if destinationWallet.TempPublicKey != nil {
+
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				}
 			}
 			if len(sourceWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				if sourceWallet.TempPublicKey != nil {
+
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				}
 
 			}
 
@@ -719,10 +725,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			}
 			if len(destinationWallet.ID) == 56 {
-				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				if destinationWallet.TempPublicKey != nil {
+
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				}
 			}
 			if len(sourceWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				if sourceWallet.TempPublicKey != nil {
+
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				}
 
 			}
 
