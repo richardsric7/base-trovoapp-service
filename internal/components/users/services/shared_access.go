@@ -702,7 +702,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		if v.Permission == "APPROVER" {
 			//get ops to add.
-			op, e := generateRemoveSharedAccessOps(wallet, walletOwner, &u, gc)
+			op, ignore, e := generateRemoveSharedAccessOps(wallet, walletOwner, &u, gc)
 			if e != nil {
 				log.Printf("[ModifySharedWalletAccess] error generating blockchain operation for %+v: error: %v\n", v, e)
 
@@ -716,18 +716,22 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				return
 
 			} else {
-				ops = append(ops, op)
+				if !ignore {
+					ops = append(ops, op)
+				}
 			}
 
 			if hasLinkedWallet {
 				//get ops to add.
-				op, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				op, ignore, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
 				if e != nil {
 					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation for %+v ON linked wallet: error: %v\n", v, e)
 					return
 
 				} else {
-					ops = append(ops, op)
+					if !ignore {
+						ops = append(ops, op)
+					}
 				}
 
 			}
@@ -882,7 +886,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		// if is a downgrade of access from approver
 		if ePermission.Permission == "APPROVER" {
 			// attempt to remove the public key as signer
-			op, e := generateRemoveSharedAccessOps(wallet, walletOwner, &u, gc)
+			op, ignore, e := generateRemoveSharedAccessOps(wallet, walletOwner, &u, gc)
 			if e != nil {
 				log.Printf("[ModifySharedWalletAccess] error generating blockchain operation for %+v: error: %v\n", v, e)
 
@@ -896,12 +900,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				return
 
 			}
+			if !ignore {
+				ops = append(ops, op)
 
-			ops = append(ops, op)
+			}
 
 			if hasLinkedWallet {
 				// attempt to remove the public key as signer
-				op, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
+				op, ignore, e := generateRemoveSharedAccessOps(&linkedWallet, walletOwner, &u, gc)
 				if e != nil {
 					log.Printf("[ModifySharedWalletAccess] error generating blockchain operation on linked wallet for %+v: error: %v\n", v, e)
 
@@ -915,9 +921,9 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					return
 
 				}
-
-				ops = append(ops, op)
-
+				if !ignore {
+					ops = append(ops, op)
+				}
 			}
 
 		}
@@ -1026,8 +1032,8 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			accessInfo.Messages = append(accessInfo.Messages, m...)
 
 			{
-				oRecoveredAccount := generateRemoveRecoveredAccountAccessOps(wallet, u.Username, gc)
-				if len(oRecoveredAccount) > 0 {
+				oRecoveredAccount, ignore := generateRemoveRecoveredAccountAccessOps(wallet, u.Username, gc)
+				if len(oRecoveredAccount) > 0 && !ignore {
 					ops = append(ops, oRecoveredAccount...)
 				}
 			}
@@ -1052,8 +1058,8 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				accessInfo.Messages = append(accessInfo.Messages, m...)
 
 				{
-					oRecoveredAccount := generateRemoveRecoveredAccountAccessOps(&linkedWallet, u.Username, gc)
-					if len(oRecoveredAccount) > 0 {
+					oRecoveredAccount, ignore := generateRemoveRecoveredAccountAccessOps(&linkedWallet, u.Username, gc)
+					if len(oRecoveredAccount) > 0 && !ignore {
 						ops = append(ops, oRecoveredAccount...)
 					}
 				}
@@ -2335,7 +2341,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 }
 
-func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approver *userModels.User, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
+func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approver *userModels.User, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, ignore bool, err error) {
 	client := gc.BantuExpansionClient
 
 	//check if primary account has native enough native balance
@@ -2344,7 +2350,7 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 	if errWalletAct != nil {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return op, errWalletAct
+		return op, ignore, errWalletAct
 	}
 
 	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
@@ -2365,7 +2371,7 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 					SourceAccount: wallet.ID,
 				}
 
-				return op, nil
+				return op, ignore, nil
 			} else {
 				//primary signer and master signer
 				op = &txnbuild.SetOptions{
@@ -2373,15 +2379,19 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 					SourceAccount: wallet.ID,
 				}
 
-				return op, nil
+				return op, ignore, nil
 			}
+		} else {
+			//this means that the signer was changed for user. do not build operation
+			ignore = true
+			return
 		}
 
 	}
-	return op, &tErrors.ErrorTemporaryServerError{}
+	return op, ignore, &tErrors.ErrorTemporaryServerError{}
 }
 
-func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, approverUsernameAdded string, gc *sharedconfig.GlobalConfig) (ops []txnbuild.Operation) {
+func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, approverUsernameAdded string, gc *sharedconfig.GlobalConfig) (ops []txnbuild.Operation, ignore bool) {
 	client := gc.BantuExpansionClient
 	listOfRecovery := make([]userModels.UserAccountRecoveryLog, 0)
 	gc.DB.Where("username = ?", approverUsernameAdded).Find(&listOfRecovery)
@@ -2425,12 +2435,14 @@ func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, appr
 					})
 
 				}
+			} else {
+				ignore = true
 			}
 
 		}
 	}
 
-	return ops
+	return ops, ignore
 }
 
 func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
