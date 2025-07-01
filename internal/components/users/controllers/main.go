@@ -655,6 +655,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		c.JSON(http.StatusOK, gin.H{"activationAmount": activationAmount, "trovTokenPercent": trovPercent, "gasPercent": 100 - trovPercent})
 	})
+
 	router.GET("/v1/users/fiat/payments", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
@@ -675,8 +676,64 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		//get amount for activation
 		p := userServices.GetUserPaymentData(user.Username, gc)
+		i := userServices.GetUserPaymentInvoices(user.Username, gc)
 
-		c.JSON(http.StatusOK, p)
+		c.JSON(http.StatusOK, gin.H{"completedPayments": p, "invoices": i})
+	})
+
+	router.POST("/v1/users/fiat/flutterwave", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.FiatPaymentInvoice
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		tInput.ServiceProvider = "flutterwave"
+		tInput.Status = "PENDING"
+		tInput.Username = user.Username
+
+		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", tInput.Amount, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//get amount for activation
+		i := userServices.GetUserPaymentInvoices(user.Username, gc)
+
+		c.JSON(http.StatusOK, gin.H{"invoices": i})
 	})
 
 	router.POST("/v1/users/kyc/sumsub/complete/:levelName", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {

@@ -361,15 +361,27 @@ type ConfirmTokenizedAssetJSONInput struct {
 }
 
 type VetTokenizedAssetJSONInput struct {
-	ApprovedAssetCustodianID     uint64 `gorm:"not null" json:"approvedAssetCustodianId"`
-	AssetManagerID               uint64 `json:"assetManagerId"`
-	AssetIssuingHouseID          uint64 `json:"assetIssuingHouseId"`
-	LegalAndProfesionalPartnerID uint64 `json:"legalAndProfesionalPartnerId"`
-	RatingAgencyID               uint64 `json:"ratingAgencyId"`
-	TrusteeID                    uint64 `json:"trusteeId"`
-	CountryCode                  string `json:"CountryCode"`
-	ProceedPayoutCurrency        string `json:"proceedPayoutCurrency"`
-	AssetQuoteCurrency           string `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
+	ApprovedAssetCustodianID             uint64  `gorm:"not null" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodianFeePercent     float64 `gorm:"not null" json:"ApprovedAssetCustodianFeePercent"`
+	ApprovedAssetCustodianFeeFixed       float64 `gorm:"not null" json:"ApprovedAssetCustodianFeeFixed"`
+	AssetManagerID                       uint64  `json:"assetManagerId"`
+	AssetManagerFeePercent               float64 `json:"assetManagerFeePercent"`
+	AssetManagerFeeFixed                 float64 `json:"assetManagerFeeFixed"`
+	AssetIssuingHouseID                  uint64  `json:"assetIssuingHouseId"`
+	AssetIssuingHouseFeePercent          float64 `json:"assetIssuingHouseFeePercent"`
+	AssetIssuingHouseFeeFixed            float64 `json:"assetIssuingHouseFeeFixed"`
+	LegalAndProfesionalPartnerID         uint64  `json:"legalAndProfesionalPartnerId"`
+	LegalAndProfesionalPartnerFeePercent float64 `json:"legalAndProfesionalPartnerFeePercent"`
+	LegalAndProfesionalPartnerFeeFixed   float64 `json:"legalAndProfesionalPartnerFeeFixed"`
+	RatingAgencyID                       uint64  `json:"ratingAgencyId"`
+	RatingAgencyFeePercent               float64 `json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed                 float64 `json:"ratingAgencyFeeFixed"`
+	TrusteeID                            uint64  `json:"trusteeId"`
+	TrusteeFeePercent                    float64 `json:"trusteeFeePercent"`
+	TrusteeFeeFixed                      float64 `json:"trusteeFeeFixed"`
+	CountryCode                          string  `json:"CountryCode"`
+	ProceedPayoutCurrency                string  `json:"proceedPayoutCurrency"`
+	AssetQuoteCurrency                   string  `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 }
 
 type TokenizedAssetJSON struct {
@@ -1417,10 +1429,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			{
 				// t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
-				custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
-				t.CustodianFeeFixed = custodian.FeeFixed
-				t.CustodianFeePercent = custodian.FeePercent
-				custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
+				// custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
+				// t.CustodianFeeFixed = custodian.FeeFixed
+				// t.CustodianFeePercent = custodian.FeePercent
+				custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.CustodianFeeFixed).Truncate(7)).InexactFloat64()
 				t.CustodianFeeValue = custodyFee
 				log.Printf("[UpdateTokenizedAssetFromInput] Custodian Fee Value:= %v\n", decimal.NewFromFloat(custodyFee).String())
 
@@ -1428,10 +1440,10 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			{
 				// t.AssetManagerID = ti.AssetManagerID
-				assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
-				t.AssetManagerFeePercent = assetManager.FeePercent
-				t.AssetManagerFeeFixed = assetManager.FeeFixed
-				assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
+				// assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
+				// t.AssetManagerFeePercent = assetManager.FeePercent
+				// t.AssetManagerFeeFixed = assetManager.FeeFixed
+				assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.AssetManagerFeeFixed).Truncate(7)).InexactFloat64()
 				t.AssetManagerFeeValue = assetMgtFee
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Asset Managment fee Value:= %v\n", decimal.NewFromFloat(assetMgtFee).String())
 
@@ -1439,9 +1451,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 			{
 				// t.AssetIssuingHouseID = ti.AssetIssuingHouseID
-				issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
-				t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
-				t.IssuingHouseFeePercent = issuingHouse.FeePercent
+				// issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
+				// t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
+				// t.IssuingHouseFeePercent = issuingHouse.FeePercent
 				issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 				t.IssuingHouseFeeValue = issuingHouseFeeValue
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Issuing House Fee Value:= %v\n", decimal.NewFromFloat(issuingHouseFeeValue).String())
@@ -1449,9 +1461,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			}
 
 			{
-				lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
-				t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
-				t.LegalAndProfessionalFeePercent = lpp.FeePercent
+				// lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
+				// t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
+				// t.LegalAndProfessionalFeePercent = lpp.FeePercent
 				legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 				t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Legal&Professional Fee Value:= %v\n", decimal.NewFromFloat(legalAndProfessionalFee).String())
@@ -1459,9 +1471,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			}
 
 			{
-				ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
-				t.RatingAgencyFeeFixed = ra.FeeFixed
-				t.RatingAgencyFeePercent = ra.FeePercent
+				// ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
+				// t.RatingAgencyFeeFixed = ra.FeeFixed
+				// t.RatingAgencyFeePercent = ra.FeePercent
 				ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 				t.RatingAgencyFeeValue = ratingAgencyFee
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Rating Agency Fee Value:= %v\n", decimal.NewFromFloat(ratingAgencyFee).String())
@@ -1469,9 +1481,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			}
 
 			{
-				ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
-				t.TrusteeFeeFixed = ra.FeeFixed
-				t.TrusteeFeePercent = ra.FeePercent
+				// ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
+				// t.TrusteeFeeFixed = ra.FeeFixed
+				// t.TrusteeFeePercent = ra.FeePercent
 				trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
 				t.TrusteeFeeValue = trusteeFee
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Trustee Fee Value:= %v\n", decimal.NewFromFloat(trusteeFee).String())
@@ -1787,29 +1799,29 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		log.Printf("[UpdateCalculation] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
 		{
-			custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
-			t.CustodianFeeFixed = custodian.FeeFixed
-			t.CustodianFeePercent = custodian.FeePercent
-			custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (custodian.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(custodian.FeeFixed).Truncate(7)).InexactFloat64()
+			// custodian := ApprovedCustodianID(t.ApprovedAssetCustodianID).GetApprovedCustodian(gc)
+			// t.CustodianFeeFixed = custodian.FeeFixed
+			// t.CustodianFeePercent = custodian.FeePercent
+			custodyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.CustodianFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.CustodianFeeFixed).Truncate(7)).InexactFloat64()
 			t.CustodianFeeValue = custodyFee
 			log.Printf("[UpdateCalculation] Custodian Fee Value:= %v\n", decimal.NewFromFloat(custodyFee).String())
 
 		}
 
 		{
-			assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
-			t.AssetManagerFeePercent = assetManager.FeePercent
-			t.AssetManagerFeeFixed = assetManager.FeeFixed
-			assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (assetManager.FeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(assetManager.FeeFixed).Truncate(7)).InexactFloat64()
+			// assetManager := AssetManagerID(t.AssetManagerID).GetAssetManager(gc)
+			// t.AssetManagerFeePercent = assetManager.FeePercent
+			// t.AssetManagerFeeFixed = assetManager.FeeFixed
+			assetMgtFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.AssetManagerFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.AssetManagerFeeFixed).Truncate(7)).InexactFloat64()
 			t.AssetManagerFeeValue = assetMgtFee
 			log.Printf("[UpdateCalculation] Calculated Asset Managment fee Value:= %v\n", decimal.NewFromFloat(assetMgtFee).String())
 
 		}
 
 		{
-			issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
-			t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
-			t.IssuingHouseFeePercent = issuingHouse.FeePercent
+			// issuingHouse := IssuingHouseID(t.AssetIssuingHouseID).GetAssetIssuingHouse(gc)
+			// t.IssuingHouseFeeFixed = issuingHouse.FeeFixed
+			// t.IssuingHouseFeePercent = issuingHouse.FeePercent
 			issuingHouseFeeValue = (decimal.NewFromFloat(t.AssetCurrentValue * (t.IssuingHouseFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.IssuingHouseFeeFixed).Truncate(7)).InexactFloat64()
 			t.IssuingHouseFeeValue = issuingHouseFeeValue
 			log.Printf("[UpdateCalculation] Calculated Issuing House Fee Value:= %v\n", decimal.NewFromFloat(issuingHouseFeeValue).String())
@@ -1817,9 +1829,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 
 		{
-			lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
-			t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
-			t.LegalAndProfessionalFeePercent = lpp.FeePercent
+			// lpp := LegalAndProfesionalPartnerID(t.LegalAndProfesionalPartnerID).GetLegalAndProfesionalPartner(gc)
+			// t.LegalAndProfessionalFeeFixed = lpp.FeeFixed
+			// t.LegalAndProfessionalFeePercent = lpp.FeePercent
 			legalAndProfessionalFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.LegalAndProfessionalFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.LegalAndProfessionalFeeFixed).Truncate(7)).InexactFloat64()
 			t.LegalAndProfessionalFeeValue = legalAndProfessionalFee
 			log.Printf("[UpdateCalculation] Calculated Legal&Professional Fee Value:= %v\n", decimal.NewFromFloat(legalAndProfessionalFee).String())
@@ -1827,9 +1839,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 
 		{
-			ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
-			t.RatingAgencyFeeFixed = ra.FeeFixed
-			t.RatingAgencyFeePercent = ra.FeePercent
+			// ra := RatingAgencyID(t.RatingAgencyID).GetRatingAgency(gc)
+			// t.RatingAgencyFeeFixed = ra.FeeFixed
+			// t.RatingAgencyFeePercent = ra.FeePercent
 			ratingAgencyFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.RatingAgencyFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.RatingAgencyFeeFixed).Truncate(7)).InexactFloat64()
 			t.RatingAgencyFeeValue = ratingAgencyFee
 			log.Printf("[UpdateCalculation] Calculated Rating Agency Fee Value:= %v\n", decimal.NewFromFloat(ratingAgencyFee).String())
@@ -1837,9 +1849,9 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 		}
 
 		{
-			ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
-			t.TrusteeFeeFixed = ra.FeeFixed
-			t.TrusteeFeePercent = ra.FeePercent
+			// ra := TrusteeID(t.TrusteeID).GetTrustee(gc)
+			// t.TrusteeFeeFixed = ra.FeeFixed
+			// t.TrusteeFeePercent = ra.FeePercent
 			trusteeFee = (decimal.NewFromFloat(t.AssetCurrentValue * (t.TrusteeFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(t.TrusteeFeeFixed).Truncate(7)).InexactFloat64()
 			t.TrusteeFeeValue = trusteeFee
 			log.Printf("[UpdateCalculation] Calculated Trustee Fee Value:= %v\n", decimal.NewFromFloat(trusteeFee).String())

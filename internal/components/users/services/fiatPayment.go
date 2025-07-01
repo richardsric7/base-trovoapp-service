@@ -38,10 +38,31 @@ func SaveUserPaymentData(username, provider, paymentType, txID string, amount fl
 	return gc.DB.Save(&t).Error
 }
 
+func SaveUserPaymentInvoiceData(username, provider, paymentType, txID, status string, amount float64, gc *sharedconfig.GlobalConfig) error {
+
+	t := userModels.FiatPaymentInvoice{
+		ID:              txID,
+		ServiceProvider: provider,
+		Username:        username,
+		Amount:          amount,
+		PaymentType:     paymentType,
+		Status:          status,
+	}
+
+	return gc.DB.Save(&t).Error
+}
+
 func GetUserPaymentData(username string, gc *sharedconfig.GlobalConfig) (ps []userModels.FiatPayment) {
 	ps = make([]userModels.FiatPayment, 0)
 
 	gc.DB.Order("id DESC").Where("username = ?", username).Limit(100).Find(&ps)
+
+	return
+}
+func GetUserPaymentInvoices(username string, gc *sharedconfig.GlobalConfig) (ps []userModels.FiatPaymentInvoice) {
+	ps = make([]userModels.FiatPaymentInvoice, 0)
+
+	gc.DB.Order("created_at DESC").Where("username = ?", username).Limit(100).Find(&ps)
 
 	return
 }

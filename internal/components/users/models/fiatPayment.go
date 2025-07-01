@@ -27,12 +27,24 @@ type FaucetConfig struct {
 }
 
 type FiatPayment struct {
+	CreatedAt       time.Time
 	ID              uint64
 	ServiceProvider string
 	Username        string
 	TransactionID   string
 	Amount          float64
 	PaymentType     string
+}
+
+type FiatPaymentInvoice struct {
+	ID              string    `json:"id"`
+	CreatedAt       time.Time `gorm:"default:now()" json:"createdAt"`
+	ServiceProvider string    `json:"serviceProvider"`
+	Username        string    `json:"username"`
+	Amount          float64   `json:"amount"`
+	PaymentType     string    `json:"paymentType"`
+	Status          string    `gorm:"default:'PENDING'" json:"status"`
+	Refunded        int       `gorm:"default:0" json:"refunded"`
 }
 
 type FlutterwaveWebhook struct {

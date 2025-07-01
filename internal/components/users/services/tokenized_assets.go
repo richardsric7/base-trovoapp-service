@@ -1168,21 +1168,86 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	}
 
 	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
-	ato.CustodianFeePercent = ac.FeePercent
+	ato.CustodianFeePercent = func() float64 {
+		if input.ApprovedAssetCustodianFeePercent > 0 {
+			return input.ApprovedAssetCustodianFeePercent
+		}
+		return ac.FeePercent
+	}()
+	ato.CustodianFeeFixed = func() float64 {
+		if input.ApprovedAssetCustodianFeeFixed > 0 {
+			return input.ApprovedAssetCustodianFeeFixed
+		}
+		return ac.FeeFixed
+	}()
 	ato.AssetManagerID = input.AssetManagerID
-	ato.AssetManagerFeePercent = am.FeePercent
+	ato.AssetManagerFeePercent = func() float64 {
+		if input.AssetManagerFeePercent > 0 {
+			return input.AssetManagerFeePercent
+		}
+		return am.FeePercent
+	}()
+	ato.AssetManagerFeeFixed = func() float64 {
+		if input.AssetManagerFeeFixed > 0 {
+			return input.AssetManagerFeeFixed
+		}
+		return am.FeeFixed
+	}()
 	ato.AssetIssuingHouseID = input.AssetIssuingHouseID
-	ato.IssuingHouseFeePercent = ai.FeePercent
-	ato.IssuingHouseFeeFixed = ai.FeeFixed
+	ato.IssuingHouseFeePercent = func() float64 {
+		if input.AssetIssuingHouseFeePercent > 0 {
+			return input.AssetIssuingHouseFeePercent
+		}
+		return ai.FeePercent
+	}()
+	ato.IssuingHouseFeeFixed = func() float64 {
+		if input.AssetIssuingHouseFeeFixed > 0 {
+			return input.AssetIssuingHouseFeeFixed
+		}
+		return ai.FeeFixed
+	}()
+
 	ato.LegalAndProfesionalPartnerID = input.LegalAndProfesionalPartnerID
-	ato.LegalAndProfessionalFeePercent = lpp.FeePercent
-	ato.LegalAndProfessionalFeeFixed = lpp.FeeFixed
+	ato.LegalAndProfessionalFeePercent = func() float64 {
+		if input.LegalAndProfesionalPartnerFeePercent > 0 {
+			return input.LegalAndProfesionalPartnerFeePercent
+		}
+		return lpp.FeePercent
+	}()
+	ato.LegalAndProfessionalFeeFixed = func() float64 {
+		if input.LegalAndProfesionalPartnerFeeFixed > 0 {
+			return input.LegalAndProfesionalPartnerFeeFixed
+		}
+		return lpp.FeeFixed
+	}()
 	ato.RatingAgencyID = input.RatingAgencyID
-	ato.RatingAgencyFeePercent = ra.FeePercent
-	ato.RatingAgencyFeeFixed = ra.FeeFixed
+
+	ato.RatingAgencyFeePercent = func() float64 {
+		if input.RatingAgencyFeePercent > 0 {
+			return input.RatingAgencyFeePercent
+		}
+		return ra.FeePercent
+	}()
+	ato.RatingAgencyFeeFixed = func() float64 {
+		if input.RatingAgencyFeeFixed > 0 {
+			return input.RatingAgencyFeeFixed
+		}
+		return ra.FeeFixed
+	}()
+
 	ato.TrusteeID = input.TrusteeID
-	ato.TrusteeFeePercent = ts.FeePercent
-	ato.TrusteeFeeFixed = ts.FeeFixed
+	ato.TrusteeFeePercent = func() float64 {
+		if input.TrusteeFeePercent > 0 {
+			return input.TrusteeFeePercent
+		}
+		return ts.FeePercent
+	}()
+	ato.TrusteeFeeFixed = func() float64 {
+		if input.TrusteeFeeFixed > 0 {
+			return input.TrusteeFeeFixed
+		}
+		return ts.FeeFixed
+	}()
 
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
