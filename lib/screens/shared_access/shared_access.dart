@@ -460,6 +460,9 @@ class _SharedAccessState extends State<SharedAccess>
                                 backgroundColor: WidgetStateProperty.all<Color>(
                                   notifier.getbluecolor!,
                                 ),
+                                foregroundColor: WidgetStateProperty.all<Color>(
+                                  notifier.getwihitecolor,
+                                ),
                               ),
                               child: Text(
                                 "retry".tr(),
@@ -1586,6 +1589,9 @@ class _SharedAccessState extends State<SharedAccess>
                   backgroundColor: WidgetStateProperty.all<Color>(
                     notifier.getbluecolor!,
                   ),
+                  foregroundColor: WidgetStateProperty.all<Color>(
+                    notifier.getwihitecolor,
+                  ),
                 ),
                 child: Text(
                   "gotowallet".tr(),
@@ -1799,6 +1805,9 @@ class _SharedAccessState extends State<SharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
+            ),
           ),
           child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
@@ -1875,6 +1884,9 @@ class _SharedAccessState extends State<SharedAccess>
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
             ),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               const RoundedRectangleBorder(
@@ -2279,6 +2291,9 @@ class _SharedAccessState extends State<SharedAccess>
               backgroundColor: WidgetStateProperty.all<Color>(
                 notifier.getbluecolor!,
               ),
+              foregroundColor: WidgetStateProperty.all<Color>(
+                notifier.getwihitecolor,
+              ),
             ),
             child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
           ),
@@ -2320,6 +2335,9 @@ class _SharedAccessState extends State<SharedAccess>
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.all<Color>(
                 notifier.getbluecolor!,
+              ),
+              foregroundColor: WidgetStateProperty.all<Color>(
+                notifier.getwihitecolor,
               ),
               shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 const RoundedRectangleBorder(
@@ -2529,6 +2547,9 @@ class _SharedAccessState extends State<SharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
+            ),
           ),
           child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
@@ -2575,6 +2596,9 @@ class _SharedAccessState extends State<SharedAccess>
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(
+              notifier.getwihitecolor,
             ),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               const RoundedRectangleBorder(

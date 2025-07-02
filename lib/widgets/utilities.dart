@@ -1104,6 +1104,9 @@ Widget tokenizedAssetTile({
                           backgroundColor: WidgetStateProperty.all<Color>(
                             notifier.getbluewhitecolor,
                           ),
+                          foregroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getwihitecolor,
+                          ),
                           side: WidgetStateProperty.all(
                             BorderSide(
                               color: notifier.getbluewhitecolor,

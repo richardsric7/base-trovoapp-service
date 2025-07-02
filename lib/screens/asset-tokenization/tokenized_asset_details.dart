@@ -327,6 +327,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluewhitecolor,
                       ),
+                      foregroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor,
+                      ),
                       side: WidgetStateProperty.all(
                         BorderSide(
                           color: notifier.getbluewhitecolor,
@@ -489,6 +492,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ),
                       backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluewhitecolor,
+                      ),
+                      foregroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor,
                       ),
                       side: WidgetStateProperty.all(
                         BorderSide(

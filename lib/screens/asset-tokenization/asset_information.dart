@@ -3992,6 +3992,9 @@ class _AssetInformation extends State<AssetInformation>
           overlayColor: WidgetStateProperty.all<Color>(notifier.getsplashgrey),
           elevation: WidgetStateProperty.all<double>(0),
           backgroundColor: WidgetStateProperty.all<Color>(backColor),
+          foregroundColor: WidgetStateProperty.all<Color>(
+            notifier.getwihitecolor,
+          ),
           side: WidgetStateProperty.all(
             BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
           ),

@@ -476,6 +476,9 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                       backgroundColor: WidgetStateProperty.all<Color>(
                         notifier.getbluecolor,
                       ),
+                      foregroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor,
+                      ),
                       shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -865,6 +868,146 @@ void showPasswordDialog(context, action) {
                   ),
                   child: Text(
                     "cancel".tr(),
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void showWhereCanFindBackupDialog(context, onSkip) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  // var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: true,
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        content: Container(
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            borderRadius: BorderRadius.all(Radius.circular(23)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    "important".tr(),
+                    style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5),
+                // height: height / 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 5.0,
+                        ),
+                        child: Text(
+                          'You can still backup your wallet secret key as long as you do not uninstall this app. Please go to the wallet side menu and select "Backup Wallet"',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // dismiss dialog,
+                  style: ButtonStyle(
+                    fixedSize: WidgetStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getbluecolor,
+                    ),
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "cancelskip".tr(),
+                    style: TextStyle(color: wihitecolor, fontFamily: fontbody),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onSkip();
+                  },
+                  style: ButtonStyle(
+                    fixedSize: WidgetStateProperty.all(
+                      Size(width / 1.5, height / 20),
+                    ),
+                    overlayColor: WidgetStateProperty.all<Color>(
+                      notifier.getsplashgrey,
+                    ),
+                    elevation: WidgetStateProperty.all<double>(0),
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor!,
+                    ),
+                    side: WidgetStateProperty.all(
+                      BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    "continuee".tr(),
                     style: TextStyle(
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,

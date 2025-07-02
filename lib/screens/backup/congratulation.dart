@@ -38,16 +38,18 @@ class _Congratulations extends State<Congratulations> {
               Text(
                 '${"congratulations".tr()}',
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               Text(
                 '${appState.userInfo!.username!}!',
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Padding(
@@ -58,10 +60,11 @@ class _Congratulations extends State<Congratulations> {
                       : "subwalletcreatesuccess".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 20.sp,
-                      wordSpacing: 3.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 20.sp,
+                    wordSpacing: 3.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 20),
@@ -70,16 +73,14 @@ class _Congratulations extends State<Congratulations> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  ensureBackupPrivacyDialog(
-                    context,
-                    () {
-                      Navigator.of(context).pop();
-                      appState.viewData?[EnsurePrivacyPageConfig.key] = null;
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: EnsurePrivacyPageConfig);
-                    },
-                  );
+                  ensureBackupPrivacyDialog(context, () {
+                    Navigator.of(context).pop();
+                    appState.viewData?[EnsurePrivacyPageConfig.key] = null;
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: EnsurePrivacyPageConfig,
+                    );
+                  });
                 },
               ),
               SizedBox(height: height / 50.5),
@@ -88,7 +89,10 @@ class _Congratulations extends State<Congratulations> {
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
-                  warnSkipBackupDialog(context, gotoNext);
+                  warnSkipBackupDialog(
+                    context,
+                    () => showWhereCanFindBackupDialog(context, gotoNext),
+                  );
                 },
               ),
               SizedBox(height: height / 15),
@@ -101,20 +105,27 @@ class _Congratulations extends State<Congratulations> {
 
   gotoNext() async {
     if (appState.isFirstTime) {
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.addPage,
+        page: FingerprintPageConfig,
+      );
     } else if ((appState.returnView != null &&
                 appState.returnView!.pages != null) &&
-            appState.returnView!.pages!
-                .contains(WalletPreparationViewPageConfig) ||
+            appState.returnView!.pages!.contains(
+              WalletPreparationViewPageConfig,
+            ) ||
         appState.backupSecrets.length > 1) {
       appState.currentAction = PageAction(
-          state: PageState.addPage, page: SharedAccessViewPageConfig);
+        state: PageState.addPage,
+        page: SharedAccessViewPageConfig,
+      );
     } else if (appState.returnView != null) {
       appState.currentAction = appState.returnView!;
     } else {
-      appState.currentAction =
-          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.replaceAll,
+        page: BottomHomePageConfig,
+      );
     }
   }
 }

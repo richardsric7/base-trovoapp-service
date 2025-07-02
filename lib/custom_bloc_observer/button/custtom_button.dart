@@ -71,6 +71,9 @@ class _ButtonState extends State<Button> {
                     backgroundColor: WidgetStateProperty.all<Color>(
                       widget.colorbutton!,
                     ),
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
+                    ),
                     shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -163,6 +166,9 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all<Color>(
                       widget.colorbutton!,
+                    ),
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
                     ),
                     shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
@@ -263,6 +269,9 @@ class _HalfButtonWithIconState extends State<HalfButtonWithIcon> {
                     ),
                     backgroundColor: WidgetStateProperty.all<Color>(
                       widget.colorbutton!,
+                    ),
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
                     ),
                     shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
@@ -366,6 +375,9 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
                     elevation: WidgetStateProperty.all<double>(0),
                     backgroundColor: WidgetStateProperty.all<Color>(
                       widget.colorbutton!,
+                    ),
+                    foregroundColor: WidgetStateProperty.all<Color>(
+                      notifier.getwihitecolor,
                     ),
                     side: WidgetStateProperty.all(
                       BorderSide(
