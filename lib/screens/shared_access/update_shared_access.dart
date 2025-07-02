@@ -507,15 +507,12 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                     width: width / 3.6,
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text(
-                            "approvals".tr(),
-                            style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold,
-                              fontSize: 15.sp,
-                            ),
+                        Text(
+                          "approvals".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 15.sp,
                           ),
                         ),
                         SizedBox(height: height / 90),
@@ -592,15 +589,12 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                     width: width / 3.6,
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text(
-                            "approvers".tr(),
-                            style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold,
-                              fontSize: 15.sp,
-                            ),
+                        Text(
+                          "approvers".tr(),
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 15.sp,
                           ),
                         ),
                         SizedBox(height: height / 90),

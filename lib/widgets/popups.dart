@@ -4771,6 +4771,22 @@ showBuyTokenPopup(
                           return;
                         }
 
+                        if (selectedWallet!.claimedAssets!
+                                .where(
+                                  (asset) =>
+                                      asset.assetCode!.toLowerCase() == 'cngn',
+                                )
+                                .length ==
+                            0) {
+                          popup(
+                            context,
+                            title: 'Error',
+                            message:
+                                'You do not have any CNGN to perform this transaction! Please get CNGN into the selected wallet or select another wallet that has CNGN on it.',
+                          );
+                          return;
+                        }
+
                         Navigator.of(context).pop(); // dismiss dialog,
                         onDone(selectedWallet!);
                       },

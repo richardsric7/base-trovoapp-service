@@ -79,6 +79,10 @@ class _OptInOutAssetState extends State<OptInOutAsset>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    if (appState.userInfo!.transactionableWallets().length == 1) {
+      selectedWalletIndex = 0;
+    }
   }
 
   @override

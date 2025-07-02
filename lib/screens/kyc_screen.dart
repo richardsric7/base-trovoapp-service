@@ -29,6 +29,7 @@ class _KYCScreenState extends State<KYCScreen> {
   DateTime? timestamp = null;
   late DataProvider appState;
   late Future<dynamic> kycConfigFuture;
+  late int activeLevel;
   String demoText =
       '''This is a demo process. Your data will not be stored or retained by Dojah and will only be used
         for the purpose of demonstrating this process flow.''';
@@ -40,12 +41,15 @@ class _KYCScreenState extends State<KYCScreen> {
     appState = Provider.of<DataProvider>(context, listen: false);
     userID = appState.userInfo!.username!;
     isCorporate = appState.userInfo!.isCorporate;
+    activeLevel = appState.userInfo!.kycVerified ?? 0;
     kycConfigFuture = fetchKycConfigs();
   }
 
   Future<void> fetchKycConfigs() async {
     try {
-      var res = await StoreData().storeGetData('lastKycSubmitted');
+      var res = await StoreData().storeGetData(
+        'lastKyc${activeLevel + 1}Submitted',
+      );
       if (res != null) {
         timestamp = DateTime.tryParse(res);
       }
@@ -183,18 +187,22 @@ class _KYCScreenState extends State<KYCScreen> {
             final widgets = data['widgets'];
             String? widgetId;
             bool isAlreadySubmitted = false;
-            int activeLevel = 1;
 
             for (int level = 1; level <= 4; level++) {
               final levelKey = 'kycLevel${level}Completed';
               activeLevel = level;
 
               if (kycProgress[levelKey] == 0) {
-                if (kycProgress['kycLevel${level}Submitted'] == 1 ||
-                    (timestamp != null &&
-                        timestamp!
-                            .add(Duration(hours: 1))
-                            .isAfter(DateTime.now()))) {
+                // if (kycProgress['kycLevel${level}Submitted'] == 1 ||
+                //     (timestamp != null &&
+                //         timestamp!
+                //             .add(Duration(hours: 1))
+                //             .isAfter(DateTime.now()))) {
+                //   isAlreadySubmitted = true;
+                //   break;
+                // }
+
+                if (kycProgress['kycLevel${level}Submitted'] == 1) {
                   isAlreadySubmitted = true;
                   break;
                 }
@@ -464,7 +472,7 @@ class _KYCScreenState extends State<KYCScreen> {
   // a function that closes the webview after a successful capture
   void success(arg) {
     String timestamp = DateTime.now().toIso8601String();
-    StoreData().storeInsertData('lastKycSubmitted', timestamp);
+    StoreData().storeInsertData('lastKyc${activeLevel}Submitted', timestamp);
     Navigator.of(context).pop();
     showSuccessAlert(
       context,

@@ -70,9 +70,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Column(
@@ -89,9 +87,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       children: [
                         CustomTextFormField.textField(
@@ -117,8 +113,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                               }
                             });
                           },
-                          keyboardtype:
-                              TextInputType.numberWithOptions(decimal: true),
+                          keyboardtype: TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
@@ -133,9 +130,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                       ],
                     ),
                     if (!appState.hideBalances) ...[availableBalance()],
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     Row(
                       children: [
                         Text(
@@ -148,17 +143,16 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       children: [
                         Container(
                           width: 300.sp,
                           height: 55.sp,
                           decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(15.0),
+                            ),
                             color: notifier.getaddsubwalletgrey,
                           ),
                           child: Column(
@@ -166,8 +160,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
                                 child: Text(
                                   tokenizedAsset.assetQuoteCurrency!,
                                   style: TextStyle(
@@ -179,12 +174,10 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                               const SizedBox(height: 2),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       children: [
                         Text(
@@ -197,17 +190,16 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       children: [
                         Container(
                           width: 300.sp,
                           height: 55.sp,
                           decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(15.0),
+                            ),
                             color: notifier.getaddsubwalletgrey,
                           ),
                           child: Column(
@@ -215,8 +207,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
                                 child: Text(
                                   formatNumber(quantity),
                                   style: TextStyle(
@@ -228,15 +221,13 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                               const SizedBox(height: 2),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Button(
                 'Pay',
                 notifier.getbluecolor,
@@ -256,9 +247,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                   }
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -267,8 +256,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
   }
 
   Widget availableBalance() {
-    var asset = appState.activeWallet!.claimedAssets!
-        .firstWhere((asset) => asset.assetCode!.toLowerCase() == 'cngn');
+    var asset = appState.activeWallet!.claimedAssets!.firstWhere(
+      (asset) => asset.assetCode!.toLowerCase() == 'cngn',
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,22 +270,24 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                 : "≈ 0.0000 ${getAssetCode(asset.assetCode)}",
             textScaleFactor: 1.0,
             style: TextStyle(
-                color: notifier.getdarkgrey,
-                fontWeight: FontWeight.w400,
-                fontSize: 12.0.sp),
+              color: notifier.getdarkgrey,
+              fontWeight: FontWeight.w400,
+              fontSize: 12.0.sp,
+            ),
           ),
         ),
         Flexible(
-            child: Visibility(
-          visible: true,
-          replacement: Container(),
-          child: Text(
-            "${formatNumber(asset.amount!)} ${getAssetCode(asset.assetCode)}",
-            textScaleFactor: 1.0,
-            textAlign: TextAlign.right,
-            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+          child: Visibility(
+            visible: true,
+            replacement: Container(),
+            child: Text(
+              "${formatNumber(asset.amount!)} ${getAssetCode(asset.assetCode)}",
+              textScaleFactor: 1.0,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+            ),
           ),
-        )),
+        ),
       ],
     );
   }

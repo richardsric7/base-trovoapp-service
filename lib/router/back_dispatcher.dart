@@ -15,8 +15,9 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
   @override
   Future<bool> didPopRoute() async {
     var appState = Provider.of<DataProvider>(
-        _routerDelegate.navigatorKey.currentContext!,
-        listen: false);
+      _routerDelegate.navigatorKey.currentContext!,
+      listen: false,
+    );
 
     // check if any dialog is open when the back button is pressed
     if (appState.dialogOpen) {
@@ -66,51 +67,38 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
 
   Future<bool?> _confirmAppExit() {
     return showDialog<bool>(
-        context: _routerDelegate.navigatorKey.currentContext!,
-        builder: (context) {
-          return AlertDialog(
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(25.0))),
-            actions: [
-              TextButton(
-                child: Text(
-                  "yes".tr(),
-                  style: TextStyle(fontSize: 16.0, color: trovoblue90),
-                ),
-                onPressed: () => Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop(false),
-              ),
-              TextButton(
-                  child: Text(
-                    "no".tr(),
-                    style: TextStyle(fontSize: 16.0, color: trovoblue90),
-                  ),
-                  onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop(true);
-                    dialogOpen = false;
-                  }),
-            ],
-            content: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
+      context: _routerDelegate.navigatorKey.currentContext!,
+      builder: (context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(25.0)),
+          ),
+          actions: [
+            TextButton(
               child: Text(
-                "areyousure?".tr(),
-                style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.w400,
-                ),
+                "yes".tr(),
+                style: TextStyle(fontSize: 16.0, color: trovoblue90),
               ),
+              onPressed: () =>
+                  Navigator.of(context, rootNavigator: true).pop(false),
             ),
-          );
-        });
+            TextButton(
+              child: Text(
+                "no".tr(),
+                style: TextStyle(fontSize: 16.0, color: trovoblue90),
+              ),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop(true);
+                dialogOpen = false;
+              },
+            ),
+          ],
+          content: Text(
+            "areyousure?".tr(),
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w400),
+          ),
+        );
+      },
+    );
   }
 }

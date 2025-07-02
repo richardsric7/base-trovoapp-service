@@ -104,8 +104,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
                         tx_ref: '$uniqueId',
                         amount: ${viewData['activationAmount']},
                         currency: 'NGN',
-                        payment_options: 'ussd, card, bank transfer',
-                        redirect_url: 'https://trovo.app/success',
+                        payment_options: 'ussd, card, bank transfer',                        
                         meta: {                          
                           user_id: '${userInfo.username}',
                           transaction_type: 'ACTIVATION',                      
@@ -118,9 +117,14 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
                           name: '${userInfo.fullName}',                              
                         },
                         customizations: {
-                          title: 'The Titanic Store',
+                          title: 'Account Activation',
                           description: 'Pay ${viewData['activationAmount']} to activate account.',
                           logo: 'https://trovotech.io/img/Transperant-Logo-1.png',                          
+                        },
+                        callback: function(response){
+                          if(response.status === 'successful'){
+                            window.location.href = 'https://trovo.app/success'; 
+                          }
                         },
                         onclose: function (incomplete) {
                           window.location.href = 'https://trovo.app/cancel';                          

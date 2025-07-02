@@ -105,15 +105,18 @@ class _SplashScreenState extends State<SplashScreen>
             timer.cancel();
             appState.setSplashFinished();
             appState.currentAction = PageAction(
-                state: PageState.replaceAll, page: OnboardingPageConfig);
+              state: PageState.replaceAll,
+              page: OnboardingPageConfig,
+            );
           }
         });
       } else {
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         appState.appVersion = packageInfo.version;
         var data = await StoreData().storeGetData('userInfo');
-        var sharedWallets =
-            await StoreData().storeGetData('walletsSharedWithUser');
+        var sharedWallets = await StoreData().storeGetData(
+          'walletsSharedWithUser',
+        );
         var assetBalances = await StoreData().storeGetData('assetBalances');
         appState.setUser = UserInfo().deserializeJson(
           data,
@@ -126,12 +129,15 @@ class _SplashScreenState extends State<SplashScreen>
             await StoreData().storeGetData('biometricsEnabled') ?? false;
         appState.hideBalances =
             await StoreData().storeGetData('hideBalances') ?? false;
-        appState.assetBalances =
-            await StoreData().storeGetData('assetBalances');
-        appState.setDefaultAssets =
-            await StoreData().storeGetData('defaultAssets');
-        appState.setAssetOrderings =
-            await StoreData().storeGetData('assetOrderings');
+        appState.assetBalances = await StoreData().storeGetData(
+          'assetBalances',
+        );
+        appState.setDefaultAssets = await StoreData().storeGetData(
+          'defaultAssets',
+        );
+        appState.setAssetOrderings = await StoreData().storeGetData(
+          'assetOrderings',
+        );
         appState.setNFTs = await StoreData().storeGetData('nfts');
         var swapList = await StoreData().storeGetData('curatedSwapList') ?? [];
         print('swap list $swapList');
@@ -145,10 +151,11 @@ class _SplashScreenState extends State<SplashScreen>
 
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
-                List.filled(6, appState.hideBalances);
+            List.filled(6, appState.hideBalances);
         var primaryWallet = appState.userInfo!.wallets!.firstWhere(
-            (wallet) => wallet.primaryWallet == 1,
-            orElse: () => appState.userInfo!.wallets![0]);
+          (wallet) => wallet.primaryWallet == 1,
+          orElse: () => appState.userInfo!.wallets![0],
+        );
         appState.activeWallet = primaryWallet;
         // check if app was not already open
         // if app was not already open then move to the next view
@@ -165,27 +172,33 @@ class _SplashScreenState extends State<SplashScreen>
             } else {
               String result = await FCM().getPushNotificationToken();
 
-              var token = result.split('|').first;
-              DateTime createdAt = DateTime.parse(result.split('|').last);
-              var dateDifference = DateTime.now().difference(createdAt);
+              if (result.isNotEmpty) {
+                var token = result.split('|').first;
+                DateTime createdAt = DateTime.parse(result.split('|').last);
+                var dateDifference = DateTime.now().difference(createdAt);
+                updateUserInfo(
+                  primaryWallet.signer,
+                  appState.secretKeys[0],
+                  primaryWallet.publicKey,
+                  appState.userInfo!.username!,
+                  appState,
+                  pnt: dateDifference.inDays > 10 ? token : null,
+                );
+              }
 
-              updateUserInfo(
-                primaryWallet.signer,
-                appState.secretKeys[0],
-                primaryWallet.publicKey,
-                appState.userInfo!.username!,
-                appState,
-                pnt: dateDifference.inDays > 10 ? token : null,
-              );
               fetchNotifications(appState);
               fetchCuratedSwapList(appState);
 
               if (initialDynamicLink != null) {
                 appState.processDeepLink(
-                    context, Uri.parse(initialDynamicLink!));
+                  context,
+                  Uri.parse(initialDynamicLink!),
+                );
               } else {
                 appState.currentAction = PageAction(
-                    state: PageState.replaceAll, page: LoginPageConfig);
+                  state: PageState.replaceAll,
+                  page: LoginPageConfig,
+                );
               }
             }
           }
@@ -200,10 +213,12 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       // initialize firebase remote config
       final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(minutes: 1),
-      ));
+      await remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: const Duration(minutes: 1),
+        ),
+      );
 
       await await FirebaseRemoteConfig.instance.fetchAndActivate();
     } catch (e) {
@@ -220,34 +235,36 @@ class _SplashScreenState extends State<SplashScreen>
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         body: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RotationTransition(
-              turns: Tween(
-                begin: 0.0,
-                end: 2 * pi,
-              ).animate(controller),
-              child:
-                  Image.asset("assets/images/trovo.png", height: height / 13),
-            ),
-            SizedBox(height: height / 45),
-            Text(
-              "Trovo",
-              style: TextStyle(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RotationTransition(
+                turns: Tween(begin: 0.0, end: 2 * pi).animate(controller),
+                child: Image.asset(
+                  "assets/images/trovo.png",
+                  height: height / 13,
+                ),
+              ),
+              SizedBox(height: height / 45),
+              Text(
+                "Trovo",
+                style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',
-                  fontSize: 35.sp),
-            ),
-            Text(
-              "App",
-              style: TextStyle(
+                  fontSize: 35.sp,
+                ),
+              ),
+              Text(
+                "App",
+                style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',
-                  fontSize: 35.sp),
-            ),
-          ],
-        )),
+                  fontSize: 35.sp,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -265,10 +282,11 @@ class _SplashScreenState extends State<SplashScreen>
     var token = result.split('|').first;
 
     Map responseData = await makeGetRequest(
-        uri: '/v1/users/${username}?type=import&pnt=$token',
-        signer: signer,
-        publicKey: publicKey,
-        secretKey: secretKey);
+      uri: '/v1/users/${username}?type=import&pnt=$token',
+      signer: signer,
+      publicKey: publicKey,
+      secretKey: secretKey,
+    );
     // print('response==================> $responseData');
 
     if (responseData['statusCode'] == 200) {
@@ -280,19 +298,25 @@ class _SplashScreenState extends State<SplashScreen>
       fetchNotifications(appState);
       getFiatRates(appState);
       storeUserInfo(responseData['data'], appState);
-      await StoreData()
-          .storeInsertData('biometricsEnabled', appState.biometricEnabled);
+      await StoreData().storeInsertData(
+        'biometricsEnabled',
+        appState.biometricEnabled,
+      );
       fetchCuratedSwapList(appState);
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: LoginPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.addPage,
+        page: LoginPageConfig,
+      );
     } else if (responseData['statusCode'] == 404) {
       accountNotFoundAfterSwitchPopup(
         context,
         onContinueWithCredentials: () async =>
             await createUserAccountAfterSwitch(),
         onImportNewCredential: () => {
-          appState.currentAction =
-              PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: ImportWalletPageConfig,
+          ),
         },
         onGoBackToPrevEnvironment: () {
           appState.changeWalletMode(
@@ -309,8 +333,10 @@ class _SplashScreenState extends State<SplashScreen>
         message: responseData['data']['message'],
         onContinueWithCredentials: () {},
         onImportNewCredential: () => {
-          appState.currentAction =
-              PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: ImportWalletPageConfig,
+          ),
         },
         onGoBackToPrevEnvironment: () {
           appState.changeWalletMode(
@@ -325,8 +351,8 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> createUserAccountAfterSwitch() async {
     try {
       showLoader(context);
-      appState.userInfo!.pushNotificationToken =
-          await FCM().getPushNotificationToken();
+      appState.userInfo!.pushNotificationToken = await FCM()
+          .getPushNotificationToken();
       Map map = {
         'username': appState.userInfo!.username,
         'email': appState.userInfo!.email,
@@ -347,11 +373,12 @@ class _SplashScreenState extends State<SplashScreen>
       String jsonBody = jsonEncode(map);
 
       Map responseData = await makePostRequest(
-          uri: '/v1/users',
-          body: jsonBody,
-          signer: creds.publicKey,
-          publicKey: creds.publicKey,
-          secretKey: creds.secretKey);
+        uri: '/v1/users',
+        body: jsonBody,
+        signer: creds.publicKey,
+        publicKey: creds.publicKey,
+        secretKey: creds.secretKey,
+      );
 
       // print('$responseData');
       hideLoader(context);
@@ -362,20 +389,27 @@ class _SplashScreenState extends State<SplashScreen>
         appState.tempSigner = creds.publicKey;
         appState.tempPassword = appState.password!;
 
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: VerificationPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: VerificationPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context,
-          title: "error".tr(),
-          message: e.toString().contains('firebase')
-              ? 'Network error! Please check your connection and try again.'
-              : e.toString());
+      popup(
+        context,
+        title: "error".tr(),
+        message: e.toString().contains('firebase')
+            ? 'Network error! Please check your connection and try again.'
+            : e.toString(),
+      );
     }
   }
 
@@ -389,16 +423,16 @@ class _SplashScreenState extends State<SplashScreen>
 class LandingPageRoute extends MaterialPageRoute {
   Widget child;
   LandingPageRoute(this.child)
-      : super(builder: (BuildContext context) => child);
+    : super(builder: (BuildContext context) => child);
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
-    return FadeTransition(
-      opacity: animation,
-      child: child,
-    );
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return FadeTransition(opacity: animation, child: child);
   }
 
   @override
