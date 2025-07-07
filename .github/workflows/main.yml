@@ -1,6 +1,9 @@
 name: Deploy Build and Release apk
 
 on:
+  push:
+    branches:
+      - deploy-android
   pull_request:
     types: [merged]
     branches:
