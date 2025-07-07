@@ -1,13 +1,10 @@
 name: iOS Deploy to TestFlight
 
 on:
-  push:
-    branches:
-      - develop
   pull_request:
     types: [merged]
     branches:
-      - develop
+      - deploy-ios
 
 jobs:
   deploy-ios:
