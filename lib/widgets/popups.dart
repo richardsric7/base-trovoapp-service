@@ -932,7 +932,7 @@ void showWhereCanFindBackupDialog(context, onSkip) {
                           horizontal: 5.0,
                         ),
                         child: Text(
-                          'You can still backup your wallet secret key as long as you do not uninstall this app. Please go to the wallet side menu and select "Backup Wallet"',
+                          'You can backup later from the side menu -> Backup Wallet.\nEnsure to backup wallet before uninstalling the app on this device. Uninstalling the app without backing up the wallet will result in losing the wallet forever.',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w300,

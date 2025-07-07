@@ -64,6 +64,13 @@ void main() async {
 
   await EasyLocalization.ensureInitialized();
 
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.white, // or any custom color
+      statusBarIconBrightness: Brightness.light, // for dark icons
+    ),
+  );
+
   runApp(
     EasyLocalization(
       supportedLocales: [Locale('en', 'US')],

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -320,107 +319,6 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
     double.parse(balance.toString()),
     1000000,
     isShort: true,
-  );
-}
-
-Widget buildExpandable(context) {
-  var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  height = MediaQuery.of(context).size.height;
-  width = MediaQuery.of(context).size.width;
-
-  return ExpandableNotifier(
-    child: ScrollOnExpand(
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            ExpandablePanel(
-              theme: const ExpandableThemeData(
-                headerAlignment: ExpandablePanelHeaderAlignment.center,
-                tapBodyToExpand: true,
-                tapBodyToCollapse: true,
-                hasIcon: false,
-              ),
-              header: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        "learnmore".tr(),
-                        style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontFamily: fontbody,
-                          fontSize: 13.sp,
-                        ),
-                      ),
-                      ExpandableIcon(
-                        theme: ExpandableThemeData(
-                          expandIcon: Icons.keyboard_arrow_right,
-                          collapseIcon: Icons.keyboard_arrow_down_outlined,
-                          iconColor: notifier.getbluecolor,
-                          iconSize: 28.0,
-                          iconRotationAngle: 1.9 / 2,
-                          iconPadding: EdgeInsets.only(right: 5),
-                          hasIcon: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              collapsed: Container(),
-              expanded: Container(
-                child: Row(
-                  children: [
-                    SizedBox(width: width / 6),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "whatissharedaccess".tr(),
-                          style: TextStyle(
-                            color: notifier.getbluecolor90,
-                            fontFamily: fontsemibold,
-                            fontSize: 13.sp,
-                          ),
-                        ),
-                        SizedBox(height: height / 50),
-                        SizedBox(
-                          width: width / 1.7,
-                          child: Text(
-                            "Lorem ipsum dolor emmet what does shared access mean?",
-                            style: TextStyle(
-                              color: notifier.getbluecolor90,
-                              fontFamily: fontbody,
-                              fontSize: 13.sp,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: height / 50),
-                        SizedBox(
-                          width: width / 1.7,
-                          child: Text(
-                            "We can also explain more or emphasise very important information here.",
-                            style: TextStyle(
-                              color: notifier.getbluecolor90,
-                              fontFamily: fontbody,
-                              fontSize: 13.sp,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: height / 50),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
   );
 }
 
@@ -1549,115 +1447,108 @@ Widget getDrawer(
   return Drawer(
     backgroundColor: notifier.getwihitecolor,
     child: ListView(
-      // Important: Remove any padding from the ListView.
       padding: EdgeInsets.zero,
       children: [
-        GestureDetector(
-          onTap: () {
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: ProfileDetailsViewPageConfig,
-            );
-          },
-          child: UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: notifier.getwihitecolor),
-            margin: const EdgeInsets.only(bottom: 8.0),
-            accountName: Text(
-              '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
-                fontSize: 14,
-              ),
-            ),
-            accountEmail: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  appState.userInfo!.email!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 14,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  appState.userInfo!.kycVerified != null &&
-                          appState.userInfo!.kycVerified! > 0
-                      ? 'Verified (Level ${appState.userInfo!.kycVerified})'
-                      : 'Unverified',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: fontsemibold,
-                    color:
-                        appState.userInfo!.kycVerified != null &&
-                            appState.userInfo!.kycVerified! > 0
-                        ? notifier.getgreencolor
-                        : Colors.red,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-            currentAccountPicture: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: notifier.getbluecolor70,
-                        child: GestureDetector(
-                          onTap: () {
-                            appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: ProfileDetailsViewPageConfig,
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(100.0),
-                            child: Image.network(
-                              appState.userInfo!.imageThumbnailURL!,
-                              width: width / 6.8,
-                              fit: BoxFit.fill,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/trovo.png',
-                                  width: width / 9,
-                                );
-                              },
-                            ),
+        DrawerHeader(
+          decoration: BoxDecoration(color: notifier.getwihitecolor),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ProfileDetailsViewPageConfig,
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 6.8,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
                           ),
                         ),
                       ),
-                      if (appState.userInfo != null &&
-                          appState.userInfo!.patronMembership != null) ...[
-                        Container(
-                          width: width / 6.0,
-                          height: height / 12.5,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Image.asset(
-                                appState.userInfo!.patronMembership
-                                        ?.getLogo() ??
-                                    'assets/images/trovo.png',
-                                width: 30,
-                              ),
-                            ],
-                          ),
+                    ),
+                    if (appState.userInfo != null &&
+                        appState.userInfo!.patronMembership != null) ...[
+                      Container(
+                        width: width / 6.0,
+                        height: height / 12.5,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Image.asset(
+                              appState.userInfo!.patronMembership?.getLogo() ??
+                                  'assets/images/trovo.png',
+                              width: 30,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                appState.userInfo!.email!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 14,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    appState.userInfo!.kycVerified != null &&
+                            appState.userInfo!.kycVerified! > 0
+                        ? 'Verified (Level ${appState.userInfo!.kycVerified})'
+                        : 'Unverified',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: fontsemibold,
+                      color:
+                          appState.userInfo!.kycVerified != null &&
+                              appState.userInfo!.kycVerified! > 0
+                          ? notifier.getgreencolor
+                          : Colors.red,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         ListTile(

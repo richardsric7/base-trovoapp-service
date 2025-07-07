@@ -6,7 +6,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
-import 'package:uuid/uuid.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 
@@ -22,7 +22,6 @@ class FlutterwaveWebView extends StatefulWidget {
 
 class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
   late DataProvider appState;
-  var uuid = Uuid();
   @override
   void initState() {
     super.initState();
@@ -89,7 +88,6 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
     var viewData = appState.viewData!;
     var userInfo = appState.userInfo!;
-    String uniqueId = uuid.v4();
     String html =
         '''
           <!DOCTYPE html>
@@ -101,7 +99,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
                   function makePayment() {
                       FlutterwaveCheckout({
                         public_key: 'FLWPUBK_TEST-45bd332ee4bdefdcacd6d2513944cd16-X',
-                        tx_ref: '$uniqueId',
+                        tx_ref: '${viewData['id']}',
                         amount: ${viewData['activationAmount']},
                         currency: 'NGN',
                         payment_options: 'ussd, card, bank transfer',                        
@@ -160,7 +158,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
                   showSuccessAlert(
                     context,
                     text:
-                        'Your activation payment of ${viewData['activationAmount']} was successful. Value will be transferred to your primary wallet as soon as the payment is confirmed.',
+                        'Your activation payment of NGN ${getFiatValue(double.parse(viewData['activationAmount'].toString()))} was successful. Value will be transferred to your primary wallet as soon as the payment is confirmed.',
                     onTap: () {
                       appState.currentAction = PageAction(
                         state: PageState.replaceAll,

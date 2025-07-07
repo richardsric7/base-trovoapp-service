@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,11 +9,14 @@ import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:uuid/uuid.dart';
 
 class BuyXBNWithFiat extends StatefulWidget {
   const BuyXBNWithFiat({Key? key}) : super(key: key);
@@ -207,11 +212,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   wihitecolor,
                   width: width - 40,
                   onTap: () {
-                    // handlePaymentInitialization();
-                    appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: FlutterwaveWebViewPageConfig,
-                    );
+                    savePaymentInvoiceAndContinue();
                   },
                 ),
                 SizedBox(height: height / 20),
@@ -226,6 +227,43 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         ),
       ),
     );
+  }
+
+  Future<void> savePaymentInvoiceAndContinue() async {
+    try {
+      var uuid = Uuid();
+      String uniqueId = uuid.v4();
+      showLoader(context);
+      String requestBody = jsonEncode({
+        'id': uniqueId,
+        'amount': viewData['activationAmount'],
+        'paymentType': 'ACTIVATION',
+      });
+
+      print(requestBody);
+
+      var uri = '/v1/users/fiat/flutterwave';
+      Map responseData = await makePostRequest(
+        body: requestBody,
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      hideLoader(context);
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        appState.viewData!['id'] = uniqueId;
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: FlutterwaveWebViewPageConfig,
+        );
+      }
+    } catch (e) {
+      print('error');
+      print(e);
+      hideLoader(context);
+    }
   }
 
   double getPercentageValue(double percentage, double amount) {

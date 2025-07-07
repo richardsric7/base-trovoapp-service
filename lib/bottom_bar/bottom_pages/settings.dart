@@ -148,6 +148,26 @@ class _SettingsState extends State<Settings> {
                     fontSize: 18,
                   ),
                 ),
+                TextButton(
+                  onPressed: () {
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ProfileDetailsViewPageConfig,
+                    );
+                  },
+                  style: ButtonStyle(
+                    padding: WidgetStateProperty.all(EdgeInsets.zero),
+                  ),
+                  child: Text(
+                    'View Profile',
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                      fontSize: 14,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
                 SizedBox(height: height / 50),
                 GestureDetector(
                   onTap: () {
