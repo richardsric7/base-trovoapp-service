@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -105,9 +104,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Row(
@@ -116,33 +113,30 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     Text(
                       '${"send".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
                         appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: QrScannerPageConfig);
+                          state: PageState.addPage,
+                          page: QrScannerPageConfig,
+                        );
                       },
-                      child: SvgPicture.asset(
-                        "assets/images/scan.svg",
+                      child: Icon(
+                        Icons.qr_code_scanner_sharp,
                         color: notifier.getbluewhitecolor,
-                        height: height / 40,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               formFields(),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Button(
                 "proceed".tr(),
                 notifier.getbluecolor,
@@ -151,12 +145,12 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                   handleSubmit();
                 },
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -176,22 +170,24 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                 : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             style: TextStyle(
-                color: notifier.getdarkgrey,
-                fontWeight: FontWeight.w400,
-                fontSize: 12.0.sp),
+              color: notifier.getdarkgrey,
+              fontWeight: FontWeight.w400,
+              fontSize: 12.0.sp,
+            ),
           ),
         ),
         Flexible(
-            child: Visibility(
-          visible: true,
-          replacement: Container(),
-          child: Text(
-            "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
-            textScaleFactor: 1.0,
-            textAlign: TextAlign.right,
-            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+          child: Visibility(
+            visible: true,
+            replacement: Container(),
+            child: Text(
+              "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
+              textScaleFactor: 1.0,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -202,110 +198,110 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
-              width: 300.sp,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              ),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    if (sendingWalletController.text.isNotEmpty) ...[
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      CustomTextFormField.textField(
-                        "sendingwallet".tr(),
-                        notifier.getbluecolor,
-                        Icons.wallet,
-                        notifier.getgrey,
-                        notifier.getprefixicon,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        75.sp,
-                        300.sp,
-                        controller: sendingWalletController,
-                        readOnly: true,
-                        onSaved: (value) =>
-                            to = value.trim().replaceAll(' ', ''),
-                      ),
-                    ],
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    DestinationTextInput(
-                      controller: toController,
-                      focusNode: focusNode,
-                      isReadOnly: deeplinkInfo != null,
-                      validator: validateTo,
-                      onSaved: (value) =>
-                          to = value.toLowerCase().trim().replaceAll(' ', ''),
-                    ),
+            width: 300.sp,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            ),
+            child: Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  if (sendingWalletController.text.isNotEmpty) ...[
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
-                      "amount".tr(),
+                      "sendingwallet".tr(),
                       notifier.getbluecolor,
-                      Icons.currency_exchange,
+                      Icons.wallet,
                       notifier.getgrey,
                       notifier.getprefixicon,
                       notifier.getblck,
                       notifier.getgrey,
                       75.sp,
                       300.sp,
-                      onChanged: (value) {
-                        setState(() {
-                          amount = trim(value.toString(), '.');
-                        });
-                      },
-                      controller: amountController,
-                      readOnly: deeplinkInfo != null &&
-                          deeplinkInfo['amount'].toString().isNotEmpty,
-                      autoFormatNumber: true,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: validateAmount,
-                      onSaved: (value) =>
-                          amount = value.trim().replaceAll(' ', ''),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
-                      ],
+                      controller: sendingWalletController,
+                      readOnly: true,
+                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
-                    if (!appState.hideBalances) ...[availableBalance()],
-                    SizedBox(height: height / 50),
-                    CustomTextFormField.textField(
-                      "memo".tr(),
-                      notifier.getbluecolor,
-                      Icons.edit_note,
-                      notifier.getgrey,
-                      notifier.getprefixicon,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      75.sp,
-                      300.sp,
-                      onSaved: (value) => memo = value,
-                      maxLength: 28,
-                      controller: _utf8TextController,
-                      readOnly: deeplinkInfo != null &&
-                          deeplinkInfo['memo'].toString().isNotEmpty,
-                      buildCounter: (context,
-                          {currentLength, isFocused, maxLength}) {
-                        int utf8Length =
-                            utf8.encode(_utf8TextController.text).length;
-                        return Container(
-                          child: Text(
-                            '$utf8Length/$maxLength',
-                            style: TextStyle(color: notifier.getdarkgrey),
-                          ),
-                        );
-                      },
-                      inputFormatters: [
-                        _Utf8LengthLimitingTextInputFormatter(28),
-                      ],
-                    ),
-                    SizedBox(height: height / 20),
                   ],
-                ),
-              )),
+                  SizedBox(height: height / 50),
+                  DestinationTextInput(
+                    controller: toController,
+                    focusNode: focusNode,
+                    isReadOnly: deeplinkInfo != null,
+                    validator: validateTo,
+                    onSaved: (value) =>
+                        to = value.toLowerCase().trim().replaceAll(' ', ''),
+                  ),
+                  SizedBox(height: height / 50),
+                  CustomTextFormField.textField(
+                    "amount".tr(),
+                    notifier.getbluecolor,
+                    Icons.currency_exchange,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    75.sp,
+                    300.sp,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = trim(value.toString(), '.');
+                      });
+                    },
+                    controller: amountController,
+                    readOnly:
+                        deeplinkInfo != null &&
+                        deeplinkInfo['amount'].toString().isNotEmpty,
+                    autoFormatNumber: true,
+                    keyboardtype: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: validateAmount,
+                    onSaved: (value) =>
+                        amount = value.trim().replaceAll(' ', ''),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]')),
+                    ],
+                  ),
+                  if (!appState.hideBalances) ...[availableBalance()],
+                  SizedBox(height: height / 50),
+                  CustomTextFormField.textField(
+                    "memo".tr(),
+                    notifier.getbluecolor,
+                    Icons.edit_note,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    75.sp,
+                    300.sp,
+                    onSaved: (value) => memo = value,
+                    maxLength: 28,
+                    controller: _utf8TextController,
+                    readOnly:
+                        deeplinkInfo != null &&
+                        deeplinkInfo['memo'].toString().isNotEmpty,
+                    buildCounter:
+                        (context, {currentLength, isFocused, maxLength}) {
+                          int utf8Length = utf8
+                              .encode(_utf8TextController.text)
+                              .length;
+                          return Container(
+                            child: Text(
+                              '$utf8Length/$maxLength',
+                              style: TextStyle(color: notifier.getdarkgrey),
+                            ),
+                          );
+                        },
+                    inputFormatters: [
+                      _Utf8LengthLimitingTextInputFormatter(28),
+                    ],
+                  ),
+                  SizedBox(height: height / 20),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -408,8 +404,11 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
 
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);
@@ -424,11 +423,10 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                postProcessData(messageShown, messageLength, data),
-              });
+        context,
+        data['messages'][messageShown],
+        () => {postProcessData(messageShown, messageLength, data)},
+      );
 
       messageShown++;
       return;
@@ -450,7 +448,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
 
 class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
   _Utf8LengthLimitingTextInputFormatter(this.maxLength)
-      : assert(maxLength == -1 || maxLength > 0);
+    : assert(maxLength == -1 || maxLength > 0);
 
   final int maxLength;
 
@@ -555,9 +553,9 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
           300.sp,
           onChanged: (value) {
             print('value $value');
-            if (value
-                .toString()
-                .startsWith('${appState.primaryWallet.alias}_')) {
+            if (value.toString().startsWith(
+              '${appState.primaryWallet.alias}_',
+            )) {
               if (_overlayEntry != null) {
                 _overlayEntry!.remove();
               }
@@ -587,47 +585,44 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
         .where((wallet) => wallet.alias!.startsWith(widget.controller.text))
         .toList();
     return OverlayEntry(
-        builder: (context) => Positioned(
-              width: size.width,
-              child: CompositedTransformFollower(
-                link: this._layerLink,
-                showWhenUnlinked: false,
-                offset: Offset(0.0, size.height + 5.0),
-                child: Material(
-                  elevation: 4.0,
-                  color: notifier.getaddsubwalletgrey,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxHeight: height / 4,
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: this._layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0.0, size.height + 5.0),
+          child: Material(
+            elevation: 4.0,
+            color: notifier.getaddsubwalletgrey,
+            child: Container(
+              constraints: BoxConstraints(maxHeight: height / 4),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: wallets.length,
+                itemBuilder: (context, index) {
+                  return TextButton(
+                    onPressed: () {
+                      print('pressed o');
+                      widget.controller.text = wallets[index].alias!;
+                      _overlayEntry!.remove();
+                      _overlayEntry = null;
+                    },
+                    child: Row(
+                      children: [
+                        Text(wallets[index].alias!, textAlign: TextAlign.start),
+                      ],
                     ),
-                    child: ListView.separated(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        itemCount: wallets.length,
-                        itemBuilder: (context, index) {
-                          return TextButton(
-                            onPressed: () {
-                              print('pressed o');
-                              widget.controller.text = wallets[index].alias!;
-                              _overlayEntry!.remove();
-                              _overlayEntry = null;
-                            },
-                            child: Row(
-                              children: [
-                                Text(
-                                  wallets[index].alias!,
-                                  textAlign: TextAlign.start,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        separatorBuilder: (context, index) {
-                          return Divider();
-                        }),
-                  ),
-                ),
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  return Divider();
+                },
               ),
-            ));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

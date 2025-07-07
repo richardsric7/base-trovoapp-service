@@ -410,7 +410,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
       children: [
         SizedBox(height: height / 8),
         Image.asset("assets/images/unlock.png", height: height / 3.7),
-        SizedBox(height: height / 10),
+        SizedBox(height: height / 15),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: width / 15),
           child: Column(
@@ -427,7 +427,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
             ],
           ),
         ),
-        SizedBox(height: height / 15),
+        SizedBox(height: height / 20),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: width / 15),
           child: Column(
@@ -456,6 +456,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
             );
           },
         ),
+        SizedBox(height: 30),
       ],
     );
   }

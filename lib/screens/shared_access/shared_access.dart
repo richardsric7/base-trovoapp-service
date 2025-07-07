@@ -284,7 +284,7 @@ class _SharedAccessState extends State<SharedAccess>
             shareAccessInfoPopup(context);
           },
           backgroundColor: notifier.getbluecolor,
-          foregroundColor: notifier.getwihitecolor,
+          foregroundColor: wihitecolor,
           child: Icon(Icons.question_mark, size: 30.sp),
         ),
         resizeToAvoidBottomInset: false,
@@ -1805,9 +1805,7 @@ class _SharedAccessState extends State<SharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
-            foregroundColor: WidgetStateProperty.all<Color>(
-              notifier.getwihitecolor,
-            ),
+            foregroundColor: WidgetStateProperty.all<Color>(wihitecolor),
           ),
           child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
@@ -1885,9 +1883,7 @@ class _SharedAccessState extends State<SharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
-            foregroundColor: WidgetStateProperty.all<Color>(
-              notifier.getwihitecolor,
-            ),
+            foregroundColor: WidgetStateProperty.all<Color>(wihitecolor),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(15)),

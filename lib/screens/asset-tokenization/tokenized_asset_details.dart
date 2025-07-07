@@ -669,7 +669,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     notifier,
                     label: 'Value of Tokens Held',
                     value:
-                        '${getFiatValue(tokenizedAsset.subscriptionAmount == null ? 0 : tokenizedAsset.subscriptionAmount! * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
+                        '${getFiatValue(assetBalance * tokenizedAsset.pricePerToken!)} ${fiatCurrency}',
                     extraValue: '',
                   ),
                 ],

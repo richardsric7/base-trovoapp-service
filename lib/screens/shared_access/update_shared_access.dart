@@ -409,9 +409,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
-            foregroundColor: WidgetStateProperty.all<Color>(
-              notifier.getwihitecolor,
-            ),
+            foregroundColor: WidgetStateProperty.all<Color>(wihitecolor),
           ),
           child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),
@@ -874,9 +872,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               backgroundColor: WidgetStateProperty.all<Color>(
                 notifier.getbluecolor!,
               ),
-              foregroundColor: WidgetStateProperty.all<Color>(
-                notifier.getwihitecolor,
-              ),
+              foregroundColor: WidgetStateProperty.all<Color>(wihitecolor),
             ),
             child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
           ),
@@ -1077,9 +1073,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             backgroundColor: WidgetStateProperty.all<Color>(
               notifier.getbluecolor!,
             ),
-            foregroundColor: WidgetStateProperty.all<Color>(
-              notifier.getwihitecolor,
-            ),
+            foregroundColor: WidgetStateProperty.all<Color>(wihitecolor),
           ),
           child: Text("add".tr(), style: TextStyle(fontFamily: fontsemibold)),
         ),

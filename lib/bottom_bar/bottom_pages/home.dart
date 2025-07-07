@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -872,13 +871,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       vertical: 8.0,
                       horizontal: 10.0,
                     ),
-                    child: SvgPicture.asset(
-                      "assets/images/scan.svg",
-                      // colorFilter: ColorFilter.mode(
-                      //   notifier.getbluewhitecolor,
-                      //   BlendMode.clear,
-                      // ),
-                      height: height / 40,
+                    child: Icon(
+                      Icons.qr_code_scanner_sharp,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ),
@@ -895,15 +890,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       vertical: 8.0,
                       horizontal: 10.0,
                     ),
-                    child: SvgPicture.asset(
+                    // child: SvgPicture.asset(
+                    //   appState.hasNewAnnouncement
+                    //       ? "assets/images/notifications-active.svg"
+                    //       : "assets/images/notifications.svg",
+
+                    //   height: height / 40,
+                    // ),
+                    child: Icon(
                       appState.hasNewAnnouncement
-                          ? "assets/images/notifications-active.svg"
-                          : "assets/images/notifications.svg",
-                      // colorFilter: ColorFilter.mode(
-                      //   notifier.getbluewhitecolor,
-                      //   BlendMode.srcOver,
-                      // ),
-                      height: height / 40,
+                          ? Icons.notifications_on_outlined
+                          : Icons.notifications_none,
+                      size: 27,
+                      color: appState.hasNewAnnouncement
+                          ? notifier.getgreencolor
+                          : notifier.getbluewhitecolor,
                     ),
                   ),
                 ),

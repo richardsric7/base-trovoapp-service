@@ -127,7 +127,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                   notifier.getbluecolor!,
                                 ),
                                 foregroundColor: WidgetStateProperty.all<Color>(
-                                  notifier.getwihitecolor,
+                                  wihitecolor,
                                 ),
                               ),
                               child: Text(
@@ -436,7 +436,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                   ButtonOutlined(
                     getActionVerb(info),
                     notifier.getaddsubwalletgrey,
-                    notifier.getbluecolor,
+                    notifier.getbluewhitecolor,
                     borderColor: notifier.getbluecolor,
                     onTap: onTap,
                     width: width / 1.4,
@@ -517,10 +517,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10.0,
-                  horizontal: 10,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: Text(
                   name,
                   overflow: TextOverflow.visible,

@@ -1449,25 +1449,25 @@ Widget getDrawer(
     child: ListView(
       padding: EdgeInsets.zero,
       children: [
-        DrawerHeader(
-          decoration: BoxDecoration(color: notifier.getwihitecolor),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: notifier.getbluecolor70,
-                      child: GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: ProfileDetailsViewPageConfig,
-                          );
-                        },
+        GestureDetector(
+          onTap: () {
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: ProfileDetailsViewPageConfig,
+            );
+          },
+          child: DrawerHeader(
+            decoration: BoxDecoration(color: notifier.getwihitecolor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: notifier.getbluecolor70,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100.0),
                           child: Image.network(
@@ -1483,72 +1483,73 @@ Widget getDrawer(
                           ),
                         ),
                       ),
-                    ),
-                    if (appState.userInfo != null &&
-                        appState.userInfo!.patronMembership != null) ...[
-                      Container(
-                        width: width / 6.0,
-                        height: height / 12.5,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Image.asset(
-                              appState.userInfo!.patronMembership?.getLogo() ??
-                                  'assets/images/trovo.png',
-                              width: 30,
-                            ),
-                          ],
+                      if (appState.userInfo != null &&
+                          appState.userInfo!.patronMembership != null) ...[
+                        Container(
+                          width: width / 6.0,
+                          height: height / 12.5,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Image.asset(
+                                appState.userInfo!.patronMembership
+                                        ?.getLogo() ??
+                                    'assets/images/trovo.png',
+                                width: 30,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
+                  ),
+                ),
+                Text(
+                  '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  appState.userInfo!.email!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 14,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      appState.userInfo!.kycVerified != null &&
+                              appState.userInfo!.kycVerified! > 0
+                          ? 'Verified (Level ${appState.userInfo!.kycVerified})'
+                          : 'Unverified',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: fontsemibold,
+                        color:
+                            appState.userInfo!.kycVerified != null &&
+                                appState.userInfo!.kycVerified! > 0
+                            ? notifier.getgreencolor
+                            : Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ],
                 ),
-              ),
-              Text(
-                '${appState.userInfo!.fullName.toLowerCase().capitalizeEachWord()} (${appState.userInfo!.username!.toLowerCase().capitalizeEachWord()})',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                appState.userInfo!.email!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                  fontSize: 14,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    appState.userInfo!.kycVerified != null &&
-                            appState.userInfo!.kycVerified! > 0
-                        ? 'Verified (Level ${appState.userInfo!.kycVerified})'
-                        : 'Unverified',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: fontsemibold,
-                      color:
-                          appState.userInfo!.kycVerified != null &&
-                              appState.userInfo!.kycVerified! > 0
-                          ? notifier.getgreencolor
-                          : Colors.red,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         ListTile(

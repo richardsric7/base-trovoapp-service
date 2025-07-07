@@ -1,13 +1,13 @@
 name: Deploy Build and Release apk
 
 on:
-  push:
-    branches:
-      - develop
-  pull_request:
-    types: [merged]
-    branches:
-      - develop
+  # push:
+  #   branches:
+  #     - develop
+  # pull_request:
+  #   types: [merged]
+  #   branches:
+  #     - develop
 
 jobs:
   build:
