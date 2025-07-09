@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/about_trovo.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
@@ -558,6 +559,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.FlutterwaveWebView:
           _addPageData(FlutterwaveWebView(), FlutterwaveWebViewPageConfig);
+          break;
+        case Pages.AboutTrovoView:
+          _addPageData(AboutTrovoView(), AboutTrovoViewPageConfig);
           break;
         default:
           break;

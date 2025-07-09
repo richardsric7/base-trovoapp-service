@@ -1585,7 +1585,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            "Verify Account",
+            "Verify Account (KYC)",
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -1865,7 +1865,7 @@ Widget getDrawer(
           ),
           onTap: () {
             Navigator.pop(context);
-            appState.goToWebView(termsOfServiceUrl);
+            appState.setPage(page: AboutTrovoViewPageConfig);
           },
         ),
         ListTile(

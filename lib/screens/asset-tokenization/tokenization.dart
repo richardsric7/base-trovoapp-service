@@ -42,6 +42,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   double tokenizationApplicationFee = 0;
   String tokenizationApplicationFeeAsset = '';
   List<TokenizedAsset> records = [];
+  bool showIntro = false;
   bool showFilter = false;
   late List<Wallet> wallets;
   String selectedWallet = '';
@@ -183,25 +184,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     listOfTokenizations = fetchTokenizationList();
     wallets = appState.userInfo!.allWallets;
 
-    for (
-      var i = 0;
-      i < appState.tokenizationData['countryConfigs'].length;
-      i++
-    ) {
-      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
-              .toString()
-              .toLowerCase() ==
-          "ng") {
-        tokenizationApplicationFee = appState
-            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
-        tokenizationApplicationFeeAsset = appState
-            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
-            .toString()
-            .split(':')[0]
-            .toUpperCase();
-      }
-    }
-
     for (var asset in appState.primaryWallet.claimedAssets!) {
       if (asset.assetCode!.toUpperCase() == tokenizationApplicationFeeAsset) {
         trovUsdPrice = asset.usdPrice!;
@@ -307,13 +289,23 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     child: Column(
                       children: [
                         SizedBox(height: height / 70),
-                        Text(
-                          "welcometoassettokenization2".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
+                        GestureDetector(
+                          onLongPress: () {
+                            if (appState.walletMode.toLowerCase() ==
+                                'testnet') {
+                              setState(() {
+                                showIntro = !showIntro;
+                              });
+                            }
+                          },
+                          child: Text(
+                            "welcometoassettokenization2".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
                           ),
                         ),
                         SizedBox(height: height / 70),
@@ -483,7 +475,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       // records =
                       //     snapshot.data!['records'] as List<TokenizedAsset>;
                       canCreateNewTokenization = true;
-                      if (records.length > 0) {
+                      if (records.length > 0 && !showIntro) {
                         var assets = <Widget>[];
                         for (var i = 0; i < records.length; i++) {
                           var asset = records[i];
@@ -844,6 +836,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     );
     if (responseData['statusCode'] == 200) {
       appState.tokenizationData = responseData['data'];
+
+      for (
+        var i = 0;
+        i < appState.tokenizationData['countryConfigs'].length;
+        i++
+      ) {
+        if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+                .toString()
+                .toLowerCase() ==
+            "ng") {
+          tokenizationApplicationFee = appState
+              .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
+          tokenizationApplicationFeeAsset = appState
+              .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
+              .toString()
+              .split(':')[0]
+              .toUpperCase();
+        }
+      }
     }
   }
 

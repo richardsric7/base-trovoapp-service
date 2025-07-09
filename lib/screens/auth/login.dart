@@ -78,10 +78,7 @@ class _LoginState extends State<Login> {
             );
           },
           backgroundColor: notifier.getbluecolor,
-          child: Icon(
-            Icons.qr_code_scanner_sharp,
-            color: notifier.getbluewhitecolor,
-          ),
+          child: Icon(Icons.qr_code_scanner_sharp, color: wihitecolor),
         ),
         body: SingleChildScrollView(
           child: Stack(

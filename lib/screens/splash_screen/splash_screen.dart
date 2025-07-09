@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
       appState.setDefaultCurrency =
-          await StoreData().storeGetData('defaultCurrency') ?? 'USD';
+          await StoreData().storeGetData('defaultCurrency') ?? 'NGN';
       appState.setDefaultLanguage =
           await StoreData().storeGetData('defaultLanguage') ?? 'en';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);

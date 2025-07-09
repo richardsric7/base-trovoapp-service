@@ -39,7 +39,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
   late ColorNotifier notifier;
-  late TabController _tabController;
   late RefreshController _refreshController;
   late DataProvider appState;
   late UserInfo userInfo;
@@ -48,12 +47,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<Asset>? unclaimedAssets;
   List<Asset>? claimedAssets;
   String? activeWallet;
-  int tabLength = 2;
-  int activeTabIndex = 0;
-  int activeWalletIndex = 0;
   var noOfTransactionsToSign;
   var noXbnBalance = false;
-  late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   late Future<List<TokenizedAsset>> primaryOffersListFuture;
@@ -65,56 +60,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     'Other Tokens': DashboardAssetListMode.OtherAssets,
   };
   final Authenticator _authenticator = Authenticator();
+  bool showNewUserView = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabLength, vsync: this);
-    _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     appState.filterQuery = "&transactionStatus=PENDING";
     appState.getApprovals();
-    gas = appState.primaryWallet.claimedAssets!
-        .where((asset) => asset.assetCode == '')
-        .first;
-    if (!noXbnBalance) {
-      primaryOffersListFuture = fetchTokenizationList(status: 0);
-      secondaryListItemsFuture = fetchTokenizationList(status: 1);
-    }
-  }
-
-  void tabListener() {
-    // Tab Changed swiping to a new tab
-    activeTabIndex = _tabController.index;
-    setState(() {});
-  }
-
-  List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
-    List<DropdownMenuItem<DashboardAssetListMode>> items = [];
-    listModes.forEach((key, value) {
-      items.add(
-        DropdownMenuItem(
-          child: Text(key, overflow: TextOverflow.ellipsis),
-          value: value,
-        ),
-      );
-    });
-    return items;
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    notifier = Provider.of<ColorNotifier>(context, listen: true);
-    height = MediaQuery.of(context).size.height;
-    width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
     wallets = userInfo.wallets!;
     sharedWallets = userInfo.sharedWallets!;
@@ -135,11 +89,39 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       reOrderClaimedAssets(activeWallet!);
     }
 
-    if (tabLength != _tabController.length) {
-      // change the length of tabController too or you will have an error
-      _tabController = TabController(length: tabLength, vsync: this);
-      _tabController.addListener(tabListener);
+    if (!noXbnBalance) {
+      primaryOffersListFuture = fetchTokenizationList(status: 0);
+      secondaryListItemsFuture = fetchTokenizationList(status: 1);
     }
+  }
+
+  List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
+    List<DropdownMenuItem<DashboardAssetListMode>> items = [];
+    listModes.forEach((key, value) {
+      items.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
+    });
+    return items;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
+    userInfo = appState.userInfo!;
+    wallets = userInfo.wallets!;
+    sharedWallets = userInfo.sharedWallets!;
 
     return Scaffold(
       key: key,
@@ -157,7 +139,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 children: [
                   SizedBox(height: 5),
                   firstRow(),
-                  if (userInfo.hasSecurityQuestions == 0) ...[
+                  if (userInfo.hasSecurityQuestions == 0 ||
+                      showNewUserView) ...[
                     SizedBox(height: 5),
                     GestureDetector(
                       onTap: () {
@@ -351,35 +334,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Column(
                         children: [
-                          DefaultTabController(
-                            length: tabLength,
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        "Tokenized Assets",
-                                        textScaler: TextScaler.linear(1.0),
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: notifier.getbluewhitecolor,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: fontsemibold,
-                                        ),
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // todo: remove the gesture detector
+                                  Flexible(
+                                    child: Text(
+                                      "Tokenized Assets",
+                                      textScaler: TextScaler.linear(1.0),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: notifier.getbluewhitecolor,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: fontsemibold,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                SizedBox(height: height / 50),
-                                primaryOffers(),
-                                SizedBox(height: height / 50),
-                                secondaryListing(),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: height / 50),
+                              primaryOffers(),
+                              SizedBox(height: height / 50),
+                              secondaryListing(),
+                            ],
                           ),
                           SizedBox(height: height / 70),
                         ],
@@ -768,15 +749,30 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(height: 5),
-                        Text(
-                          truncate(
-                            userInfo.username!.capitalizeFirst!,
-                            length: 8,
-                          ),
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 17,
-                            fontFamily: fontsemibold,
+                        GestureDetector(
+                          onLongPress: () {
+                            setState(() {
+                              if (appState.walletMode.toLowerCase() ==
+                                  'testnet') {
+                                showNewUserView = !showNewUserView;
+                                if (showNewUserView) {
+                                  noXbnBalance = true;
+                                } else {
+                                  noXbnBalance = false;
+                                }
+                              }
+                            });
+                          },
+                          child: Text(
+                            truncate(
+                              userInfo.username!.capitalizeFirst!,
+                              length: 8,
+                            ),
+                            style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 17,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
                       ],
@@ -897,14 +893,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
                     //   height: height / 40,
                     // ),
-                    child: Icon(
-                      appState.hasNewAnnouncement
-                          ? Icons.notifications_on_outlined
-                          : Icons.notifications_none,
-                      size: 27,
-                      color: appState.hasNewAnnouncement
-                          ? notifier.getgreencolor
-                          : notifier.getbluewhitecolor,
+                    child: Stack(
+                      children: [
+                        Icon(
+                          Icons.notifications_none,
+                          size: 27,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                        if (appState.hasNewAnnouncement) ...[
+                          Positioned(
+                            right: 0,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(15.0),
+                                ),
+                                border: Border.all(
+                                  color: notifier.getwihitecolor,
+                                  width: 1,
+                                ),
+                                color: notifier.getgreencolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),

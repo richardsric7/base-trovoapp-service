@@ -228,17 +228,20 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                 ],
               ),
-              WalletSlide(
-                backColor: notifier.getbluecolor,
-                foreColor: wihitecolor,
-                alias: wallet.alias.toString().capitalizeFirst!,
-                isSharedWallet: wallet.isSharedWallet,
-                walletType: wallet.walletType ?? 0,
-                totalBalance:
-                    '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
-                fiatBalance:
-                    '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
-                initialHiddenState: appState.hideBalances,
+              Container(
+                constraints: BoxConstraints(maxHeight: height / 5.8),
+                child: WalletSlide(
+                  backColor: notifier.getbluecolor,
+                  foreColor: wihitecolor,
+                  alias: wallet.alias.toString().capitalizeFirst!,
+                  isSharedWallet: wallet.isSharedWallet,
+                  walletType: wallet.walletType ?? 0,
+                  totalBalance:
+                      '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
+                  fiatBalance:
+                      '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                  initialHiddenState: appState.hideBalances,
+                ),
               ),
               SizedBox(height: height / 30),
               if (curatedAsset != null) curatedAssetInfo() else assetInfo(),

@@ -192,6 +192,18 @@ class DataProvider with ChangeNotifier {
     _currentAction = PageAction();
   }
 
+  void setPage({
+    PageState state = PageState.addPage,
+    required PageConfiguration? page,
+    Widget? widget,
+  }) {
+    if (page == null && widget == null) {
+      throw Exception('Please supply a page or a widget!');
+    }
+    _currentAction = PageAction(state: state, page: page, widget: widget);
+    notifyListeners();
+  }
+
   set setPassword(pswd) {
     password = pswd;
     notifyListeners();

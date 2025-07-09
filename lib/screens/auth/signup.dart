@@ -220,7 +220,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Referrer's Username
                         CustomTextFormField.textField(
-                          "referrer".tr(),
+                          '${"referrer".tr()} (optional)',
                           notifier.getbluecolor,
                           Icons.link,
                           notifier.getgrey,
