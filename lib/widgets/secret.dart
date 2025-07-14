@@ -171,7 +171,10 @@ class _SecretState extends State<Secret> {
                 ),
                 child: Text(
                   'Copy All',
-                  style: TextStyle(fontFamily: fontsemibold),
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: wihitecolor,
+                  ),
                 ),
               ),
               ElevatedButton(
@@ -182,9 +185,6 @@ class _SecretState extends State<Secret> {
                   var account = await googleSignIn.signIn();
                   final GoogleSignInAuthentication? auth =
                       await account?.authentication;
-                  print(
-                    'auth===================> ${account?.displayName} ${account?.email} ${account}',
-                  );
                   final String accessToken = auth!.accessToken!;
                   var client = await GoogleDriveClient.create(
                     googleSignIn.currentUser!,
@@ -218,7 +218,10 @@ class _SecretState extends State<Secret> {
                 ),
                 child: Text(
                   "backupongoogledrive".tr(),
-                  style: TextStyle(fontFamily: fontsemibold),
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                    color: wihitecolor,
+                  ),
                 ),
               ),
             ],

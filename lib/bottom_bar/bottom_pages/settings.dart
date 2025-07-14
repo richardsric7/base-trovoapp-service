@@ -848,6 +848,23 @@ class _SettingsState extends State<Settings> {
                   setState(() {
                     notifier.setIsDark = val;
                     prefs.setBool("setIsDark", val);
+                    SystemChrome.setSystemUIOverlayStyle(
+                      SystemUiOverlayStyle(
+                        statusBarColor: notifier.isDark
+                            ? Color(0xFF00225A)
+                            : Colors.white,
+                        statusBarIconBrightness: notifier.isDark
+                            ? Brightness.light
+                            : Brightness.dark,
+                        systemNavigationBarColor: notifier.isDark
+                            ? Color(0xFF00225A)
+                            : Colors.white,
+                        systemNavigationBarIconBrightness: notifier.isDark
+                            ? Brightness.light
+                            : Brightness.dark,
+                        systemNavigationBarContrastEnforced: true,
+                      ),
+                    );
                   });
                 },
               ),

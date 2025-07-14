@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,25 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       notifier.setIsDark = previusstate;
     }
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    appState.appVersion = packageInfo.version;
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: notifier.isDark ? Color(0xFF00225A) : Colors.white,
+        statusBarIconBrightness: notifier.isDark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarColor: notifier.isDark
+            ? Color(0xFF00225A)
+            : const Color.fromARGB(255, 2, 1, 1),
+        systemNavigationBarIconBrightness: notifier.isDark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarContrastEnforced: true,
+      ),
+    );
   }
 
   @override
@@ -111,8 +131,6 @@ class _SplashScreenState extends State<SplashScreen>
           }
         });
       } else {
-        PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        appState.appVersion = packageInfo.version;
         var data = await StoreData().storeGetData('userInfo');
         var sharedWallets = await StoreData().storeGetData(
           'walletsSharedWithUser',

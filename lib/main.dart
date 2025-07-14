@@ -64,13 +64,6 @@ void main() async {
 
   await EasyLocalization.ensureInitialized();
 
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.white, // or any custom color
-      statusBarIconBrightness: Brightness.light, // for dark icons
-    ),
-  );
-
   runApp(
     EasyLocalization(
       supportedLocales: [Locale('en', 'US')],
@@ -92,6 +85,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   TrovoWalletBackButtonDispatcher? backButtonDispatcher;
   final appState = DataProvider();
+  final ColorNotifier notifier = ColorNotifier();
   Timer? _timer;
   late FirebaseMessaging messaging;
   TrovoWalletRouterDelegate? delegate;
@@ -115,7 +109,7 @@ class _AppState extends State<App> {
     return SafeArea(
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
+          ChangeNotifierProvider<ColorNotifier>(create: (_) => notifier),
           ChangeNotifierProvider<DataProvider>(create: (_) => appState),
         ],
         child: GestureDetector(

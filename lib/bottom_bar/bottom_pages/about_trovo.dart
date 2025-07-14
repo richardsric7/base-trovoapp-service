@@ -35,10 +35,11 @@ class AboutTrovoView extends StatelessWidget {
                 Image.asset('assets/images/trovo_app.png', width: 250),
                 SizedBox(height: 30.0),
                 Text(
-                  'V ${appState.appVersion}',
+                  'v ${appState.appVersion}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
+                    color: notifier.getblck,
                     fontWeight: FontWeight.normal,
                     fontFamily: fontbody,
                   ),
@@ -51,6 +52,7 @@ class AboutTrovoView extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
+                      color: notifier.getblck,
                       fontWeight: FontWeight.normal,
                       fontFamily: fontbody,
                     ),
@@ -62,6 +64,7 @@ class AboutTrovoView extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
+                    color: notifier.getblck,
                     fontWeight: FontWeight.normal,
                     fontFamily: fontbody,
                   ),
@@ -72,6 +75,7 @@ class AboutTrovoView extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
+                    color: notifier.getblck,
                     fontWeight: FontWeight.normal,
                     fontFamily: fontbody,
                   ),

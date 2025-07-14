@@ -393,7 +393,11 @@ class _OptInOutAssetState extends State<OptInOutAsset>
               ),
               child: Text(
                 entry.value['isRemovable'] ? "remove".tr() : "add".tr(),
-                style: TextStyle(fontFamily: fontsemibold, fontSize: 9),
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  fontSize: 9,
+                  color: wihitecolor,
+                ),
               ),
             ),
           ],
