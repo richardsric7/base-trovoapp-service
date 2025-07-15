@@ -69,17 +69,18 @@ jobs:
         with:
           flutter-version: 3.32.0
 
-      # Cache Flutter dependencies
-      - name: Cache Flutter build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool/
-            build/
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+      # # Cache Flutter dependencies
+      # - name: Cache Flutter build
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.pub-cache
+      #       .dart_tool/
+      #       build/
+      #     key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
 
       # Get dependencies
+      - run: flutter pub cache clean
       - run: flutter pub get
       - run: flutter build appbundle
 
