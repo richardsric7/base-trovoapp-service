@@ -23,8 +23,9 @@ jobs:
           flutter-version: '3.32.0' # update if needed
 
       - name: Install Flutter dependencies
-        run: flutter pub cache clean
-        run: flutter pub get
+        run: |
+          flutter pub cache clean
+          flutter pub get
 
       - name: Install Fastlane
         working-directory: ios
