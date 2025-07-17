@@ -1287,8 +1287,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
 
       String requestBody = jsonEncode({'amount': amount});
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
         body: requestBody,
@@ -1310,7 +1308,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         );
       }
     } catch (e) {
-      // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }

@@ -4449,7 +4449,6 @@ Future<PlatformFile?>? getFile() async {
   );
 
   if (result == null) {
-    print('User canceled the picker');
     return null;
   }
 
@@ -5419,7 +5418,6 @@ Future sendFullDataToServer(
       );
     }
   } catch (e) {
-    print(e);
     popup(context, title: "error".tr(), message: e.toString());
   }
 
@@ -5446,8 +5444,6 @@ Future sendDataToServer(
     };
     String requestBody = jsonEncode(map);
 
-    print(requestBody);
-
     Map responseData = await makePostRequest(
       uri: '/v1/users/subwallet',
       body: requestBody,
@@ -5456,7 +5452,6 @@ Future sendDataToServer(
       publicKey: primaryWalletKeyPair.publicKey,
     );
 
-    print('response: $responseData');
     inspect(responseData);
 
     if (responseData['statusCode'] == 200) {
@@ -5480,7 +5475,6 @@ Future sendDataToServer(
       );
     }
   } catch (e) {
-    print(e);
     popup(context, title: "error".tr(), message: e.toString());
   }
   hideLoader(context);
@@ -5950,7 +5944,6 @@ addSubWalletPopup(context) async {
                   });
                 },
                 onSaved: (value) {
-                  print('tag: $value');
                   newSubWalletKeyPair.tag = value.trim().replaceAll(' ', '');
                 },
                 keyboardtype: TextInputType.text,
@@ -5973,7 +5966,6 @@ addSubWalletPopup(context) async {
                 300,
                 initialValue: newSubWalletKeyPair.description,
                 onSaved: (value) {
-                  print('description: $value');
                   newSubWalletKeyPair.description = value;
                 },
                 keyboardtype: TextInputType.text,
@@ -6084,7 +6076,6 @@ addSubWalletPopup(context) async {
                         }
 
                         try {
-                          print('validet secret $value');
                           TrovoWalletSDK().parseSecretKey(value.trim());
                         } catch (e) {
                           return "invalidsecretkey".tr();
@@ -6093,13 +6084,9 @@ addSubWalletPopup(context) async {
                         return null;
                       },
                       onSaved: (value) {
-                        print('saving... $value');
                         newSubWalletKeyPair.distributionWalletSecretKey = value!
                             .trim()
                             .replaceAll(' ', '');
-                        print(
-                          'saved... ${newSubWalletKeyPair.distributionWalletSecretKey}',
-                        );
                       },
                       maxLength: 56,
                     ),
@@ -6168,9 +6155,6 @@ addSubWalletPopup(context) async {
                       if (importExistingWalletForDistribution) {
                         try {
                           // parse supplied secret to get the keypair
-                          print(
-                            'secretkey...${newSubWalletKeyPair.distributionWalletSecretKey}',
-                          );
                           var ac = TrovoWalletSDK().parseSecretKey(
                             newSubWalletKeyPair.distributionWalletSecretKey,
                           );
@@ -6274,7 +6258,6 @@ addSubWalletPopup(context) async {
             });
           },
           onSaved: (value) {
-            print('email: $value');
             newSubWalletKeyPair.secretKey = value!.trim().replaceAll(' ', '');
           },
         ),

@@ -567,7 +567,6 @@ class _ImportWalletState extends State<ImportWallet> {
       hideLoader(context);
     } catch (e) {
       hideLoader(context);
-      print(e);
     }
   }
 
@@ -677,7 +676,6 @@ class _ImportWalletState extends State<ImportWallet> {
           .retrieveCredentialsFromPassPhrase(trimmedPassprase);
       return account;
     } catch (e) {
-      print(e);
       // must be some sort of server error
       // let's throw it
       popup(context, title: "error".tr(), message: "invalidcredentials".tr());

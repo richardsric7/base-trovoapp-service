@@ -121,19 +121,19 @@ class UserInfo {
   }
 
   ReferralInfoObject deserializeReferralInfo(Map<String, dynamic> m) {
-    print('===> deserializing uplines ${m['uplines']}');
-    print('===> deserializing downlines ${m['downlines']}');
     return ReferralInfoObject.deserializeJson(m);
   }
 
   List<Wallet> deserializeWallets(Map<String, dynamic> m, assetBalances) {
-    print('====> deserilizing wallets ${m['userWallets']}');
     var userWallets = m['userWallets'];
     var myWallets = <Wallet>[];
     if (userWallets != null) {
       for (var i = 0; i < userWallets.length; i++) {
-        var wallet = Wallet()
-            .deserializeJson(userWallets[i], assetBalances, m['username']);
+        var wallet = Wallet().deserializeJson(
+          userWallets[i],
+          assetBalances,
+          m['username'],
+        );
         if (wallet.primaryWallet == 1) {
           // promote the primary wallet to appear first on the list
           myWallets.insert(0, wallet);
@@ -174,7 +174,6 @@ class UserInfo {
   }
 
   Wallet getWallet(String publicKey) {
-    print('dsadasffdasd dfad ${publicKey}');
     var combinedList = [...wallets!, ...sharedWallets!];
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
@@ -193,7 +192,8 @@ class UserInfo {
   List<Wallet> get mySolelyOwnedWallets {
     return wallets!
         .where(
-            (wallet) => (!wallet.isSharedWallet || wallet.walletThreshold == 1))
+          (wallet) => (!wallet.isSharedWallet || wallet.walletThreshold == 1),
+        )
         .toList();
   }
 
@@ -207,9 +207,11 @@ class UserInfo {
       if (wallet.walletType == 0) {
         if (wallet.walletThreshold == 2 &&
             wallet.permissions!
-                .where((perm) =>
-                    perm.permission == 'INITIATOR' &&
-                    perm.targetUsername == username)
+                .where(
+                  (perm) =>
+                      perm.permission == 'INITIATOR' &&
+                      perm.targetUsername == username,
+                )
                 .isEmpty) {
           continue;
         }

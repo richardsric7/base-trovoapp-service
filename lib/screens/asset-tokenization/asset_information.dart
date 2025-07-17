@@ -3924,8 +3924,6 @@ class _AssetInformation extends State<AssetInformation>
       newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
-      print('requestBody =======> $requestBody');
-      inspect(newData);
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
         body: requestBody,
@@ -3933,8 +3931,6 @@ class _AssetInformation extends State<AssetInformation>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-
-      print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
@@ -3963,10 +3959,8 @@ class _AssetInformation extends State<AssetInformation>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
-      inspect(responseData);
+
       if (responseData['statusCode'] == 200) {
-        print('success');
         appState.viewData = responseData['data'];
       } else {
         return Future.error('Error! Something went wrong.');

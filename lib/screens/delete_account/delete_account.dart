@@ -78,23 +78,21 @@ class _DeleteAccountState extends State<DeleteAccount> {
               ),
               Image.asset('assets/images/deleted.png'),
               deletionInfo(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Button(
                 "yesdeleteaccount".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  confirmAccountDeletionPopup(context,
-                      onConfirmationSuccess: () {
-                    requestAccountDeletion();
-                  });
+                  confirmAccountDeletionPopup(
+                    context,
+                    onConfirmationSuccess: () {
+                      requestAccountDeletion();
+                    },
+                  );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "nokeepaccount".tr(),
                 notifier.getwihitecolor,
@@ -103,9 +101,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
                   Navigator.of(context).pop();
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -129,14 +125,13 @@ class _DeleteAccountState extends State<DeleteAccount> {
               Text(
                 "abouttodeleteaccount".tr(),
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                ),
               ),
-              SizedBox(
-                height: height / 90,
-              ),
+              SizedBox(height: height / 90),
               Text(
                 "beforeyoudeleteaccount".tr(),
                 style: TextStyle(
@@ -146,15 +141,11 @@ class _DeleteAccountState extends State<DeleteAccount> {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    "assets/images/jam_alert.png",
-                  ),
+                  Image.asset("assets/images/jam_alert.png"),
                   Spacer(),
                   Container(
                     width: width / 1.4,
@@ -170,15 +161,11 @@ class _DeleteAccountState extends State<DeleteAccount> {
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    "assets/images/jam_alert.png",
-                  ),
+                  Image.asset("assets/images/jam_alert.png"),
                   Spacer(),
                   Container(
                     width: width / 1.4,
@@ -194,9 +181,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "doyouwanttoproceed".tr(),
                 textAlign: TextAlign.center,
@@ -207,9 +192,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 25,
-              ),
+              SizedBox(height: height / 25),
             ],
           ),
         ),
@@ -218,15 +201,11 @@ class _DeleteAccountState extends State<DeleteAccount> {
   }
 
   void requestAccountDeletion() async {
-    print('sending request to delete user account...');
     try {
       showLoader(context);
       // make initial request to the server using empty body
       Map map = {};
       String requestBody = jsonEncode(map);
-      print(appState.primaryWallet.signer);
-      print(appState.primaryWallet.publicKey);
-      print(requestBody);
       Map responseData = await makeDeleteRequest(
         uri: '/v1/users',
         body: requestBody,
@@ -235,7 +214,6 @@ class _DeleteAccountState extends State<DeleteAccount> {
         publicKey: appState.primaryWallet.publicKey!,
       );
 
-      print('response: $responseData');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
@@ -258,7 +236,6 @@ class _DeleteAccountState extends State<DeleteAccount> {
         );
 
         if (responseData['statusCode'] == 200) {
-          print('res is here ============> $res');
           StoreData().storeDeleteData();
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Request successfull',
@@ -271,18 +248,25 @@ class _DeleteAccountState extends State<DeleteAccount> {
               );
             },
           };
-          appState.currentAction =
-              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.replace,
+            page: SuccessViewPageConfig,
+          );
         } else {
-          popup(context,
-              title: "error".tr(), message: responseData['data']['error']);
+          popup(
+            context,
+            title: "error".tr(),
+            message: responseData['data']['error'],
+          );
         }
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);

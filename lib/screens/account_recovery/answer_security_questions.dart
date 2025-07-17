@@ -332,7 +332,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
             // validator: validateEmail,
             onSaved: (value) {
               questionsMap[rel]!['a'] = value.toString().trim();
-              print('email: $questionsMap');
             },
             validator: (value) {
               if (value.toString().isEmpty) {
@@ -371,7 +370,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
         "a3": questionsMap[3]!['a'],
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/verify-answers/${appState.tempUsername}',
@@ -381,7 +379,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
         publicKey: appState.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
@@ -402,7 +399,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
         );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -415,8 +411,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
       secretKey: secretKey, // the primary wallet secret key
       publicKey: publicKey!,
     );
-
-    print('response: ${responseData}');
 
     return responseData['data'];
   }

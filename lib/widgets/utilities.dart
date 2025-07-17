@@ -173,40 +173,6 @@ formatHistoryNumber(double number, double trimNum, {bool isShort = false}) {
   return isShort ? formatNumberShort(number) : formatNumber(number);
 }
 
-extension on double {
-  // Like [toStringAsFixed] but truncates (toward zero) to the specified
-  // number of fractional digits instead of rounding.
-  // String toStringAsTruncated(int fractionDigits) {
-  //   // Require same limits as [toStringAsFixed].
-  //   assert(fractionDigits >= 0);
-  //   assert(fractionDigits <= 20);
-
-  //   if (fractionDigits == 0) {
-  //     return truncateToDouble().toString();
-  //   }
-
-  //   // [toString] will represent very small numbers in exponential form.
-  //   // Instead use [toStringAsFixed] with the maximum number of fractional
-  //   // digits.
-  //   var s = toStringAsFixed(20);
-
-  //   // [toStringAsFixed] will still represent very large numbers in
-  //   // exponential form.
-  //   if (s.contains('e')) {
-  //     // Ignore values in exponential form.
-  //     return s;
-  //   }
-
-  //   // Ignore unrecognized values (e.g. NaN, +infinity, -infinity).
-  //   var i = s.indexOf('.');
-  //   if (i == -1) {
-  //     return s;
-  //   }
-
-  //   return s.substring(0, i + fractionDigits + 1);
-  // }
-}
-
 truncatePublicKey(String? publicKey) {
   if (publicKey == null) return "enterpublickey".tr();
   if (publicKey.length <= 7) return publicKey;
@@ -232,7 +198,6 @@ Account? parseKey(BuildContext context, String secretKey) {
     Account account = TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
     return account;
   } catch (e) {
-    print(e);
     // must be some sort of server error
     // let's throw it
     popup(context, title: "error".tr(), message: "invalidcredentials".tr());
@@ -338,7 +303,6 @@ postProcessData(
       context,
       data['messages'][messageShown],
       () => {
-        print('postProcessData: $messageShown'),
         postProcessData(
           context,
           messageShown,
@@ -639,13 +603,10 @@ void disableSharedAccess(
       publicKey: wallet.publicKey!,
     );
 
-    print('response: ${responseData}');
-
     if (responseData['statusCode'] == 200 ||
         responseData['statusCode'] == 202) {
       var messageLength = responseData['data']['messages'].length;
       var messageShown = 0;
-      print('messagelenth: $messageLength');
       postProcessData(
         context,
         messageShown,
@@ -1288,15 +1249,12 @@ fetchKycConfig(DataProvider appState) async {
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
-    print('===============> response ${responseData}');
     if (responseData['statusCode'] == 200) {
       return responseData['data'];
     } else {
       return {};
     }
   } catch (e) {
-    print('error');
-    print(e);
     throw e;
   }
 }
@@ -1312,8 +1270,6 @@ initiateKyc(context, DataProvider appState, String kycLevel) async {
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.publicKey!,
     );
-
-    print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200 ||
         responseData['statusCode'] == 202) {
@@ -1344,8 +1300,6 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.publicKey!,
     );
-
-    print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200 ||
         responseData['statusCode'] == 202) {
@@ -1392,9 +1346,7 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
 
 //   var res = await initiateKyc(context, appState, kycLevel);
 
-//   print('res ======> $res');
 //   String accessToken = res['applicantToken'];
-//   print('accessToken $accessToken');
 
 //   // From your backend get an access token for the applicant to be verified.
 //   // The token must be generated with `levelName` and `userId`,
@@ -1416,7 +1368,6 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
 
 //   final SNSStatusChangedHandler onStatusChanged =
 //       (SNSMobileSDKStatus newStatus, SNSMobileSDKStatus prevStatus) {
-//         print("The SDK status was changed: $prevStatus -> $newStatus");
 //       };
 
 //   final snsMobileSDK = SNSMobileSDK.init(accessToken, onTokenExpiration)
@@ -1432,7 +1383,6 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
 
 //   final SNSMobileSDKResult result = await snsMobileSDK.launch();
 
-//   print(
 //     "=============================================>>>>>>>>>>>>>>>>>>>>>>Completed with result: $result",
 //   );
 //   await completeKyc(context, appState, kycLevel);

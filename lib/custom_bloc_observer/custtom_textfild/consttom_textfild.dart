@@ -4,8 +4,17 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
 class Customtextfild {
-  static Widget textField(labletext, focuscolor, preicon, lablecolor, iconcolor,
-      textcolor, bordercolor, h, w) {
+  static Widget textField(
+    labletext,
+    focuscolor,
+    preicon,
+    lablecolor,
+    iconcolor,
+    textcolor,
+    bordercolor,
+    h,
+    w,
+  ) {
     return Container(
       color: Colors.transparent,
       height: h,
@@ -23,9 +32,7 @@ class Customtextfild {
           ),
           prefixIcon: Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
             borderRadius: BorderRadius.circular(15),
@@ -70,7 +77,8 @@ class CustomTextFormField {
   }) {
     if (autoFormatNumber && controller == null) {
       throw Exception(
-          "Please supply controller in order to enable number auto formatting!");
+        "Please supply controller in order to enable number auto formatting!",
+      );
     }
 
     return Container(
@@ -96,21 +104,19 @@ class CustomTextFormField {
 
               if (newVal.isNotEmpty) {
                 controller!.text = truncateToDecimalPlaces(
-                    double.parse(newVal
-                        .toString()
-                        .replaceAll(',', '')
-                        .replaceAll('-', '')),
-                    decimalPlaces: isFiat ? 2 : 7);
+                  double.parse(
+                    newVal.toString().replaceAll(',', '').replaceAll('-', ''),
+                  ),
+                  decimalPlaces: isFiat ? 2 : 7,
+                );
 
                 if (!newVal.endsWith('.')) {
-                  controller.selection =
-                      TextSelection.collapsed(offset: controller.selection.end);
+                  controller.selection = TextSelection.collapsed(
+                    offset: controller.selection.end,
+                  );
                 }
                 newVal = newVal.replaceAll(',', '');
               }
-              print('not has focus');
-            } else {
-              print('has focus');
             }
           }
         },
@@ -131,29 +137,20 @@ class CustomTextFormField {
           // },
           onChanged: onChanged,
           decoration: InputDecoration(
-            counterStyle: TextStyle(
-              fontFamily: fontbody,
-              color: textcolor,
-            ),
-            errorStyle: TextStyle(
-              fontFamily: fontbody,
-            ),
+            counterStyle: TextStyle(fontFamily: fontbody, color: textcolor),
+            errorStyle: TextStyle(fontFamily: fontbody),
             helperText: helperText,
-            helperStyle: TextStyle(
-              fontSize: 12,
-              fontFamily: fontbody,
-            ),
+            helperStyle: TextStyle(fontSize: 12, fontFamily: fontbody),
             hintText: hintText,
             label: labletext != null ? Text(labletext) : null,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            prefixIcon:
-                preicon == null ? null : Icon(preicon, color: iconcolor),
+            prefixIcon: preicon == null
+                ? null
+                : Icon(preicon, color: iconcolor),
             labelStyle: TextStyle(color: lablecolor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: bordercolor, width: 1),
               borderRadius: BorderRadius.circular(15),
@@ -238,26 +235,16 @@ class CustomTextFormField {
         cursorColor: lablecolor,
         onChanged: onChanged,
         decoration: InputDecoration(
-          counterStyle: TextStyle(
-            fontFamily: fontbody,
-            color: textcolor,
-          ),
-          errorStyle: TextStyle(
-            fontFamily: fontbody,
-          ),
+          counterStyle: TextStyle(fontFamily: fontbody, color: textcolor),
+          errorStyle: TextStyle(fontFamily: fontbody),
           helperText: helperText,
-          helperStyle: TextStyle(
-            fontSize: 12,
-            fontFamily: fontbody,
-          ),
+          helperStyle: TextStyle(fontSize: 12, fontFamily: fontbody),
           label: Text(labletext),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           labelStyle: TextStyle(color: lablecolor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
             borderRadius: BorderRadius.circular(10),
@@ -316,9 +303,7 @@ Widget multilineInput(
           borderRadius: BorderRadius.circular(15),
         ),
         labelStyle: TextStyle(color: lablecolor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: bordercolor, width: 1),
           borderRadius: BorderRadius.circular(15),

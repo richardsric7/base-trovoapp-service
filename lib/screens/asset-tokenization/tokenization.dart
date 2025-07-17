@@ -885,7 +885,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print(e);
       return Future.error('Error! ${e}');
     }
   }

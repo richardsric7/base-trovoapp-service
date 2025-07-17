@@ -75,31 +75,31 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "confirmyourtransaction".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Text(
                 "youareabouttosend".tr(),
                 textAlign: TextAlign.center,
@@ -110,9 +110,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -127,20 +125,17 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     children: [
                       Column(
                         children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Text(
                             '${formatNumber(double.parse(transactionData['amount']))} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}',
                             style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Container(
                             width: width / 1.3,
                             child: Text(
@@ -154,18 +149,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: height / 50.0,
-                          ),
+                          SizedBox(height: height / 50.0),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "to".tr(),
                 textAlign: TextAlign.center,
@@ -176,20 +167,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showAddressInfo(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (transactionData['memo'].toString().isNotEmpty) ...[
                 showMemo(),
               ],
               if (wallet.isSharedWalletAndCanInitiate) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Text(
                   "servicefee".tr(),
                   textAlign: TextAlign.center,
@@ -200,15 +185,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     fontFamily: fontbody,
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -219,16 +203,16 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(
-                              height: height / 50,
+                            SizedBox(height: height / 50),
+                            myKeyValueRow(
+                              "${"fee".tr()}: ",
+                              transactionData['fee'] + '%',
                             ),
-                            myKeyValueRow("${"fee".tr()}: ",
-                                transactionData['fee'] + '%'),
-                            myKeyValueRow("${"amountcalculated".tr()}: ",
-                                "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}"),
-                            SizedBox(
-                              height: height / 50,
+                            myKeyValueRow(
+                              "${"amountcalculated".tr()}: ",
+                              "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
                             ),
+                            SizedBox(height: height / 50),
                           ],
                         ),
                       ],
@@ -236,9 +220,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -258,9 +240,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -276,12 +256,12 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -290,22 +270,26 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   }
 
   Widget myKeyValueRow(String key, String value) {
-    return Row(children: [
-      Text(
-        key,
-        style: TextStyle(
+    return Row(
+      children: [
+        Text(
+          key,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontsemibold),
-      ),
-      Text(
-        value,
-        style: TextStyle(
+            fontFamily: fontsemibold,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontbody),
-      ),
-    ]);
+            fontFamily: fontbody,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget showAddressInfo() {
@@ -362,14 +346,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, 11, 8, 10),
-                  child: transactionData['destinationThumbnail']
-                          .toString()
-                          .isEmpty
+                  child:
+                      transactionData['destinationThumbnail'].toString().isEmpty
                       ? CircleAvatar(
                           radius: 30,
                           backgroundColor: notifier.getaddsubwalletgrey,
-                          foregroundImage:
-                              AssetImage("assets/images/default-user.png"),
+                          foregroundImage: AssetImage(
+                            "assets/images/default-user.png",
+                          ),
                         )
                       : CircleAvatar(
                           radius: 30,
@@ -381,9 +365,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           ),
                         ),
                 ),
-                SizedBox(
-                  width: width / 70,
-                ),
+                SizedBox(width: width / 70),
                 Container(
                   width: width / 2,
                   child: Column(
@@ -398,9 +380,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           fontFamily: fontbody,
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Text(
                         '${transactionData['destinationFirstName']} ${transactionData['destinationLastName']}',
                         style: TextStyle(
@@ -412,7 +392,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ],
@@ -434,9 +414,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
             fontFamily: fontbody,
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -451,7 +429,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 30.0, horizontal: 15),
+                    vertical: 30.0,
+                    horizontal: 15,
+                  ),
                   child: Container(
                     width: width / 1.3,
                     child: Text(
@@ -530,18 +510,15 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
 
       String requestBody = jsonEncode(transactionData);
 
-      // print(requestBody);
-
       Map responseData = await makePostRequest(
-          uri: wallet.isSharedWalletAndCanInitiate
-              ? '/v1/shared-access/payment'
-              : '/v1/users/payment',
-          body: requestBody,
-          signer: appState.primaryWallet.signer!,
-          secretKey: appState.secretKeys[0], // the primary wallet secret key
-          publicKey: wallet.publicKey!);
-
-      // print('responseData ========> $responseData');
+        uri: wallet.isSharedWalletAndCanInitiate
+            ? '/v1/shared-access/payment'
+            : '/v1/users/payment',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: wallet.publicKey!,
+      );
 
       if (responseData['statusCode'] == 200) {
         updateUserInfo(
@@ -566,10 +543,12 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 );
                 changeTabPage(appState, ButtomTabPage.Dashboard.index);
               },
-            }
+            },
           };
-          appState.currentAction =
-              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.replace,
+            page: SuccessViewPageConfig,
+          );
         } else {
           appState.viewData = {
             'transactionData': responseData['data'],

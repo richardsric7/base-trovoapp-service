@@ -61,15 +61,12 @@ class _KYCScreenState extends State<KYCScreen> {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -78,19 +75,16 @@ class _KYCScreenState extends State<KYCScreen> {
   Future checkPermission() async {
     var status = await Permission.camera.request();
     granted = true;
-    print('status =============> $status');
     if (!status.isGranted) {
       granted = false;
     }
 
     var locationStatus = await Permission.locationWhenInUse.request();
-    print('location status =============> $locationStatus');
     if (!locationStatus.isGranted) {
       granted = false;
     }
 
     var microphoneStatus = await Permission.microphone.request();
-    print('microphone status =============> $microphoneStatus');
     if (!microphoneStatus.isGranted) {
       granted = false;
     }
@@ -211,8 +205,6 @@ class _KYCScreenState extends State<KYCScreen> {
                   if (widget['level'] == level) {
                     if (!isCorporate || widget['corporate'] == 1) {
                       widgetId = widget['id'];
-                      print('widgetId $widgetId');
-                      print(widget);
                       break;
                     }
                   }
@@ -220,10 +212,6 @@ class _KYCScreenState extends State<KYCScreen> {
                 if (widgetId != null) break; // stop once widgetId is found
               }
             }
-
-            print(
-              '=========> isalreadySubmitted = $isAlreadySubmitted, widget id = $widgetId',
-            );
 
             if (isAlreadySubmitted) {
               return Scaffold(

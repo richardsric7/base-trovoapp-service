@@ -51,8 +51,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet =
-        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
     viewData = appState.viewData;
   }
 
@@ -67,9 +68,12 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -79,16 +83,15 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   Text(
                     "confirmrequest".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
@@ -102,9 +105,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -119,16 +120,15 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                     children: [
                       Column(
                         children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Text(
                             "wallet".tr(),
                             style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -139,20 +139,22 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                   Column(
                                     children: [
                                       Container(
-                                          width: width / 1.3,
-                                          child: Wrap(
-                                            alignment: WrapAlignment.center,
-                                            children: [
-                                              Text(
-                                                wallet.alias!,
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                    fontFamily: fontbody),
-                                              )
-                                            ],
-                                          )),
+                                        width: width / 1.3,
+                                        child: Wrap(
+                                          alignment: WrapAlignment.center,
+                                          children: [
+                                            Text(
+                                              wallet.alias!,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                                fontFamily: fontbody,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       SizedBox(height: 2),
                                     ],
                                   ),
@@ -160,25 +162,22 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: height / 50.0,
-                          ),
+                          SizedBox(height: height / 50.0),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (viewData["viewers"].length > 0) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -188,20 +187,17 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                       children: [
                         Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Text(
                               "vieweraccess".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
@@ -209,18 +205,18 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['viewers'].length;
-                                        i++) ...[
+                                    for (
+                                      var i = 0;
+                                      i < viewData['viewers'].length;
+                                      i++
+                                    ) ...[
                                       getPermissionInfo(viewData['viewers'][i]),
-                                    ]
+                                    ],
                                   ],
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: height / 50.0,
-                            ),
+                            SizedBox(height: height / 50.0),
                           ],
                         ),
                       ],
@@ -228,16 +224,15 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (viewData['addApprovers'] == true) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -247,20 +242,17 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                       children: [
                         Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Text(
                               "approveraccess".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
@@ -268,34 +260,34 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['approvers'].length;
-                                        i++) ...[
+                                    for (
+                                      var i = 0;
+                                      i < viewData['approvers'].length;
+                                      i++
+                                    ) ...[
                                       getPermissionInfo(
-                                          viewData['approvers'][i]),
-                                    ]
+                                        viewData['approvers'][i],
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: height / 50.0,
-                            ),
+                            SizedBox(height: height / 50.0),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -305,20 +297,17 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                       children: [
                         Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Text(
                               "initiatoraccess".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
@@ -326,34 +315,34 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['initiators'].length;
-                                        i++) ...[
+                                    for (
+                                      var i = 0;
+                                      i < viewData['initiators'].length;
+                                      i++
+                                    ) ...[
                                       getPermissionInfo(
-                                          viewData['initiators'][i]),
-                                    ]
+                                        viewData['initiators'][i],
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: height / 50.0,
-                            ),
+                            SizedBox(height: height / 50.0),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -363,36 +352,32 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                       children: [
                         Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Text(
                               "noofapprovalsrequired".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
                                 child: Text(
                                   '${viewData['noOfApprovalsNeeded']}/${viewData['noOfApprovers']}',
                                   style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                  ),
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: height / 50.0,
-                            ),
+                            SizedBox(height: height / 50.0),
                           ],
                         ),
                       ],
@@ -400,9 +385,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50.0,
-              ),
+              SizedBox(height: height / 50.0),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -422,9 +405,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -440,12 +421,12 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -521,9 +502,10 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
             child: Text(
               '${permission.targetUsername} [${permission.fullName}]',
               style: TextStyle(
-                  fontSize: 13,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold),
+                fontSize: 13,
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontsemibold,
+              ),
             ),
           ),
           Text(
@@ -536,115 +518,94 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
   }
 
   sendDataToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
       var addedPermissions = [];
       var modifiedPermissions = [];
       var revokedPermissions = [];
-      print(viewData);
 
       for (var i = 0; i < viewData['viewers'].length; i++) {
         if (viewData['viewers'][i].permissionState == PermissionState.Added) {
-          addedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
+          addedPermissions.add({
+            "targetUsername": viewData['viewers'][i].targetUsername,
+            // "name": "",
+            "permission": "VIEW-ONLY",
+          });
         }
 
         if (viewData['viewers'][i].permissionState ==
             PermissionState.Modified) {
-          modifiedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
+          modifiedPermissions.add({
+            "targetUsername": viewData['viewers'][i].targetUsername,
+            // "name": "",
+            "permission": "VIEW-ONLY",
+          });
         }
 
         if (viewData['viewers'][i].permissionState == PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
+          revokedPermissions.add({
+            "targetUsername": viewData['viewers'][i].targetUsername,
+            // "name": "",
+            "permission": "VIEW-ONLY",
+          });
         }
       }
 
       for (var i = 0; i < viewData['approvers'].length; i++) {
         if (viewData['approvers'][i].permissionState == PermissionState.Added) {
-          addedPermissions.add(
-            {
-              "targetUsername": viewData['approvers'][i].targetUsername,
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
+          addedPermissions.add({
+            "targetUsername": viewData['approvers'][i].targetUsername,
+            // "name": "",
+            "permission": "APPROVER",
+          });
         }
 
         if (viewData['approvers'][i].permissionState ==
             PermissionState.Modified) {
-          modifiedPermissions.add(
-            {
-              "targetUsername": viewData['approvers'][i].targetUsername,
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
+          modifiedPermissions.add({
+            "targetUsername": viewData['approvers'][i].targetUsername,
+            // "name": "",
+            "permission": "APPROVER",
+          });
         }
 
         if (viewData['approvers'][i].permissionState ==
             PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['approvers'][i].targetUsername,
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
+          revokedPermissions.add({
+            "targetUsername": viewData['approvers'][i].targetUsername,
+            // "name": "",
+            "permission": "APPROVER",
+          });
         }
       }
 
       for (var i = 0; i < viewData['initiators'].length; i++) {
         if (viewData['initiators'][i].permissionState ==
             PermissionState.Added) {
-          addedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
+          addedPermissions.add({
+            "targetUsername": viewData['initiators'][i].targetUsername,
+            // "name": "",
+            "permission": "INITIATOR",
+          });
         }
 
         if (viewData['initiators'][i].permissionState ==
             PermissionState.Modified) {
-          modifiedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
+          modifiedPermissions.add({
+            "targetUsername": viewData['initiators'][i].targetUsername,
+            // "name": "",
+            "permission": "INITIATOR",
+          });
         }
 
         if (viewData['initiators'][i].permissionState ==
             PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
+          revokedPermissions.add({
+            "targetUsername": viewData['initiators'][i].targetUsername,
+            // "name": "",
+            "permission": "INITIATOR",
+          });
         }
       }
 
@@ -656,8 +617,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
 
       String requestBody = jsonEncode(postData);
 
-      print(requestBody);
-
       Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
@@ -665,21 +624,26 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: wallet.publicKey!,
       );
-      print(responseData);
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
-        print('messagelenth: $messageLength');
         postProcessData(
-            context, messageShown, messageLength, responseData['data'],
-            callback: () {
-          signAndCommitTransaction(responseData['data']);
-        });
+          context,
+          messageShown,
+          messageLength,
+          responseData['data'],
+          callback: () {
+            signAndCommitTransaction(responseData['data']);
+          },
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
@@ -690,7 +654,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
 
   void signAndCommitTransaction(responseFromServer) async {
     try {
-      print('signing and sending....');
       showLoader(context);
 
       // wallets with only shared view-only access are still not fully shared-wallets
@@ -712,11 +675,8 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       } else {
         responseFromServer['commit'] = 1;
       }
-      print('second: ${responseFromServer}');
 
       String requestBody = jsonEncode(responseFromServer);
-
-      print('second: ${requestBody}');
 
       Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
@@ -741,22 +701,28 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
           'message': wallet.isPrimaryWallet || wallet.walletThreshold! < 2
               ? sharedAccessModifySuccess.replaceAll('alias', wallet.alias!)
               : sharedAccessModifyRequestSuccess.replaceAll(
-                  'alias', wallet.alias!),
+                  'alias',
+                  wallet.alias!,
+                ),
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction =
-                PageAction(state: PageState.addAll, pages: [
-              BottomHomePageConfig,
-              SharedAccessViewPageConfig,
-            ]);
+            appState.currentAction = PageAction(
+              state: PageState.addAll,
+              pages: [BottomHomePageConfig, SharedAccessViewPageConfig],
+            );
           },
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {

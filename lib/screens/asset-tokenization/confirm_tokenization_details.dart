@@ -764,7 +764,6 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         );
         transactionData['transactionSignature'] = signature;
         requestBody = jsonEncode(transactionData);
-        print('requestBody  =======> $requestBody');
       }
 
       Map responseData = await makePutRequest(
@@ -776,10 +775,6 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       );
 
       hideLoader(context);
-
-      print('responseData token information  ${responseData}');
-      inspect(responseData);
-
       if (responseData['statusCode'] == 200) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
@@ -831,7 +826,6 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       );
       transactionData['transactionSignature'] = signature;
       var requestBody = jsonEncode(transactionData);
-      print('requestBody  =======> $requestBody');
 
       Map responseData = await makePutRequest(
         uri: '/v1/tokenization/confirm/${tokenizedAsset.id}',
@@ -842,9 +836,6 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
       );
 
       hideLoader(context);
-
-      print('responseData token information  ${responseData}');
-      inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
         appState.viewData![SuccessViewPageConfig.key] = {

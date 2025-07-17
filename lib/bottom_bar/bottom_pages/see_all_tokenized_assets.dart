@@ -261,7 +261,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         List<TokenizedAsset> tokenizedAssets = [];
         var assets = responseData['data']['records'];
@@ -289,8 +288,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -304,7 +301,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         setState(() {
           expressedInterests = {};
@@ -317,8 +313,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -332,7 +326,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         subscriptions = {};
         setState(() {
@@ -345,8 +338,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -360,8 +351,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
 
       String requestBody = jsonEncode({'amount': amount});
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
         body: requestBody,
@@ -369,9 +358,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.publicKey!,
       );
-
-      print('==============>response: $responseData');
-      inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
         hideLoader(context);
@@ -386,7 +372,6 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         );
       }
     } catch (e) {
-      // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }

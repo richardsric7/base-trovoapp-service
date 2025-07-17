@@ -475,8 +475,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
         publicKey: wallet.publicKey!,
       );
 
-      // print(responseData['data']);
-
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {
@@ -574,7 +572,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
       };
 
       String requestBody = jsonEncode(map);
-      // print('===============> map: $map');
 
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
@@ -587,7 +584,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
       );
 
       hideLoader(context);
-      print('responseData: $responseData');
 
       if (responseData['statusCode'] == 202) {
         appState.viewData = {

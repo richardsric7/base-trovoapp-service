@@ -91,24 +91,18 @@ storeUserInfo(userInfoMap, DataProvider state) async {
 }
 
 Future<void> getFiatRates(appState) async {
-  print('======>>>>>>>>>>>>>fetching fiat rates...:');
   Map responseData = await makeUnSecuredGetRequest('/v1/rates');
-  print('======>>>>>>>>>>>>>response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
     await StoreData().storeInsertData('fiatRate', responseData['data']);
-    print('======>>>>>>>>>>>>>response: ${responseData}');
   }
 }
 
 Future<void> fetchNotifications(DataProvider appState) async {
-  print('fetching announcements...');
   var uri = '/v1/announcements';
 
   Map responseData = await makeUnSecuredGetRequest(Uri.encodeFull(uri));
-
-  // print('response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     //  get the date when the user viewed announcements last
@@ -149,8 +143,6 @@ Future<void> fetchNotifications(DataProvider appState) async {
 
 Future<void> fetchVersionInfo(DataProvider appState) async {
   var versionInfo = await makeUnSecuredGetRequest('/v1/app-version');
-
-  // print('this is response $versionInfo');
 
   StoreData().storeInsertData('appVersion', versionInfo['data']);
 }

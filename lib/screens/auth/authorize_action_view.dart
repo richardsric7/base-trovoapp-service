@@ -54,9 +54,10 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
                 '${"authorize".tr()} ${viewData!['serviceShortName']}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Padding(
@@ -65,14 +66,13 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
                   viewData!['description'].toString().capitalizeFirst!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 19.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 19.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -92,9 +92,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -120,8 +118,10 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
                 },
               ),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -168,8 +168,6 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
   }
 
   authorize() async {
-    print('sending to server.... $viewData');
-
     try {
       showLoader(context);
       // sign transaction
@@ -183,19 +181,24 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
         publicKey: activeWallet!.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         appState.viewData![TransactionSuccessViewPageConfig.key] =
             responseData['data'];
-        showSuccessAlert(context,
-            onTap: () => appState.currentAction = PageAction(
-                state: PageState.replaceAll, page: BottomHomePageConfig));
+        showSuccessAlert(
+          context,
+          onTap: () => appState.currentAction = PageAction(
+            state: PageState.replaceAll,
+            page: BottomHomePageConfig,
+          ),
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);

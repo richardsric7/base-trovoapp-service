@@ -383,7 +383,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         "assetIssuer": asset!.assetIssuer,
       };
       String requestBody = jsonEncode(map);
-      print('requestBody =======> $requestBody');
+
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/payment'
@@ -395,8 +395,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       );
 
       hideLoader(context);
-
-      // print('responseData $responseData');
 
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
@@ -552,7 +550,6 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
           75.sp,
           300.sp,
           onChanged: (value) {
-            print('value $value');
             if (value.toString().startsWith(
               '${appState.primaryWallet.alias}_',
             )) {
@@ -603,7 +600,6 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
                 itemBuilder: (context, index) {
                   return TextButton(
                     onPressed: () {
-                      print('pressed o');
                       widget.controller.text = wallets[index].alias!;
                       _overlayEntry!.remove();
                       _overlayEntry = null;

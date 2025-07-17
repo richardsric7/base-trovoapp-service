@@ -240,8 +240,6 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         'paymentType': 'ACTIVATION',
       });
 
-      print(requestBody);
-
       var uri = '/v1/users/fiat/flutterwave';
       Map responseData = await makePostRequest(
         body: requestBody,
@@ -251,7 +249,6 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         publicKey: appState.primaryWallet.signer!,
       );
       hideLoader(context);
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         appState.viewData!['id'] = uniqueId;
         appState.currentAction = PageAction(
@@ -260,8 +257,6 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         );
       }
     } catch (e) {
-      print('error');
-      print(e);
       hideLoader(context);
     }
   }

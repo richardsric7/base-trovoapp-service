@@ -45,9 +45,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
 
     var result = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
@@ -86,17 +84,11 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showNotice(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               hasInfo ? assetInfo() : customAssetInfo(),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (wallet.canInitiate) ...[
                 Button(
                   "addasset".tr(),
@@ -136,8 +128,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -158,19 +152,19 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Container(
                     width: width / 1.3,
                     child: Text(
                       wallet.canInitiate
-                          ? "optininfo2"
-                              .tr()
-                              .replaceAll('walletAlias', wallet.alias!)
-                          : "notenoughpermission"
-                              .tr()
-                              .replaceAll('walletAlias', wallet.alias!),
+                          ? "optininfo2".tr().replaceAll(
+                              'walletAlias',
+                              wallet.alias!,
+                            )
+                          : "notenoughpermission".tr().replaceAll(
+                              'walletAlias',
+                              wallet.alias!,
+                            ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -207,8 +201,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -216,15 +212,14 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   Text(
                     '${getAssetCode(asset.assetCode)} ${"token".tr()}',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   if (asset.imageUrl != null) ...[
-                    SizedBox(
-                      height: height / 50.0,
-                    ),
+                    SizedBox(height: height / 50.0),
                     Container(
                       width: width / 1.3,
                       child: CircleAvatar(
@@ -249,9 +244,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                       ),
                     ),
                   ],
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Text(
                     asset.website!,
                     style: TextStyle(
@@ -261,9 +254,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                       fontFamily: fontbody,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.3,
                     child: Text(
@@ -277,36 +268,34 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   if (asset.assetIssuer.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                     SizedBox(
                       width: width / 1.3,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                           Expanded(
                             flex: 3,
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 truncate(asset.assetIssuer!, length: 5) +
                                     asset.assetIssuer!.toString().substring(
-                                        asset.assetIssuer!.toString().length -
-                                            5),
+                                      asset.assetIssuer!.toString().length - 5,
+                                    ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -322,9 +311,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                               padding: EdgeInsets.zero,
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(
-                                    text: asset.assetIssuer!,
-                                  ),
+                                  ClipboardData(text: asset.assetIssuer!),
                                 ),
                                 showSnackBar("issuerpubkey".tr(), context),
                               },
@@ -332,23 +319,20 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     if (asset.contactEmail!.toString().isNotEmpty) ...[
                       Text(
                         "contactemail".tr(),
                         style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       SizedBox(
                         width: width / 1.3,
@@ -358,7 +342,8 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                               flex: 3,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0),
+                                  horizontal: 20.0,
+                                ),
                                 child: Text(
                                   asset.contactEmail!,
                                   textAlign: TextAlign.center,
@@ -370,7 +355,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -401,8 +386,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -410,14 +397,13 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   Text(
                     '${getAssetCode(asset.assetCode!)} ${"token".tr()}',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.3,
                     child: Image.asset(
@@ -426,17 +412,16 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                       width: 50,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   if (asset.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                     SizedBox(
                       width: width / 1.3,
@@ -444,8 +429,9 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
                             child: Text(
                               truncatePublicKey(asset.assetIssuer!),
                               style: TextStyle(
@@ -460,9 +446,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                             padding: EdgeInsets.zero,
                             onPressed: () => {
                               Clipboard.setData(
-                                ClipboardData(
-                                  text: asset.assetIssuer!,
-                                ),
+                                ClipboardData(text: asset.assetIssuer!),
                               ),
                               showSnackBar("issuerpubkey".tr(), context),
                             },
@@ -472,9 +456,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                   ],
                   SizedBox(height: 2),
                 ],
@@ -498,8 +480,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       };
       String requestBody = jsonEncode(map);
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/asset/opt-in'
@@ -510,19 +490,18 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
-
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         completeClaimAsset(responseData['data']);
-        // print('sending full data to server.........');
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -538,7 +517,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
       if (wallet.isSharedWalletAndCanInitiate) {
@@ -546,8 +524,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       }
 
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
@@ -559,7 +535,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         updateUserInfo(
           appState.primaryWallet.signer!,
@@ -572,9 +547,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': "success".tr(),
           'message': wallet.isSharedWalletAndCanInitiate
-              ? "optinassetsuccessshared"
-                  .tr()
-                  .replaceAll('asset', asset.assetCode!)
+              ? "optinassetsuccessshared".tr().replaceAll(
+                  'asset',
+                  asset.assetCode!,
+                )
               : "optinassetsuccess".tr().replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
@@ -584,14 +560,18 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
             );
           },
         };
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 
@@ -601,7 +581,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData![OptInAssetViewPageConfig.key] = null;
   }
 }

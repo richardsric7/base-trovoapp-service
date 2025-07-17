@@ -40,13 +40,17 @@ class GoogleDriveClient {
   late gApi.DriveApi _driveApi;
 
   GoogleDriveClient._create(
-      GoogleSignInAccount googleAccount, String accessToken) {
+    GoogleSignInAccount googleAccount,
+    String accessToken,
+  ) {
     _googleAccount = googleAccount;
     _accessToken = accessToken;
   }
 
   static Future<GoogleDriveClient> create(
-      GoogleSignInAccount googleAccount, String accessToken) async {
+    GoogleSignInAccount googleAccount,
+    String accessToken,
+  ) async {
     var component = GoogleDriveClient._create(googleAccount, accessToken);
     await component._initGoogleDriveApi();
 
@@ -74,8 +78,12 @@ class GoogleDriveClient {
 
   // Download the wanted file to the device in the specified folder
   Future<String?> _downloadFileToDevice(String fileId) async {
-    gApi.Media? file = (await _driveApi.files.get(fileId,
-        downloadOptions: gApi.DownloadOptions.fullMedia)) as gApi.Media?;
+    gApi.Media? file =
+        (await _driveApi.files.get(
+              fileId,
+              downloadOptions: gApi.DownloadOptions.fullMedia,
+            ))
+            as gApi.Media?;
     if (file != null) {
       final directory = await getApplicationDocumentsDirectory();
       final saveFile = io.File('${directory.path}/$fileName');
@@ -89,9 +97,7 @@ class GoogleDriveClient {
   // Gets the id of the file from Google Drive
   // If the file doesn't exist it returns null
   Future<String?> _getFileIdFromGoogleDrive(String fileName) async {
-    gApi.FileList found = await _driveApi.files.list(
-      q: "name = '$fileName'",
-    );
+    gApi.FileList found = await _driveApi.files.list(q: "name = '$fileName'");
     final files = found.files;
     if (files == null) {
       return null;
@@ -104,10 +110,12 @@ class GoogleDriveClient {
   }
 
   // Creates a file with the content, and uploads it to google drive
-  Future<String?> _createFileOnGoogleDrive(String fileName,
-      {String? mimeType,
-      String? content,
-      List<String> parents = const []}) async {
+  Future<String?> _createFileOnGoogleDrive(
+    String fileName, {
+    String? mimeType,
+    String? content,
+    List<String> parents = const [],
+  }) async {
     gApi.Media? media;
 
     // Checks if the file already exists on Google Drive.
@@ -139,22 +147,24 @@ class GoogleDriveClient {
       );
     }
 
-    print("Created File ID: ${fileCreation.id} on RemoteStorage");
     return fileCreation.id!;
   }
 
   // Public client API:
   uploadFile(String fileContent) async {
     try {
-      String? folderId = await _createFileOnGoogleDrive(appDataFolderName,
-          mimeType: folderMime);
+      String? folderId = await _createFileOnGoogleDrive(
+        appDataFolderName,
+        mimeType: folderMime,
+      );
       if (folderId != null) {
-        await _createFileOnGoogleDrive(fileName,
-            content: fileContent, parents: [folderId]);
+        await _createFileOnGoogleDrive(
+          fileName,
+          content: fileContent,
+          parents: [folderId],
+        );
       }
-    } catch (e) {
-      print("GoogleDrive, uploadfileContent $e");
-    }
+    } catch (e) {}
   }
 
   Future<String?> downloadFile() async {
@@ -165,10 +175,8 @@ class GoogleDriveClient {
         final fileContent = await _downloadFileToDevice(fileId);
         return fileContent;
       }
-      print("File not found on storage");
       return null;
     } catch (e) {
-      print(e);
       return null;
     }
   }

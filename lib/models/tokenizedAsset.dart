@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 class TokenizedAsset {
   String? id;
   String? shadowId;
@@ -311,8 +309,6 @@ class TokenizedAsset {
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
-    print('deserializing json $m');
-    inspect(m);
     return TokenizedAsset(
       id: m["id"],
       shadowId: m["shadowId"],

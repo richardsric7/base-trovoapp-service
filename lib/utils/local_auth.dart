@@ -11,7 +11,6 @@ class Authenticator {
   //this method opens a dialog for fingerprint authentication.
   //we do not need to create a dialog nut it popsup from device natively.
   Future<bool> authenticateMe() async {
-    print('authenticating...');
     try {
       return await _localAuthentication.authenticate(
         localizedReason: 'Please authenticate to complete this action',
@@ -22,7 +21,6 @@ class Authenticator {
         ),
       );
     } catch (e) {
-      print(e);
       return false;
     }
   }

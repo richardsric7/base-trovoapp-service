@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -37,16 +36,17 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   Map<String, Map<String, dynamic>> documentTypeAndCodes = {};
 
   List<DropdownMenuItem<String>> getDocumentOptions(
-      List<String> documentOptions) {
+    List<String> documentOptions,
+  ) {
     List<DropdownMenuItem<String>> documentOption = [];
     if (documentOptions.length > 0) {
       documentOptions.forEach((item) {
-        documentOption.add(DropdownMenuItem(
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item));
+        documentOption.add(
+          DropdownMenuItem(
+            child: Text(item, overflow: TextOverflow.ellipsis),
+            value: item,
+          ),
+        );
       });
     }
     return documentOption;
@@ -76,14 +76,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                   ),
                 ),
                 if (selectedDocuments[value['documentType']] != null) ...[
-                  SizedBox(
-                    width: 3,
-                  ),
-                  Icon(
-                    Icons.check,
-                    size: 18,
-                    color: notifier.getbluecolor,
-                  )
+                  SizedBox(width: 3),
+                  Icon(Icons.check, size: 18, color: notifier.getbluecolor),
                 ],
               ],
             ),
@@ -146,20 +140,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                       var files = val['files'];
                       selectedDocuments[val['documentType']] =
                           proofDocumentItem(
-                        onDone: (String selectedOption, PlatformFile file) {
-                          uploadFile(
-                            file,
-                            val['documentType'],
-                            selectedOption.isEmpty
-                                ? val['name']
-                                : selectedOption,
+                            onDone: (String selectedOption, PlatformFile file) {
+                              uploadFile(
+                                file,
+                                val['documentType'],
+                                selectedOption.isEmpty
+                                    ? val['name']
+                                    : selectedOption,
+                              );
+                            },
+                            label: val['name'],
+                            selectedOption: val['selectedFileOption'],
+                            uploadedFiles: files,
+                            documentOptions: getDocumentOptions(val['options']),
                           );
-                        },
-                        label: val['name'],
-                        selectedOption: val['selectedFileOption'],
-                        uploadedFiles: files,
-                        documentOptions: getDocumentOptions(val['options']),
-                      );
                     });
                   },
                   getDocumentsList(false),
@@ -172,12 +166,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 ),
               ),
             ],
-            for (var item in selectedDocuments.entries) ...[
-              item.value,
-            ],
-            SizedBox(
-              height: height / 30,
-            ),
+            for (var item in selectedDocuments.entries) ...[item.value],
+            SizedBox(height: height / 30),
             Button(
               'Continue',
               notifier.getbluecolor,
@@ -186,9 +176,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 Navigator.of(context).pop();
               },
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),
@@ -214,8 +202,10 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         child: Row(
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 children: [
                   Column(
@@ -237,9 +227,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       for (var item in uploadedFiles.keys) ...[
                         Container(
                           width: width / 1.27,
@@ -258,15 +246,16 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                               ],
                               TextButton(
                                 onPressed: () {
-                                  var fileUrl = uploadedFiles[item]
-                                          ['documentUrl']
-                                      .toString();
+                                  var fileUrl =
+                                      uploadedFiles[item]['documentUrl']
+                                          .toString();
                                   if (fileUrl.isNotEmpty &&
                                       fileUrl.endsWith('.pdf')) {
                                     appState.pdfUrl = fileUrl;
                                     appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: PdfViewPageConfig);
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig,
+                                    );
 
                                     return;
                                   }
@@ -278,7 +267,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                   children: [
                                     Text(
                                       truncatePublicKey(
-                                          uploadedFiles[item]['documentUrl']!),
+                                        uploadedFiles[item]['documentUrl']!,
+                                      ),
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
                                         fontSize: 12,
@@ -297,9 +287,10 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                 ),
                                 onPressed: (() async {
                                   deleteFile(
-                                      uploadedFiles[item]['id'].toString());
+                                    uploadedFiles[item]['id'].toString(),
+                                  );
                                 }),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -329,9 +320,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                       color: notifier.getbluewhitecolor,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: width / 20,
-                                  ),
+                                  SizedBox(width: width / 20),
                                   Icon(
                                     CupertinoIcons.add_circled_solid,
                                     size: 20,
@@ -359,7 +348,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     selectedDocuments.clear();
     var assetAlreadyExists = appState.viewData!['assetAlreadyExists'];
     var assetOwnership = appState.viewData!['ownershipType'];
-    var requiredProofOfContributedValue = assetAlreadyExists == 1 &&
+    var requiredProofOfContributedValue =
+        assetAlreadyExists == 1 &&
             appState.viewData!['assetOwnerRetainedOrContributedValue'] > 0
         ? 1
         : 0;
@@ -367,11 +357,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       '1': {
         'name': 'Proof of Asset Existence',
         'documentType': '1',
-        'options': <String>[
-          "Purchase Receipt",
-          "Proof of Address",
-          "Other",
-        ],
+        'options': <String>["Purchase Receipt", "Proof of Address", "Other"],
         'files': <String, dynamic>{},
         'selectedFileOption': '',
         'required': assetAlreadyExists == 1 ? 1 : 0,
@@ -965,9 +951,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       },
     };
 
-    print(selectedDocuments);
     documents = appState.viewData!['AssetTokenizationDocuments'] ?? [];
-    inspect(documents);
     for (var item in documents) {
       var val = documentTypeAndCodes[item['documentType']];
       val?['files'][item['documentTitle'].toString()] = item;
@@ -982,15 +966,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         label: val!['name'],
         selectedOption: val['selectedFileOption'],
         uploadedFiles: val['files'],
-        documentOptions: getDocumentOptions(
-          val['options'],
-        ),
+        documentOptions: getDocumentOptions(val['options']),
       );
     }
   }
 
   Future<void> refreshCurrentTokenizationInfo() async {
-    print('refreshing tokenization info');
     try {
       var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
 
@@ -1000,10 +981,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      inspect(responseData);
-      // print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
-        print('success');
         appState.viewData = responseData['data'];
         initializeData();
         setState(() {});
@@ -1032,19 +1010,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         documentTitle: documentTitle.toLowerCase().replaceAll(' ', '-'),
         documentType: documentType,
       );
-      print('=================> document upload response ${responseData}');
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(),
-            message: responseData['data']['message'] ??
-                responseData['data']['error']);
+        popup(
+          context,
+          title: "error".tr(),
+          message:
+              responseData['data']['message'] ?? responseData['data']['error'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,
@@ -1066,16 +1044,17 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         body: jsonEncode(requestBody),
       );
 
-      print("response ============> ${responseData}");
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
       hideLoader(context);
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,

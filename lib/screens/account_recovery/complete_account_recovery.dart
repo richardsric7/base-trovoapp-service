@@ -50,40 +50,39 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "account".tr(),
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 26,
-                        fontFamily: fontsemibold),
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 26,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    width: width / 50,
-                  ),
+                  SizedBox(width: width / 50),
                   Text(
                     "recovery".tr(),
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 26,
-                        fontFamily: fontsemibold),
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 26,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -97,21 +96,18 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Text(
                           "haveyoubackedup".tr(),
                           overflow: TextOverflow.visible,
                           style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                       ],
                     ),
                   ),
@@ -124,9 +120,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     scale: 1,
                     child: Checkbox(
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
                       ),
                       activeColor: notifier.getbluecolor,
                       side: BorderSide(color: notifier.getbluewhitecolor),
@@ -145,18 +139,17 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                         child: Text(
                           "ihavebackedupmywallet".tr(),
                           style: TextStyle(
-                              fontSize: height / 55,
-                              color: notifier.getgrey,
-                              fontFamily: fontbody),
+                            fontSize: height / 55,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "completeaccountrecovery".tr(),
                 notifier.getbluecolor,
@@ -165,18 +158,20 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                   if (hasBackedUp) {
                     completeAccountRecovery();
                   } else {
-                    popup(context,
-                        title: "important".tr(),
-                        message: "ensurebackedup".tr());
+                    popup(
+                      context,
+                      title: "important".tr(),
+                      message: "ensurebackedup".tr(),
+                    );
                   }
                 },
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -185,19 +180,16 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
+        context,
+        data['messages'][messageShown],
+        () => {postProcessData(messageShown, messageLength, data)},
+      );
 
       messageShown++;
       return;
@@ -212,13 +204,10 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
   }
 
   sendDataToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
       viewData['commit'] = 1;
       String requestBody = jsonEncode(viewData);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recover',
@@ -228,20 +217,22 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
         publicKey: appState.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: AccountRecoverySuccessViewPageConfig);
+          state: PageState.addPage,
+          page: AccountRecoverySuccessViewPageConfig,
+        );
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['error']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['error'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }

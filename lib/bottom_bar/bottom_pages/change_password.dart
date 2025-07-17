@@ -61,9 +61,12 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,9 +82,10 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                         Text(
                           "changepassword".tr(),
                           style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 26,
-                              fontFamily: fontsemibold),
+                            color: notifier.getblck,
+                            fontSize: 26,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                         SizedBox(height: height / 10),
                         // Old Password
@@ -134,7 +138,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: height / 20),
@@ -154,7 +158,8 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
               SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
               ),
             ],
           ),
@@ -189,18 +194,18 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
         SuccessViewPageConfig.key: {
           'title': "success".tr(),
           'message': "passwordchangesuccessful".tr(),
-        }
+        },
       };
-      appState.currentAction =
-          PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+      appState.currentAction = PageAction(
+        state: PageState.replace,
+        page: SuccessViewPageConfig,
+      );
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: "somethingwentwrong".tr());
     }
   }
 
   String? validateOldPassword(value) {
-    print('old password: $value');
     if (value.isEmpty) {
       //return "Enter a password";
       return "passwordemptyerror".tr();
@@ -210,7 +215,6 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
       //return 'Use 6 characters or more for your password';
       return "hinterrorpassword".tr();
     }
-    print('checking old password');
     if (oldPassword != appState.password!) {
       return "invalidpassword".tr();
     }
@@ -219,7 +223,6 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
   }
 
   String? validateNewPassword(value) {
-    print('new password: ${value.trim().replaceAll(' ', '')}');
     if (value.isEmpty) {
       // return "Confirm your password";
       return "newpasswordemptyerror".tr();
@@ -234,8 +237,6 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
   }
 
   String? validateConfirmPassword(value) {
-    print(
-        'confirm password: ${value.trim().replaceAll(' ', '')} & $newPassword');
     if (value.isEmpty) {
       // return "Confirm your password";
       return "confirmnewpasswordemptyerror".tr();

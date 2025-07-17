@@ -66,9 +66,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               GestureDetector(
                 onTap: () {
                   imageSourceDialog(
@@ -95,55 +93,56 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                       );
                     },
                     child: CircleAvatar(
-                        radius: width / 10,
-                        backgroundColor: notifier.getbluecolor70,
-                        child: GestureDetector(
-                          onTap: () {
-                            imageSourceDialog(
-                              context,
-                              onCamera: () {
-                                getImage(ImageSource.camera);
-                              },
-                              onGallery: () {
-                                getImage(ImageSource.gallery);
-                              },
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(100.0),
-                            child: Image.network(
-                              appState.userInfo!.imageThumbnailURL!,
-                              width: width / 5.3,
-                              // height: width / 10,
-                              fit: BoxFit.fill,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/trovo.png',
-                                  width: width / 9,
-                                );
-                              },
-                            ),
+                      radius: width / 10,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          imageSourceDialog(
+                            context,
+                            onCamera: () {
+                              getImage(ImageSource.camera);
+                            },
+                            onGallery: () {
+                              getImage(ImageSource.gallery);
+                            },
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 5.3,
+                            // height: width / 10,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 80,
-              ),
+              SizedBox(height: height / 80),
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName} ${appState.userInfo!.isCorporate ? '(Corporate)' : ''}',
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 16),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 16,
+                ),
               ),
               Text(
                 appState.userInfo!.username!,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 13),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 13,
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -151,16 +150,18 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   Text(
                     '${"referralid".tr()}: ',
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold,
-                        fontSize: 13),
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     appState.userInfo!.username!,
                     style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
-                        fontSize: 13),
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -172,7 +173,8 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: fontsemibold,
-                  color: appState.userInfo!.kycVerified != null &&
+                  color:
+                      appState.userInfo!.kycVerified != null &&
                           appState.userInfo!.kycVerified! > 0
                       ? notifier.getgreencolor
                       : Colors.red,
@@ -214,19 +216,21 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               Text(
                 "referralinfo".tr(),
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                ),
               ),
               SizedBox(height: height / 50),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Table(
                   border: TableBorder.all(
-                      width: 1.5,
-                      color: notifier.getbluewhitecolor,
-                      borderRadius: BorderRadius.circular(15)),
+                    width: 1.5,
+                    color: notifier.getbluewhitecolor,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                   children: getTableRows(),
                 ),
               ),
@@ -259,24 +263,32 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     List<TableRow> tableRows = [];
     var index = 1;
 
-    tableRows.add(TableRow(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          "referrallevel".tr(),
-          style: TextStyle(
-              fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
-        ),
+    tableRows.add(
+      TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              "referrallevel".tr(),
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              "numberreferred".tr(),
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+          ),
+        ],
       ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          "numberreferred".tr(),
-          style: TextStyle(
-              fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
-        ),
-      ),
-    ]));
+    );
 
     for (MapEntry entry in appState.userInfo!.referralInfo!.downlines.entries) {
       tableRows.add(
@@ -287,7 +299,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               child: Text(
                 '${"level".tr()} $index',
                 style: TextStyle(
-                    fontFamily: fontbody, color: notifier.getbluewhitecolor),
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
               ),
             ),
             Padding(
@@ -295,7 +309,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               child: Text(
                 entry.value.toString(),
                 style: TextStyle(
-                    fontFamily: fontbody, color: notifier.getbluewhitecolor),
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
               ),
             ),
           ],
@@ -310,22 +326,21 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     var image = await ImagePicker().pickImage(source: source);
     if (image != null) {
       var croppedImage = await ImageCropper().cropImage(
-          sourcePath: image.path,
-          // cropStyle: CropStyle.circle,
-          aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-          compressQuality: 100,
-          maxHeight: 800,
-          maxWidth: 800,
-          compressFormat: ImageCompressFormat.jpg,
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarColor: notifier.getbluecolor80,
-              toolbarTitle: "cropimage".tr(),
-            ),
-            IOSUiSettings(
-              title: "cropimage".tr(),
-            ),
-          ]);
+        sourcePath: image.path,
+        // cropStyle: CropStyle.circle,
+        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 100,
+        maxHeight: 800,
+        maxWidth: 800,
+        compressFormat: ImageCompressFormat.jpg,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarColor: notifier.getbluecolor80,
+            toolbarTitle: "cropimage".tr(),
+          ),
+          IOSUiSettings(title: "cropimage".tr()),
+        ],
+      );
       if (croppedImage != null) {
         await uploadImage(croppedImage);
       }
@@ -337,8 +352,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       showLoader(context);
       // make initial request to the server using the
       // following credentials
-      var primaryWalletKeyPair =
-          TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
+      var primaryWalletKeyPair = TrovoWalletSDK().parseSecretKey(
+        appState.secretKeys[0],
+      );
 
       Map responseData = await makePutRequestForMultipartFile(
         uri: '/v1/users/upload-picture',
@@ -351,17 +367,21 @@ class _ProfileDetailsState extends State<ProfileDetails> {
         String imageUrl = responseData['data'].toString().replaceAll('"', '');
         appState.userInfo!.imageThumbnailURL = imageUrl;
         appState.updateListeners();
-        await StoreData()
-            .storeInsertData('userInfo', appState.userInfo!.toJSONEncodable());
+        await StoreData().storeInsertData(
+          'userInfo',
+          appState.userInfo!.toJSONEncodable(),
+        );
         setState(() {});
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }
@@ -381,8 +401,10 @@ class _ProfileDetailsState extends State<ProfileDetails> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -390,14 +412,13 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   Text(
                     "emailadress".tr(),
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
+                  SizedBox(height: height / 90),
                   Text(
                     appState.userInfo!.email!,
                     textAlign: TextAlign.center,
@@ -408,9 +429,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                       fontFamily: fontbody,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 25,
-                  ),
+                  SizedBox(height: height / 25),
                   // Phone number
                   Container(
                     width: width / 1.29,
@@ -425,14 +444,13 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               Text(
                                 "phonenumber".tr(),
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: height / 90,
-                              ),
+                              SizedBox(height: height / 90),
                               Row(
                                 children: [
                                   Text(
@@ -445,9 +463,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                       fontFamily: fontbody,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
+                                  SizedBox(width: 10),
                                   // GestureDetector(
                                   //   onTap: () {},
                                   //   child: Text(
@@ -461,7 +477,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   //   ),
                                   // ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -573,8 +589,10 @@ class _ProfileDetailsState extends State<ProfileDetails> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -604,14 +622,13 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               Text(
                                 "unverified".tr(),
                                 style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: 5,
-                              ),
+                              SizedBox(height: 5),
                               GestureDetector(
                                 onTap: () {},
                                 child: Text(
@@ -623,17 +640,15 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                     fontFamily: fontbody,
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
                   // Instagram
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.29,
                     child: Row(
@@ -657,14 +672,12 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
                   // Instagram
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Container(
                     width: width / 1.29,
                     child: Row(
@@ -689,7 +702,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               fontFamily: fontbody,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

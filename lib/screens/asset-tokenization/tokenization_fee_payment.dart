@@ -51,12 +51,15 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   List<DropdownMenuItem<String>> get getPaymentMethods {
     List<DropdownMenuItem<String>> cycles = [];
     paymentMethods.forEach((item) {
-      cycles.add(DropdownMenuItem(
+      cycles.add(
+        DropdownMenuItem(
           child: Text(
             item.replaceAll(' ', ''),
             overflow: TextOverflow.ellipsis,
           ),
-          value: item));
+          value: item,
+        ),
+      );
     });
     return cycles;
   }
@@ -65,28 +68,32 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    for (var i = 0;
-        i < appState.tokenizationData['feePaymentMethods'].length;
-        i++) {
-      paymentMethods
-          .add(appState.tokenizationData['feePaymentMethods'][i]['id']);
+    for (
+      var i = 0;
+      i < appState.tokenizationData['feePaymentMethods'].length;
+      i++
+    ) {
+      paymentMethods.add(
+        appState.tokenizationData['feePaymentMethods'][i]['id'],
+      );
     }
     initializeData();
   }
 
   void initializeData() {
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
-    print('deserialized tokenized asset');
-    inspect(tokenizedAsset);
     hasMadePayment =
         tokenizedAsset.proofOfPaymentDocuments?.isNotEmpty ?? false;
-    tokenizationFee =
-        formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!));
+    tokenizationFee = formatNumber(
+      getFeeInfo(tokenizedAsset.tokenizationFeeId!),
+    );
     var quoteCurrencyCode = '';
 
-    for (var i = 0;
-        i < appState.tokenizationData['countryConfigs'].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData['countryConfigs'].length;
+      i++
+    ) {
       if (appState.tokenizationData['countryConfigs'][i]['countryCode']
               .toString()
               .toLowerCase() ==
@@ -96,15 +103,17 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
       }
     }
 
-    for (var i = 0;
-        i < appState.tokenizationData['tokenizationCurrencies'].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData['tokenizationCurrencies'].length;
+      i++
+    ) {
       if (appState.tokenizationData['tokenizationCurrencies'][i]['assetCode']
               .toString()
               .toLowerCase() ==
           quoteCurrencyCode.toString().toLowerCase()) {
-        fiatCurrency = appState.tokenizationData['tokenizationCurrencies'][i]
-                ['label']
+        fiatCurrency = appState
+            .tokenizationData['tokenizationCurrencies'][i]['label']
             .toString()
             .toUpperCase();
       }
@@ -121,10 +130,13 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(context, notifier.getwihitecolor, "payment".tr(),
-                notifier.getblck,
-                height: height / 15)
-            .getBar(),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "payment".tr(),
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -159,15 +171,15 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   null,
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  "payto".tr(args: [
-                    "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency!.replaceAll(' ', '') : fiatCurrency}"
-                  ]),
+                  "payto".tr(
+                    args: [
+                      "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency!.replaceAll(' ', '') : fiatCurrency}",
+                    ],
+                  ),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
@@ -182,8 +194,9 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(10.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -193,7 +206,9 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 15),
+                            vertical: 10.0,
+                            horizontal: 15,
+                          ),
                           child: Text(
                             "walletaddress".tr(),
                             style: TextStyle(
@@ -214,9 +229,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                   tokenizedAsset.walletToHoldAssetsNotForSale!
                                       .toLowerCase(),
                                   style: TextStyle(
-                                      fontSize: 15,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
+                                    fontSize: 15,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ),
                             ),
@@ -230,8 +246,11 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                 );
                                 showSnackBar("publickey".tr(), context);
                               },
-                              icon: Icon(Icons.copy,
-                                  size: 20, color: notifier.getbluewhitecolor),
+                              icon: Icon(
+                                Icons.copy,
+                                size: 20,
+                                color: notifier.getbluewhitecolor,
+                              ),
                             ),
                           ],
                         ),
@@ -245,15 +264,18 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(10.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 15),
+                        vertical: 10.0,
+                        horizontal: 15,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -273,17 +295,19 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                               Text(
                                 "accountname".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               Text(
                                 "Trovotech Limited",
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                             ],
                           ),
@@ -293,9 +317,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                               Text(
                                 "accountnumber".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               Row(
                                 mainAxisAlignment:
@@ -304,24 +329,27 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                   Text(
                                     "0088066577",
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontsemibold),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontsemibold,
+                                    ),
                                   ),
                                   IconButton(
                                     onPressed: () {
                                       Clipboard.setData(
-                                        ClipboardData(
-                                          text: '0088066577',
-                                        ),
+                                        ClipboardData(text: '0088066577'),
                                       );
                                       showSnackBar(
-                                          "accountnumber".tr(), context);
+                                        "accountnumber".tr(),
+                                        context,
+                                      );
                                     },
-                                    icon: Icon(Icons.copy,
-                                        size: 20,
-                                        color: notifier.getbluewhitecolor),
+                                    icon: Icon(
+                                      Icons.copy,
+                                      size: 20,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -333,17 +361,19 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                               Text(
                                 "bank".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               Text(
                                 "Sterling Bank",
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                             ],
                           ),
@@ -354,9 +384,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(15, 10, 15, 3),
                 child: Container(
@@ -368,16 +396,19 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 15.0, horizontal: 5),
+                      vertical: 15.0,
+                      horizontal: 5,
+                    ),
                     child: Column(
                       children: [
                         Text(
                           "${"important".tr()}!",
                           style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.red,
-                              fontFamily: fontbody),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.red,
+                            fontFamily: fontbody,
+                          ),
                         ),
                         SizedBox(height: height / 70),
                         Text(
@@ -391,33 +422,47 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                           ),
                         ),
                         SizedBox(height: height / 70),
-                        item("Tokenization Fee".tr(),
-                            '${tokenizationFee} ${fiatCurrency}'),
+                        item(
+                          "Tokenization Fee".tr(),
+                          '${tokenizationFee} ${fiatCurrency}',
+                        ),
                         SizedBox(height: height / 90),
-                        item("SEC Fee".tr(),
-                            '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${fiatCurrency}'),
+                        item(
+                          "SEC Fee".tr(),
+                          '${(formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!))} ${fiatCurrency}',
+                        ),
                         SizedBox(height: height / 90),
                         if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
-                          item("Issuing House Fee",
-                              '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}'),
+                          item(
+                            "Issuing House Fee",
+                            '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}',
+                          ),
                           SizedBox(height: height / 90),
                         ],
                         if (tokenizedAsset.legalAndProfessionalFeeValue! >
                             0) ...[
-                          item("Legal/Professional Fee",
-                              '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}'),
+                          item(
+                            "Legal/Professional Fee",
+                            '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}',
+                          ),
                           SizedBox(height: height / 90),
                         ],
                         if (tokenizedAsset.ratingAgencyFeeValue! > 0) ...[
-                          item("Rating Agency Fee",
-                              '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}'),
+                          item(
+                            "Rating Agency Fee",
+                            '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}',
+                          ),
                           SizedBox(height: height / 90),
                         ],
-                        item("VAT",
-                            '${formatNumberShort(getVat())} ${fiatCurrency}'),
+                        item(
+                          "VAT",
+                          '${formatNumberShort(getVat())} ${fiatCurrency}',
+                        ),
                         SizedBox(height: height / 90),
-                        item("Total fee".tr(),
-                            '${getTotalFee()} ${fiatCurrency}'),
+                        item(
+                          "Total fee".tr(),
+                          '${getTotalFee()} ${fiatCurrency}',
+                        ),
                         SizedBox(height: height / 90),
                       ],
                     ),
@@ -434,9 +479,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                       scale: 1.sp,
                       child: Checkbox(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(5.sp),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(5.sp)),
                         ),
                         activeColor: notifier.isDark
                             ? notifier.getbluecolor50
@@ -460,26 +503,33 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         "ihavemadepayment".tr(),
                         overflow: TextOverflow.visible,
                         style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               for (var item in tokenizedAsset.proofOfPaymentDocuments!) ...[
-                uploadedDoc(item.documentUrl!, item.id.toString(),
-                    item.transactionReference),
+                uploadedDoc(
+                  item.documentUrl!,
+                  item.id.toString(),
+                  item.transactionReference,
+                ),
               ],
               if (hasMadePayment) ...[
                 TextButton(
                   onPressed: () {
-                    uploadTokenizationFeePopup(context,
-                        onSubmit: (file, transactionReference) async {
-                      transactionReference = transactionReference;
-                      await uploadFile(file, transactionReference);
-                    }, requireFile: preferredPaymentMethod != 'STABLE COIN');
+                    uploadTokenizationFeePopup(
+                      context,
+                      onSubmit: (file, transactionReference) async {
+                        transactionReference = transactionReference;
+                        await uploadFile(file, transactionReference);
+                      },
+                      requireFile: preferredPaymentMethod != 'STABLE COIN',
+                    );
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -503,9 +553,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "confirmpayment".tr(),
                 notifier.getbluecolor,
@@ -521,13 +569,17 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 notifier.getbluecolor,
                 onTap: () async {
                   appState.currentAction = PageAction(
-                      state: PageState.replaceAll, page: BottomHomePageConfig);
+                    state: PageState.replaceAll,
+                    page: BottomHomePageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -542,9 +594,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            constraints: BoxConstraints(
-              maxWidth: width / 2.36,
-            ),
+            constraints: BoxConstraints(maxWidth: width / 2.36),
             child: Text(
               key,
               textAlign: TextAlign.start,
@@ -578,7 +628,6 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     try {
       showLoader(context);
       // String requestBody = jsonEncode(appState.viewData);
-      // print('requestBody  =======> $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization/fee/${tokenizedAsset.id}',
@@ -590,7 +639,6 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
 
       hideLoader(context);
 
-      print('responseData token information  ${responseData['data']}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
@@ -601,11 +649,16 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
           'message':
               'Your Proof of Payment has been submitted successfully and is awaiting confirmation. Your asset tokenization application will be processed once payment has been confirmed.',
         };
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);
@@ -621,8 +674,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
           onPressed: () {
             if (url.isNotEmpty && url.endsWith('.pdf')) {
               appState.pdfUrl = url;
-              appState.currentAction =
-                  PageAction(state: PageState.addPage, page: PdfViewPageConfig);
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: PdfViewPageConfig,
+              );
 
               return;
             }
@@ -635,10 +690,11 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 truncateString(url.toString()),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 15,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody),
+                  decoration: TextDecoration.underline,
+                  fontSize: 15,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                ),
               ),
               if (ref != null && ref.isNotEmpty) ...[
                 SizedBox(
@@ -650,9 +706,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                         'Ref:',
                         textAlign: TextAlign.start,
                         style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       SizedBox(width: 2),
                       SizedBox(
@@ -661,9 +718,10 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                           ref,
                           textAlign: TextAlign.start,
                           style: TextStyle(
-                              fontSize: 15,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                            fontSize: 15,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                     ],
@@ -678,11 +736,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
             await deleteFile(docId);
             setState(() {});
           },
-          child: Icon(
-            CupertinoIcons.trash,
-            color: Colors.red,
-            size: 20,
-          ),
+          child: Icon(CupertinoIcons.trash, color: Colors.red, size: 20),
         ),
       ],
     );
@@ -699,7 +753,8 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   }
 
   String getTotalFee() {
-    var total = tokenizedAsset.SECTokenizationFeeValue! +
+    var total =
+        tokenizedAsset.SECTokenizationFeeValue! +
         tokenizedAsset.issuingHouseFeeValue! +
         tokenizedAsset.legalAndProfessionalFeeValue! +
         tokenizedAsset.ratingAgencyFeeValue! +
@@ -710,11 +765,12 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   }
 
   double getFeeInfo(int index) {
-    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeFiatPercentage'];
-    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
-            [index]['feeFiatCap']
-        .toString());
+    var fiatPercentage = appState
+        .tokenizationData["tokenizationFees"][index]['feeFiatPercentage'];
+    var fiatFeeCap = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
+          .toString(),
+    );
     var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
     return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }
@@ -736,19 +792,19 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         tokenizationFeePaymentMethodID: preferredPaymentMethod,
       );
 
-      // print('responseData $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
       } else {
         var mapData = jsonDecode(responseData['data']);
-        popup(context,
-            title: "error".tr(),
-            message: mapData['message'] ?? mapData['error']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: mapData['message'] ?? mapData['error'],
+        );
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,
@@ -770,16 +826,17 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         body: jsonEncode(requestBody),
       );
 
-      print("response ============> ${responseData}");
       if (responseData['statusCode'] == 200) {
         await refreshCurrentTokenizationInfo();
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
       hideLoader(context);
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,
@@ -790,7 +847,6 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
   }
 
   Future<void> refreshCurrentTokenizationInfo() async {
-    print('refreshing tokenization info');
     try {
       var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
 
@@ -801,9 +857,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         publicKey: appState.primaryWallet.signer!,
       );
       inspect(responseData);
-      // print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
-        print('success');
         appState.viewData = responseData['data'];
         initializeData();
         setState(() {});

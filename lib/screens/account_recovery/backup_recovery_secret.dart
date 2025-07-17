@@ -50,9 +50,10 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               Text(
                 "backupwallet".tr(),
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27,
+                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -60,14 +61,18 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                 child: Text(
                   "writeitdown".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 20),
               Secret(
-                  state.tempUsername, state.tempSecretKey, state.tempPublicKey),
+                state.tempUsername,
+                state.tempSecretKey,
+                state.tempPublicKey,
+              ),
               if (data != null &&
                   data['rel'] != 'restoreUnactivatedAccount') ...[
                 Row(
@@ -77,9 +82,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                       scale: 1,
                       child: Checkbox(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(5),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
                         ),
                         activeColor: notifier.getbluecolor,
                         side: BorderSide(color: notifier.getbluewhitecolor),
@@ -95,11 +98,12 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                       child: Text(
                         "invalidateoldsigner".tr(),
                         style: TextStyle(
-                            fontSize: height / 55,
-                            color: notifier.getgrey,
-                            fontFamily: fontbody),
+                          fontSize: height / 55,
+                          color: notifier.getgrey,
+                          fontFamily: fontbody,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ],
@@ -119,8 +123,10 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -140,7 +146,6 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
         "securityAnswers": state.tempSecurityQuestionsAndAnswers,
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/inactive-account/recover',
@@ -150,19 +155,21 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
         publicKey: state.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         state.currentAction = PageAction(
-            state: PageState.addPage,
-            page: AccountRecoverySuccessViewPageConfig);
+          state: PageState.addPage,
+          page: AccountRecoverySuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
   }
@@ -174,8 +181,9 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       // following credentials
       Map map = {
         "newSignerPublicKey": state.tempPublicKey,
-        "disableOldSignerFromPrimaryWallet":
-            state.tempInvalidateOldSigner ? 1 : 0,
+        "disableOldSignerFromPrimaryWallet": state.tempInvalidateOldSigner
+            ? 1
+            : 0,
         "commit": 0,
         "emailOtp": state.tempEmailOtp,
         "username": state.tempUsername,
@@ -183,7 +191,6 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
         "securityAnswers": state.tempSecurityQuestionsAndAnswers,
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recover',
@@ -193,22 +200,24 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
         publicKey: state.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
         state.viewData![CompleteAccountRecoveryViewPageConfig.key] =
             responseData['data'];
         state.currentAction = PageAction(
-            state: PageState.addPage,
-            page: CompleteAccountRecoveryViewPageConfig);
+          state: PageState.addPage,
+          page: CompleteAccountRecoveryViewPageConfig,
+        );
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['error']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['error'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }

@@ -316,7 +316,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
             // validator: validateEmail,
             onSaved: (value) {
               questionsMap[rel]!['a'] = value.toString().trim();
-              print('email: $questionsMap');
             },
             validator: (value) {
               if (value.toString().isEmpty) {
@@ -342,7 +341,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -351,10 +349,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       showResponseMessage(
         context,
         data['messages'][messageShown],
-        () => {
-          print('postProcessData: $messageShown'),
-          postProcessData(messageShown, messageLength, data),
-        },
+        () => {postProcessData(messageShown, messageLength, data)},
       );
 
       messageShown++;
@@ -383,7 +378,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         },
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makeDeleteRequest(
         uri: '/v1/users/account/recovery',
@@ -393,7 +387,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         publicKey: primaryWallet!.publicKey!,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -411,7 +404,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -427,11 +419,8 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makeDeleteRequest(
         uri: '/v1/users/account/recovery',
@@ -441,7 +430,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         publicKey: primaryWallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           primaryWallet.signer!,
@@ -474,7 +462,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -487,8 +474,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       secretKey: secretKey, // the primary wallet secret key
       publicKey: publicKey!,
     );
-
-    print('response: ${responseData}');
 
     return responseData['data'];
   }

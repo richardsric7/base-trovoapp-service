@@ -34,15 +34,12 @@ class _QrScannerState extends State<QrScanner> {
   @override
   Future<void> reassemble() async {
     super.reassemble();
-    print('resuming camera...');
     controller.start();
-    print('camera resumed...');
   }
 
   @override
   void initState() {
     controller.start();
-    print('scanner controller started!');
     super.initState();
   }
 
@@ -150,7 +147,6 @@ class _QrScannerState extends State<QrScanner> {
   }
 
   void _handleScanResult(String? rawValue) async {
-    print('scan result: $scanResult, raw value: $rawValue');
     if (scanResult != null) return;
 
     if (rawValue != null) {
@@ -173,7 +169,6 @@ class _QrScannerState extends State<QrScanner> {
 
       if (data != null) {
         final Uri deepLink = data.link;
-        print(deepLink.queryParameters);
         appState!.processDeepLink(
           context,
           deepLink,
@@ -199,7 +194,6 @@ class _QrScannerState extends State<QrScanner> {
       }
     } catch (e) {
       hideLoader(context);
-      print('there was an error $e');
       setState(() {
         scanResult = null;
       });

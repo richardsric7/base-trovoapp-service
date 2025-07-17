@@ -61,9 +61,12 @@ class _RecoverAccountState extends State<RecoverAccount> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -79,28 +82,24 @@ class _RecoverAccountState extends State<RecoverAccount> {
                         Text(
                           "account".tr(),
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 26,
-                              fontFamily: fontsemibold),
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 26,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
-                        SizedBox(
-                          width: width / 50,
-                        ),
+                        SizedBox(width: width / 50),
                         Text(
                           "recovery".tr(),
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 26,
-                              fontFamily: fontsemibold),
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 26,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                       ],
                     ),
                     SizedBox(height: height / 15),
-                    if (otpSent) ...[
-                      enterOTP(),
-                    ] else ...[
-                      requestOTP(),
-                    ],
+                    if (otpSent) ...[enterOTP()] else ...[requestOTP()],
                   ],
                 ),
               ),
@@ -128,7 +127,9 @@ class _RecoverAccountState extends State<RecoverAccount> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
@@ -137,9 +138,10 @@ class _RecoverAccountState extends State<RecoverAccount> {
                           "otpsentinfo".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 16,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                            fontSize: 16,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                       SizedBox(height: 2),
@@ -165,7 +167,9 @@ class _RecoverAccountState extends State<RecoverAccount> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
@@ -176,20 +180,20 @@ class _RecoverAccountState extends State<RecoverAccount> {
                               "enterotp".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
                             ),
-                            SizedBox(
-                              width: width / 70,
-                            ),
+                            SizedBox(width: width / 70),
                             Text(
                               appState.tempUsername,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
                           ],
                         ),
@@ -221,9 +225,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
                 style: TextStyle(color: notifier.getblck, fontFamily: fontbody),
                 textFieldAlignment: MainAxisAlignment.spaceAround,
                 fieldStyle: FieldStyle.box,
-                otpFieldStyle: OtpFieldStyle(
-                  borderColor: Colors.black38,
-                ),
+                otpFieldStyle: OtpFieldStyle(borderColor: Colors.black38),
                 onChanged: (pin) {
                   appState.tempEmailOtp = pin;
                 },
@@ -245,9 +247,10 @@ class _RecoverAccountState extends State<RecoverAccount> {
           child: Text(
             "resendotp".tr(),
             style: TextStyle(
-                color: notifier.getdarkgrey,
-                fontSize: 15,
-                fontFamily: fontbody),
+              color: notifier.getdarkgrey,
+              fontSize: 15,
+              fontFamily: fontbody,
+            ),
           ),
         ),
         SizedBox(width: width / 10),
@@ -256,8 +259,6 @@ class _RecoverAccountState extends State<RecoverAccount> {
   }
 
   void verifyOTPAndProceed() async {
-    print('sending otp request.............');
-
     try {
       showLoader(context);
 
@@ -270,43 +271,51 @@ class _RecoverAccountState extends State<RecoverAccount> {
         publicKey: appState.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        haveYouSetupSecurityQuestionsPopup(context, onYes: () {
-          setState(() {
-            appState.currentAction = PageAction(
+        haveYouSetupSecurityQuestionsPopup(
+          context,
+          onYes: () {
+            setState(() {
+              appState.currentAction = PageAction(
                 state: PageState.addPage,
-                page: AnswerSecurityQuestionsViewPageConfig);
-          });
-        }, onNo: () {
-          setState(() {
-            appState.viewData = {
-              SecurityQuestionsForInactiveAccountsViewPageConfig.key: {
-                'signer': appState.tempPublicKey,
-                'publicKey': appState.tempPublicKey,
-                'secretKey': appState.tempSecretKey,
-                'username': appState.tempUsername,
-              }
-            };
-            appState.currentAction = PageAction(
+                page: AnswerSecurityQuestionsViewPageConfig,
+              );
+            });
+          },
+          onNo: () {
+            setState(() {
+              appState.viewData = {
+                SecurityQuestionsForInactiveAccountsViewPageConfig.key: {
+                  'signer': appState.tempPublicKey,
+                  'publicKey': appState.tempPublicKey,
+                  'secretKey': appState.tempSecretKey,
+                  'username': appState.tempUsername,
+                },
+              };
+              appState.currentAction = PageAction(
                 state: PageState.addPage,
-                page: SecurityQuestionsForInactiveAccountsViewPageConfig);
-            appState.viewData![EnsurePrivacyPageConfig.key] = {
-              'rel': 'restoreUnactivatedAccount',
-            };
-            appState.currentAction = PageAction(
+                page: SecurityQuestionsForInactiveAccountsViewPageConfig,
+              );
+              appState.viewData![EnsurePrivacyPageConfig.key] = {
+                'rel': 'restoreUnactivatedAccount',
+              };
+              appState.currentAction = PageAction(
                 state: PageState.addPage,
-                page: SecurityQuestionsForInactiveAccountsViewPageConfig);
-          });
-        });
+                page: SecurityQuestionsForInactiveAccountsViewPageConfig,
+              );
+            });
+          },
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
   }
@@ -328,7 +337,9 @@ class _RecoverAccountState extends State<RecoverAccount> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
+                    horizontal: 20.0,
+                    vertical: 15.0,
+                  ),
                   child: Column(
                     children: [
                       Container(
@@ -337,9 +348,10 @@ class _RecoverAccountState extends State<RecoverAccount> {
                           "provideusernameforaccountrecovery".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 16,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody),
+                            fontSize: 16,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                       SizedBox(height: 2),
@@ -393,16 +405,18 @@ class _RecoverAccountState extends State<RecoverAccount> {
             child: Text(
               "alreadyhaveotp".tr(),
               style: TextStyle(
-                  color: notifier.getdarkgrey,
-                  fontSize: 15,
-                  fontFamily: fontbody),
+                color: notifier.getdarkgrey,
+                fontSize: 15,
+                fontFamily: fontbody,
+              ),
             ),
           ),
         ],
         SizedBox(height: height / 10),
         Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
         ),
       ],
     );
@@ -421,7 +435,6 @@ class _RecoverAccountState extends State<RecoverAccount> {
   }
 
   validateForm() async {
-    print('saving form...');
     final form = _formKey.currentState;
     if (!form!.validate()) {
       return;
@@ -442,8 +455,6 @@ class _RecoverAccountState extends State<RecoverAccount> {
   }
 
   void sendOTPRequest() async {
-    print('sending otp request.............');
-
     try {
       showLoader(context);
 
@@ -455,7 +466,6 @@ class _RecoverAccountState extends State<RecoverAccount> {
         publicKey: appState.tempPublicKey,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
@@ -463,11 +473,13 @@ class _RecoverAccountState extends State<RecoverAccount> {
           otpSent = true;
         });
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
   }

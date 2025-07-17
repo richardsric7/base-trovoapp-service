@@ -732,7 +732,6 @@ class _SignUpState extends State<SignUp> {
           .retrieveCredentialsFromPassPhrase(trimmedPassprase);
       return account;
     } catch (e) {
-      print(e);
       // must be some sort of server error
       // let's throw it
       popup(context, title: "error".tr(), message: "invalidcredentials".tr());
@@ -805,7 +804,6 @@ class _SignUpState extends State<SignUp> {
       );
       return account;
     } catch (e) {
-      print(e);
       // must be some sort of server error
       // let's throw it
       popup(context, title: "error".tr(), message: "invalidcredentials".tr());
@@ -862,7 +860,6 @@ class _SignUpState extends State<SignUp> {
       };
 
       String jsonBody = jsonEncode(map);
-      print(jsonBody);
       Account? creds = null;
 
       if (!usePassPhrase && secretKey.isNotEmpty) {
@@ -884,7 +881,6 @@ class _SignUpState extends State<SignUp> {
         secretKey: state.tempSecretKey,
       );
 
-      // print('$responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -912,7 +908,6 @@ class _SignUpState extends State<SignUp> {
         );
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,

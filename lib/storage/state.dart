@@ -137,9 +137,7 @@ class DataProvider with ChangeNotifier {
         Restart.restartApp();
       });
       notifyListeners();
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
   }
 
   bool hideBalances = false;
@@ -500,11 +498,9 @@ class DataProvider with ChangeNotifier {
         forceRefresh: true,
       );
       await getFiatRates(this);
-      print('fiatRates ${fiatRate['NGN']}');
+
       notifyListeners();
-    } catch (e) {
-      // print(e);
-    }
+    } catch (e) {}
   }
 
   String filterTransactionType = "";
@@ -610,7 +606,6 @@ class DataProvider with ChangeNotifier {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        print('================> ${responseData['data']}');
         totalRecords = responseData['data']['totalRecords'];
         currentPage = responseData['data']['currentPage'];
         var list = <DepositTransactionModel>[];
@@ -667,7 +662,6 @@ class DataProvider with ChangeNotifier {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        print('================> ${responseData['data']}');
         totalRecords = responseData['data']['totalRecords'];
         currentPage = responseData['data']['currentPage'];
         var list = <WithdrawalTransactionModel>[];
@@ -679,9 +673,6 @@ class DataProvider with ChangeNotifier {
           );
         }
         withdrawalHistoryData = list;
-        print(
-          '================> Deserialization done: ${withdrawalHistoryData.length} ${list.length}',
-        );
         notifyListeners();
       } else {
         return Future.error('Error! Something went wrong.');
@@ -733,9 +724,7 @@ class DataProvider with ChangeNotifier {
               dynamicLinkData.link.toString(),
             );
             processDeepLink(context, dynamicLinkData.link);
-          } catch (e) {
-            print('there was an error here $e');
-          }
+          } catch (e) {}
         })
         .onError((error) {
           // Handle errors

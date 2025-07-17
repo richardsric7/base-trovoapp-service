@@ -39,7 +39,6 @@ class _PdfViewerState extends State<PdfViewer> {
       var bytes = data.bodyBytes;
       var dir = await getApplicationDocumentsDirectory();
       File file = File("${dir.path}/" + fileName + ".pdf");
-      print(dir.path);
       File urlFile = await file.writeAsBytes(bytes);
       return urlFile;
     } catch (e) {
@@ -57,21 +56,22 @@ class _PdfViewerState extends State<PdfViewer> {
               urlPDFPath = value.path;
               loaded = true;
               exists = true;
-            })
+            }),
           },
         )
-        .onError((error, stackTrace) => {
-              setState(() {
-                exists = false;
-              })
-            });
+        .onError(
+          (error, stackTrace) => {
+            setState(() {
+              exists = false;
+            }),
+          },
+        );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
-    print(urlPDFPath);
     if (loaded) {
       return Scaffold(
         appBar: CustomAppBar(

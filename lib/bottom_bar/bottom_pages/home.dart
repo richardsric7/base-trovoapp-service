@@ -1285,7 +1285,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      // print('===============> response ${responseData}');
+
       if (responseData['statusCode'] == 200) {
         List<TokenizedAsset> tokenizedAssets = [];
         var assets = responseData['data']['records'];
@@ -1313,8 +1313,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -1328,7 +1326,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         setState(() {
           appState.expressedInterests = {};
@@ -1342,8 +1339,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -1357,7 +1352,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         appState.subscriptions = {};
         setState(() {
@@ -1370,8 +1364,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
-      print('error');
-      print(e);
       return Future.error('Error! ${e}');
     }
   }
@@ -1384,9 +1376,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       showLoader(context);
 
       String requestBody = jsonEncode({'amount': amount});
-
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization/expressed-interests/${tokenizedAssetID}',
         body: requestBody,
@@ -1394,8 +1383,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.publicKey!,
       );
-
-      print('==============>response: $responseData');
 
       if (responseData['statusCode'] == 200) {
         hideLoader(context);
@@ -1410,7 +1397,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }
@@ -1428,13 +1414,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         publicKey: appState.primaryWallet.signer!,
       );
       hideLoader(context);
-      print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
       }
     } catch (e) {
-      print('error');
-      print(e);
       hideLoader(context);
     }
   }

@@ -347,7 +347,6 @@ class _SecurityQuestionsForInactiveAccounts
             300,
             // validator: validateEmail,
             onSaved: (value) {
-              print('email: $value');
               questionsMap[rel]!['a'] = value.toString().trim();
             },
             validator: (value) {
@@ -368,7 +367,6 @@ class _SecurityQuestionsForInactiveAccounts
     int rel,
   ) {
     var filteredQuestions = questionsList.where((question) {
-      print('Q: ${questionsMap[1]!['q']} A: ${question['ID']}');
       if (rel != 1 && questionsMap[1]!['q'] == question['ID'].toString())
         return false;
       if (rel != 2 && questionsMap[2]!['q'] == question['ID'].toString())
@@ -426,7 +424,6 @@ class _SecurityQuestionsForInactiveAccounts
       publicKey: publicKey!,
     );
 
-    print('response: ${responseData}');
     var questionsList = <Map>[];
 
     if (responseData['statusCode'] == 200) {

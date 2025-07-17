@@ -45,9 +45,7 @@ class _OptOutAssetState extends State<OptOutAsset>
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (claimedAsset) =>
@@ -79,17 +77,13 @@ class _OptOutAssetState extends State<OptOutAsset>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (wallet.canInitiate && !hasAvailableBalance) ...[
                 showNotice(),
               ] else ...[
                 showBurnNotice(),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (wallet.canInitiate && !hasAvailableBalance) ...[
                 Button(
                   "removeasset".tr(),
@@ -129,8 +123,10 @@ class _OptOutAssetState extends State<OptOutAsset>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -138,9 +134,10 @@ class _OptOutAssetState extends State<OptOutAsset>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      "optoutinfo"
-                          .tr()
-                          .replaceAll('assetCode', asset.assetCode!),
+                      "optoutinfo".tr().replaceAll(
+                        'assetCode',
+                        asset.assetCode!,
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -150,9 +147,7 @@ class _OptOutAssetState extends State<OptOutAsset>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   if (wallet.canInitiate) ...[
                     Container(
                       width: width / 1.3,
@@ -174,9 +169,10 @@ class _OptOutAssetState extends State<OptOutAsset>
                     Container(
                       width: width / 1.3,
                       child: Text(
-                        "notenoughpermission"
-                            .tr()
-                            .replaceAll('walletAlias', wallet.alias!),
+                        "notenoughpermission".tr().replaceAll(
+                          'walletAlias',
+                          wallet.alias!,
+                        ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -211,8 +207,10 @@ class _OptOutAssetState extends State<OptOutAsset>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -244,7 +242,8 @@ class _OptOutAssetState extends State<OptOutAsset>
                           child: Text(
                             truncate(asset.assetIssuer!, length: 5) +
                                 asset.assetIssuer!.toString().substring(
-                                    asset.assetIssuer!.toString().length - 5),
+                                  asset.assetIssuer!.toString().length - 5,
+                                ),
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: notifier.getbluewhitecolor,
@@ -257,9 +256,7 @@ class _OptOutAssetState extends State<OptOutAsset>
                           padding: EdgeInsets.zero,
                           onPressed: () => {
                             Clipboard.setData(
-                              ClipboardData(
-                                text: asset.assetIssuer!,
-                              ),
+                              ClipboardData(text: asset.assetIssuer!),
                             ),
                             showSnackBar("issuerpubkey".tr(), context),
                           },
@@ -290,8 +287,6 @@ class _OptOutAssetState extends State<OptOutAsset>
       };
       String requestBody = jsonEncode(map);
 
-      print(requestBody);
-
       Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/asset/opt-out'
@@ -302,19 +297,18 @@ class _OptOutAssetState extends State<OptOutAsset>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
-
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         completeClaimAsset(responseData['data']);
-        // print('sending full data to server.........');
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -330,7 +324,6 @@ class _OptOutAssetState extends State<OptOutAsset>
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
       if (wallet.isSharedWalletAndCanInitiate) {
@@ -338,8 +331,6 @@ class _OptOutAssetState extends State<OptOutAsset>
       }
 
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
@@ -351,7 +342,6 @@ class _OptOutAssetState extends State<OptOutAsset>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         updateUserInfo(
           appState.primaryWallet.signer!,
@@ -364,9 +354,10 @@ class _OptOutAssetState extends State<OptOutAsset>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': "success".tr(),
           'message': wallet.isSharedWalletAndCanInitiate
-              ? "optoutassetsuccessshared"
-                  .tr()
-                  .replaceAll('asset', asset.assetCode!)
+              ? "optoutassetsuccessshared".tr().replaceAll(
+                  'asset',
+                  asset.assetCode!,
+                )
               : "optoutassetsuccess".tr().replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
@@ -376,14 +367,18 @@ class _OptOutAssetState extends State<OptOutAsset>
             );
           },
         };
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 
@@ -393,7 +388,6 @@ class _OptOutAssetState extends State<OptOutAsset>
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData![OptOutAssetViewPageConfig.key] = null;
   }
 }

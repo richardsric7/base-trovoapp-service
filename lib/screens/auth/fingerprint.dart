@@ -153,7 +153,6 @@ class _FingerPrintState extends State<FingerPrint> {
   }
 
   void _toggleSwitch(bool value) async {
-    print('switching...');
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {

@@ -53,28 +53,26 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
               Text(
                 '${"authorize".tr()} Login',
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
-              SizedBox(
-                height: height / 40,
-              ),
+              SizedBox(height: height / 40),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: width / 10),
                 child: Text(
                   '${viewData['description']}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 19.sp,
-                      // wordSpacing: 3.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 19.sp,
+                    // wordSpacing: 3.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -94,9 +92,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -122,8 +118,10 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
                 },
               ),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -170,8 +168,6 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
   }
 
   authorize() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
       // sign transaction
@@ -185,19 +181,24 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
         publicKey: activeWallet!.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         appState.viewData![TransactionSuccessViewPageConfig.key] =
             responseData['data'];
-        showSuccessAlert(context,
-            onTap: () => appState.currentAction = PageAction(
-                state: PageState.replaceAll, page: BottomHomePageConfig));
+        showSuccessAlert(
+          context,
+          onTap: () => appState.currentAction = PageAction(
+            state: PageState.replaceAll,
+            page: BottomHomePageConfig,
+          ),
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);

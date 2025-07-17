@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -78,9 +76,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             detailItem(
               "assetinformation".tr(),
               "providebasicinfo".tr(),
@@ -96,9 +92,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 );
               },
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             detailItem(
               "assetverificationdocs".tr(),
               "provideverificationdocs".tr(),
@@ -115,9 +109,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 );
               },
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             detailItem(
               "assettokeninfo".tr(),
               "providetokeninfo".tr(),
@@ -126,7 +118,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                       appState.viewData!['assetCode'].length > 0
                   ? "continuee".tr()
                   : "start".tr(),
-              isDisabled: appState.viewData!['assetDescription'] == null ||
+              isDisabled:
+                  appState.viewData!['assetDescription'] == null ||
                   appState.viewData!['assetDescription'].length == 0,
               onTap: () {
                 if (appState.viewData!['assetDescription'] != null &&
@@ -138,9 +131,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 }
               },
             ),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Button(
               "completetokenization".tr(),
               notifier.getbluecolor,
@@ -155,9 +146,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                 if (assetCode.length == 0 ||
                     documents.length == 0 ||
                     assetDescription.length == 0) {
-                  popup(context,
-                      title: "formincomplete".tr(),
-                      message: "pleasefillouttokenizationform".tr(args: ['3']));
+                  popup(
+                    context,
+                    title: "formincomplete".tr(),
+                    message: "pleasefillouttokenizationform".tr(args: ['3']),
+                  );
                   return;
                 }
                 appState.currentAction = PageAction(
@@ -172,13 +165,13 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               Colors.red,
               wihitecolor,
               onTap: () {
-                confirmTokenizationDeletePopup(context,
-                    onConfirmationSuccess: deleteTokenization);
+                confirmTokenizationDeletePopup(
+                  context,
+                  onConfirmationSuccess: deleteTokenization,
+                );
               },
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),
@@ -186,15 +179,21 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   }
 
   Widget detailItem(
-      String title, String description, String number, String status,
-      {required void Function() onTap, bool isDisabled = false}) {
+    String title,
+    String description,
+    String number,
+    String status, {
+    required void Function() onTap,
+    bool isDisabled = false,
+  }) {
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
-          padding: EdgeInsets.zero,
-          minimumSize: Size(50, 30),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          alignment: Alignment.centerLeft),
+        padding: EdgeInsets.zero,
+        minimumSize: Size(50, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        alignment: Alignment.centerLeft,
+      ),
       child: Stack(
         alignment: AlignmentDirectional.centerStart,
         children: [
@@ -203,10 +202,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                    color: isDisabled
-                        ? notifier.getsplashgrey
-                        : notifier.getbluewhitecolor,
-                    width: 1.5),
+                  color: isDisabled
+                      ? notifier.getsplashgrey
+                      : notifier.getbluewhitecolor,
+                  width: 1.5,
+                ),
                 borderRadius: const BorderRadius.all(Radius.circular(15.0)),
                 color: notifier.isDark
                     ? darktilewhitecolor
@@ -222,9 +222,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
-                            width: width / 50,
-                          ),
+                          SizedBox(width: width / 50),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -256,9 +254,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                               ),
                             ],
                           ),
-                          SizedBox(
-                            height: 20,
-                          ),
+                          SizedBox(height: 20),
                           Text(
                             description,
                             overflow: TextOverflow.visible,
@@ -271,9 +267,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                               fontFamily: fontbody,
                             ),
                           ),
-                          SizedBox(
-                            height: 20,
-                          ),
+                          SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -287,10 +281,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                    color: isDisabled
-                        ? notifier.getsplashgrey
-                        : notifier.getbluewhitecolor,
-                    width: 1.5),
+                  color: isDisabled
+                      ? notifier.getsplashgrey
+                      : notifier.getbluewhitecolor,
+                  width: 1.5,
+                ),
                 shape: BoxShape.circle,
                 color: notifier.isDark
                     ? darktilewhitecolor
@@ -330,18 +325,17 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       );
 
       hideLoader(context);
-
-      print('responseData token information  ${responseData['data']}');
-      inspect(responseData);
-
       if (responseData['statusCode'] == 200) {
         appState.currentAction = PageAction(
           state: PageState.replaceAll,
           page: BottomHomePageConfig,
         );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);

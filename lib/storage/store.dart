@@ -5,10 +5,10 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 
 class AppDatabase {
-// Singleton instance
+  // Singleton instance
   static final AppDatabase _singleton = AppDatabase._();
 
-// Singleton accessor
+  // Singleton accessor
   static AppDatabase get instance => _singleton;
 
   // Completer is used for transforming synchronous code into asynchronous code.
@@ -57,11 +57,8 @@ class StoreData {
   }
 
   storeGetData(key) async {
-    // var count = await store.count(await _db);
-    // print("Store count is $count");
     try {
       var data = await store.record(key).get(await _db);
-      //print('$key data retrived successfully !!');
 
       return data;
     } catch (e) {

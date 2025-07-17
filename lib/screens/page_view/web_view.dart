@@ -24,7 +24,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
   bool isLoading = false;
   late WebViewController controller;
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers = {
-    Factory(() => EagerGestureRecognizer())
+    Factory(() => EagerGestureRecognizer()),
   };
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -54,9 +54,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
             hideLoader(context);
           },
           onHttpError: (HttpResponseError error) {},
-          onWebResourceError: (WebResourceError error) {
-            print('error $error');
-          },
+          onWebResourceError: (WebResourceError error) {},
         ),
       )
       ..loadRequest(Uri.parse(appState.initialUrl));
@@ -70,29 +68,30 @@ class TrovoWebViewState extends State<TrovoWebView> {
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: notifier.getwihitecolor,
-          appBar: CustomAppBarWithoutBanner(
-              context, notifier.getwihitecolor, "", notifier.getblck,
-              height: height / 15),
-          body: Stack(
-            children: [
-              SingleChildScrollView(
-                child: SizedBox(
-                  height: height - 90,
-                  child: WebViewWidget(
-                    gestureRecognizers: gestureRecognizers,
-                    controller: controller,
-                  ),
+        resizeToAvoidBottomInset: false,
+        backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBarWithoutBanner(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: SizedBox(
+                height: height - 90,
+                child: WebViewWidget(
+                  gestureRecognizers: gestureRecognizers,
+                  controller: controller,
                 ),
               ),
-              if (isLoading) ...[
-                Container(
-                  child: showLoader(context),
-                )
-              ],
-            ],
-          )),
+            ),
+            if (isLoading) ...[Container(child: showLoader(context))],
+          ],
+        ),
+      ),
     );
   }
 }

@@ -55,9 +55,12 @@ class _CreatePassword extends State<CreatePassword> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 18)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 18,
+        ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
@@ -68,29 +71,34 @@ class _CreatePassword extends State<CreatePassword> {
                   "letsgetyoustarted1".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 Text(
                   "letsgetyoustarted2".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
                 Center(
-                  child: Image.asset("assets/images/palm-recognition.png",
-                      height: height / 2.8),
+                  child: Image.asset(
+                    "assets/images/palm-recognition.png",
+                    height: height / 2.8,
+                  ),
                 ),
                 Text(
                   "enteryourpassword".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 13.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
                 SizedBox(height: height / 50),
                 CustomPasswordFormField(
@@ -130,8 +138,10 @@ class _CreatePassword extends State<CreatePassword> {
                 ),
                 SizedBox(height: height / 10),
                 Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                ),
               ],
             ),
           ),
@@ -141,7 +151,6 @@ class _CreatePassword extends State<CreatePassword> {
   }
 
   String? validatePassword(value) {
-    print('password: $value');
     if (value.isEmpty) {
       //return "Enter a password";
       return "passwordemptyerror".tr();
@@ -156,7 +165,6 @@ class _CreatePassword extends State<CreatePassword> {
   }
 
   String? validateConfirmPassword(value) {
-    print('confirm password: ${value.trim().replaceAll(' ', '')} & $password');
     if (value.isEmpty) {
       // return "Confirm your password";
       return "confirmpasswordemptyerror".tr();
@@ -189,18 +197,18 @@ class _CreatePassword extends State<CreatePassword> {
       try {
         showLoader(context);
         var account = TrovoWalletSDK().createAccount();
-        print('account: $account');
         appState.setTempPassword = password;
         appState.setTempPublicKey = account.publicKey;
         appState.setTempSecretKey = account.secretKey;
         appState.setTempSigner = account.publicKey;
 
         hideLoader(context);
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: SignupPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: SignupPageConfig,
+        );
       } catch (e) {
         hideLoader(context);
-        print('we ran into and error $e');
       }
     }
   }

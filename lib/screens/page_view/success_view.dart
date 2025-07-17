@@ -43,8 +43,8 @@ class _SuccessView extends State<SuccessView> {
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     title = appState.viewData![SuccessViewPageConfig.key]['title'].toString();
-    message =
-        appState.viewData![SuccessViewPageConfig.key]['message'].toString();
+    message = appState.viewData![SuccessViewPageConfig.key]['message']
+        .toString();
   }
 
   @override
@@ -66,12 +66,15 @@ class _SuccessView extends State<SuccessView> {
                 "success".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 30.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 30.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
-              Image.asset("assets/images/startup-launch.png",
-                  height: height / 3.5),
+              Image.asset(
+                "assets/images/startup-launch.png",
+                height: height / 3.5,
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -86,7 +89,9 @@ class _SuccessView extends State<SuccessView> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 15.0),
+                          horizontal: 20.0,
+                          vertical: 15.0,
+                        ),
                         child: Container(
                           width: width / 1.3,
                           child: Column(
@@ -95,18 +100,20 @@ class _SuccessView extends State<SuccessView> {
                                 title.isEmpty ? "congratulations".tr() : title,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                               SizedBox(height: 2),
                               Text(
                                 message,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                               SizedBox(height: 2),
                             ],
@@ -118,35 +125,34 @@ class _SuccessView extends State<SuccessView> {
                 ),
               ),
               SizedBox(height: height / 30),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 appState.viewData![SuccessViewPageConfig.key]['buttonText'] ??
                     "done".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  if (appState.viewData![SuccessViewPageConfig.key]
-                              ['useOnDone'] !=
+                  if (appState.viewData![SuccessViewPageConfig
+                              .key]['useOnDone'] !=
                           null &&
-                      appState.viewData![SuccessViewPageConfig.key]
-                              ['useOnDone'] ==
+                      appState.viewData![SuccessViewPageConfig
+                              .key]['useOnDone'] ==
                           true) {
-                    print('onDone is not null');
                     appState.viewData![SuccessViewPageConfig.key]['onDone']();
                   } else {
-                    print('onDone is null');
                     appState.currentAction = PageAction(
-                        state: PageState.replaceAll,
-                        page: BottomHomePageConfig);
+                      state: PageState.replaceAll,
+                      page: BottomHomePageConfig,
+                    );
                   }
                 },
               ),
               SizedBox(height: height / 10),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),

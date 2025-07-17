@@ -1118,7 +1118,6 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         publicKey: appState.activeWallet!.publicKey!,
       );
 
-      print('response: ${responseData}');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
@@ -1229,8 +1228,6 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData![UpdateSharedAccessViewPageConfig.key] = null;
-    print('disposed');
   }
 }

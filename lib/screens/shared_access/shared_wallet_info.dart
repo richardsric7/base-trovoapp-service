@@ -358,8 +358,6 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
         publicKey: publicKey,
       );
 
-      print('response: ${responseData}');
-
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {

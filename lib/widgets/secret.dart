@@ -192,7 +192,6 @@ class _SecretState extends State<Secret> {
                   );
 
                   var fileContent = await client.downloadFile();
-                  print('file content... $fileContent');
 
                   if (fileContent == null ||
                       !fileContent.contains(
@@ -201,9 +200,7 @@ class _SecretState extends State<Secret> {
                     client.uploadFile(
                       '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.publicKey}',
                     );
-                  } else {
-                    print("Wallet already backed up.");
-                  }
+                  } else {}
 
                   googleSignIn.signOut();
                   showSnackBarForInfo("backupsuccess".tr(), context);

@@ -70,7 +70,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<Map> assetQuoteCurrencies = [];
   List<Map> assetPayoutTypes = [
     {'text': 'Crypto', 'value': 0},
-    {'text': 'Fiat', 'value': 1}
+    {'text': 'Fiat', 'value': 1},
   ];
   List<String> payoutCycleOptions = [];
 
@@ -87,12 +87,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<int>> get getBanksList {
     List<DropdownMenuItem<int>> options = [];
     appState.tokenizationData['banks']['bankList'].forEach((item) {
-      options.add(DropdownMenuItem(
-          child: Text(
-            item["bankName"],
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: item["id"]));
+      options.add(
+        DropdownMenuItem(
+          child: Text(item["bankName"], overflow: TextOverflow.ellipsis),
+          value: item["id"],
+        ),
+      );
     });
     return options;
   }
@@ -100,12 +100,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<String>> get getAssetQuoteCurrencies {
     List<DropdownMenuItem<String>> options = [];
     assetQuoteCurrencies.forEach((item) {
-      options.add(DropdownMenuItem(
+      options.add(
+        DropdownMenuItem(
           child: Text(
             item["assetCode"].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: item["assetCode"].toString()));
+          value: item["assetCode"].toString(),
+        ),
+      );
     });
     return options;
   }
@@ -113,12 +116,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<String>> get getPayoutCurrencies {
     List<DropdownMenuItem<String>> options = [];
     assetQuoteCurrencies.forEach((item) {
-      options.add(DropdownMenuItem(
+      options.add(
+        DropdownMenuItem(
           child: Text(
             item["assetCode"].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: item["assetCode"].toString()));
+          value: item["assetCode"].toString(),
+        ),
+      );
     });
     return options;
   }
@@ -126,12 +132,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<int>> get getAssetPayoutType {
     List<DropdownMenuItem<int>> options = [];
     assetPayoutTypes.forEach((item) {
-      options.add(DropdownMenuItem(
-          child: Text(
-            item['text'],
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: item['value']));
+      options.add(
+        DropdownMenuItem(
+          child: Text(item['text'], overflow: TextOverflow.ellipsis),
+          value: item['value'],
+        ),
+      );
     });
     return options;
   }
@@ -139,21 +145,23 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet.publicKey,
+        ),
+      );
     });
     return wallets;
   }
 
   List<DropdownMenuItem<int>> getFeeItems(bool isSelected) {
     List<DropdownMenuItem<int>> items = [];
-    for (var i = 0;
-        i < appState.tokenizationData["tokenizationFees"].length;
-        i++) {
+    for (
+      var i = 0;
+      i < appState.tokenizationData["tokenizationFees"].length;
+      i++
+    ) {
       var item = appState.tokenizationData["tokenizationFees"][i];
       var fiatPercentage = item['feeFiatPercentage'];
       var assetPercentage = item['feeAssetPercentage'];
@@ -162,22 +170,29 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
 
       if (i == 0) {
-        items.add(DropdownMenuItem(
+        items.add(
+          DropdownMenuItem(
             child: Text(
               "Select fee",
-              overflow:
-                  isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+              overflow: isSelected
+                  ? TextOverflow.ellipsis
+                  : TextOverflow.visible,
             ),
-            value: item['id']));
+            value: item['id'],
+          ),
+        );
         continue;
       }
 
-      items.add(DropdownMenuItem(
+      items.add(
+        DropdownMenuItem(
           child: Text(
             "Option ${i} - ${assetQuoteCurrency}${formatNumber(fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}",
             overflow: isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
           ),
-          value: item['id']));
+          value: item['id'],
+        ),
+      );
     }
     return items;
   }
@@ -185,12 +200,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   List<DropdownMenuItem<String>> get getPayoutCycles {
     List<DropdownMenuItem<String>> cycles = [];
     payoutCycleOptions.forEach((item) {
-      cycles.add(DropdownMenuItem(
-          child: Text(
-            item,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: item));
+      cycles.add(
+        DropdownMenuItem(
+          child: Text(item, overflow: TextOverflow.ellipsis),
+          value: item,
+        ),
+      );
     });
     return cycles;
   }
@@ -202,38 +217,47 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     inspect(appState.tokenizationData);
     data = appState.viewData;
 
-    for (var i = 0;
-        i < appState.tokenizationData["tokenizationCurrencies"].length;
-        i++) {
-      assetQuoteCurrencies
-          .add(appState.tokenizationData["tokenizationCurrencies"][i]);
+    for (
+      var i = 0;
+      i < appState.tokenizationData["tokenizationCurrencies"].length;
+      i++
+    ) {
+      assetQuoteCurrencies.add(
+        appState.tokenizationData["tokenizationCurrencies"][i],
+      );
     }
 
-    for (var i = 0;
-        i < appState.tokenizationData["assetProceedCycle"].length;
-        i++) {
-      payoutCycleOptions
-          .add(appState.tokenizationData["assetProceedCycle"][i]["id"]);
+    for (
+      var i = 0;
+      i < appState.tokenizationData["assetProceedCycle"].length;
+      i++
+    ) {
+      payoutCycleOptions.add(
+        appState.tokenizationData["assetProceedCycle"][i]["id"],
+      );
     }
 
-    tokenizationFeeId =
-        data["tokenizationFeeId"] == 0 ? 1 : data["tokenizationFeeId"];
+    tokenizationFeeId = data["tokenizationFeeId"] == 0
+        ? 1
+        : data["tokenizationFeeId"];
     numberOfTokenToBeIssued = data['numberOfTokenToBeIssued'];
     walletToHoldAssetsNotForSale =
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
-            ? ''
-            : data['walletToHoldAssetsNotForSale'].toString();
+        ? ''
+        : data['walletToHoldAssetsNotForSale'].toString();
     assetCode = data['assetCode'];
     assetName = data['assetName'];
     accountNumber = data['accountNumber'];
     beneficiaryName = data['beneficiaryName'];
     bankId = data['bankId'];
     var parsedSalesStart = DateTime.parse(data['salesStart']);
-    salesStart =
-        parsedSalesStart.year == DateTime(0001).year ? null : parsedSalesStart;
+    salesStart = parsedSalesStart.year == DateTime(0001).year
+        ? null
+        : parsedSalesStart;
     var parsedSalesEnd = DateTime.parse(data['salesEnd']);
-    salesEnd =
-        parsedSalesEnd.year == DateTime(0001).year ? null : parsedSalesEnd;
+    salesEnd = parsedSalesEnd.year == DateTime(0001).year
+        ? null
+        : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
     capQuantity = double.parse(data['capQuantity'].toString());
     capAmountInFiat = double.parse(data['capAmountInFiat'].toString());
@@ -253,7 +277,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     numberOfTokenToBeIssuedController.text = numberOfTokenToBeIssued == 0
         ? ''
         : formatNumberForInput(
-            double.parse(numberOfTokenToBeIssued.toString()));
+            double.parse(numberOfTokenToBeIssued.toString()),
+          );
     // numberOfTokenToBeSoldController.text = numberOfTokenToBeSold == 0
     //     ? ''
     //     : formatNumberForInput(double.parse(numberOfTokenToBeSold.toString()));
@@ -263,8 +288,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     capAmountInFiatController.text = capAmountInFiat == 0
         ? ''
         : formatNumberForInput(double.parse(capAmountInFiat.toString()));
-    capDurationInDaysController.text =
-        capDurationInDays == 0 ? '' : capDurationInDays.toString();
+    capDurationInDaysController.text = capDurationInDays == 0
+        ? ''
+        : capDurationInDays.toString();
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -290,9 +316,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
@@ -308,9 +332,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -346,9 +368,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -407,17 +427,18 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     },
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                        SizedBox(height: height / 50),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                  color: notifier.getbluewhitecolor, width: 1),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(15.0)),
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(15.0),
+                              ),
                               color: notifier.isDark
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
@@ -425,24 +446,25 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             child: Column(
                               children: [
                                 SizedBox(
-                                    width: width / 1.2,
-                                    height: height / 6,
-                                    child: Center(
-                                      child: Wrap(
-                                        alignment: WrapAlignment.center,
-                                        children: [
-                                          Text(
-                                            "browsefiles".tr(),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: notifier.getbluewhitecolor,
-                                              fontFamily: fontsemibold,
-                                              fontSize: 12.sp,
-                                            ),
+                                  width: width / 1.2,
+                                  height: height / 6,
+                                  child: Center(
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        Text(
+                                          "browsefiles".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontsemibold,
+                                            fontSize: 12.sp,
                                           ),
-                                        ],
-                                      ),
-                                    )),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(height: 2),
                               ],
                             ),
@@ -486,9 +508,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -504,9 +524,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -530,8 +548,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onChanged: (value) {
                         setState(() {
-                          numberOfTokenToBeIssued =
-                              value.isNotEmpty ? int.parse(value) : 0;
+                          numberOfTokenToBeIssued = value.isNotEmpty
+                              ? int.parse(value)
+                              : 0;
                         });
                       },
                       onSaved: (value) {
@@ -540,15 +559,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         });
                       },
                       autoFormatNumber: true,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -564,9 +582,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
@@ -577,8 +593,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                   getStandardWallets,
                   getStandardWallets
-                          .where((wallet) =>
-                              wallet.value == walletToHoldAssetsNotForSale)
+                          .where(
+                            (wallet) =>
+                                wallet.value == walletToHoldAssetsNotForSale,
+                          )
                           .isEmpty
                       ? null
                       : walletToHoldAssetsNotForSale,
@@ -597,13 +615,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: TextButton(
                   onPressed: () {
-                    appState.returnView =
-                        PageAction(state: PageState.addAll, pages: [
-                      BottomHomePageConfig,
-                      SetupAndComplianceViewPageConfig,
-                      TokenizeAssetViewPageConfig,
-                      AssetTokenInformationViewPageConfig
-                    ]);
+                    appState.returnView = PageAction(
+                      state: PageState.addAll,
+                      pages: [
+                        BottomHomePageConfig,
+                        SetupAndComplianceViewPageConfig,
+                        TokenizeAssetViewPageConfig,
+                        AssetTokenInformationViewPageConfig,
+                      ],
+                    );
                     addSubWalletPopup(context);
                   },
                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
@@ -628,9 +648,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -646,9 +664,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
@@ -658,9 +674,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getFeeItems(false),
-                  getFeeItems(false)
-                          .where((item) => item.value == tokenizationFeeId)
-                          .isEmpty
+                  getFeeItems(
+                        false,
+                      ).where((item) => item.value == tokenizationFeeId).isEmpty
                       ? null
                       : tokenizationFeeId,
                   'selectfee'.tr(),
@@ -677,9 +693,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   // itemHeight: 70,
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
@@ -695,9 +709,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -713,9 +725,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
@@ -737,9 +747,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -758,9 +766,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                       ButtonOutlined(
                         salesStart != null && salesStart != DateTime(0)
                             ? DateFormat('MMMM dd, yyyy').format(salesStart!)
@@ -774,12 +780,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           showDatePicker(
                             context: context,
                             initialDate: DateTime.now(),
-                            firstDate:
-                                DateTime.fromMicrosecondsSinceEpoch(1000),
+                            firstDate: DateTime.fromMicrosecondsSinceEpoch(
+                              1000,
+                            ),
                             lastDate: DateTime.now().add(Duration(days: 730)),
-                          ).then((value) => setState(() {
-                                salesStart = value;
-                              }));
+                          ).then(
+                            (value) => setState(() {
+                              salesStart = value;
+                            }),
+                          );
                         },
                       ),
                       if (!formIsValid &&
@@ -811,9 +820,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                       ButtonOutlined(
                         salesEnd != null
                             ? DateFormat('MMMM dd, yyyy').format(salesEnd!)
@@ -827,14 +834,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           showDatePicker(
                             context: context,
                             initialDate: DateTime.now(),
-                            firstDate:
-                                DateTime.fromMicrosecondsSinceEpoch(1000),
+                            firstDate: DateTime.fromMicrosecondsSinceEpoch(
+                              1000,
+                            ),
                             lastDate: DateTime.now().add(Duration(days: 730)),
-                          ).then((value) => {
-                                setState(() {
-                                  salesEnd = value;
-                                })
-                              });
+                          ).then(
+                            (value) => {
+                              setState(() {
+                                salesEnd = value;
+                              }),
+                            },
+                          );
                         },
                       ),
                       if (!formIsValid &&
@@ -847,14 +857,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             color: Colors.red,
                           ),
                         ),
-                      ]
+                      ],
                     ],
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 80,
-              ),
+              SizedBox(height: height / 80),
               if (!formIsValid &&
                   salesEnd != null &&
                   salesEnd!.isBefore(salesStart!)) ...[
@@ -876,9 +884,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -925,9 +931,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               if (capOnPurchase) ...[
                 // Row(
                 //   children: [
@@ -995,9 +999,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1015,14 +1017,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         controller: capAmountInFiatController,
                         onChanged: (val) {
                           setState(() {
-                            capAmountInFiat =
-                                val.isNotEmpty ? double.parse(val) : 0;
+                            capAmountInFiat = val.isNotEmpty
+                                ? double.parse(val)
+                                : 0;
                           });
                         },
                         autoFormatNumber: true,
                         isFiat: true,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
@@ -1042,9 +1046,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(
@@ -1072,16 +1074,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                           });
                         },
                         autoFormatNumber: true,
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1097,9 +1098,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1115,9 +1114,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
@@ -1139,9 +1136,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1157,9 +1152,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
@@ -1181,9 +1174,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
@@ -1214,9 +1205,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1232,16 +1221,13 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
                     setState(() {
                       bankId = int.parse(value.toString());
-                      print('bankId =========> $bankId');
                     });
                   },
                   getBanksList,
@@ -1258,9 +1244,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1276,9 +1260,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1329,9 +1311,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1367,9 +1347,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1385,9 +1363,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -1403,9 +1379,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Padding(
@@ -1424,9 +1398,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Container(
@@ -1441,7 +1413,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: TextButton(
                       onPressed: showCountryListPopup,
                       style: ButtonStyle(
-                          elevation: MaterialStateProperty.all<double>(0)),
+                        elevation: MaterialStateProperty.all<double>(0),
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1463,9 +1436,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -1480,41 +1451,43 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 15.0),
+                          horizontal: 20.0,
+                          vertical: 15.0,
+                        ),
                         child: Column(
                           children: [
                             Container(
-                                width: width / 1.8,
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  children: [
-                                    if (exemptedCountries.isNotEmpty) ...[
-                                      for (var country
-                                          in exemptedCountries) ...[
-                                        userItem(
-                                          iso2Countries[country] ?? "",
-                                          () {
-                                            setState(() {
-                                              exemptedCountries.remove(country);
-                                            });
-                                          },
-                                          foreColor: wihitecolor,
-                                          backColor: notifier.getbluebackcolor,
-                                        ),
-                                      ]
-                                    ] else ...[
-                                      Text(
-                                        "nameofexemptedcountriesappearhere"
-                                            .tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                            color: notifier.getbluewhitecolor,
-                                            fontFamily: fontbody,
-                                            fontSize: 15.sp),
+                              width: width / 1.8,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  if (exemptedCountries.isNotEmpty) ...[
+                                    for (var country in exemptedCountries) ...[
+                                      userItem(
+                                        iso2Countries[country] ?? "",
+                                        () {
+                                          setState(() {
+                                            exemptedCountries.remove(country);
+                                          });
+                                        },
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor,
                                       ),
-                                    ]
+                                    ],
+                                  ] else ...[
+                                    Text(
+                                      "nameofexemptedcountriesappearhere".tr(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                        fontSize: 15.sp,
+                                      ),
+                                    ),
                                   ],
-                                )),
+                                ],
+                              ),
+                            ),
                             SizedBox(height: 2),
                           ],
                         ),
@@ -1539,9 +1512,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Column(
                 children: [
                   Padding(
@@ -1555,7 +1526,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             groupValue: true,
                             activeColor: notifier.getbluewhitecolor,
                             fillColor: MaterialStateProperty.all(
-                                notifier.getbluewhitecolor),
+                              notifier.getbluewhitecolor,
+                            ),
                             onChanged: (value) {
                               setState(() {
                                 hasAdditionalKYCRequirements = true;
@@ -1585,7 +1557,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             value: hasAdditionalKYCRequirements,
                             groupValue: false,
                             fillColor: MaterialStateProperty.all(
-                                notifier.getbluewhitecolor),
+                              notifier.getbluewhitecolor,
+                            ),
                             activeColor: notifier.getbluewhitecolor,
                             onChanged: (value) {
                               setState(() {
@@ -1605,9 +1578,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   if (hasAdditionalKYCRequirements) ...[
                     Row(
                       children: [
@@ -1624,9 +1595,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
+                    SizedBox(height: height / 70),
                     Row(
                       children: [
                         Padding(
@@ -1678,9 +1647,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Button(
                 "saveandcontinuee".tr(),
                 notifier.getbluecolor,
@@ -1707,12 +1674,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   });
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
               ),
             ],
           ),
@@ -1748,10 +1714,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['accountNumber'] = accountNumber;
       newData['beneficiaryName'] = beneficiaryName;
       newData['bankId'] = bankId;
-      newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
-          .format(salesStart!.toUtc());
-      newData['salesEnd'] =
-          DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'").format(salesEnd!);
+      newData['salesStart'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(salesStart!.toUtc());
+      newData['salesEnd'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(salesEnd!);
       newData['capOnPurchase'] = capOnPurchase ? 1 : 0;
       newData['capQuantity'] = capQuantity;
       newData['capAmountInFiat'] = capAmountInFiat;
@@ -1760,20 +1728,21 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['walletToHoldAssetsNotForSale'] = walletToHoldAssetsNotForSale;
       newData['assetLogo'] = assetLogo;
       newData['exemptedCountries'] = exemptedCountries.join(',');
-      newData['hasAdditionalKYCRequirements'] =
-          hasAdditionalKYCRequirements ? 1 : 0;
+      newData['hasAdditionalKYCRequirements'] = hasAdditionalKYCRequirements
+          ? 1
+          : 0;
       newData['assetQuoteCurrency'] = assetQuoteCurrency;
       newData['proceedPayoutCurrency'] = proceedPayoutCurrency;
       newData['proceedPayoutType'] = proceedPayoutType;
       newData['additionalKYCRequirements'] = additionalKYCRequirements;
-      newData['investorAccreditationRequired'] =
-          investorAccreditationRequired ? 1 : 0;
+      newData['investorAccreditationRequired'] = investorAccreditationRequired
+          ? 1
+          : 0;
       newData['tokenizationFeeId'] = tokenizationFeeId;
 
       inspect(newData);
 
       String requestBody = jsonEncode(newData);
-      // print('requestBody  =======> $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1785,15 +1754,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
 
       hideLoader(context);
 
-      // print('responseData token information  ${responseData['data']}');
-      inspect(responseData);
-
       if (responseData['statusCode'] == 200) {
         Navigator.of(context).pop();
         await refreshCurrentTokenizationInfo();
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);
@@ -1811,7 +1780,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      // print('===============> token informationresponse ${responseData}');
+
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
         await inspect(appState.viewData);
@@ -1843,12 +1812,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         });
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,
@@ -1858,10 +1829,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     }
   }
 
-  Widget checkBoxItem(
-      {required String text,
-      required bool? value,
-      required void Function(bool? value) onChanged}) {
+  Widget checkBoxItem({
+    required String text,
+    required bool? value,
+    required void Function(bool? value) onChanged,
+  }) {
     return Container(
       width: width / 1.08,
       child: Row(
@@ -1871,9 +1843,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
             scale: 1.sp,
             child: Checkbox(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5.sp),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(5.sp)),
               ),
               activeColor: notifier.isDark
                   ? notifier.getbluecolor50
@@ -1893,9 +1863,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               text,
               overflow: TextOverflow.visible,
               style: TextStyle(
-                  fontSize: 15,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody),
+                fontSize: 15,
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontbody,
+              ),
             ),
           ),
         ],
@@ -1940,9 +1911,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
             borderRadius: BorderRadius.circular(15),
           ),
           labelStyle: TextStyle(color: lablecolor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
             borderRadius: BorderRadius.circular(15),
@@ -1960,13 +1929,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   }
 
   String getFeeInfo(int index) {
-    var fiatPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeFiatPercentage'];
-    var assetPercentage = appState.tokenizationData["tokenizationFees"][index]
-        ['feeAssetPercentage'];
-    var fiatFeeCap = double.parse(appState.tokenizationData["tokenizationFees"]
-            [index]['feeFiatCap']
-        .toString());
+    var fiatPercentage = appState
+        .tokenizationData["tokenizationFees"][index]['feeFiatPercentage'];
+    var assetPercentage = appState
+        .tokenizationData["tokenizationFees"][index]['feeAssetPercentage'];
+    var fiatFeeCap = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
+          .toString(),
+    );
     var tokenFee = (numberOfTokenToBeIssued * assetPercentage) / 100;
     var fiatFee = (data['assetCurrentValue'] * fiatPercentage) / 100;
     return "${appState.tokenizationData["tokenizationFees"][index]['feeDescription']} (\$${formatNumber(fiatFee > fiatFeeCap ? fiatFeeCap : fiatFee)} + ${formatNumber(double.parse(tokenFee.toString()))} ${assetCode}).";
@@ -1991,7 +1961,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     );
 
     if (result == null) {
-      print('User canceled the picker');
       return null;
     }
 

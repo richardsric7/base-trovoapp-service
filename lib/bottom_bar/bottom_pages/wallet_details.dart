@@ -49,12 +49,12 @@ class _WalletDetailsState extends State<WalletDetails>
   List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
     List<DropdownMenuItem<DashboardAssetListMode>> items = [];
     listModes.forEach((key, value) {
-      items.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      items.add(
+        DropdownMenuItem(
+          child: Text(key, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return items;
   }
@@ -62,12 +62,12 @@ class _WalletDetailsState extends State<WalletDetails>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet.publicKey,
+        ),
+      );
     });
     return wallets;
   }
@@ -154,13 +154,9 @@ class _WalletDetailsState extends State<WalletDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 80,
-              ),
+              SizedBox(height: height / 80),
               Container(
-                constraints: BoxConstraints(
-                  maxHeight: height / 5.8,
-                ),
+                constraints: BoxConstraints(maxHeight: height / 5.8),
                 child: WalletSlide(
                   backColor: notifier.getbluecolor,
                   foreColor: wihitecolor,
@@ -175,105 +171,99 @@ class _WalletDetailsState extends State<WalletDetails>
                       : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
                   initialHiddenState: appState.hideBalances,
                   onHiddenStateChanged: (state) => {
-                    setState(
-                      () => localHideBalance = state,
-                    )
+                    setState(() => localHideBalance = state),
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 80,
-              ),
+              SizedBox(height: height / 80),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Container(
-                    color: notifier.getfavorites,
-                    // padding: EdgeInsets.all(5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            child: Card(
-                                // shadowColor: Colors.black,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                color: notifier.isDark
-                                    ? notifier.getbluecolor90
-                                    : notifier.getaddsubwalletgrey,
-                                child: TextButton(
-                                  onPressed: () {
-                                    appState.viewData = {
-                                      'assetCode': '',
-                                      'assetIssuer': '',
-                                      'walletPublicKey': wallet.publicKey,
-                                    };
-                                    appState.currentAction = PageAction(
-                                        state: PageState.addPage,
-                                        page: AssetDetailsViewPageConfig);
-                                  },
-                                  child: Column(
+                  color: notifier.getfavorites,
+                  // padding: EdgeInsets.all(5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          child: Card(
+                            // shadowColor: Colors.black,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            color: notifier.isDark
+                                ? notifier.getbluecolor90
+                                : notifier.getaddsubwalletgrey,
+                            child: TextButton(
+                              onPressed: () {
+                                appState.viewData = {
+                                  'assetCode': '',
+                                  'assetIssuer': '',
+                                  'walletPublicKey': wallet.publicKey,
+                                };
+                                appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: AssetDetailsViewPageConfig,
+                                );
+                              },
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Icon(
-                                            Icons.local_gas_station,
+                                      Icon(
+                                        Icons.local_gas_station,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                      Container(
+                                        width: 100,
+                                        child: Text(
+                                          '${"gas".tr()} ${formatHistoryNumber(gas.amount!, 1000)}',
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: fontsemibold,
                                             color: notifier.getbluewhitecolor,
+                                            overflow: TextOverflow.visible,
                                           ),
-                                          Container(
-                                            width: 100,
-                                            child: Text(
-                                              '${"gas".tr()} ${formatHistoryNumber(gas.amount!, 1000)}',
-                                              overflow: TextOverflow.visible,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: fontsemibold,
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                                overflow: TextOverflow.visible,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                )),
-                          ),
-                        ),
-                        SizedBox(
-                          width: width / 20,
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: width / 2,
-                            child: dropdown(
-                              (value) {
-                                setState(() {
-                                  listMode = value as DashboardAssetListMode;
-                                });
-                              },
-                              getItems,
-                              listMode,
-                              "assettokens".tr(),
-                              context,
-                              null,
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ],
-                    )),
+                      ),
+                      SizedBox(width: width / 20),
+                      Expanded(
+                        child: Container(
+                          width: width / 2,
+                          child: dropdown(
+                            (value) {
+                              setState(() {
+                                listMode = value as DashboardAssetListMode;
+                              });
+                            },
+                            getItems,
+                            listMode,
+                            "assettokens".tr(),
+                            context,
+                            null,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              SizedBox(
-                height: height / 95,
-              ),
+              SizedBox(height: height / 95),
               listMode == DashboardAssetListMode.TokenizedAssets
                   ? showAssets()
                   : cryptoAssets(),
@@ -287,22 +277,26 @@ class _WalletDetailsState extends State<WalletDetails>
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      otherTokens.forEach((asset) => asset.userPreferredIndex =
-          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      otherTokens
-          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
-      print('testing the microphone $otherTokens');
+      otherTokens.forEach(
+        (asset) => asset.userPreferredIndex =
+            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+      );
+      otherTokens.sort(
+        (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
+      );
     }
   }
 
   void reOrderTokenizedAssets(String publicKey) {
     // order asset according to user preference
     if (appState.assetOrderings[publicKey] != null) {
-      tokenizedAssets.forEach((asset) => asset.userPreferredIndex =
-          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
-      tokenizedAssets
-          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
-      print('testing the microphone $tokenizedAssets');
+      tokenizedAssets.forEach(
+        (asset) => asset.userPreferredIndex =
+            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+      );
+      tokenizedAssets.sort(
+        (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
+      );
     }
   }
 
@@ -329,8 +323,10 @@ class _WalletDetailsState extends State<WalletDetails>
                   tabs: [
                     Tab(
                       height: 20,
-                      text:
-                          "assettokens".tr().toLowerCase().capitalizeEachWord(),
+                      text: "assettokens"
+                          .tr()
+                          .toLowerCase()
+                          .capitalizeEachWord(),
                     ),
                   ],
                 ),
@@ -374,18 +370,20 @@ class _WalletDetailsState extends State<WalletDetails>
                                 state: PageState.addAll,
                                 pages: [
                                   BottomHomePageConfig,
-                                  WalletDetailsViewPageConfig
+                                  WalletDetailsViewPageConfig,
                                 ],
                               );
 
                               if (rel == 'sharedWalletView') {
-                                appState.returnView =
-                                    PageAction(state: PageState.addAll, pages: [
-                                  BottomHomePageConfig,
-                                  SharedAccessViewPageConfig,
-                                  SharedWalletInfoViewPageConfig,
-                                  WalletDetailsViewPageConfig
-                                ]);
+                                appState.returnView = PageAction(
+                                  state: PageState.addAll,
+                                  pages: [
+                                    BottomHomePageConfig,
+                                    SharedAccessViewPageConfig,
+                                    SharedWalletInfoViewPageConfig,
+                                    WalletDetailsViewPageConfig,
+                                  ],
+                                );
                               }
 
                               appState.viewData = {
@@ -408,18 +406,19 @@ class _WalletDetailsState extends State<WalletDetails>
                   Container(
                     height: height / 3,
                     child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                        child: Center(
-                          child: Text(
-                            "noassets".tr(),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: fontsemibold,
-                              color: notifier.getblck,
-                            ),
+                      padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                      child: Center(
+                        child: Text(
+                          "noassets".tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: fontsemibold,
+                            color: notifier.getblck,
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
                 SizedBox(height: height / 20),
@@ -432,15 +431,17 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget tokenizedAssetTile(
-      String imageUrl, String name, String type, isSubscribed) {
+    String imageUrl,
+    String name,
+    String type,
+    isSubscribed,
+  ) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -503,8 +504,9 @@ class _WalletDetailsState extends State<WalletDetails>
       child: Column(
         children: [
           Padding(
-            padding:
-                EdgeInsets.symmetric(horizontal: tabLength > 1 ? 0.0 : 100.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: tabLength > 1 ? 0.0 : 100.0,
+            ),
             child: TabBar(
               controller: _tabController,
               labelColor: notifier.getbluewhitecolor,
@@ -531,9 +533,7 @@ class _WalletDetailsState extends State<WalletDetails>
           ),
           Column(
             children: [
-              SizedBox(
-                height: height / 40,
-              ),
+              SizedBox(height: height / 40),
               Container(
                 height: height / 1.72,
                 child: TabBarView(
@@ -552,15 +552,18 @@ class _WalletDetailsState extends State<WalletDetails>
                                   if (oldIndex < newIndex) {
                                     newIndex -= 1;
                                   }
-                                  final Asset item =
-                                      otherTokens.removeAt(oldIndex);
+                                  final Asset item = otherTokens.removeAt(
+                                    oldIndex,
+                                  );
                                   otherTokens.insert(newIndex, item);
                                   setState(() {});
                                 },
                                 children: [
-                                  for (var i = 0;
-                                      i < otherTokens.length;
-                                      i++) ...[
+                                  for (
+                                    var i = 0;
+                                    i < otherTokens.length;
+                                    i++
+                                  ) ...[
                                     GestureDetector(
                                       key: Key(otherTokens[i].assetIssuer!),
                                       onTap: () {
@@ -568,19 +571,20 @@ class _WalletDetailsState extends State<WalletDetails>
                                           state: PageState.addAll,
                                           pages: [
                                             BottomHomePageConfig,
-                                            WalletDetailsViewPageConfig
+                                            WalletDetailsViewPageConfig,
                                           ],
                                         );
 
                                         if (rel == 'sharedWalletView') {
                                           appState.returnView = PageAction(
-                                              state: PageState.addAll,
-                                              pages: [
-                                                BottomHomePageConfig,
-                                                SharedAccessViewPageConfig,
-                                                SharedWalletInfoViewPageConfig,
-                                                WalletDetailsViewPageConfig
-                                              ]);
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              SharedAccessViewPageConfig,
+                                              SharedWalletInfoViewPageConfig,
+                                              WalletDetailsViewPageConfig,
+                                            ],
+                                          );
                                         }
 
                                         appState.viewData = {
@@ -604,19 +608,24 @@ class _WalletDetailsState extends State<WalletDetails>
                             Container(
                               height: height / 3,
                               child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      10, 28.0, 10, 0),
-                                  child: Center(
-                                    child: Text(
-                                      "noassets".tr(),
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: fontsemibold,
-                                        color: notifier.getblck,
-                                      ),
+                                padding: const EdgeInsets.fromLTRB(
+                                  10,
+                                  28.0,
+                                  10,
+                                  0,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "noassets".tr(),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getblck,
                                     ),
-                                  )),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ],
@@ -643,19 +652,20 @@ class _WalletDetailsState extends State<WalletDetails>
                                           state: PageState.addAll,
                                           pages: [
                                             BottomHomePageConfig,
-                                            WalletDetailsViewPageConfig
+                                            WalletDetailsViewPageConfig,
                                           ],
                                         );
 
                                         if (rel == 'sharedWalletView') {
                                           appState.returnView = PageAction(
-                                              state: PageState.addAll,
-                                              pages: [
-                                                BottomHomePageConfig,
-                                                SharedAccessViewPageConfig,
-                                                SharedWalletInfoViewPageConfig,
-                                                WalletDetailsViewPageConfig
-                                              ]);
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              SharedAccessViewPageConfig,
+                                              SharedWalletInfoViewPageConfig,
+                                              WalletDetailsViewPageConfig,
+                                            ],
+                                          );
                                         }
 
                                         appState.viewData = {
@@ -676,24 +686,27 @@ class _WalletDetailsState extends State<WalletDetails>
                                   Container(
                                     height: height / 4,
                                     child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 28.0, 10, 0),
-                                        child: Center(
-                                          child: Text(
-                                            "nopendingassets".tr(),
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: fontsemibold,
-                                              color: notifier.getblck,
-                                            ),
+                                      padding: const EdgeInsets.fromLTRB(
+                                        10,
+                                        28.0,
+                                        10,
+                                        0,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "nopendingassets".tr(),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: fontsemibold,
+                                            color: notifier.getblck,
                                           ),
-                                        )),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
-                                SizedBox(
-                                  height: height / 22,
-                                ),
+                                SizedBox(height: height / 22),
                               ],
                             ),
                           ),
@@ -714,7 +727,7 @@ class _WalletDetailsState extends State<WalletDetails>
     if (indexOfAsset != null) {
       if (appState.assetOrderings[wallet.publicKey!] == null) {
         appState.assetOrderings[wallet.publicKey!] = {
-          asset.assetCode!: indexOfAsset
+          asset.assetCode!: indexOfAsset,
         };
       }
       appState.assetOrderings[wallet.publicKey!]![asset.assetCode!] =
@@ -725,89 +738,89 @@ class _WalletDetailsState extends State<WalletDetails>
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       elevation: notifier.isDark ? 0 : 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
-            title: Row(
-              children: [
-                CircleAvatar(
-                  radius: 23,
-                  backgroundColor: Colors.white,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100.0),
-                    child: Image.network(
-                      asset.imageUrl!,
-                      height: 40,
-                      width: 40,
-                      fit: BoxFit.fill,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/images/trovo.png',
-                          height: 40,
-                          width: 40,
-                        );
-                      },
-                    ),
+          title: Row(
+            children: [
+              CircleAvatar(
+                radius: 23,
+                backgroundColor: Colors.white,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100.0),
+                  child: Image.network(
+                    asset.imageUrl!,
+                    height: 40,
+                    width: 40,
+                    fit: BoxFit.fill,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/trovo.png',
+                        height: 40,
+                        width: 40,
+                      );
+                    },
                   ),
                 ),
-                SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      asset.assetCode.toString().isEmpty
-                          ? 'XBN'
-                          : asset.assetCode!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                      child: Text(
-                        "${getFiatRate(asset.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  getBalance(formatNumber(asset.amount!)),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getblck,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                  child: Text(
-                    getBalance(
-                        '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}'),
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    asset.assetCode.toString().isEmpty
+                        ? 'XBN'
+                        : asset.assetCode!,
                     style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
                       color: notifier.getblck,
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      "${getFiatRate(asset.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                getBalance(formatNumber(asset.amount!)),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: fontsemibold,
+                  color: notifier.getblck,
                 ),
-              ],
-            )),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                child: Text(
+                  getBalance(
+                    '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                  ),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontFamily: fontbody,
+                    color: notifier.getblck,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

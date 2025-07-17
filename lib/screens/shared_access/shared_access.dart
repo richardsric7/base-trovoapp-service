@@ -2712,7 +2712,6 @@ class _SharedAccessState extends State<SharedAccess>
         publicKey: activeWallet!.publicKey!,
       );
 
-      // print('response: ${responseData}');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
@@ -3166,7 +3165,6 @@ class _SharedAccessState extends State<SharedAccess>
     appState.filterQuery = '';
     appState.returnView = null;
     super.dispose();
-    print('disposed shared access view');
   }
 }
 

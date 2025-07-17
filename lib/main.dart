@@ -137,10 +137,7 @@ class _AppState extends State<App> {
   void _initializeTimer() async {
     print('------------------timer initialized--------------------');
     String? time = await StoreData().storeGetData('timeOut');
-    print('this is timeout: $time');
     int? timeOut = int.tryParse(time == null ? '5' : time);
-
-    // print('Timer init And Timeout is $timeOut........... ');
 
     if (_timer != null) {
       _timer!.cancel();
@@ -175,31 +172,4 @@ class _AppState extends State<App> {
       });
     }
   }
-
-  // void registerNotification() async {
-  //   // 1. Initialize the Firebase app
-  //   // await Firebase.initializeApp();
-  //   var app = await Firebase.initializeApp(
-  //       name: 'Mainnet',
-  //       options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
-  //   print(
-  //       '-----------------------------------------------this is the initialized app from registerNotification:  ${app.name}');
-
-  //   // 2. Instantiate Firebase Messaging
-  //   messaging = FirebaseMessaging.instance;
-  //   // 3. On iOS, this helps to take the user permissions
-  //   NotificationSettings settings = await messaging.requestPermission(
-  //     alert: true,
-  //     badge: true,
-  //     provisional: false,
-  //     sound: true,
-  //   );
-
-  //   if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-  //     print('User granted permission');
-  //     // TODO: handle the received notifications
-  //   } else {
-  //     print('User declined or has not accepted permission');
-  //   }
-  // }
 }

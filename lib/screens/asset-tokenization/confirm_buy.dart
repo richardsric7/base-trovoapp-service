@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -81,9 +80,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Card(
@@ -97,9 +94,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                 child: Center(
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         "You’re buying",
                         textAlign: TextAlign.center,
@@ -110,9 +105,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         '${formatNumber(quantity)} Tokens',
                         textAlign: TextAlign.center,
@@ -123,9 +116,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         'of [${tokenizedAsset.assetName}] Asset',
                         textAlign: TextAlign.center,
@@ -136,9 +127,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 30,
-                      ),
+                      SizedBox(height: height / 30),
                       Text(
                         'Amount',
                         textAlign: TextAlign.center,
@@ -149,9 +138,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         '${formatNumberShort(amount)} ${tokenizedAsset.assetQuoteCurrency}',
                         textAlign: TextAlign.center,
@@ -175,9 +162,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                       //     color: notifier.getbluewhitecolor,
                       //   ),
                       // ),
-                      SizedBox(
-                        height: height / 30,
-                      ),
+                      SizedBox(height: height / 30),
                       Text(
                         'Pay with',
                         textAlign: TextAlign.center,
@@ -188,9 +173,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -206,17 +189,13 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      SizedBox(
-                        height: height / 30,
-                      ),
+                      SizedBox(height: height / 30),
                     ],
                   ),
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             SizedBox(height: 10),
             Form(
               key: formKey,
@@ -244,9 +223,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                 },
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             if (appState.biometricEnabled && password.isEmpty) ...[
               Button(
                 "authorizewithbiometrics".tr(),
@@ -267,15 +244,16 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                   if (password == appState.password!) {
                     buyTokenizedAsset();
                   } else {
-                    popup(context,
-                        title: "oops".tr(), message: "invalidpassword".tr());
+                    popup(
+                      context,
+                      title: "oops".tr(),
+                      message: "invalidpassword".tr(),
+                    );
                   }
                 },
               ),
             ],
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),
@@ -304,11 +282,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     try {
       showLoader(context);
 
-      String requestBody = jsonEncode({
-        'amount': amount,
-      });
-
-      print(requestBody);
+      String requestBody = jsonEncode({'amount': amount});
 
       Map responseData = await makePostRequest(
         uri: appState.activeWallet!.isSharedWallet
@@ -320,8 +294,6 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         publicKey: appState.activeWallet!.publicKey!,
       );
 
-      print('==============>response: $responseData');
-      inspect(responseData);
       hideLoader(context);
 
       if (responseData['statusCode'] == 200 ||
@@ -330,7 +302,10 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         var messageShown = 0;
 
         await postProcessData(
-            messageShown, messageLength, responseData['data']);
+          messageShown,
+          messageLength,
+          responseData['data'],
+        );
       } else {
         popup(
           context,
@@ -341,7 +316,6 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }
@@ -354,11 +328,10 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                postProcessData(messageShown, messageLength, data),
-              });
+        context,
+        data['messages'][messageShown],
+        () => {postProcessData(messageShown, messageLength, data)},
+      );
 
       messageShown++;
       return;
@@ -382,7 +355,6 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         transactionData['transactionSignature'] = signature;
       }
       var requestBody = jsonEncode(transactionData);
-      print('requestBody  =======> $requestBody');
 
       Map responseData = await makePostRequest(
         uri: appState.activeWallet!.isSharedWallet
@@ -395,9 +367,6 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
       );
 
       hideLoader(context);
-
-      print('responseData token information  ${responseData}');
-      inspect(responseData);
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
@@ -414,18 +383,25 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                   page: BottomHomePageConfig,
                 );
               },
-            }
+            },
           };
-          appState.currentAction =
-              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.replace,
+            page: SuccessViewPageConfig,
+          );
         } else {
           appState.viewData = responseData['data'];
           appState.currentAction = PageAction(
-              state: PageState.replace, page: BuyTokensSuccessViewPageConfig);
+            state: PageState.replace,
+            page: BuyTokensSuccessViewPageConfig,
+          );
         }
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);

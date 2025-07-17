@@ -158,12 +158,10 @@ class _SplashScreenState extends State<SplashScreen>
         );
         appState.setNFTs = await StoreData().storeGetData('nfts');
         var swapList = await StoreData().storeGetData('curatedSwapList') ?? [];
-        print('swap list $swapList');
         if (swapList.isNotEmpty) {
           appState.curatedSwapList = appState.deserializeSwapList(swapList);
         }
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
-        print('fiatRates ${appState.fiatRate['NGN']}');
         appState.introducedSharedAccess =
             await StoreData().storeGetData('introducedSharedAccess') ?? false;
 
@@ -185,7 +183,6 @@ class _SplashScreenState extends State<SplashScreen>
             appState.appIsOpen = true;
 
             if (appState.restartedAfterSwitch) {
-              print('importing after switch......');
               await importWalletAfterSwitch(appState, context);
             } else {
               String result = await FCM().getPushNotificationToken();
@@ -222,9 +219,7 @@ class _SplashScreenState extends State<SplashScreen>
           }
         });
       }
-    } catch (e) {
-      print('initializeAppData exception:' + e.toString());
-    }
+    } catch (e) {}
   }
 
   initFirebaseTools() async {
@@ -239,9 +234,7 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
       await await FirebaseRemoteConfig.instance.fetchAndActivate();
-    } catch (e) {
-      print('firebase error: $e');
-    }
+    } catch (e) {}
   }
 
   @override
@@ -305,7 +298,6 @@ class _SplashScreenState extends State<SplashScreen>
       publicKey: publicKey,
       secretKey: secretKey,
     );
-    // print('response==================> $responseData');
 
     if (responseData['statusCode'] == 200) {
       appState.tempPublicKey = publicKey;
@@ -386,8 +378,6 @@ class _SplashScreenState extends State<SplashScreen>
 
       Account? creds = parseKey(context, appState.secretKeys[0])!;
 
-      print('creating user account after switch... ${map}');
-
       String jsonBody = jsonEncode(map);
 
       Map responseData = await makePostRequest(
@@ -398,7 +388,6 @@ class _SplashScreenState extends State<SplashScreen>
         secretKey: creds.secretKey,
       );
 
-      // print('$responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -419,7 +408,6 @@ class _SplashScreenState extends State<SplashScreen>
         );
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,

@@ -186,7 +186,6 @@ class _VeryficationState extends State<Veryfication> {
       };
 
       String jsonBody = jsonEncode(map);
-      print(jsonBody);
 
       var publicKey = state.tempPublicKey;
       var secretKey = state.tempSecretKey;
@@ -200,12 +199,10 @@ class _VeryficationState extends State<Veryfication> {
         secretKey: secretKey,
       );
 
-      print('$responseData');
       hideLoader(context);
 
       return responseData;
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(
         context,
@@ -244,8 +241,6 @@ class _VeryficationState extends State<Veryfication> {
       secretKey: secretKey,
     );
 
-    print('response: ${responseData}');
-
     if (responseData['statusCode'] == 200) {
       fetchNotifications(state);
       getFiatRates(state);
@@ -272,9 +267,6 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   storeUserInfo(userInfoMap) async {
-    print('userInfoMap: ${userInfoMap['userData']}');
-    print('tempPublickey: ${state.tempPublicKey}');
-    print('tempSecretKey: ${state.tempSecretKey}');
     var userInfo = userInfoMap['userData'] as Map<String, dynamic>;
     var assetBalances = userInfoMap['assetBalances'] as Map<String, dynamic>;
     var nfts = userInfoMap['nfts'] ?? {};
@@ -317,7 +309,6 @@ class _VeryficationState extends State<Veryfication> {
       walletsSharedWithUser,
       assetBalances,
     );
-    print('state.userinfo ${state.userInfo}');
     inspect(state.userInfo);
     state.setNFTs = nfts;
     state.setSharedWallets = walletsSharedWithUser;
@@ -337,10 +328,8 @@ class _VeryficationState extends State<Veryfication> {
 
   @override
   void dispose() {
-    print('disposing...');
     // countdownTimer!.cancel();
     // countdownTimer = null;
-    print('disposed');
     super.dispose();
   }
 }

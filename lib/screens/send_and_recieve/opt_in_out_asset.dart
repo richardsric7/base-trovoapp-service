@@ -370,8 +370,6 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                   'walletPublicKey': wallet!.publicKey,
                 };
 
-                print('viewData: ${appState.viewData}');
-
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
                   page: entry.value['isRemovable']
@@ -419,7 +417,6 @@ class _OptInOutAssetState extends State<OptInOutAsset>
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData![OptInOutAssetViewPageConfig.key] = null;
   }
 }

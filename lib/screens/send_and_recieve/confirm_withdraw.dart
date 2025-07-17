@@ -73,31 +73,31 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "confirmyourtransaction".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Text(
                 "warnwithdraw".tr(),
                 textAlign: TextAlign.center,
@@ -108,9 +108,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -125,29 +123,24 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     children: [
                       Column(
                         children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Text(
                             '${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}',
                             style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                          SizedBox(
-                            height: height / 50.0,
-                          ),
+                          SizedBox(height: height / 50.0),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "to".tr(),
                 textAlign: TextAlign.center,
@@ -158,21 +151,13 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showToAddress(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showNetwork(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showFee(),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -192,9 +177,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -210,12 +193,12 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -224,22 +207,26 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
   }
 
   Widget myKeyValueRow(String key, String value) {
-    return Row(children: [
-      Text(
-        key,
-        style: TextStyle(
+    return Row(
+      children: [
+        Text(
+          key,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontsemibold),
-      ),
-      Text(
-        value,
-        style: TextStyle(
+            fontFamily: fontsemibold,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontbody),
-      ),
-    ]);
+            fontFamily: fontbody,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget showToAddress() {
@@ -289,9 +276,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
             fontFamily: fontbody,
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -311,39 +296,41 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                       Text(
                         '${"servicefee".tr()}:',
                         style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       Text(
                         '${transactionInfo['withdrawalServiceFee']} ${transactionInfo['currency']}',
                         style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
+                  SizedBox(height: height / 90),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '${"networkfee".tr()}:',
                         style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                       Text(
                         '${transactionInfo['withdrawalNetworkFee']} ${transactionInfo['currency']}',
                         style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ],
                   ),
@@ -369,9 +356,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
             fontFamily: fontbody,
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -391,10 +376,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                       Text(
                         '${networkName} (${transactionInfo['withdrawalNetwork']})',
                         style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                     ],
                   ),
@@ -463,8 +449,6 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
 
       String requestBody = jsonEncode(transactionInfo);
 
-      print('requestBody: $requestBody');
-
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/crypto/withdrawals'
@@ -474,8 +458,6 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: wallet.publicKey!,
       );
-
-      print('responseData: $responseData');
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
@@ -492,15 +474,18 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                 'You have successfully requested withdrawal of [${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}] on network [${networkName} (${transactionInfo['withdrawalNetwork']})] to address [${transactionInfo['withdrawalAddress']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
             'useOnDone': true,
             'onDone': () {
-              appState.currentAction = appState.returnView ??
+              appState.currentAction =
+                  appState.returnView ??
                   PageAction(
                     state: PageState.addAll,
                     pages: [BottomHomePageConfig],
                   );
             },
           };
-          appState.currentAction =
-              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.replace,
+            page: SuccessViewPageConfig,
+          );
         } else {
           appState.viewData = {
             'transactionData': responseData['data'],
@@ -515,8 +500,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         }
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {

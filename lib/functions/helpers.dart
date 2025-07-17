@@ -15,9 +15,7 @@ Future getDeviceDetails() async {
       var data = await deviceInfoPlugin.iosInfo;
       identifier = data.identifierForVendor; //UUID for iOS
     }
-  } on PlatformException {
-    print('Failed to get platform version');
-  }
+  } on PlatformException {}
 
   return identifier;
 }
@@ -25,6 +23,5 @@ Future getDeviceDetails() async {
 Future<String> getAppVersion() async {
   PackageInfo packageInfo = await PackageInfo.fromPlatform();
   var appVersion = packageInfo.version;
-  print('========> $appVersion');
   return appVersion;
 }

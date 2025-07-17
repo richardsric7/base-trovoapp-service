@@ -105,10 +105,12 @@ class Wallet {
       sharedAccessCreatedAt: DateTime.parse(m["sharedAccessCreatedAt"]),
       sharedAccessUpdatedAt: DateTime.parse(m["sharedAccessUpdatedAt"]),
       permissions: getPermissionList(m["permissions"]),
-      claimedAssets:
-          deserializeAssetList(assetBalances[m["publicKey"]]['claimed']),
-      unClaimedAssets:
-          deserializeAssetList(assetBalances[m["publicKey"]]['unclaimed']),
+      claimedAssets: deserializeAssetList(
+        assetBalances[m["publicKey"]]['claimed'],
+      ),
+      unClaimedAssets: deserializeAssetList(
+        assetBalances[m["publicKey"]]['unclaimed'],
+      ),
     );
   }
 
@@ -136,27 +138,28 @@ class Wallet {
 
   Wallet deserializeSharedJson(m, List<String> accesses) {
     return Wallet(
-        publicKey: m["walletPublicKey"],
-        alias: m["walletAlias"],
-        permission: m["permission"],
-        accesses: accesses,
-        description: m["walletDescription"],
-        owner: m["owner"],
-        sharedAccessEnabled: 1,
-        numberOfApprovalsNeeded: m["walletSettings"] != null
-            ? m["walletSettings"]["numberOfApprovalsNeeded"]
-            : null,
-        walletType: m["walletSettings"] != null
-            ? m["walletSettings"]["walletType"]
-            : null,
-        walletThreshold: m["walletSettings"] != null
-            ? m["walletSettings"]["walletThreshold"]
-            : null,
-        permissions: m["walletSettings"] != null
-            ? getPermissionList(m["walletSettings"]["permissions"])
-            : null,
-        claimedAssets: deserializeAssetList(m["assetBalances"]["claimed"]),
-        unClaimedAssets: deserializeAssetList(m["assetBalances"]["unclaimed"]));
+      publicKey: m["walletPublicKey"],
+      alias: m["walletAlias"],
+      permission: m["permission"],
+      accesses: accesses,
+      description: m["walletDescription"],
+      owner: m["owner"],
+      sharedAccessEnabled: 1,
+      numberOfApprovalsNeeded: m["walletSettings"] != null
+          ? m["walletSettings"]["numberOfApprovalsNeeded"]
+          : null,
+      walletType: m["walletSettings"] != null
+          ? m["walletSettings"]["walletType"]
+          : null,
+      walletThreshold: m["walletSettings"] != null
+          ? m["walletSettings"]["walletThreshold"]
+          : null,
+      permissions: m["walletSettings"] != null
+          ? getPermissionList(m["walletSettings"]["permissions"])
+          : null,
+      claimedAssets: deserializeAssetList(m["assetBalances"]["claimed"]),
+      unClaimedAssets: deserializeAssetList(m["assetBalances"]["unclaimed"]),
+    );
   }
 
   List<String> getAccesses(permissions, String username) {
@@ -177,21 +180,22 @@ class Wallet {
     var permissions = <Permission>[];
     if (permissionArrayString != null) {
       for (var i = 0; i < permissionArrayString.length; i++) {
-        permissions.add(Permission(
+        permissions.add(
+          Permission(
             createdAt: DateTime.parse(permissionArrayString[i]['createdAt']),
             updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
             walletPublicKey: permissionArrayString[i]['walletPublicKey'],
             targetUsername: permissionArrayString[i]['targetUsername'],
             fullName: permissionArrayString[i]['fullName'],
-            permission: permissionArrayString[i]['permission']));
+            permission: permissionArrayString[i]['permission'],
+          ),
+        );
       }
     }
     return permissions;
   }
 
   List<Asset> deserializeAssetList(assets) {
-    // print('=========> deserializing assets $assets');
-
     var assetsList = <Asset>[];
     if (assets != null) {
       for (var i = 0; i < assets.length; i++) {
@@ -214,8 +218,8 @@ class Wallet {
   List<Asset> getTokenizedAssets(DataProvider appState) {
     var tokenizedAssets = <Asset>[];
     claimedAssets!.forEach((asset) {
-      print(appState.curatedSwapListMap);
-      if (appState.curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+      if (appState
+              .curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
               ?.assetClassId ==
           3) {
         tokenizedAssets.add(asset);
@@ -227,8 +231,8 @@ class Wallet {
   List<Asset> getOtherTokens(DataProvider appState) {
     var tokenizedAssets = <Asset>[];
     claimedAssets!.forEach((asset) {
-      print(appState.curatedSwapListMap);
-      if (appState.curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+      if (appState
+              .curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
               ?.assetClassId !=
           3) {
         tokenizedAssets.add(asset);

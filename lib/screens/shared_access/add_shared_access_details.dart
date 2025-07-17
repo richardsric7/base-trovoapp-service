@@ -57,38 +57,37 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
-    print(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "confirmrequest".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Text(
                 "abouttorequestaccess".tr(),
                 textAlign: TextAlign.center,
@@ -99,16 +98,15 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               for (var i = 0; i < viewData.length; i++) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -118,20 +116,17 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                       children: [
                         Column(
                           children: [
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Text(
                               "wallet".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                              ),
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
@@ -141,21 +136,23 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                     Column(
                                       children: [
                                         Container(
-                                            width: width / 1.3,
-                                            child: Wrap(
-                                              alignment: WrapAlignment.center,
-                                              children: [
-                                                Text(
-                                                  viewData[i]['wallet'].alias ??
-                                                      "",
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      color: notifier
-                                                          .getbluewhitecolor,
-                                                      fontFamily: fontbody),
-                                                )
-                                              ],
-                                            )),
+                                          width: width / 1.3,
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            children: [
+                                              Text(
+                                                viewData[i]['wallet'].alias ??
+                                                    "",
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                  fontFamily: fontbody,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                         SizedBox(height: 2),
                                       ],
                                     ),
@@ -175,8 +172,9 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -186,23 +184,24 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                         children: [
                           Column(
                             children: [
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Text(
                                 "vieweraccess".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  3,
+                                ),
                                 child: Container(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -210,24 +209,28 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                       Column(
                                         children: [
                                           Container(
-                                              width: width / 1.3,
-                                              child: Wrap(
-                                                alignment: WrapAlignment.center,
-                                                children: [
-                                                  for (var k = 0;
-                                                      k <
-                                                          viewData[i]['viewers']
-                                                              .length;
-                                                      k++) ...[
-                                                    userItem(
-                                                        '${viewData[i]['viewers'][k]} [${viewData[i]['userFullnames'][viewData[i]['viewers'][k]]}]',
-                                                        null,
-                                                        foreColor: wihitecolor,
-                                                        backColor: notifier
-                                                            .getbluebackcolor)
-                                                  ],
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (
+                                                  var k = 0;
+                                                  k <
+                                                      viewData[i]['viewers']
+                                                          .length;
+                                                  k++
+                                                ) ...[
+                                                  userItem(
+                                                    '${viewData[i]['viewers'][k]} [${viewData[i]['userFullnames'][viewData[i]['viewers'][k]]}]',
+                                                    null,
+                                                    foreColor: wihitecolor,
+                                                    backColor: notifier
+                                                        .getbluebackcolor,
+                                                  ),
                                                 ],
-                                              )),
+                                              ],
+                                            ),
+                                          ),
                                           SizedBox(height: 2),
                                         ],
                                       ),
@@ -235,9 +238,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: height / 50.0,
-                              ),
+                              SizedBox(height: height / 50.0),
                             ],
                           ),
                         ],
@@ -245,16 +246,15 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                     ),
                   ),
                 ],
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 if (viewData[i]['addApprovers'] == true) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -264,23 +264,24 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                         children: [
                           Column(
                             children: [
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Text(
                                 "approveraccess".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  3,
+                                ),
                                 child: Container(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -288,25 +289,28 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                       Column(
                                         children: [
                                           Container(
-                                              width: width / 1.3,
-                                              child: Wrap(
-                                                alignment: WrapAlignment.center,
-                                                children: [
-                                                  for (var k = 0;
-                                                      k <
-                                                          viewData[i]
-                                                                  ['approvers']
-                                                              .length;
-                                                      k++) ...[
-                                                    userItem(
-                                                        '${viewData[i]['approvers'][k]} [${viewData[i]['userFullnames'][viewData[i]['approvers'][k]]}]',
-                                                        null,
-                                                        foreColor: wihitecolor,
-                                                        backColor: notifier
-                                                            .getbluebackcolor),
-                                                  ],
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (
+                                                  var k = 0;
+                                                  k <
+                                                      viewData[i]['approvers']
+                                                          .length;
+                                                  k++
+                                                ) ...[
+                                                  userItem(
+                                                    '${viewData[i]['approvers'][k]} [${viewData[i]['userFullnames'][viewData[i]['approvers'][k]]}]',
+                                                    null,
+                                                    foreColor: wihitecolor,
+                                                    backColor: notifier
+                                                        .getbluebackcolor,
+                                                  ),
                                                 ],
-                                              )),
+                                              ],
+                                            ),
+                                          ),
                                           SizedBox(height: 2),
                                         ],
                                       ),
@@ -314,24 +318,21 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: height / 50.0,
-                              ),
+                              SizedBox(height: height / 50.0),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -341,23 +342,24 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                         children: [
                           Column(
                             children: [
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Text(
                                 "initiatoraccess".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  3,
+                                ),
                                 child: Container(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -365,26 +367,28 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                       Column(
                                         children: [
                                           Container(
-                                              width: width / 1.3,
-                                              child: Wrap(
-                                                alignment: WrapAlignment.center,
-                                                children: [
-                                                  for (var k = 0;
-                                                      k <
-                                                          viewData[i]
-                                                                  ['initiators']
-                                                              .length;
-                                                      k++) ...[
-                                                    userItem(
-                                                      '${viewData[i]['initiators'][k]} [${viewData[i]['userFullnames'][viewData[i]['initiators'][k]]}]',
-                                                      null,
-                                                      foreColor: wihitecolor,
-                                                      backColor: notifier
-                                                          .getbluebackcolor,
-                                                    )
-                                                  ],
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (
+                                                  var k = 0;
+                                                  k <
+                                                      viewData[i]['initiators']
+                                                          .length;
+                                                  k++
+                                                ) ...[
+                                                  userItem(
+                                                    '${viewData[i]['initiators'][k]} [${viewData[i]['userFullnames'][viewData[i]['initiators'][k]]}]',
+                                                    null,
+                                                    foreColor: wihitecolor,
+                                                    backColor: notifier
+                                                        .getbluebackcolor,
+                                                  ),
                                                 ],
-                                              )),
+                                              ],
+                                            ),
+                                          ),
                                           SizedBox(height: 2),
                                         ],
                                       ),
@@ -392,24 +396,21 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: height / 50.0,
-                              ),
+                              SizedBox(height: height / 50.0),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -419,37 +420,37 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                         children: [
                           Column(
                             children: [
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Text(
                                 "noofapprovalsrequired".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: height / 50,
-                              ),
+                              SizedBox(height: height / 50),
                               Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  3,
+                                ),
                                 child: Container(
                                   child: Text(
                                     '${viewData[i]['noOfApprovalsNeeded']}/${viewData[i]['noOfApprovers']}',
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontsemibold),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontsemibold,
+                                    ),
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: height / 50.0,
-                              ),
+                              SizedBox(height: height / 50.0),
                             ],
                           ),
                         ],
@@ -457,9 +458,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                     ),
                   ),
                 ],
-                SizedBox(
-                  height: height / 50.0,
-                ),
+                SizedBox(height: height / 50.0),
               ],
               Form(
                 key: formKey,
@@ -480,9 +479,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -498,12 +495,12 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -550,46 +547,34 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
   }
 
   sendDataToServer(int index) async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
       var permissions = [];
-      print(viewData);
 
       for (var i = 0; i < viewData[index]['viewers'].length; i++) {
-        print(viewData[index]['viewers'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData[index]['viewers'][i],
-            // "name": "",
-            "permission": "VIEW-ONLY",
-          },
-        );
+        permissions.add({
+          "targetUsername": viewData[index]['viewers'][i],
+          // "name": "",
+          "permission": "VIEW-ONLY",
+        });
       }
 
       if (viewData[index]['addApprovers'] == true) {
         for (var i = 0; i < viewData[index]['approvers'].length; i++) {
-          print(viewData[index]['approvers'][i]);
-          permissions.add(
-            {
-              "targetUsername": viewData[index]['approvers'][i],
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
+          permissions.add({
+            "targetUsername": viewData[index]['approvers'][i],
+            // "name": "",
+            "permission": "APPROVER",
+          });
         }
 
         for (var i = 0; i < viewData[index]['initiators'].length; i++) {
-          print(viewData[index]['initiators'][i]);
-          permissions.add(
-            {
-              "targetUsername": viewData[index]['initiators'][i],
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
+          permissions.add({
+            "targetUsername": viewData[index]['initiators'][i],
+            // "name": "",
+            "permission": "INITIATOR",
+          });
         }
       }
 
@@ -601,14 +586,10 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
           "permissions": permissions,
         };
       } else {
-        postData = {
-          "permissions": permissions,
-        };
+        postData = {"permissions": permissions};
       }
 
       String requestBody = jsonEncode(postData);
-
-      print(requestBody);
 
       var wallet = viewData[index]['wallet'] as Wallet;
 
@@ -619,21 +600,27 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: wallet.publicKey!,
       );
-      // print(responseData);
 
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
         hideLoader(context);
         postProcessData(
-            context, messageShown, messageLength, responseData['data'],
-            callback: () {
-          signAndSendToServerAgain(responseData['data'], index);
-        });
+          context,
+          messageShown,
+          messageLength,
+          responseData['data'],
+          callback: () {
+            signAndSendToServerAgain(responseData['data'], index);
+          },
+        );
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);
@@ -656,7 +643,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
 
       String requestBody = jsonEncode(responseFromServer);
 
-      // print('second: ${requestBody}');
       var wallet = viewData[index]['wallet'] as Wallet;
 
       Map responseData = await makePostRequest(
@@ -686,55 +672,59 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
             : wallet.alias!;
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': "sharedaccessenabledsuccessfully".tr(),
-          'message':
-              "sharedaccessenabledsuccessfully2".tr(args: [walletAliases]),
+          'message': "sharedaccessenabledsuccessfully2".tr(
+            args: [walletAliases],
+          ),
           'useOnDone': true,
           'onDone': () {
-            print('ondone fired!');
             if ((appState.returnView != null &&
                     appState.returnView!.pages != null) &&
-                appState.returnView!.pages!
-                    .contains(WalletPreparationViewPageConfig)) {
-              appState.currentAction =
-                  PageAction(state: PageState.addAll, pages: [
-                BottomHomePageConfig,
-                WalletPreparationViewPageConfig,
-              ]);
+                appState.returnView!.pages!.contains(
+                  WalletPreparationViewPageConfig,
+                )) {
+              appState.currentAction = PageAction(
+                state: PageState.addAll,
+                pages: [BottomHomePageConfig, WalletPreparationViewPageConfig],
+              );
               // appState.setActiveTokenizationWalletPublicKey = null;
               appState.viewData = {};
               appState.backupSecrets.clear();
               appState.returnView = null;
-              print('here 1');
             } else if (appState.backupSecrets.length > 1) {
-              appState.currentAction =
-                  PageAction(state: PageState.addAll, pages: [
-                BottomHomePageConfig,
-              ]);
+              appState.currentAction = PageAction(
+                state: PageState.addAll,
+                pages: [BottomHomePageConfig],
+              );
               appState.clearAccessList = true;
               appState.backupSecrets.clear();
-              print('here 2');
             } else {
-              appState.currentAction =
-                  PageAction(state: PageState.addAll, pages: [
-                BottomHomePageConfig,
-                SharedAccessViewPageConfig,
-              ]);
+              appState.currentAction = PageAction(
+                state: PageState.addAll,
+                pages: [BottomHomePageConfig, SharedAccessViewPageConfig],
+              );
               appState.clearAccessList = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                appState.sharedAccesstabController.animateTo(0,
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.easeInOut);
+                appState.sharedAccesstabController.animateTo(
+                  0,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
               });
             }
           },
         };
         hideLoader(context);
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);

@@ -62,39 +62,40 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     transactionData = appState.viewData!['transactionData'];
     viewData = appState.viewData!;
     sourceAmount = formatNumber(double.parse(transactionData['sourceAmount']));
-    swappedEstimate =
-        formatNumber(double.parse(transactionData['swappedEstimate']));
+    swappedEstimate = formatNumber(
+      double.parse(transactionData['swappedEstimate']),
+    );
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "confirmswap".tr(),
                     style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Text(
                 "youareabouttoswap".tr(),
                 textAlign: TextAlign.center,
@@ -105,9 +106,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -122,20 +121,17 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     children: [
                       Column(
                         children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Text(
                             '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}',
                             style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                              fontSize: 19,
+                              fontWeight: FontWeight.w700,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Container(
                             width: width / 1.3,
                             child: Text(
@@ -149,18 +145,14 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: height / 50.0,
-                          ),
+                          SizedBox(height: height / 50.0),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "to".tr(),
                 textAlign: TextAlign.center,
@@ -171,13 +163,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               showAddressInfo(),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "servicefee".tr(),
                 textAlign: TextAlign.center,
@@ -188,9 +176,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -206,25 +192,23 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            height: height / 50,
+                          SizedBox(height: height / 50),
+                          myKeyValueRow(
+                            "${"fee".tr()}: ",
+                            transactionData['fee'] + '%',
                           ),
                           myKeyValueRow(
-                              "${"fee".tr()}: ", transactionData['fee'] + '%'),
-                          myKeyValueRow("${"amountcalculated".tr()}: ",
-                              "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}"),
-                          SizedBox(
-                            height: height / 50,
+                            "${"amountcalculated".tr()}: ",
+                            "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}",
                           ),
+                          SizedBox(height: height / 50),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Text(
                 "wallet".tr(),
                 textAlign: TextAlign.center,
@@ -235,9 +219,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -252,29 +234,24 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     children: [
                       Column(
                         children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Text(
                             wallet.alias!,
                             style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                              fontSize: 19,
+                              fontWeight: FontWeight.w700,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -294,9 +271,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -312,12 +287,12 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -326,22 +301,26 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   }
 
   Widget myKeyValueRow(String key, String value) {
-    return Row(children: [
-      Text(
-        key,
-        style: TextStyle(
+    return Row(
+      children: [
+        Text(
+          key,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontsemibold),
-      ),
-      Text(
-        value,
-        style: TextStyle(
+            fontFamily: fontsemibold,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
             fontSize: 15,
             color: notifier.getbluewhitecolor,
-            fontFamily: fontbody),
-      ),
-    ]);
+            fontFamily: fontbody,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget showAddressInfo() {
@@ -358,15 +337,11 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         ),
         child: Column(
           children: [
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: width / 70,
-                ),
+                SizedBox(width: width / 70),
                 Column(
                   children: [
                     Text(
@@ -378,9 +353,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                         fontFamily: fontsemibold,
                       ),
                     ),
-                    SizedBox(
-                      height: 5,
-                    ),
+                    SizedBox(height: 5),
                     if (viewData["destinationUsdPrice"] != null) ...[
                       Text(
                         '+ ${calculateFiatValue(swappedEstimate.replaceAll(',', ''), viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
@@ -393,12 +366,10 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                       ),
                     ],
                   ],
-                )
+                ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
           ],
         ),
       ),
@@ -461,8 +432,6 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
 
       String requestBody = jsonEncode(transactionData);
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/swap'
@@ -472,8 +441,6 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: wallet.publicKey!,
       );
-
-      print('response: $responseData');
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
@@ -497,8 +464,10 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               changeTabPage(appState, ButtomTabPage.Dashboard.index);
             },
           };
-          appState.currentAction =
-              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+          appState.currentAction = PageAction(
+            state: PageState.replace,
+            page: SuccessViewPageConfig,
+          );
         } else {
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
@@ -529,7 +498,6 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      // print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }

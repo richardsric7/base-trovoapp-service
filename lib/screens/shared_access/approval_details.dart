@@ -58,38 +58,37 @@ class _ApprovalDetails extends State<ApprovalDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData?[ApprovalDetailsViewPageConfig.key];
     wallet = appState.userInfo!.getWalletByAlias(viewData['alias']);
-    print('viewData ========>>>>>>>>>> $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "approverequest".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -101,29 +100,30 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   ),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: width / 30,
-                      ),
+                      SizedBox(width: width / 30),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            height: height / 50,
+                          SizedBox(height: height / 50),
+                          displayInfo(
+                            key: "wallet".tr(),
+                            value: viewData['alias'],
                           ),
                           displayInfo(
-                              key: "wallet".tr(), value: viewData['alias']),
+                            key: "transactiontype".tr(),
+                            value: viewData['transactionType']
+                                .toString()
+                                .capitalizeFirstLetter(),
+                          ),
                           displayInfo(
-                              key: "transactiontype".tr(),
-                              value: viewData['transactionType']
-                                  .toString()
-                                  .capitalizeFirstLetter()),
+                            key: "initiator".tr(),
+                            value: viewData['initiator'],
+                          ),
                           displayInfo(
-                              key: "initiator".tr(),
-                              value: viewData['initiator']),
-                          displayInfo(
-                              key: "initiated".tr(),
-                              value:
-                                  '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
+                            key: "initiated".tr(),
+                            value:
+                                '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}',
+                          ),
                           // displayInfo(
                           //     key: 'Description',
                           //     value: viewData['description']),
@@ -133,14 +133,13 @@ class _ApprovalDetails extends State<ApprovalDetails>
                               Text(
                                 '${"description".tr()}: ',
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
-                              SizedBox(
-                                height: 5,
-                              ),
+                              SizedBox(height: 5),
                               Container(
                                 width: width / 1.2,
                                 child: Wrap(
@@ -159,42 +158,44 @@ class _ApprovalDetails extends State<ApprovalDetails>
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: height / 50.0,
-                              ),
+                              SizedBox(height: height / 50.0),
                             ],
                           ),
                           displayInfo(
-                              key: "approvalstatus".tr(),
-                              value:
-                                  '${viewData['approvalsGotten'].toString()} out of ${viewData['approvalsNeeded'].toString()} approvals recieved'),
+                            key: "approvalstatus".tr(),
+                            value:
+                                '${viewData['approvalsGotten'].toString()} out of ${viewData['approvalsNeeded'].toString()} approvals recieved',
+                          ),
                           if (viewData['approvedBy'].toString().isNotEmpty) ...[
                             displayInfo(
-                                key: "approvedby".tr(),
-                                value: '${viewData['approvedBy']}'),
+                              key: "approvedby".tr(),
+                              value: '${viewData['approvedBy']}',
+                            ),
                           ],
                           if (viewData['rejectedBy'].toString().isNotEmpty) ...[
                             displayInfo(
-                                key: "rejectedby".tr(),
-                                value: '${viewData['rejectedBy']}'),
+                              key: "rejectedby".tr(),
+                              value: '${viewData['rejectedBy']}',
+                            ),
                             displayInfo(
-                                key: "reasonforrejection".tr(),
-                                value: viewData['reasonForRejection']),
+                              key: "reasonforrejection".tr(),
+                              value: viewData['reasonForRejection'],
+                            ),
                           ],
                           displayInfo(
-                              key: "transactionstatus".tr(),
-                              value: viewData['transactionStatus']
-                                  .toString()
-                                  .capitalizeFirstLetter()),
-                          displayInfo(
-                              key: "blockchainproof".tr(),
-                              value: viewData['id']
-                                  .toString()
-                                  .capitalizeFirstLetter(),
-                              isTransId: true),
-                          SizedBox(
-                            height: height / 50,
+                            key: "transactionstatus".tr(),
+                            value: viewData['transactionStatus']
+                                .toString()
+                                .capitalizeFirstLetter(),
                           ),
+                          displayInfo(
+                            key: "blockchainproof".tr(),
+                            value: viewData['id']
+                                .toString()
+                                .capitalizeFirstLetter(),
+                            isTransId: true,
+                          ),
+                          SizedBox(height: height / 50),
                         ],
                       ),
                     ],
@@ -205,16 +206,14 @@ class _ApprovalDetails extends State<ApprovalDetails>
               // signed by current user (whether approved or rejected) then show
               // the approve or reject buttons
               if (viewData['transactionStatus'] == 'PENDING' &&
-                  !(viewData['approvedBy']
-                          .toString()
-                          .contains(appState.userInfo?.username ?? '') ||
-                      viewData['rejectedBy']
-                          .toString()
-                          .contains(appState.userInfo?.username ?? '')) &&
+                  !(viewData['approvedBy'].toString().contains(
+                        appState.userInfo?.username ?? '',
+                      ) ||
+                      viewData['rejectedBy'].toString().contains(
+                        appState.userInfo?.username ?? '',
+                      )) &&
                   (wallet?.isApprover ?? false)) ...[
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 Form(
                   key: formKey,
                   child: CustomPasswordFormField(
@@ -234,9 +233,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     },
                   ),
                 ),
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 if (appState.biometricEnabled && password.isEmpty) ...[
                   Button(
                     "approvewithbiometrics".tr(),
@@ -252,9 +249,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     onTap: handleAuthorization,
                   ),
                 ],
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 if (appState.biometricEnabled && password.isEmpty) ...[
                   ButtonOutlined(
                     "rejectwithbiometrics".tr(),
@@ -285,9 +280,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   ),
                 ],
               ] else ...[
-                SizedBox(
-                  height: height / 20,
-                ),
+                SizedBox(height: height / 20),
                 Button(
                   "done".tr(),
                   notifier.getbluecolor,
@@ -295,12 +288,12 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   onTap: () => Navigator.of(context).pop(),
                 ),
               ],
-              SizedBox(
-                height: height / 15,
-              ),
+              SizedBox(height: height / 15),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -308,8 +301,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
     );
   }
 
-  Widget displayInfo(
-      {required String key, required String value, bool isTransId = false}) {
+  Widget displayInfo({
+    required String key,
+    required String value,
+    bool isTransId = false,
+  }) {
     return Column(
       children: [
         Container(
@@ -320,10 +316,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
               Text(
                 '$key: ',
                 style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                ),
               ),
               if (isTransId) ...[
                 Row(
@@ -332,7 +329,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
                       flex: 5,
                       child: GestureDetector(
                         onTap: () => appState.goToWebView(
-                            getExplorerBaseUrl(appState.walletMode) + value),
+                          getExplorerBaseUrl(appState.walletMode) + value,
+                        ),
                         child: Text(
                           value,
                           style: TextStyle(
@@ -349,17 +347,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
                       flex: 1,
                       child: IconButton(
                         onPressed: () => {
-                          Clipboard.setData(
-                            ClipboardData(
-                              text: value,
-                            ),
-                          ),
+                          Clipboard.setData(ClipboardData(text: value)),
                           showSnackBar("transactionid".tr(), context),
                         },
-                        icon: Icon(
-                          Icons.copy,
-                          size: 20,
-                        ),
+                        icon: Icon(Icons.copy, size: 20),
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
@@ -376,13 +367,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     fontFamily: fontbody,
                   ),
                 ),
-              ]
+              ],
             ],
           ),
         ),
-        SizedBox(
-          height: height / 50.0,
-        ),
+        SizedBox(height: height / 50.0),
       ],
     );
   }
@@ -390,12 +379,12 @@ class _ApprovalDetails extends State<ApprovalDetails>
   String getHeadlineLabel(transactionStatus) {
     switch (transactionStatus) {
       case 'PENDING':
-        return (viewData['approvedBy']
-                    .toString()
-                    .contains(appState.userInfo?.username ?? "") ||
-                viewData['rejectedBy']
-                    .toString()
-                    .contains(appState.userInfo?.username ?? ""))
+        return (viewData['approvedBy'].toString().contains(
+                  appState.userInfo?.username ?? "",
+                ) ||
+                viewData['rejectedBy'].toString().contains(
+                  appState.userInfo?.username ?? "",
+                ))
             ? "youhavealreadysigned".tr()
             : "yourapprovalisrequested".tr();
       case 'REJECTED':
@@ -454,14 +443,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
   }
 
   sendDataToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
       String requestBody = jsonEncode({});
-
-      print("wallet signer: ${wallet?.publicKey}");
 
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
@@ -470,14 +455,16 @@ class _ApprovalDetails extends State<ApprovalDetails>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer ?? "",
       );
-      print('responseData: ${responseData}');
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         sendDataToServerAgain(responseData['data']);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
@@ -487,8 +474,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
   }
 
   sendDataToServerAgain(Map data) async {
-    print('sending to server again....');
-
     try {
       showLoader(context);
       // sign transaction
@@ -502,8 +487,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
 
       String requestBody = jsonEncode(data);
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
@@ -512,7 +495,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
         publicKey: appState.primaryWallet.signer ?? "",
       );
 
-      print('responseData: ${responseData}');
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
         appState.getApprovals();
@@ -522,15 +504,22 @@ class _ApprovalDetails extends State<ApprovalDetails>
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
-                state: PageState.replace, page: SharedAccessViewPageConfig);
+              state: PageState.replace,
+              page: SharedAccessViewPageConfig,
+            );
           },
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
@@ -540,16 +529,10 @@ class _ApprovalDetails extends State<ApprovalDetails>
   }
 
   sendRejectToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
-      String requestBody = jsonEncode({
-        'rejectionReason': rejectReason,
-      });
-
-      print(requestBody);
+      String requestBody = jsonEncode({'rejectionReason': rejectReason});
 
       Map responseData = await makeDeleteRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
@@ -558,7 +541,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer ?? "",
       );
-      print('responseData: ${responseData}');
 
       if (responseData['statusCode'] == 200 ||
           responseData['statusCode'] == 202) {
@@ -569,15 +551,22 @@ class _ApprovalDetails extends State<ApprovalDetails>
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
-                state: PageState.replace, page: SharedAccessViewPageConfig);
+              state: PageState.replace,
+              page: SharedAccessViewPageConfig,
+            );
           },
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
         hideLoader(context);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
@@ -594,10 +583,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: wallet?.publicKey ?? "",
     );
-
-    print('secretkey: ${appState.secretKeys[0]}');
-
-    print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
       await storeUserInfo(responseData['data'], appState);

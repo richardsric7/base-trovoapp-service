@@ -693,7 +693,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
                   var url =
                       '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
-                  print(url);
                   appState.goToWebView(url);
                 },
                 child: Text(
@@ -906,7 +905,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       String requestBody = jsonEncode(data);
 
-      print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
         body: requestBody,
@@ -915,9 +913,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         publicKey: appState.primaryWallet.signer!,
       );
       hideLoader(context);
-
-      print('responseData ${responseData['data']}');
-      inspect(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
@@ -1116,7 +1111,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       hideLoader(context);
 
-      print('responseData token information  ${responseData['data']}');
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {

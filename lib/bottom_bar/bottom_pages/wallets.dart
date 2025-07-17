@@ -566,7 +566,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                     child: ReorderableListView(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
                       onReorder: (oldIndex, newIndex) {
-                        print('reodered $oldIndex $newIndex');
                         if (oldIndex < newIndex) {
                           newIndex -= 1;
                         }
@@ -969,7 +968,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               child: ReorderableListView(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
                 onReorder: (oldIndex, newIndex) {
-                  print('reodered $oldIndex $newIndex');
                   if (oldIndex < newIndex) {
                     newIndex -= 1;
                   }
@@ -1045,7 +1043,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
   void reOrderClaimedAssets(String publicKey) {
     // order asset according to user preference
-    print('reodering assets... ${appState.assetOrderings}');
     if (appState.assetOrderings[publicKey] != null) {
       otherTokens.forEach(
         (asset) => asset.userPreferredIndex =

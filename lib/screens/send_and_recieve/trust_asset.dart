@@ -41,9 +41,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
 
     asset = wallet.unClaimedAssets!.firstWhereOrNull(
       (asset) =>
@@ -70,10 +68,11 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           title: Text(
             "pendingassets".tr(),
             style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold),
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontsemibold,
+            ),
           ),
           leading: GestureDetector(
             onTap: () {
@@ -86,14 +85,10 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
-              height: height / 20,
-            ),
+            SizedBox(height: height / 20),
             if (asset != null) ...[
               showNotice(),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Button(
                 "claimasset".tr(),
                 notifier.getbluecolor,
@@ -125,9 +120,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Button(
                 "back".tr(),
                 notifier.getbluecolor,
@@ -157,8 +150,10 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,9 +174,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 50.0),
                   Container(
                     width: width / 1.3,
                     child: Text(
@@ -217,8 +210,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       };
       String requestBody = jsonEncode(map);
 
-      print(requestBody);
-
       Map responseData = await makePutRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/claim-asset'
@@ -229,18 +220,17 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
-
       if (responseData['statusCode'] == 202) {
         completeClaimAsset(responseData['data']);
-        // print('sending full data to server.........');
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -256,7 +246,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
       if (wallet.isSharedWalletAndCanInitiate) {
@@ -264,8 +253,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       }
 
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makePutRequest(
         uri: wallet.isSharedWalletAndCanInitiate
@@ -277,17 +264,24 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        updateUserInfo(appState.primaryWallet.signer!, appState.secretKeys[0],
-            appState.primaryWallet.publicKey!, userInfo.username, appState);
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey!,
+          userInfo.username,
+          appState,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': "success".tr(),
-          'message':
-              "trustassetsuccess".tr().replaceAll('asset', asset!.assetCode!),
+          'message': "trustassetsuccess".tr().replaceAll(
+            'asset',
+            asset!.assetCode!,
+          ),
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
+            appState.currentAction =
+                appState.returnView ??
                 PageAction(
                   state: PageState.addAll,
                   pages: [BottomHomePageConfig],
@@ -295,13 +289,17 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           },
         };
         appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+          state: PageState.replaceAll,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 
@@ -320,8 +318,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       };
       String requestBody = jsonEncode(map);
 
-      print(requestBody);
-
       Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/reject-asset'
@@ -332,17 +328,17 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
-
       if (responseData['statusCode'] == 202) {
         completeRejectAsset(responseData['data']);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -358,7 +354,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
       if (wallet.isSharedWalletAndCanInitiate) {
@@ -366,8 +361,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       }
 
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
@@ -379,22 +372,29 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        updateUserInfo(appState.primaryWallet.signer!, appState.secretKeys[0],
-            appState.primaryWallet.publicKey!, userInfo.username, appState);
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey!,
+          userInfo.username,
+          appState,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': wallet.isSharedWalletAndCanInitiate
               ? 'Request submitted'
-              : 'asset successfully rejected'
-                  .replaceAll('asset', asset!.assetCode!),
+              : 'asset successfully rejected'.replaceAll(
+                  'asset',
+                  asset!.assetCode!,
+                ),
           'message': wallet.isSharedWalletAndCanInitiate
               ? 'Your request to reject asset has been successfully submitted. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.'
-                  .replaceAll('asset', asset!.assetCode!)
+                    .replaceAll('asset', asset!.assetCode!)
               : 'You have successfully rejected this asset. Your wallet will not hold this asset.',
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
+            appState.currentAction =
+                appState.returnView ??
                 PageAction(
                   state: PageState.addAll,
                   pages: [BottomHomePageConfig],
@@ -402,13 +402,17 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           },
         };
         appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+          state: PageState.replaceAll,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 
@@ -418,7 +422,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData![PendingAssetDetailsViewPageConfig.key] = null;
   }
 }

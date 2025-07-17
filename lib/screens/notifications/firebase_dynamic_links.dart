@@ -18,8 +18,8 @@ class FirebaseDynamicLinkInitializer {
               ),
             )
           :
-          // final dynamicLinkParams = DynamicLinkParameters(
-          DynamicLinkParameters(
+            // final dynamicLinkParams = DynamicLinkParameters(
+            DynamicLinkParameters(
               link: Uri.parse("https://trovoapp.page.link"),
               uriPrefix: "https://trovoapp.page.link",
               androidParameters: const AndroidParameters(

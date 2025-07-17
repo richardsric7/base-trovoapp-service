@@ -143,7 +143,6 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                   ),
                 );
               } else if (snapshot.hasData) {
-                print('response: ${snapshot.data}');
                 var membershipGrades = snapshot.data!['membershipGrades'];
                 var tiers = snapshot.data!['patronTiers'];
                 var patronPackages = snapshot.data!['patronPackages'];
@@ -471,9 +470,6 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
       );
 
       if (responseData['statusCode'] == 200) {
-        print(
-          '=======================> patron response: ${responseData['data']}',
-        );
         return responseData['data'];
       } else {
         return Future.error("somethingwentwrong".tr());

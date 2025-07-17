@@ -92,7 +92,6 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               acceptAll(
                 hasAccepted,
                 (value) => {
-                  print('hasAccepted $hasAccepted'),
                   setState(() {
                     hasAccepted = !hasAccepted;
                   }),
@@ -162,7 +161,6 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
 
   gotoNext() async {
     var data = appState.viewData![EnsurePrivacyPageConfig.key];
-    print('gotoNext: $data');
     if (data != null && data['rel'] == 'backupAll') {
       appState.currentAction = PageAction(
         state: PageState.addPage,

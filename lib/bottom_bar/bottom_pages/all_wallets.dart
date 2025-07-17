@@ -775,7 +775,6 @@ class _AllWalletsView extends State<AllWalletsView>
               });
             },
             onSaved: (value) {
-              print('tag: $value');
               tag = value.trim().replaceAll(' ', '');
             },
             keyboardtype: TextInputType.text,
@@ -798,7 +797,6 @@ class _AllWalletsView extends State<AllWalletsView>
             300.sp,
             initialValue: description,
             onSaved: (value) {
-              print('description: $value');
               description = value;
             },
             keyboardtype: TextInputType.text,
@@ -836,7 +834,6 @@ class _AllWalletsView extends State<AllWalletsView>
                 return null;
               },
               onSaved: (value) {
-                print('${"email".tr()}: $value');
                 secretKey = value!.trim().replaceAll(' ', '');
               },
               maxLength: 56,
@@ -1027,12 +1024,7 @@ class _AllWalletsView extends State<AllWalletsView>
               password = value!.trim().replaceAll(' ', '');
             });
           },
-          // onSubmitted: (value) {
-          //   print('email: $value');
-          //   secretKey = value!.trim().replaceAll(' ', '');
-          // },
           onSaved: (value) {
-            print('email: $value');
             secretKey = value!.trim().replaceAll(' ', '');
           },
         ),
@@ -1211,12 +1203,9 @@ class _AllWalletsView extends State<AllWalletsView>
         "publickey": newSubWalletKeyPair.publicKey,
         "walletTag": tag,
         "WalletDescription": description,
-        // "assetIssuerWallet": isAssetIssuerWallet,
         "walletType": selectedWalletType,
       };
       String requestBody = jsonEncode(map);
-
-      print(requestBody);
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/subwallet',
@@ -1225,8 +1214,6 @@ class _AllWalletsView extends State<AllWalletsView>
         secretKey: primaryWalletKeyPair.secretKey,
         publicKey: primaryWalletKeyPair.publicKey,
       );
-
-      print('response: $responseData');
 
       if (responseData['statusCode'] == 200) {
         var messageLength = responseData['data']['messages'].length;
@@ -1237,7 +1224,6 @@ class _AllWalletsView extends State<AllWalletsView>
           messageLength,
           responseData['data'],
         );
-        // print('sending full data to server.........');
       } else {
         popup(
           context,
@@ -1246,7 +1232,6 @@ class _AllWalletsView extends State<AllWalletsView>
         );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);
@@ -1261,10 +1246,7 @@ class _AllWalletsView extends State<AllWalletsView>
       showResponseMessage(
         context,
         data['messages'][messageShown],
-        () => {
-          print('postProcessData: $messageShown'),
-          postProcessData(messageShown, messageLength, data),
-        },
+        () => {postProcessData(messageShown, messageLength, data)},
       );
 
       messageShown++;
@@ -1341,7 +1323,6 @@ class _AllWalletsView extends State<AllWalletsView>
         );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 

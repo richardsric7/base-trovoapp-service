@@ -35,7 +35,6 @@ class _BackupState extends State<Backup> {
     state = Provider.of<DataProvider>(context, listen: false);
     user = state.userInfo!;
     secrets = state.backupSecrets;
-    print('backup secrets $secrets');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,

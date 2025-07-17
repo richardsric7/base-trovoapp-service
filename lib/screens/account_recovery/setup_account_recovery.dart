@@ -48,8 +48,9 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    primaryWallet = appState.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.primaryWallet == 1);
+    primaryWallet = appState.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.primaryWallet == 1,
+    );
   }
 
   @override
@@ -63,9 +64,12 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -73,17 +77,19 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                 "enable".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 30.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 30.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
               Text(
                 "accountrecovery".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 30.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 30.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
               SizedBox(height: height / 45),
               // Center(
@@ -123,8 +129,10 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15.0,
+              ),
               child: Column(
                 children: [
                   Container(
@@ -133,9 +141,10 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                       desc,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 16,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody),
+                        fontSize: 16,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
                     ),
                   ),
                   SizedBox(height: 2),
@@ -160,8 +169,6 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       };
       String requestBody = jsonEncode(map);
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recovery',
         body: requestBody,
@@ -170,7 +177,6 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         publicKey: primaryWallet.publicKey!,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -179,31 +185,30 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
 
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
+        context,
+        data['messages'][messageShown],
+        () => {postProcessData(messageShown, messageLength, data)},
+      );
 
       messageShown++;
       return;
@@ -221,11 +226,8 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recovery',
@@ -235,24 +237,32 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         publicKey: primaryWallet.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(primaryWallet.signer!, appState.secretKeys[0],
-            primaryWallet.publicKey!, appState.userInfo!.username, appState);
+        await updateUserInfo(
+          primaryWallet.signer!,
+          appState.secretKeys[0],
+          primaryWallet.publicKey!,
+          appState.userInfo!.username,
+          appState,
+        );
         appState.viewData = {
           SuccessViewPageConfig.key: {
             'title': "success".tr(),
             'message': "enableaccountrecoverysuccess".tr(),
-          }
+          },
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+          state: PageState.replace,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       popup(context, title: "error".tr(), message: e.toString());
     }
 

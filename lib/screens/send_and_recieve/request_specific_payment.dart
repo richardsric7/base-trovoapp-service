@@ -53,9 +53,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
@@ -89,9 +87,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Row(
@@ -100,17 +96,16 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                     Text(
                       '${"request".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               formFields(),
               SizedBox(height: height / 20),
               Button(
@@ -123,8 +118,10 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
               ),
               SizedBox(height: height / 7.3),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -141,9 +138,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
             key: formKey,
             child: Column(
               children: [
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 CustomTextFormField.textField(
                   "receivingwallet".tr(),
                   notifier.getbluecolor,
@@ -180,7 +175,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   validator: validateAmount,
                   onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]')),
                   ],
                 ),
                 SizedBox(height: height / 50),
@@ -197,20 +192,19 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   onSaved: (value) => memo = value,
                   maxLength: 28,
                   controller: _utf8TextController,
-                  buildCounter: (context,
-                      {currentLength, isFocused, maxLength}) {
-                    int utf8Length =
-                        utf8.encode(_utf8TextController.text).length;
-                    return Container(
-                      child: Text(
-                        '$utf8Length/$maxLength',
-                        style: TextStyle(color: notifier.getdarkgrey),
-                      ),
-                    );
-                  },
-                  inputFormatters: [
-                    _Utf8LengthLimitingTextInputFormatter(28),
-                  ],
+                  buildCounter:
+                      (context, {currentLength, isFocused, maxLength}) {
+                        int utf8Length = utf8
+                            .encode(_utf8TextController.text)
+                            .length;
+                        return Container(
+                          child: Text(
+                            '$utf8Length/$maxLength',
+                            style: TextStyle(color: notifier.getdarkgrey),
+                          ),
+                        );
+                      },
+                  inputFormatters: [_Utf8LengthLimitingTextInputFormatter(28)],
                 ),
               ],
             ),
@@ -260,7 +254,6 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
   }
 
   submitForm() async {
-    print('submitting form...');
     try {
       showLoader(context);
       Map responseData = await makeGetRequest(
@@ -271,11 +264,9 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
         publicKey: wallet.publicKey!,
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        print('this is responseData ${responseData['data']}');
         appState.viewData = {
           'qrCode': responseData['data']['qrCode'],
           'dynamicLink': responseData['data']['dynamicLink'],
@@ -285,14 +276,17 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
           'walletAlias': wallet.alias,
         };
         appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: RequestSpecificPaymentDetailsViewPageConfig);
+          state: PageState.addPage,
+          page: RequestSpecificPaymentDetailsViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
-      print(e);
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
     }
@@ -301,7 +295,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
 
 class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
   _Utf8LengthLimitingTextInputFormatter(this.maxLength)
-      : assert(maxLength == -1 || maxLength > 0);
+    : assert(maxLength == -1 || maxLength > 0);
 
   final int maxLength;
 
