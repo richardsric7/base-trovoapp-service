@@ -16,15 +16,11 @@ platform :ios do
   end
 
   def bump_build_number()
-    latest_build_number = latest_testflight_build_number(
-      app_identifier: "com.trovo.wallet",
-      initial_build_number: 0
-    )
-    return (latest_build_number + 1)
+    latest_build_number = ENV["VERSION_NAME"]
   end  
 
   def get_version_name()
-    version_name = lane_context[SharedValues::LATEST_TESTFLIGHT_VERSION]
+    version_name = ENV["VERSION_NAME"]
   
     if version_name.empty?
       puts "*** Version name is empty, add version 1.0.0 ***"

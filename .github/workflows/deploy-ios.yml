@@ -22,6 +22,19 @@ jobs:
         with:
           flutter-version: '3.32.0' # update if needed
 
+      # Get Flutter version from pubspec.yaml
+      - name: Get Flutter Version
+        id: flutter_version
+        uses: bungabear/flutter_version_read@main
+        with:
+          file: ./pubspec.yaml
+
+      - name: Flutter App Version Number
+        run: echo 'version_number:' ${{ steps.flutter_version.outputs.version_number }}
+
+      - name: Flutter App Build Number
+        run: echo 'build_number:' ${{ steps.flutter_version.outputs.build_number }}
+
       - name: Install Flutter dependencies
         run: |
           flutter pub cache clean
@@ -51,3 +64,5 @@ jobs:
           APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.GIT_PAT_TOKEN }}
+          VERSION_NAME: ${{ steps.flutter_version.outputs.version_number }}
+          BUILD_NUMBER: ${{ steps.flutter_version.outputs.build_number }}
