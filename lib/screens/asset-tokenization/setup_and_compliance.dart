@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/network/requests.dart';
@@ -31,7 +32,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late ColorNotifier notifier;
   late DataProvider appState;
   String selectedCountry = '';
-  // bool hasCustodianAgreement = true;
+  final equityPercentageController = TextEditingController();
+  final debtPercentageController = TextEditingController();
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
   bool agreeTransferTitleToCustodian = false;
@@ -39,6 +41,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
   bool assetExisting = false;
+  int fundingStructure = 0;
   String proceedPayoutCurrency = '';
   String assetQuoteCurrency = '';
   String selectedAssetSectorId = '';
@@ -479,6 +482,234 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     ),
                   ],
+                ),
+              ],
+            ),
+            SizedBox(height: height / 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "fundingstructure".tr(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
+                child: Text(
+                  "selectfundingstructure".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: height / 50),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Transform.scale(
+                        scale: 1,
+                        child: Radio<int>(
+                          value: 0,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
+                          groupValue: fundingStructure,
+                          onChanged: (value) => {
+                            setState(() {
+                              fundingStructure = value!;
+                            }),
+                          },
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "equity".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 70),
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Transform.scale(
+                        scale: 1,
+                        child: Radio<int>(
+                          value: 1,
+                          groupValue: fundingStructure,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
+                          onChanged: (value) => {
+                            setState(() {
+                              fundingStructure = value!;
+                            }),
+                          },
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "debt".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 70),
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Transform.scale(
+                        scale: 1,
+                        child: Radio<int>(
+                          value: 2,
+                          groupValue: fundingStructure,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
+                          onChanged: (value) => {
+                            setState(() {
+                              fundingStructure = value!;
+                            }),
+                          },
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "hybrid".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'What is the equity percentage (%)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    "How much (%)",
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    85,
+                    width / 1.12,
+                    onChanged: (value) {},
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "fieldcannotbeempty".tr();
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {},
+                    autoFormatNumber: true,
+                    isFiat: true,
+                    controller: equityPercentageController,
+                    keyboardtype: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'What is the debt percentage (%)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: height / 50),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    "How much (%)",
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    85,
+                    width / 1.12,
+                    onChanged: (value) {},
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "fieldcannotbeempty".tr();
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {},
+                    autoFormatNumber: true,
+                    isFiat: true,
+                    controller: debtPercentageController,
+                    keyboardtype: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  ),
                 ),
               ],
             ),

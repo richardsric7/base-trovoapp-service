@@ -114,7 +114,8 @@ const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
 const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
 const String KycScreenViewPath = '/KycScreenView';
 const String FlutterwaveWebViewPath = '/FlutterwaveWebView';
-const String AboutTrovoViewPath = '/FlutterwaveWebView';
+const String AboutTrovoViewPath = '/AboutTrovoView';
+const String UpcomingAssetInformationViewPath = '/UpcomingAssetInformationView';
 
 enum Pages {
   Splash,
@@ -232,6 +233,7 @@ enum Pages {
   KycScreenView,
   FlutterwaveWebView,
   AboutTrovoView,
+  UpcomingAssetInformationView,
 }
 
 class PageConfiguration {
@@ -890,5 +892,11 @@ PageConfiguration AboutTrovoViewPageConfig = PageConfiguration(
   key: 'AboutTrovoView',
   path: AboutTrovoViewPath,
   uiPage: Pages.AboutTrovoView,
+  currentPageAction: null,
+);
+PageConfiguration UpcomingAssetInformationViewPageConfig = PageConfiguration(
+  key: 'UpcomingAssetInformationView',
+  path: UpcomingAssetInformationViewPath,
+  uiPage: Pages.UpcomingAssetInformationView,
   currentPageAction: null,
 );

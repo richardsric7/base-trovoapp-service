@@ -88,7 +88,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: AssetInformationViewPageConfig,
+                  page: appState.viewData!['assetAlreadyExists'] == 1
+                      ? AssetInformationViewPageConfig
+                      : UpcomingAssetInformationViewPageConfig,
                 );
               },
             ),

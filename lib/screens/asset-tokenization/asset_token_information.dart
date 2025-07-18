@@ -1584,12 +1584,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Text(
-                            "listrequirements".tr(),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
+                          child: Container(
+                            width: 340,
+                            child: Text(
+                              "Describe additional KYC requirements (Describe specific documents or identity checks required)",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
                             ),
                           ),
                         ),
@@ -1630,12 +1633,336 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ],
                 ],
               ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Investor Category Eligibilty (Define categories of eligible investors)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      // walletToHoldAssetsNotForSale = value.toString();
+                    });
+                  },
+                  getStandardWallets,
+                  getStandardWallets
+                          .where(
+                            (wallet) =>
+                                wallet.value == walletToHoldAssetsNotForSale,
+                          )
+                          .isEmpty
+                      ? null
+                      : walletToHoldAssetsNotForSale,
+                  'selectwallet'.tr(),
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (value == null || value.toString().isEmpty) {
+                    //   return "fieldcannotbeempty".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Minimum KYC Tier Required (Select platform verification tier requred to invest)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      // walletToHoldAssetsNotForSale = value.toString();
+                    });
+                  },
+                  getStandardWallets,
+                  getStandardWallets
+                          .where(
+                            (wallet) =>
+                                wallet.value == walletToHoldAssetsNotForSale,
+                          )
+                          .isEmpty
+                      ? null
+                      : walletToHoldAssetsNotForSale,
+                  'selectwallet'.tr(),
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (value == null || value.toString().isEmpty) {
+                    //   return "fieldcannotbeempty".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Investment Suitability Disclaimer",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Container(
                     width: width / 1.09,
                     child: checkBoxItem(
-                      text: "investormustbeaccredited".tr(),
+                      text:
+                          "I acknowledge that I have reviewed the suitability criteria",
+                      value: investorAccreditationRequired,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          investorAccreditationRequired =
+                              !investorAccreditationRequired;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 30),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Final Declaration and Attestation",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Authorized representative name",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: beneficiaryName,
+                      onChanged: (value) {
+                        setState(() {
+                          beneficiaryName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          beneficiaryName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Position/Title of authorized Representative",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: beneficiaryName,
+                      onChanged: (value) {
+                        setState(() {
+                          beneficiaryName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          beneficiaryName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Contact email of authorized representative",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: beneficiaryName,
+                      onChanged: (value) {
+                        setState(() {
+                          beneficiaryName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          beneficiaryName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Container(
+                    width: width / 1.09,
+                    child: checkBoxItem(
+                      text:
+                          "I attest that the information provided is accurate and verifiable",
+                      value: investorAccreditationRequired,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          investorAccreditationRequired =
+                              !investorAccreditationRequired;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Container(
+                    width: width / 1.09,
+                    child: checkBoxItem(
+                      text: "I accept the Tokenization Terms and Agreement",
                       value: investorAccreditationRequired,
                       onChanged: (bool? value) {
                         setState(() {
