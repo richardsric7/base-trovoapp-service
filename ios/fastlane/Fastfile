@@ -15,8 +15,8 @@ platform :ios do
     load_asc_api_token
   end
 
-  def bump_build_number()
-    latest_build_number = ENV["VERSION_NAME"]
+  def bump_build_number()    
+    return ENV["BUILD_NUMBER"]
   end  
 
   def get_version_name()
