@@ -27,11 +27,11 @@ platform :ios do
   def update_ios_version(version_name, build_number)
     increment_version_number(
       version_number: version_name,
-      xcodeproj: "ios/Runner.xcodeproj"
+      xcodeproj: "Runner.xcodeproj"
     )
     increment_build_number(
       build_number: build_number,
-      xcodeproj: "ios/Runner.xcodeproj"
+      xcodeproj: "Runner.xcodeproj"
     )
     puts "*** Updated iOS version to #{version_name} (#{build_number}) ***"
   end
