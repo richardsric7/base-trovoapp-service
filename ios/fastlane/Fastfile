@@ -1,4 +1,4 @@
-platform :ios do 
+platform :ios do
   desc "Load the App Store Connect API token"
   lane :load_asc_api_token do
     app_store_connect_api_key(
@@ -23,6 +23,19 @@ platform :ios do
     return ENV["VERSION_NAME"]
   end
 
+  # 🆕 New function to update version in Xcode project
+  def update_ios_version(version_name, build_number)
+    increment_version_number(
+      version_number: version_name,
+      xcodeproj: "ios/Runner.xcodeproj"
+    )
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "ios/Runner.xcodeproj"
+    )
+    puts "*** Updated iOS version to #{version_name} (#{build_number}) ***"
+  end
+
   desc "Release a new build to Apple Store"
   lane :release_beta do
     setup_ci
@@ -42,6 +55,10 @@ platform :ios do
     
     build_number = bump_build_number
     version_name = get_version_name
+
+    # 🆕 Update iOS version & build number in Xcode project
+    update_ios_version(version_name, build_number)
+
     Dir.chdir "../.." do
       puts "*** Current directory: #{Dir.pwd} ***"
       # sh("flutter", "doctor", "--verbose")
