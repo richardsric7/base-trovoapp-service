@@ -19,15 +19,8 @@ platform :ios do
     return ENV["BUILD_NUMBER"]
   end  
 
-  def get_version_name()
-    version_name = ENV["VERSION_NAME"]
-  
-    if version_name.empty?
-      puts "*** Version name is empty, add version 1.0.0 ***"
-      version_name = "0.0.83"
-    end
-  
-    return version_name
+  def get_version_name()  
+    return ENV["VERSION_NAME"]
   end
 
   desc "Release a new build to Apple Store"
