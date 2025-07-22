@@ -45,11 +45,8 @@ class _BottomHomeState extends State<BottomHome> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return UpgradeAlert(
-      child: WillPopScope(
-        onWillPop: () {
-          Navigator.pop(context);
-          return Future.value(false);
-        },
+      child: PopScope(
+        canPop: false, // false blocks back by default
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           bottomNavigationBar: BottomNavigationBar(
