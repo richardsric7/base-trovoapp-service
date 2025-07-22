@@ -562,6 +562,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                           child: Container(
+                            height: height / 4,
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: notifier.getbluewhitecolor,
@@ -570,15 +571,19 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                               borderRadius: const BorderRadius.all(
                                 Radius.circular(15.0),
                               ),
-                              color: notifier.isDark
-                                  ? darktilewhitecolor
-                                  : notifier.getaddsubwalletgrey,
+                              color: notifier.getwihitecolor,
                             ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 10,
                               children: [
+                                Icon(
+                                  Icons.add_circle_sharp,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                                 SizedBox(
                                   width: width / 1.2,
-                                  height: height / 6,
                                   child: Center(
                                     child: Wrap(
                                       alignment: WrapAlignment.center,
@@ -597,6 +602,59 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                   ),
                                 ),
                                 const SizedBox(height: 2),
+                                if (true) ...[
+                                  Container(
+                                    width: 300,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(15.0),
+                                      ),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        getFile();
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "11 images uploaded",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontFamily: fontsemibold,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                ),
+                                              ),
+                                              Icon(
+                                                Icons.fullscreen_outlined,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Image.network(
+                                                'https://picsum.photos/50/50',
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -621,21 +679,6 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                       ),
                     ),
                   ],
-                ),
-              ],
-              if (true) ...[
-                GestureDetector(
-                  onTap: () {
-                    getFile();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Image.network(
-                      'https://picsum.photos/200/300',
-                      width: width / 1.3,
-                      height: height / 6,
-                    ),
-                  ),
                 ),
               ],
               SizedBox(height: height / 50),

@@ -116,6 +116,8 @@ const String KycScreenViewPath = '/KycScreenView';
 const String FlutterwaveWebViewPath = '/FlutterwaveWebView';
 const String AboutTrovoViewPath = '/AboutTrovoView';
 const String UpcomingAssetInformationViewPath = '/UpcomingAssetInformationView';
+const String AssetVerificationDocumentOptionsViewPath =
+    '/AssetVerificationDocumentOptionsView';
 
 enum Pages {
   Splash,
@@ -234,6 +236,7 @@ enum Pages {
   FlutterwaveWebView,
   AboutTrovoView,
   UpcomingAssetInformationView,
+  AssetVerificationDocumentOptionsView,
 }
 
 class PageConfiguration {
@@ -900,3 +903,10 @@ PageConfiguration UpcomingAssetInformationViewPageConfig = PageConfiguration(
   uiPage: Pages.UpcomingAssetInformationView,
   currentPageAction: null,
 );
+PageConfiguration AssetVerificationDocumentOptionsViewPageConfig =
+    PageConfiguration(
+      key: 'AssetVerificationDocumentOptionsView',
+      path: AssetVerificationDocumentOptionsViewPath,
+      uiPage: Pages.AssetVerificationDocumentOptionsView,
+      currentPageAction: null,
+    );

@@ -491,7 +491,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               child: Row(
                 children: [
                   Text(
-                    "fundingstructure".tr(),
+                    "Funding Structure",
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -506,7 +506,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               child: Container(
                 width: width,
                 child: Text(
-                  "selectfundingstructure".tr(),
+                  "Select funding structure",
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 15,
@@ -541,7 +541,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     ),
                     Text(
-                      "equity".tr(),
+                      "Equity",
                       style: TextStyle(
                         fontSize: 14,
                         fontFamily: fontbody,
@@ -573,7 +573,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     ),
                     Text(
-                      "debt".tr(),
+                      "Debt",
                       style: TextStyle(
                         fontSize: 14,
                         fontFamily: fontbody,
@@ -605,7 +605,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     ),
                     Text(
-                      "hybrid".tr(),
+                      "Hybrid",
                       style: TextStyle(
                         fontSize: 14,
                         fontFamily: fontbody,

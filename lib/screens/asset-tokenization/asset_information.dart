@@ -432,6 +432,153 @@ class _AssetInformation extends State<AssetInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
+                      "Upload Asset Images",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      getFile();
+                    },
+                    child: Column(
+                      children: [
+                        SizedBox(height: height / 50),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                          child: Container(
+                            height: height / 4,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(15.0),
+                              ),
+                              color: notifier.getwihitecolor,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 10,
+                              children: [
+                                Icon(
+                                  Icons.add_circle_sharp,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                                SizedBox(
+                                  width: width / 1.2,
+                                  child: Center(
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        Text(
+                                          "browsefiles".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontsemibold,
+                                            fontSize: 12.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                if (true) ...[
+                                  Container(
+                                    width: 300,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(15.0),
+                                      ),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        getFile();
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "11 images uploaded",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontFamily: fontsemibold,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                ),
+                                              ),
+                                              Icon(
+                                                Icons.fullscreen_outlined,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Image.network(
+                                                'https://picsum.photos/50/50',
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (true) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'Please upload asset images',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
                       "enterassetphysicaladdress".tr(),
                       style: TextStyle(
                         fontSize: 12,
@@ -2388,6 +2535,1234 @@ class _AssetInformation extends State<AssetInformation>
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: height / 30),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Debt Instrument Structure",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Debt Instrument Type",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Loan Tenor (Total Repayment Period in Months)",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Grace Period",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Repayment Frequency",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Repayment Schedule",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      getFile();
+                    },
+                    child: Column(
+                      children: [
+                        SizedBox(height: height / 50),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(15.0),
+                              ),
+                              color: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  width: width / 1.2,
+                                  height: height / 6,
+                                  child: Center(
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        Text(
+                                          "browsefiles".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontsemibold,
+                                            fontSize: 12.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (true) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'Please upload file',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (true) ...[
+                GestureDetector(
+                  onTap: () {
+                    getFile();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Image.network(
+                      'https://picsum.photos/200/200',
+                      width: width / 1.3,
+                      height: height / 6,
+                    ),
+                  ),
+                ),
+              ],
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Interest Rate (Coupon Rate-Fixed or Floating rate)",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Interest Repayment Frequency",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Principal Payment Method",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Repayment Source",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: multilineInput(
+                      'What cash flows will be used to repay debt (e.g. rental income, operation revenue)',
+                      notifier.getbluecolor,
+                      notifier.getgrey,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetDescription = value!;
+                        });
+                      },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Security/Collateral Offered",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Guarantees/Enhancements",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Default & Recovery Terms",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: multilineInput(
+                      'What happens in case of missed payment',
+                      notifier.getbluecolor,
+                      notifier.getgrey,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetDescription = value!;
+                        });
+                      },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 30),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Creditworthiness and Coverage Ratios",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Debt Service Coverage Ratio (DSCR) (Minimum DSCR expected)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Loan-to-Value Ratio (LTV)",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Interest Coverage Ratio (ICR)",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Maximum Leverage Ratio if any (optional)",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Investor Protections (Specific to Debt)",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Trustee Appointed?",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: true,
+                            groupValue: true,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            onChanged: (value) => {
+                              // setState(() {
+                              //   hasAllRequiredManagerDocuments = value!;
+                              // }),
+                            },
+                          ),
+                        ),
+                        Text(
+                          "yes".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: false,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            groupValue: false,
+                            onChanged: (value) => {
+                              // setState(() {
+                              //   hasAllRequiredManagerDocuments = value!;
+                              // }),
+                            },
+                          ),
+                        ),
+                        Text(
+                          "no".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Name of bond/debt trustee",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      // initialValue: projectDevelopmentTimeline,
+                      onChanged: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value;
+                        });
+                      },
+                      validator: (value) {
+                        // if (value.isEmpty) {
+                        //   return "fieldcannotbeempty".tr();
+                        // }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          // projectDevelopmentTimeline = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Reserve Fund in Place?",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: true,
+                            groupValue: true,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            onChanged: (value) => {
+                              // setState(() {
+                              //   hasAllRequiredManagerDocuments = value!;
+                              // }),
+                            },
+                          ),
+                        ),
+                        Text(
+                          "yes".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: false,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            groupValue: false,
+                            onChanged: (value) => {
+                              // setState(() {
+                              //   hasAllRequiredManagerDocuments = value!;
+                              // }),
+                            },
+                          ),
+                        ),
+                        Text(
+                          "no".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Debt service reserve account (DSRA) details",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: multilineInput(
+                      'Give details',
+                      notifier.getbluecolor,
+                      notifier.getgrey,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetDescription = value!;
+                        });
+                      },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Sinking Fund Structure (Gradual principal repayment details)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: multilineInput(
+                      'Give details',
+                      notifier.getbluecolor,
+                      notifier.getgrey,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetDescription = value!;
+                        });
+                      },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 330,
+                      child: Text(
+                        "Covenant Monitoring Agent (Entity overseeing covenant compliance)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: multilineInput(
+                      'Give details',
+                      notifier.getbluecolor,
+                      notifier.getgrey,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetDescription = value!;
+                        });
+                      },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    textAlign: TextAlign.left,
+                    "Right of Recourse",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select asset ownership',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
               ),
               SizedBox(height: height / 30),
               Button(
