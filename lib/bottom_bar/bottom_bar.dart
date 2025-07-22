@@ -62,77 +62,85 @@ class _BottomHomeState extends State<BottomHome> {
           showUnselectedLabels: true,
           items: [
             BottomNavigationBarItem(
-                backgroundColor: notifire.getwihitecolor,
-                icon: AnimatedContainer(
-                  duration: Duration(milliseconds: 2000),
-                  curve: Curves.fastOutSlowIn,
-                  child: Image.asset(
-                    "assets/images/home.png",
-                    color: _selectedIndex == ButtomTabPage.Dashboard.index
-                        ? notifire.isDark
+              backgroundColor: notifire.getwihitecolor,
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 2000),
+                curve: Curves.fastOutSlowIn,
+                child: Image.asset(
+                  "assets/images/home.png",
+                  color: _selectedIndex == ButtomTabPage.Dashboard.index
+                      ? notifire.isDark
                             ? wihitecolor
                             : notifire.getbottombarblue
-                        : notifire.getgrey.withOpacity(.80),
-                    height: _selectedIndex == ButtomTabPage.Dashboard.index
-                        ? height / 37
-                        : height / 45,
-                    fit: BoxFit.contain,
-                  ),
+                      : notifire.getgrey.withOpacity(.80),
+                  height: _selectedIndex == ButtomTabPage.Dashboard.index
+                      ? height / 37
+                      : height / 45,
+                  fit: BoxFit.contain,
                 ),
-                label: "home".tr()),
+              ),
+              label: "home".tr(),
+            ),
             BottomNavigationBarItem(
-                backgroundColor: notifire.getwihitecolor,
-                icon: AnimatedContainer(
-                  duration: Duration(milliseconds: 2000),
-                  curve: Curves.fastOutSlowIn,
-                  child: Image.asset(
-                    "assets/images/wallets.png",
-                    color: _selectedIndex == ButtomTabPage.Wallets.index
-                        ? notifire.isDark
+              backgroundColor: notifire.getwihitecolor,
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 2000),
+                curve: Curves.fastOutSlowIn,
+                child: Image.asset(
+                  "assets/images/wallets.png",
+                  color: _selectedIndex == ButtomTabPage.Wallets.index
+                      ? notifire.isDark
                             ? wihitecolor
                             : notifire.getbottombarblue
-                        : notifire.getgrey.withOpacity(.80),
-                    height: _selectedIndex == ButtomTabPage.Wallets.index
-                        ? height / 39
-                        : height / 50,
-                    fit: BoxFit.fitHeight,
-                  ),
+                      : notifire.getgrey.withOpacity(.80),
+                  height: _selectedIndex == ButtomTabPage.Wallets.index
+                      ? height / 39
+                      : height / 50,
+                  fit: BoxFit.fitHeight,
                 ),
-                label: "wallets".tr()),
+              ),
+              label: "wallets".tr(),
+            ),
             BottomNavigationBarItem(
-                backgroundColor: notifire.getwihitecolor,
-                icon: AnimatedContainer(
-                  duration: Duration(milliseconds: 2000),
-                  curve: Curves.fastOutSlowIn,
-                  child: Image.asset("assets/images/history.png",
-                      color: _selectedIndex ==
-                              ButtomTabPage.TransactionHistory.index
-                          ? notifire.isDark
-                              ? wihitecolor
-                              : notifire.getbottombarblue
-                          : notifire.getgrey.withOpacity(.80),
-                      height: _selectedIndex ==
-                              ButtomTabPage.TransactionHistory.index
-                          ? height / 37
-                          : height / 45),
+              backgroundColor: notifire.getwihitecolor,
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 2000),
+                curve: Curves.fastOutSlowIn,
+                child: Image.asset(
+                  "assets/images/history.png",
+                  color:
+                      _selectedIndex == ButtomTabPage.TransactionHistory.index
+                      ? notifire.isDark
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                      : notifire.getgrey.withOpacity(.80),
+                  height:
+                      _selectedIndex == ButtomTabPage.TransactionHistory.index
+                      ? height / 37
+                      : height / 45,
                 ),
-                label: "history".tr()),
+              ),
+              label: "history".tr(),
+            ),
             BottomNavigationBarItem(
-                backgroundColor: notifire.getwihitecolor,
-                icon: AnimatedContainer(
-                  duration: Duration(milliseconds: 2000),
-                  curve: Curves.fastOutSlowIn,
-                  child: Image.asset("assets/images/swap.png",
-                      color: _selectedIndex == ButtomTabPage.Swap.index
-                          ? notifire.isDark
-                              ? wihitecolor
-                              : notifire.getbottombarblue
-                          : notifire.getgrey.withOpacity(.80),
-                      height: _selectedIndex == ButtomTabPage.Swap.index
-                          ? height / 37
-                          : height / 45),
+              backgroundColor: notifire.getwihitecolor,
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 2000),
+                curve: Curves.fastOutSlowIn,
+                child: Image.asset(
+                  "assets/images/swap.png",
+                  color: _selectedIndex == ButtomTabPage.Swap.index
+                      ? notifire.isDark
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                      : notifire.getgrey.withOpacity(.80),
+                  height: _selectedIndex == ButtomTabPage.Swap.index
+                      ? height / 37
+                      : height / 45,
                 ),
-                label: "swap".tr()),
+              ),
+              label: "swap".tr(),
+            ),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
               icon: AnimatedContainer(
@@ -142,8 +150,8 @@ class _BottomHomeState extends State<BottomHome> {
                   "assets/images/tokenization.png",
                   color: _selectedIndex == ButtomTabPage.Settings.index
                       ? notifire.isDark
-                          ? wihitecolor
-                          : notifire.getbottombarblue
+                            ? wihitecolor
+                            : notifire.getbottombarblue
                       : notifire.getgrey.withOpacity(.80),
                   height: _selectedIndex == ButtomTabPage.Settings.index
                       ? height / 37
@@ -187,8 +195,11 @@ class _BottomHomeState extends State<BottomHome> {
 
   void _onItemTapped(int index) {
     changeTabMethod(index);
-    _controller.animateToPage(index,
-        duration: const Duration(milliseconds: 500), curve: Curves.ease);
+    _controller.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.ease,
+    );
   }
 
   final List<Widget> _pages = [
