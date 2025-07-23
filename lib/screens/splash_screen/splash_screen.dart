@@ -50,7 +50,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     appState.appVersion = packageInfo.version;
-
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: notifier.isDark ? Color(0xFF00225A) : Colors.white,
@@ -59,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen>
             : Brightness.dark,
         systemNavigationBarColor: notifier.isDark
             ? Color(0xFF00225A)
-            : const Color.fromARGB(255, 2, 1, 1),
+            : Colors.white,
         systemNavigationBarIconBrightness: notifier.isDark
             ? Brightness.light
             : Brightness.dark,
