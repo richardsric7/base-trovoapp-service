@@ -559,7 +559,7 @@ export default function WalletView() {
   ));
 
   return (
-    <div className="flex text-primary-800 text-sm overflow-x-hidden md:text-md flex-col space-y-5 p-3">
+    <div className="flex text-primary-800 text-sm overflow-x-hidden md:text-md flex-col space-y-5 p-5">
       <Header isHomeView />
       <div className="flex md:h-screen w-full items-center justify-center">
         <div className="h-full w-full md:p-3">

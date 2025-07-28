@@ -139,7 +139,7 @@ function RecoveryMain() {
             <div className="w-3/4"></div>
             <Modal
               showModal={showHaveYouSetupSecurityQuestion}
-              onClose={() => {}}
+              onClose={() => setShowHaveYouSetupSecurityQuestion(false)}
             >
               <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
                 <div className="flex flex-col text-center space-y-5 items-center w-2/3 mb-5 md:px-10 justify-center">

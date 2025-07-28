@@ -21,6 +21,7 @@ import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuesti
 import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAccount';
 import WalletView from '../pages/dashboard/walletView';
 import SendAssetReceipt from '../pages/pdfPages/sendAssetReceipt';
+import { History } from '../pages/dashboard/history';
 
 export default function AppRouter() {
   return (
@@ -59,6 +60,7 @@ export default function AppRouter() {
             <Route index element={<Home />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
             <Route path="wallet" element={<WalletView />} />
+            <Route path="history" element={<History />} />
             <Route
               path="setup-security-questions"
               element={<SetupSecurityQuestions />}

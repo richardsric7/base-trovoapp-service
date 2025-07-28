@@ -3,6 +3,8 @@ type Props = {
   label: string;
   disabled?: boolean;
   onclick: () => void;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   type?: 'button' | 'submit' | 'reset' | undefined;
 };
 
@@ -12,8 +14,10 @@ function Button({
   disabled = false,
   type = 'button',
   additionalClasses = '',
+  leftIcon,
+  rightIcon
 }: Props) {
-  const classes = `bg-primary-800 rounded-lg w-full text-white h-12 disabled:bg-primary-400 ${additionalClasses}`;
+  const classes = `bg-primary-800 rounded-lg flex items-center justify-center gap-3 w-full text-white h-12 disabled:bg-primary-400 ${additionalClasses}`;
   return (
     <button
       disabled={disabled}
@@ -21,7 +25,9 @@ function Button({
       type={type}
       onClick={onclick}
     >
+      {leftIcon}
       {label}
+      {rightIcon}
     </button>
   );
 }
