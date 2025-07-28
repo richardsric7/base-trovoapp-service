@@ -118,6 +118,15 @@ const String AboutTrovoViewPath = '/AboutTrovoView';
 const String UpcomingAssetInformationViewPath = '/UpcomingAssetInformationView';
 const String AssetVerificationDocumentOptionsViewPath =
     '/AssetVerificationDocumentOptionsView';
+const String DebtMutualFundsAssetInformationViewPath =
+    '/DebtMutualFundsAssetInformationView';
+const String EquityMutualFundsAssetInformationViewPath =
+    '/EquityMutualFundsAssetInformationView';
+const String HybridMutualFundsAssetInformationViewPath =
+    '/HybridMutualFundsAssetInformationView';
+const String BondAssetInformationViewPath = '/BondAssetInformationView';
+const String CorporateBondAssetInformationViewPath =
+    '/CorporateBondAssetInformationView';
 
 enum Pages {
   Splash,
@@ -237,6 +246,11 @@ enum Pages {
   AboutTrovoView,
   UpcomingAssetInformationView,
   AssetVerificationDocumentOptionsView,
+  DebtMutualFundsAssetInformationView,
+  EquityMutualFundsAssetInformationView,
+  HybridMutualFundsAssetInformationView,
+  BondAssetInformationView,
+  CorporateBondAssetInformationView,
 }
 
 class PageConfiguration {
@@ -908,5 +922,39 @@ PageConfiguration AssetVerificationDocumentOptionsViewPageConfig =
       key: 'AssetVerificationDocumentOptionsView',
       path: AssetVerificationDocumentOptionsViewPath,
       uiPage: Pages.AssetVerificationDocumentOptionsView,
+      currentPageAction: null,
+    );
+PageConfiguration DebtMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'DebtMutualFundsAssetInformationView',
+      path: DebtMutualFundsAssetInformationViewPath,
+      uiPage: Pages.DebtMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration EquityMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'EquityMutualFundsAssetInformationView',
+      path: EquityMutualFundsAssetInformationViewPath,
+      uiPage: Pages.EquityMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration HybridMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'HybridMutualFundsAssetInformationView',
+      path: HybridMutualFundsAssetInformationViewPath,
+      uiPage: Pages.HybridMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration BondAssetInformationViewPageConfig = PageConfiguration(
+  key: 'BondAssetInformationView',
+  path: BondAssetInformationViewPath,
+  uiPage: Pages.BondAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration CorporateBondAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'CorporateBondAssetInformationView',
+      path: CorporateBondAssetInformationViewPath,
+      uiPage: Pages.CorporateBondAssetInformationView,
       currentPageAction: null,
     );

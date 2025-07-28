@@ -20,8 +20,13 @@ import 'package:trovo_app/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_app/bottom_bar/bottom_bar.dart';
 import 'package:trovo_app/screens/asset-tokenization/asset_verification_document_options.dart';
+import 'package:trovo_app/screens/asset-tokenization/bond_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
+import 'package:trovo_app/screens/asset-tokenization/corporate_bond_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/debt_mutual_funds_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/equity_mutual_funds_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/hybrid_mutual_funds_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/upcoming_asset_information.dart';
 import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
@@ -576,6 +581,34 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             AssetVerificationDocumentOptionsView(),
             AssetVerificationDocumentOptionsViewPageConfig,
           );
+        case Pages.DebtMutualFundsAssetInformationView:
+          _addPageData(
+            DebtMutualFundsAssetInformationView(),
+            DebtMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.EquityMutualFundsAssetInformationView:
+          _addPageData(
+            EquityMutualFundsAssetInformationView(),
+            EquityMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.HybridMutualFundsAssetInformationView:
+          _addPageData(
+            HybridMutualFundsAssetInformationView(),
+            HybridMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.BondAssetInformationView:
+          _addPageData(
+            BondAssetInformationView(),
+            BondAssetInformationViewPageConfig,
+          );
+        case Pages.CorporateBondAssetInformationView:
+          _addPageData(
+            CorporateBondAssetInformationView(),
+            CorporateBondAssetInformationViewPageConfig,
+          );
           break;
         default:
           break;
@@ -903,6 +936,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.UpcomingAssetInformationView:
         UpcomingAssetInformationViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DebtMutualFundsAssetInformationView:
+        DebtMutualFundsAssetInformationViewPageConfig.currentPageAction =
+            action;
         break;
       default:
         break;

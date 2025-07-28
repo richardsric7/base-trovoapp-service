@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -88,9 +90,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: appState.viewData!['assetAlreadyExists'] == 1
-                      ? AssetInformationViewPageConfig
-                      : UpcomingAssetInformationViewPageConfig,
+                  page: getFormPage(),
                 );
               },
             ),
@@ -178,6 +178,35 @@ class _TokenizeAssetState extends State<TokenizeAsset>
         ),
       ),
     );
+  }
+
+  PageConfiguration getFormPage() {
+    inspect(appState.viewData);
+    if (appState.viewData!['assetAlreadyExists'] == 1) {
+      return AssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1123') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1124') {
+      return DebtMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1125') {
+      return HybridMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1114') {
+      return BondAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1115') {
+      return CorporateBondAssetInformationViewPageConfig;
+    }
+
+    return UpcomingAssetInformationViewPageConfig;
   }
 
   Widget detailItem(

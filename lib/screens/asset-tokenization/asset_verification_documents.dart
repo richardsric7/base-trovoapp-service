@@ -193,7 +193,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             documentCardItem(
               title: "Asset Information Documents",
               onTap: () {
-                appState.viewData = {'title': 'Asset Information Documents'};
+                appState.viewData!['title'] = 'Asset Information Documents';
                 appState.setPage(
                   page: AssetVerificationDocumentOptionsViewPageConfig,
                 );
@@ -203,7 +203,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             documentCardItem(
               title: "Asset Value and Costing",
               onTap: () {
-                appState.viewData = {'title': 'Asset Value and Costing'};
+                appState.viewData!['title'] = 'Asset Value and Costing';
                 appState.setPage(
                   page: AssetVerificationDocumentOptionsViewPageConfig,
                 );
@@ -213,7 +213,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             documentCardItem(
               title: "Asset Protection Documents",
               onTap: () {
-                appState.viewData = {'title': 'Asset Protection Documents'};
+                appState.viewData!['title'] = 'Asset Protection Documents';
                 appState.setPage(
                   page: AssetVerificationDocumentOptionsViewPageConfig,
                 );
