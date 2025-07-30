@@ -18,14 +18,16 @@ import 'package:trovo_app/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class BondAssetInformationView extends StatefulWidget {
-  const BondAssetInformationView({Key? key}) : super(key: key);
+class CommodityAssetInformationView extends StatefulWidget {
+  const CommodityAssetInformationView({Key? key}) : super(key: key);
 
   @override
-  State<BondAssetInformationView> createState() => _BondAssetInformationView();
+  State<CommodityAssetInformationView> createState() =>
+      _CommodityAssetInformationView();
 }
 
-class _BondAssetInformationView extends State<BondAssetInformationView>
+class _CommodityAssetInformationView
+    extends State<CommodityAssetInformationView>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
@@ -308,7 +310,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
               CustomAppBar(
                 context,
                 notifier.getwihitecolor,
-                "Bond Asset Information",
+                "Commodity Asset Information",
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
@@ -317,12 +319,15 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Row(
                   children: [
-                    Text(
-                      "Bond Issuer and Legal Information",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    SizedBox(
+                      width: 350,
+                      child: Text(
+                        "Commodity, Issuer & Warehouse Information",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
                   ],
@@ -336,7 +341,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Issuer Name (Full name of government body e.g., Federal Ministry of Finance, Lagos State Government)",
+                        "Commodity Type",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -353,7 +358,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "Enter issuer name",
+                      "Enter value",
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -383,7 +388,6 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -391,7 +395,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Issuing Authority (Federal Government, State Government, or Agency)",
+                        "Commodity Description",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -403,33 +407,48 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 ],
               ),
               SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {});
-                  },
-                  [],
-                  null,
-                  'Select type',
-                  context,
-                  null,
-                  validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "pleaseselectassetsector".tr();
-                    // }
-                    return null;
-                  },
-                ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Container(
                   width: width,
                   child: Text(
                     textAlign: TextAlign.left,
-                    "Regulatory Approval ID (Approval/licence from SEC or issuing authority)",
+                    "Quantity",
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontsemibold,
@@ -474,13 +493,12 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "License/Approval Reference Number",
+                      "Quality Grade / Standard",
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -491,40 +509,24 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
               ),
               SizedBox(height: height / 50),
               Row(
@@ -534,7 +536,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Listing Status (Whether the bond is listed on any exchange)",
+                        "Issuer Name",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -581,13 +583,873 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Issuer Type",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
               SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Issuer Contact Information",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Warehouse Name",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Warehouse Operator Name",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Warehouse License Number",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Warehouse Location",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WR Number",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WR Issue Date",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        fundLaunchDate = value;
+                      }),
+                    },
+                  );
+                },
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WR Expiry Date",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        fundLaunchDate = value;
+                      }),
+                    },
+                  );
+                },
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WR System Registration",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WRS Registration Number",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "WR Verifier",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Storage Conditions",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Warehouse Accreditation Body",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Minimum Purchase Amount",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Maturity Date",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        fundLaunchDate = value;
+                      }),
+                    },
+                  );
+                },
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Auto-Rollover",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 30),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Bond Instrument Details",
+                      "Custody, Ownership & Legal",
                       style: TextStyle(
                         fontSize: 18,
                         fontFamily: fontsemibold,
@@ -624,7 +1486,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Bond Name (Official name (e.g., FGN Bond 2025 Series I)",
+                        "Current Beneficial Owner/Legal Holder of WR",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -678,45 +1540,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Bond Type ( (Fixed-Rate, Floating-Rate, Inflation-Linked, Sukuk))",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {});
-                  },
-                  [],
-                  null,
-                  'Select type',
-                  context,
-                  null,
-                  validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "pleaseselectassetsector".tr();
-                    // }
-                    return null;
-                  },
-                ),
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "ISIN/Serial Number (International Securities Identification Number (if any))",
+                        "WR Custodian Name",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -770,7 +1594,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Total Issue Size (Total value of bond being issued)",
+                        "Ownership Rights Represented",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -824,7 +1648,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Currency of Issuance",
+                        "Trustee or Third-party Oversight",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -878,7 +1702,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Issue Date (Date bond is issued)",
+                        "Lien or Encumbrances",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -932,7 +1756,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Maturity Date (Redemption date)",
+                        "Commodity Valuation & Tokenization Terms",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -986,7 +1810,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Tenor (e.g., 5 Years)",
+                        "Asset Valuation",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1040,7 +1864,52 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Face Value per Unit (e.g., ₦1,000)",
+                        "Valuation Date",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        fundLaunchDate = value;
+                      }),
+                    },
+                  );
+                },
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Valuation Methodology",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1092,7 +1961,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Minimum Investment Amount (e.g., ₦5,000)",
+                      "Tokenization Objective",
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -1145,7 +2014,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Coupon Rate Type",
+                        "Holding Period / Lock-in",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1199,7 +2068,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Coupon Rate (Annual interest rate on the bond)",
+                        "Redemption Mechanism",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1211,641 +2080,32 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {});
+                  },
+                  [],
+                  null,
+                  'Select type',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (selectedAssetSectorId.isEmpty) {
+                    //   return "pleaseselectassetsector".tr();
+                    // }
+                    return null;
+                  },
+                ),
               ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Reference Index (Benchmark used for floating rate (e.g., MPR, LIBOR, Inflation Rate)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Spread or Margin (Additional rate above reference index (e.g., 2%))",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Reset Frequency (How often the floating rate is updated)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Coupon Payment Frequency",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Redemption Structure (if any)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Early Redemption Option Callable or Non-Callable (Can the bond be redeemed early?)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Early Redemption Penalty",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Tax Treatment (Description of tax implications for investors-Tax-exempt, Taxable, Withholding Tax, etc.)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "NAV or Market Value Updates (Frequency of valuation reporting)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Summary of use of Proceeds",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Impact Metrics (Jobs created, CO2 saved, etc. if applicable)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Bond Security and Risk Profile",
+                      "Parties Involved",
                       style: TextStyle(
                         fontSize: 18,
                         fontFamily: fontsemibold,
@@ -1863,7 +2123,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        "provideassetvalueinfo",
+                        "**************",
                         style: TextStyle(
                           fontSize: 13,
                           fontFamily: fontbody,
@@ -1882,7 +2142,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Credit Rating (External credit rating of the bond/issuer)",
+                        "Trustee (if applicable)",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1936,7 +2196,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Credit Rating Agency (Name of the rating agency)",
+                        "Underwriter (if any)",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1990,7 +2250,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Legal Backing (Description of legal basis (e.g., backed by appropriation law))",
+                        "Asset Manager (optional)",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2044,7 +2304,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Default History (Disclose if issuer has defaulted on previous obligations)",
+                        "Legal Advisor",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2098,7 +2358,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Risk Factors Summary (Key risks to investor)",
+                        "Auditor / Verifier",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2145,12 +2405,67 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Regulator / Oversight Body",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 30),
               Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Key Entities Involved",
+                      "Risk Disclosures & Insurance",
                       style: TextStyle(
                         fontSize: 18,
                         fontFamily: fontsemibold,
@@ -2168,7 +2483,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        "provideassetvalueinfo",
+                        "**************",
                         style: TextStyle(
                           fontSize: 13,
                           fontFamily: fontbody,
@@ -2187,7 +2502,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Trustee (Entity protecting bondholder interests)",
+                        "Market Risk",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2241,7 +2556,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Paying Agent (Handles coupon payments and redemption)",
+                        "Storage Risk",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2295,7 +2610,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Legal Advisor (Entity handling bond legal documentation)",
+                        "Title Risk",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2349,7 +2664,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Auditor (Entity auditing the bond’s financials)",
+                        "Fraud Risk",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2403,7 +2718,493 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Registrar/CSCS Agent",
+                        "Insurance Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Operational Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Regulatory Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Liquidity Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Force Majeure Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Early Redemption Risk",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Mitigation Measures",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Insurance Coverage Summary",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Insurance Provider",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "Enter value",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: SizedBox(
+                      width: 300,
+                      child: Text(
+                        "Coverage Value",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,

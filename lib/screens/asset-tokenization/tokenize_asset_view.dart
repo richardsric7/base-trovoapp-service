@@ -206,6 +206,10 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       return CorporateBondAssetInformationViewPageConfig;
     }
 
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1182') {
+      return CommodityAssetInformationViewPageConfig;
+    }
+
     return UpcomingAssetInformationViewPageConfig;
   }
 

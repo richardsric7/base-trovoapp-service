@@ -23,6 +23,7 @@ import 'package:trovo_app/screens/asset-tokenization/asset_verification_document
 import 'package:trovo_app/screens/asset-tokenization/bond_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
+import 'package:trovo_app/screens/asset-tokenization/commodity_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/corporate_bond_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/debt_mutual_funds_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/equity_mutual_funds_asset_information.dart';
@@ -608,6 +609,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
             CorporateBondAssetInformationView(),
             CorporateBondAssetInformationViewPageConfig,
+          );
+        case Pages.CommodityAssetInformationView:
+          _addPageData(
+            CommodityAssetInformationView(),
+            CommodityAssetInformationViewPageConfig,
           );
           break;
         default:
