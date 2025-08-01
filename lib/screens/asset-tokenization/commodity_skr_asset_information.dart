@@ -18,16 +18,16 @@ import 'package:trovo_app/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class CommodityAssetInformationView extends StatefulWidget {
-  const CommodityAssetInformationView({Key? key}) : super(key: key);
+class CommoditySKRAssetInformationView extends StatefulWidget {
+  const CommoditySKRAssetInformationView({Key? key}) : super(key: key);
 
   @override
-  State<CommodityAssetInformationView> createState() =>
-      _CommodityAssetInformationView();
+  State<CommoditySKRAssetInformationView> createState() =>
+      _CommoditySKRAssetInformationView();
 }
 
-class _CommodityAssetInformationView
-    extends State<CommodityAssetInformationView>
+class _CommoditySKRAssetInformationView
+    extends State<CommoditySKRAssetInformationView>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
@@ -341,7 +341,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Commodity Type",
+                        "Asset Type",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -395,7 +395,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Commodity Description",
+                        "Asset Description",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -411,22 +411,15 @@ class _CommodityAssetInformationView
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
+                    child: multilineInput(
+                      'Asset Description',
                       notifier.getbluecolor,
-                      null,
                       notifier.getgrey,
-                      null,
                       notifier.getblck,
                       notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
+                      100.sp,
+                      width / 1.12,
+                      initialValue: assetDescription,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -435,9 +428,12 @@ class _CommodityAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          assetDescription = value!;
                         });
                       },
+                      minLines: 3,
+                      maxLines: null,
+                      keyboardtype: TextInputType.multiline,
                     ),
                   ),
                 ],
@@ -683,7 +679,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Warehouse Name",
+                        "Vault/Custodian Name",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -737,7 +733,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Warehouse Operator Name",
+                        "Vault Operator",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -791,7 +787,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Warehouse License Number",
+                        "Vault License Number",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -845,7 +841,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Warehouse Location",
+                        "Vault Location",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -899,7 +895,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WR Number",
+                        "SKR Number",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -953,7 +949,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WR Issue Date",
+                        "SKR Issue Date",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -998,7 +994,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WR Expiry Date",
+                        "SKR Expiry Date",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1043,7 +1039,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WR System Registration",
+                        "SKR Registry Record",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1097,61 +1093,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WRS Registration Number",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "WR Verifier",
+                        "SKR Verifier ",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1259,7 +1201,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Warehouse Accreditation Body",
+                        "Vault Accreditation Body",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1486,7 +1428,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Current Beneficial Owner/Legal Holder of WR",
+                        "Current Beneficial Owner/Legal Holder of SKR",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1540,7 +1482,7 @@ class _CommodityAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "WR Custodian Name",
+                        "SKR Custodian Name",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1754,15 +1696,12 @@ class _CommodityAssetInformationView
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Commodity Valuation & Tokenization Terms",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
+                    child: Text(
+                      "Valuation & Tokenization Terms",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),

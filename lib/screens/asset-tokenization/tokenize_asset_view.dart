@@ -210,6 +210,10 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       return CommodityAssetInformationViewPageConfig;
     }
 
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1180') {
+      return CommoditySKRAssetInformationViewPageConfig;
+    }
+
     return UpcomingAssetInformationViewPageConfig;
   }
 
