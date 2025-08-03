@@ -795,9 +795,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
-				if getDestinationWalletError == nil {
-					destinationUser.InvalidateUserCache(gc)
+				if len(destinationUser.ID) > 0 {
 					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+					destinationUser.InvalidateUserCache(gc)
 				}
 				accountSignerUser.InvalidateUserCache(gc)
 				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
