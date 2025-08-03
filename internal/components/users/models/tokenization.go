@@ -140,6 +140,7 @@ type TokenizedAsset struct {
 	ProceedCycle                                 *string                         `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                            *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
 	TokenizationFee                              TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
+	ExcludeSecFee                                int                             `gorm:"default:0" json:"excludeSecFee"`
 	SECTokenizationFeePercent                    float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
 	SECTokenizationFeeFixed                      float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
 	SECTokenizationFeeValue                      float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
@@ -382,6 +383,7 @@ type VetTokenizedAssetJSONInput struct {
 	CountryCode                          string  `json:"CountryCode"`
 	ProceedPayoutCurrency                string  `json:"proceedPayoutCurrency"`
 	AssetQuoteCurrency                   string  `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
+	ExcludeSecFee                        int     `gorm:"default:0" json:"excludeSecFee"`
 }
 
 type TokenizedAssetJSON struct {
@@ -462,6 +464,7 @@ type TokenizedAssetJSON struct {
 	TokenizationFeeID                            uint64                          `json:"tokenizationFeeId"`
 	TokenizationFee                              TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	CountryConfig                                Country                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"countryConfig"`
+	ExcludeSecFee                                int                             `gorm:"default:0" json:"excludeSecFee"`
 	SECTokenizationFeePercent                    float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
 	SECTokenizationFeeFixed                      float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
 	SECTokenizationFeeValue                      float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
@@ -1420,11 +1423,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			}
 
 			// get tokenization fees.
+			if t.ExcludeSecFee == 0 {
+				t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
+				t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
+				secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
+				t.SECTokenizationFeeValue = secFee
+			}
 
-			t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
-			t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
-			secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
-			t.SECTokenizationFeeValue = secFee
 			log.Printf("[UpdateTokenizedAssetFromInput] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
 			{
@@ -1791,11 +1796,14 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 	log.Printf("[UpdateCalculation] Calculated VAT Asset:= %v\n", decimal.NewFromFloat(VATAsset).String())
 
 	if t.AssetCurrentValue > 0 {
+		if t.ExcludeSecFee == 0 {
+			t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
+			t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
+			secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
+			t.SECTokenizationFeeValue = secFee
 
-		t.SECTokenizationFeePercent = cConfig.SECTokenizationFeePercent
-		t.SECTokenizationFeeFixed = cConfig.SECTokenizationFeeFixed
-		secFee = (decimal.NewFromFloat(t.AssetCurrentValue * (cConfig.SECTokenizationFeePercent / 100)).Truncate(7)).Add(decimal.NewFromFloat(cConfig.SECTokenizationFeeFixed).Truncate(7)).InexactFloat64()
-		t.SECTokenizationFeeValue = secFee
+		}
+
 		log.Printf("[UpdateCalculation] Calculated SEC Fee Value:= %v\n", decimal.NewFromFloat(secFee).String())
 
 		{
