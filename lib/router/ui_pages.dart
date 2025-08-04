@@ -131,6 +131,9 @@ const String CommodityAssetInformationViewPath =
     '/CommodityAssetInformationView';
 const String CommoditySKRAssetInformationViewPath =
     '/CommoditySKRAssetInformationView';
+const String MBSAssetInformationViewPath = '/MBSAssetInformationView';
+const String CommercialPapersAssetInformationViewPath =
+    '/CommercialPapersAssetInformationView';
 
 enum Pages {
   Splash,
@@ -257,6 +260,8 @@ enum Pages {
   CorporateBondAssetInformationView,
   CommodityAssetInformationView,
   CommoditySKRAssetInformationView,
+  MBSAssetInformationView,
+  CommercialPapersAssetInformationView,
 }
 
 class PageConfiguration {
@@ -975,5 +980,18 @@ PageConfiguration CommoditySKRAssetInformationViewPageConfig =
       key: 'CommoditySKRAssetInformationView',
       path: CommoditySKRAssetInformationViewPath,
       uiPage: Pages.CommoditySKRAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration MBSAssetInformationViewPageConfig = PageConfiguration(
+  key: 'MBSAssetInformationView',
+  path: MBSAssetInformationViewPath,
+  uiPage: Pages.MBSAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration CommercialPapersAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'CommercialPapersAssetInformationView',
+      path: CommercialPapersAssetInformationViewPath,
+      uiPage: Pages.CommercialPapersAssetInformationView,
       currentPageAction: null,
     );

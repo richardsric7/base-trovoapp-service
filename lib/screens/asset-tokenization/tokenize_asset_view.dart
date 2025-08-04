@@ -214,6 +214,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       return CommoditySKRAssetInformationViewPageConfig;
     }
 
+    if (appState.viewData!['assetType'].toString().toLowerCase() == '1121') {
+      return CommercialPapersAssetInformationViewPageConfig;
+      // return MBSAssetInformationViewPageConfig;
+    }
+
     return UpcomingAssetInformationViewPageConfig;
   }
 
