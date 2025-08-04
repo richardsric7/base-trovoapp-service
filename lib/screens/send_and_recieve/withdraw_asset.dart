@@ -237,9 +237,9 @@ class _WithdrawAsset extends State<WithdrawAsset>
         Flexible(
           child: Text(
             double.tryParse(amount) != null
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset!.assetCode)}"
+                ? "≈ ${formatNumber(double.tryParse(amount) ?? 0)} ${getAssetCode(asset!.assetCode)}"
                 : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
-            textScaleFactor: 1.0,
+            textScaler: TextScaler.linear(1.0),
             style: TextStyle(
               color: notifier.getdarkgrey,
               fontWeight: FontWeight.w400,
@@ -253,7 +253,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
             replacement: Container(),
             child: Text(
               "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
-              textScaleFactor: 1.0,
+              textScaler: TextScaler.linear(1.0),
               textAlign: TextAlign.right,
               style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
             ),

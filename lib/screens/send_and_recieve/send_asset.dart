@@ -166,9 +166,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         Flexible(
           child: Text(
             amount.isNotEmpty
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset!.assetCode)}"
+                ? "≈ ${formatNumber(double.tryParse(amount) ?? 0.0)} ${getAssetCode(asset!.assetCode)}"
                 : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
-            textScaleFactor: 1.0,
+            textScaler: TextScaler.linear(1.0),
             style: TextStyle(
               color: notifier.getdarkgrey,
               fontWeight: FontWeight.w400,
@@ -182,7 +182,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
             replacement: Container(),
             child: Text(
               "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
-              textScaleFactor: 1.0,
+              textScaler: TextScaler.linear(1.0),
               textAlign: TextAlign.right,
               style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
             ),
@@ -245,6 +245,12 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     300.sp,
                     onChanged: (value) {
                       setState(() {
+                        var splitText = value.split('.');
+                        if (splitText.length > 2) {
+                          // remove all dots except the first one.
+                          value = '${splitText[0]}.${splitText[1]}';
+                        }
+
                         amount = trim(value.toString(), '.');
                       });
                     },
@@ -259,9 +265,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     validator: validateAmount,
                     onSaved: (value) =>
                         amount = value.trim().replaceAll(' ', ''),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]')),
-                    ],
                   ),
                   if (!appState.hideBalances) ...[availableBalance()],
                   SizedBox(height: height / 50),

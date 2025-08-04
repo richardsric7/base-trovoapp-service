@@ -202,6 +202,10 @@ class _SplashScreenState extends State<SplashScreen>
 
               fetchNotifications(appState);
               fetchCuratedSwapList(appState);
+              print('=============> appstate linkId ${appState.linkId}');
+              if (appState.linkId.isNotEmpty) {
+                initialDynamicLink = await resolveShortlink(appState.linkId);
+              }
 
               if (initialDynamicLink != null) {
                 appState.processDeepLink(
@@ -416,6 +420,21 @@ class _SplashScreenState extends State<SplashScreen>
             : e.toString(),
       );
     }
+  }
+
+  Future<String> resolveShortlink(String linkId) async {
+    var uri = '/v1/shortlinks/$linkId';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      return responseData['data'].toString();
+    }
+    return '';
   }
 
   @override

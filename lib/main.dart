@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,6 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/back_dispatcher.dart';
 import 'package:trovo_app/router/route_parser.dart';
@@ -100,7 +102,36 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+    final appLinks = AppLinks(); // AppLinks is singleton
+
+    // Subscribe to all events (initial link and further)
+    appLinks.uriLinkStream.listen((uri) {
+      print('this is the uri =========> $uri');
+      print('this is the path =========> ${uri.path.replaceAll('/', '')}');
+      appState.linkId = uri.path.replaceAll('/', '');
+
+      if (appState.appIsOpen) {
+        processShortlink(appState.linkId);
+      }
+    });
     initAppNotification(context, appState);
+  }
+
+  Future<void> processShortlink(String linkId) async {
+    var uri = '/v1/shortlinks/$linkId';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      appState.processDeepLink(
+        context,
+        Uri.parse(responseData['data'].toString()),
+      );
+    }
   }
 
   @override

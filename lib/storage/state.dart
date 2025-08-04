@@ -34,6 +34,7 @@ class DataProvider with ChangeNotifier {
   String timeout = '5'; // 5 minutes
   String? password;
   String appVersion = '';
+  String linkId = '';
   // keep track of the view you'd like to return a user to after certain operations
   PageAction? returnView;
   var assetBalances;

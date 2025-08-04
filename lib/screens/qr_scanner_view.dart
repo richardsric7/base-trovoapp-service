@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
@@ -151,7 +152,12 @@ class _QrScannerState extends State<QrScanner> {
 
     if (rawValue != null) {
       scanResult = rawValue;
-      runDynamicLinks(Uri.parse(scanResult ?? ''));
+      var uri = Uri.parse(scanResult ?? '');
+      if (uri.host == 'trovo.app') {
+        processShortlink(uri.path.replaceAll('/', ''));
+      } else {
+        runDynamicLinks(uri);
+      }
     } else {
       Tooltip(
         message: 'Does that look like a QR Code file to you?',
@@ -159,6 +165,27 @@ class _QrScannerState extends State<QrScanner> {
       );
     }
     setState(() {});
+  }
+
+  Future<void> processShortlink(String linkId) async {
+    var uri = '/v1/shortlinks/$linkId';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState!.primaryWallet.signer!,
+      secretKey: appState!.secretKeys[0], // the primary wallet secret key
+      publicKey: appState!.primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      appState!.processDeepLink(
+        context,
+        Uri.parse(responseData['data'].toString()),
+        rel: 'qrScanner',
+        onCancel: () => setState(() {
+          scanResult = null;
+        }),
+      );
+    }
   }
 
   void runDynamicLinks(uri) async {
