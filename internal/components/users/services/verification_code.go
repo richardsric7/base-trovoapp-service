@@ -1,13 +1,18 @@
 package users
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	users "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	tMail "trovo-wallet-api/internal/mail"
@@ -85,6 +90,57 @@ func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 	s := strconv.FormatUint(uint64(data), 10)
 
 	return s[0:NumberOfCharactersInVerificationCode]
+}
+
+// GenerateRandomCode generates email verification code
+func GenerateRandomCode(codeLength int) string {
+	if codeLength == 0 {
+		codeLength = 14
+	}
+
+	// Create random bytes using crypto/rand
+	randomBytes := make([]byte, 32)
+	_, err := io.ReadFull(rand.Reader, randomBytes)
+	if err != nil {
+		return ""
+	}
+
+	// Hash the random bytes with SHA-256
+	hash := sha256.Sum256(randomBytes)
+	hashStr := hex.EncodeToString(hash[:]) // hex chars are already 0-9 and a-f
+
+	// Allowed characters (a-z, 0-9)
+	allowedChars := "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	// Convert the hash to allowed characters
+	var filtered strings.Builder
+	for _, ch := range hashStr {
+		// map a-f to some letters for full coverage
+		if ch >= 'a' && ch <= 'f' {
+			// shift to random letters from a-z
+			filtered.WriteByte(byte('a' + (ch-'a')%26))
+		} else {
+			filtered.WriteRune(ch)
+		}
+	}
+
+	// Build the final secure code
+	result := make([]byte, codeLength)
+	for i := 0; i < codeLength; i++ {
+		index, err := rand.Int(rand.Reader, bigInt(len(allowedChars)))
+		if err != nil {
+			return ""
+		}
+		result[i] = allowedChars[index.Int64()]
+	}
+
+	return string(result)
+
+}
+
+// Helper to convert int to big.Int
+func bigInt(n int) *big.Int {
+	return new(big.Int).SetInt64(int64(n))
 }
 
 // CheckAndSendVerificationCode checks and sends verification code

@@ -30,7 +30,7 @@ import (
 const TOKEN_LIMIT float64 = 922337203685.00
 
 type GlobalConfig struct {
-	DynamicLinkServiceURLChan  chan string
+	// DynamicLinkServiceURLChan  chan string
 	PushNotificationClient     *messaging.Client
 	FirebaseStorageUploader    *ClientUploader
 	PNSContext                 context.Context
@@ -556,6 +556,18 @@ func (gc *GlobalConfig) SaveKycWebhookData(provider, data string) error {
 	return gc.DB.Save(&t).Error
 }
 
+// DynamicLink is model for saving dybamic links
+type DynamicLink struct {
+	ID   string `json:"linkId"`
+	Link string `json:"link"`
+}
+
+func (gc *GlobalConfig) GetLinkFromShortlinkID(linkID string) (t DynamicLink) {
+
+	gc.DB.Where("id = ?", linkID).First(&t)
+	return
+}
+
 func (gc *GlobalConfig) GetTokenizedAssetByID(tokenizedAssetID string) (t TokenizedAsset) {
 
 	gc.DB.Where("id = ?", tokenizedAssetID).First(&t)
@@ -634,7 +646,6 @@ func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[strin
 
 // GetCuratedAssets returns list of Curated Assets
 func (gc *GlobalConfig) GetCuratedAssetByCode(assetCode string) (asset CuratedAsset) {
-
 
 	dberr := gc.DB.Preload(clause.Associations).Where("asset_code = ?", assetCode).First(&asset).Error
 

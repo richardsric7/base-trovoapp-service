@@ -83,6 +83,19 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		userServices.TradeChartSocketAPI(c, gc)
 
 	})
+	//shortlink
+	router.GET("/v1/shortlinks/:linkID", func(c *gin.Context) {
+		linkID := c.Param("linkID")
+		log.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<shortlink %v detected>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", linkID)
+		dl := gc.GetLinkFromShortlinkID(linkID)
+		if len(dl.ID) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "link invalid"})
+			return
+		}
+		c.JSON(http.StatusOK, dl.Link)
+		return
+
+	})
 
 	router.GET("/v1/users/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error

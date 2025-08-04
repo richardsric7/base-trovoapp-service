@@ -251,6 +251,20 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				publicKeyPayment = false
 			}
 		} else {
+			//check if it is an email
+			if strings.Contains(paymentInfo.Destination, "@") {
+				//an email...replace the user info
+				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				if err == nil {
+					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					if getDestinationWalletError == nil {
+						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Email [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
+						paymentInfo.Destination = destinationUser.Username
+						publicKeyPayment = false
+					}
+				}
+			}
+
 			paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 		}
 
@@ -795,7 +809,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
-				if len(destinationUser.ID) > 0 {
+				if !publicKeyPayment {
+					dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+					destinationUser, _ = dw.GetWalletOwner(gc.DB, gc)
 					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 					destinationUser.InvalidateUserCache(gc)
 				}

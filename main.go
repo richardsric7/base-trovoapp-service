@@ -187,6 +187,10 @@ func main() {
 			log.Println("ENV variable SUPPORT_EMAIL is not set.")
 		}
 
+		if os.Getenv("SHORT_LINKS_BASE_URL") == "" {
+			log.Println("ENV variable SHORT_LINKS_BASE_URL is not set. Using default https://trovo.app")
+		}
+
 	}
 	log.Println("starting migration")
 	//migrate DB models if any
@@ -266,17 +270,6 @@ func main() {
 		redisCache.DeleteFromCache(cacheKey)
 	}
 
-	cas := strings.Split(os.Getenv("FBDL_SERVICE_URLS"), ",")
-	dynamicLinkServiceUrlChan := make(chan string, len(cas))
-
-	if len(cas) >= 1 {
-		for _, u := range cas {
-
-			log.Printf("Firebase Dynamic Links service URL to be used: %v", u)
-			dynamicLinkServiceUrlChan <- u
-		}
-	}
-
 	//global config
 	pnsContext := context.Background()
 	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
@@ -290,14 +283,13 @@ func main() {
 	}
 
 	var globalConfig = sharedconfig.GlobalConfig{
-		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
-		PNSContext:                pnsContext,
-		RedisCache:                &redisCache,
-		DB:                        database,
-		PushNotificationClient:    pnsClient,
-		RoachDB:                   roachDB,
-		BantuExpansionClient:      network.GetBlockchainClient(),
-		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
+		PNSContext:             pnsContext,
+		RedisCache:             &redisCache,
+		DB:                     database,
+		PushNotificationClient: pnsClient,
+		RoachDB:                roachDB,
+		BantuExpansionClient:   network.GetBlockchainClient(),
+		BantuNetworkPassphrase: network.GetBlockchainNetworkPassPhrase(),
 		FirebaseStorageUploader: &sharedconfig.ClientUploader{
 			Client:     storageClient,
 			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
@@ -313,10 +305,7 @@ func main() {
 
 			batchSize := 1
 			var usersWithNoRefLinks []userModels.User
-			dynamicLinkServiceUrl := <-dynamicLinkServiceUrlChan
-			defer func() {
-				dynamicLinkServiceUrlChan <- dynamicLinkServiceUrl
-			}()
+
 			for {
 				e := database.Where("referral_qr_code is null AND suspended = ?", 0).First(&userModels.User{}).Error
 				if e != nil {
@@ -326,7 +315,7 @@ func main() {
 
 				result := database.Where("referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range usersWithNoRefLinks {
-						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &globalConfig)
+						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, &globalConfig)
 						if errLink != nil {
 							continue
 						}

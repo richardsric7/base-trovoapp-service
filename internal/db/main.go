@@ -14,6 +14,7 @@ import (
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/dynamiclinks"
 	SMS "trovo-wallet-api/internal/sms"
 
 	"github.com/ecnepsnai/discord"
@@ -540,6 +541,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.FaucetConfig{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating FaucetConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&dynamiclinks.DynamicLink{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DynamicLink: ", errMigrate)
 		}
 
 		// errMigrate = UserTriggers(gormDB)
