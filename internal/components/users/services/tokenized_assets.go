@@ -3081,8 +3081,6 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		SourceAccount: distributionWallet.ID,
 	})
 
-	//
-
 	//check if issuing account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	_, _, walletAccountNativeBalance, _, _, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
@@ -3326,6 +3324,11 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 	}
 	dbTX.Commit()
+	//log message
+	fraction := decimal.NewFromFloat(ato.PricePerToken).Rat()
+
+	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String())
+	gc.LogDiscordFailedRequest(msg)
 	return ato, nil
 
 }

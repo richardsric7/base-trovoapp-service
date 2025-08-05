@@ -21,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
@@ -885,7 +886,12 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 			dbTX.Commit()
+			//log message
+			fraction := decimal.NewFromFloat(ta.PricePerToken).Rat()
 
+			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v Completed. Fraction: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String())
+			gc.LogDiscordFailedRequest(msg)
+			
 			accessList := wallet.GetPermissionList(gc.DB)
 			notificationList := make(map[string]string)
 			dataPayload := make(map[string]string)
