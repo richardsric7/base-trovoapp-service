@@ -246,6 +246,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
+				destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
 				publicKeyPayment = false
@@ -262,6 +263,25 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						paymentInfo.Destination = destinationUser.Username
 						publicKeyPayment = false
 					}
+				}
+			} else if strings.Contains(paymentInfo.Destination, "+") {
+				//a phone...replace the user info
+				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				if err == nil {
+					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					if getDestinationWalletError == nil {
+						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Phone [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
+						paymentInfo.Destination = destinationUser.Username
+						publicKeyPayment = false
+					}
+				}
+			} else {
+				//wallet alias...
+				destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+				if getDestinationWalletError == nil {
+					//get destination user:
+					destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
+					publicKeyPayment = false
 				}
 			}
 
@@ -434,7 +454,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
-				if getDestinationWalletError == nil {
+				if !publicKeyPayment {
 					// dataPayload := make(map[string]string)
 					// dataPayload["none"] = ""
 					if destinationWallet.SharedAccessEnabled == 1 {
@@ -462,7 +482,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 							}
 						}
 					} else {
-						u, e := destinationWallet.GetWalletOwner(gc.DB, gc)
+						// 				if !publicKeyPayment {
+						// 	dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+						// 	destinationUser, _ = dw.GetWalletOwner(gc.DB, gc)
+						// 	destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+						// 	destinationUser.InvalidateUserCache(gc)
+						// }
+						dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+						u, e := dw.GetWalletOwner(gc.DB, gc)
 						if e == nil {
 							if u.PushNotificationToken != nil {
 
