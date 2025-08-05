@@ -572,7 +572,7 @@ func GetShortLink(link string, gc *sharedconfig.GlobalConfig) (shortLink string,
 	}
 	shortLinkBaseURL := os.Getenv("SHORT_LINKS_BASE_URL")
 	if len(shortLinkBaseURL) == 0 {
-		shortLinkBaseURL = "https://trovo.app"
+		shortLinkBaseURL = "https://links.trovo.app"
 	}
 	linkID := GenerateRandomCode(18)
 	dblink := DynamicLink{
