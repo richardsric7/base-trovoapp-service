@@ -454,7 +454,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			//return response
 			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
-			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your trovo wallet account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your TrovoApp account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 		}
 	})

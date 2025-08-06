@@ -498,7 +498,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	} else {
 		//custom asset
 
-		// claimable assets are for trovo wallet users only. it would return error above when destination does not trust asset
+		// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
 			ops = append(ops, &txnbuild.CreateAccount{
@@ -833,7 +833,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	//custom asset
 
-	// claimable assets are for trovo wallet users only. it would return error above when destination does not trust asset
+	// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
 
 	if !destinationAccountExists {
 		ops = append(ops, &txnbuild.CreateAccount{

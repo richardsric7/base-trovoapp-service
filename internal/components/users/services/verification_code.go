@@ -492,7 +492,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//send SMS
-		message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
+		message := fmt.Sprintf("Your TrovoApp mobile phone confirmation code is %s. One time use only.", verificationCode)
 		errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 		if errSMS != nil {
 			log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
@@ -532,7 +532,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 	}
 	//updated successfully
 	//send SMS
-	message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
+	message := fmt.Sprintf("Your TrovoApp mobile phone confirmation code is %s. One time use only.", verificationCode)
 	errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 	if errSMS != nil {
 		log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())

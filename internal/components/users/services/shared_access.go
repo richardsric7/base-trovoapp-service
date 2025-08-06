@@ -298,7 +298,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-subwallet-not-allowed",
-				ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("Access can only be granted to TrovoApp account, not a subwallet [%v]", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 		}
@@ -307,7 +307,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated at this time.", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 		}
@@ -316,7 +316,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] is not TrovoApp account username.", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 
@@ -631,7 +631,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-subwallet-not-allowed",
-				ErrMessage: fmt.Sprintf("Access can only be granted/revoked to/from trovo wallet account, not a subwallet [%v]", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("Access can only be granted/revoked to/from TrovoApp account, not a subwallet [%v]", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 			return
@@ -656,7 +656,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated at this time.", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 			return
@@ -709,7 +709,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				// err = &tErrors.CustomError{
 				// 	Param:      "username",
 				// 	Err:        "error-trovo-wallet-account-invalid",
-				// 	ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
+				// 	ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
 				// 	Code:       http.StatusBadRequest,
 				// }
 
@@ -751,7 +751,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-subwallet-not-allowed",
-				ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("Access can only be granted to TrovoApp account, not a subwallet [%v]", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 			return
@@ -794,7 +794,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated at this time.", v.TargetUsername),
 				Code:       http.StatusBadRequest,
 			}
 			return
@@ -854,7 +854,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access for this user.", v.TargetUsername),
+					ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to add this access for this user.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -872,7 +872,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					err = &tErrors.CustomError{
 						Param:      "username",
 						Err:        "error-trovo-wallet-account-invalid",
-						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet for this user.", v.TargetUsername),
+						ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet for this user.", v.TargetUsername),
 						Code:       http.StatusBadRequest,
 					}
 
@@ -893,7 +893,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access from blockchain at this time.", v.TargetUsername),
+					ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access from blockchain at this time.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -914,7 +914,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					err = &tErrors.CustomError{
 						Param:      "username",
 						Err:        "error-trovo-wallet-account-invalid",
-						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access on linked wallet from blockchain at this time.", v.TargetUsername),
+						ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access on linked wallet from blockchain at this time.", v.TargetUsername),
 						Code:       http.StatusBadRequest,
 					}
 
@@ -948,7 +948,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-subwallet-not-allowed",
-				ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("Access can only be granted to TrovoApp account, not a subwallet [%v]", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 			return
@@ -976,7 +976,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			err = &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated at this time.", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 			return
@@ -1021,7 +1021,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-not-validated",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access at this time.", v.TargetUsername),
+					ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to add this access at this time.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -1047,7 +1047,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					err = &tErrors.CustomError{
 						Param:      "username",
 						Err:        "error-trovo-wallet-account-not-validated",
-						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet at this time.", v.TargetUsername),
+						ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated on the blockchain at this time. Unable to add this access on linked wallet at this time.", v.TargetUsername),
 						Code:       http.StatusBadRequest,
 					}
 
@@ -1451,7 +1451,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			return &tErrors.CustomError{
 				Param:      "username",
 				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				ErrMessage: fmt.Sprintf("TrovoApp account [%v] could not be validated at this time.", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 		}

@@ -242,14 +242,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		// if userInfo.PushNotificationToken != nil {
 		// 	dataPayload := make(map[string]string)
 		// 	dataPayload["link"] = data.DynamicLink
-		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your TrovoApp username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		// }
 
 		c.JSON(http.StatusOK, data)
 
 	})
 
-	//user login approval url; uses signature algorithm bcos it is only called by trovo wallet.
+	//user login approval url; uses signature algorithm bcos it is only called by trovoApp.
 	router.POST("/v1/users/servicelinks/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -363,7 +363,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if targetUser != userInfo.Username {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your TrovoApp"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -419,7 +419,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been authorized to login on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for %v authorized!", userInfo.Username), fmt.Sprintf("Your TrovoApp username %v has been authorized to login on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//return response to user and  not keep them waiting.
@@ -866,7 +866,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		// if userInfo.PushNotificationToken != nil {
 		// 	dataPayload := make(map[string]string)
 		// 	dataPayload["route"] = data.DynamicLink
-		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Authorization for trovo account %v requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request an authorization session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Authorization for trovo account %v requested!", userInfo.Username), fmt.Sprintf("Your TrovoApp username [%v] has been used to request an authorization session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		// }
 		c.JSON(http.StatusOK, data)
 	})
@@ -1153,7 +1153,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if identifier != userInfo.Username {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your Trovo Wallet"}
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your TrovoApp"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1180,7 +1180,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for trovo account %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize a 2FA action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for trovo account %v authorized!", userInfo.Username), fmt.Sprintf("Your TrovoApp username %v has been used to authorize a 2FA action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 		//return report to user and not keep them waiting.
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
@@ -1337,7 +1337,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Participation for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize an event registration/participation action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Participation for %v authorized!", userInfo.Username), fmt.Sprintf("Your TrovoApp username %v has been used to authorize an event registration/participation action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//return report to user and not keep them waiting.

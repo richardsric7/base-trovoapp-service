@@ -354,7 +354,7 @@ func GenerateLoginData(ownerUsername, serviceShortName, targetUser, loginID, dev
 // GenerateAuthorizationData generates authorization Data
 func GenerateAuthorizationData(ownerUsername, serviceShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
 	if len(description) == 0 {
-		description = fmt.Sprintf("This is a request to authorize a 2FA action for the Trovo wallet user account %s", targetUser)
+		description = fmt.Sprintf("This is a request to authorize a 2FA action for the TrovoApp user account %s", targetUser)
 	}
 	description = fmt.Sprintf("%s on the service %s.", description, strings.ToUpper(serviceShortName))
 	var dynamicLink, pngDataURI string
@@ -395,7 +395,7 @@ func GenerateAuthorizationData(ownerUsername, serviceShortName, description, tar
 // GenerateEventData generates authorization Data
 func GenerateEventData(ownerUsername, serviceShortName, description, deviceInfo, eventID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletEventData, err error) {
 	if len(description) == 0 {
-		description = fmt.Sprintf("This is a request to authorize event registration for your Trovo wallet user account on the service %s.", strings.ToUpper(serviceShortName))
+		description = fmt.Sprintf("This is a request to authorize event registration for your TrovoApp user account on the service %s.", strings.ToUpper(serviceShortName))
 	}
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
