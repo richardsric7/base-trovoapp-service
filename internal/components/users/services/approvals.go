@@ -891,7 +891,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v Completed. Fraction: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String())
 			gc.LogDiscordFailedRequest(msg)
-			
+
 			accessList := wallet.GetPermissionList(gc.DB)
 			notificationList := make(map[string]string)
 			dataPayload := make(map[string]string)
@@ -1095,6 +1095,13 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 					return &tErrors.ErrorTemporaryServerError{}
 				}
 			}
+			//delete expressed interest.
+			e = dbTX.Omit(clause.Associations).Where("tokenized_asset_id = ?", ta.ID).Delete(&userModels.ExpressionOfInterest{}).Error
+			if e != nil {
+				log.Printf("[RejectTransaction]error removing Expression Of Interest. error: %v", e)
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+
 			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
 			if e != nil {
 				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", issuingWallet.Alias, e)
