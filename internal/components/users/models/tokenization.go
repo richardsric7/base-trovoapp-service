@@ -1090,7 +1090,7 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 	}
 	ownerUsername := strings.Split(walletAlias, "_")[0]
 
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Wallet_Alias LIKE ?", t.ID, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Wallet_Alias LIKE ?", t.ID, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }

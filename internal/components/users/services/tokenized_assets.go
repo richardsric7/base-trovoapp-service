@@ -2269,8 +2269,8 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		return
 
 	}
-
-	if (ta.SalesStart.AddDate(0, 0, ta.CapDurationInDays)).Before(time.Now()) && ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
+	capEndDate := ta.SalesStart.AddDate(0, 0, ta.CapDurationInDays)
+	if capEndDate.After(time.Now()) && ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
 
 		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
 		err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase not more than %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, decimal.NewFromFloat(ta.CapAmountInFiat-ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)), *ta.AssetCode)}
@@ -3330,7 +3330,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	fraction := decimal.NewFromFloat(ato.PricePerToken).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
-	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).StringFixed(7), decimal.NewFromInt32(d).StringFixed(7))
+	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
 	gc.LogDiscordFailedRequest(msg)
 	return ato, nil
 

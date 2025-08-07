@@ -890,7 +890,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			fraction := decimal.NewFromFloat(ta.PricePerToken).Rat()
 			d := int32(fraction.Denom().Int64())
 			n := int32(fraction.Num().Int64())
-			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).StringFixed(7), decimal.NewFromInt32(d).StringFixed(7))
+			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v completed. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
 			gc.LogDiscordFailedRequest(msg)
 
 			accessList := wallet.GetPermissionList(gc.DB)
