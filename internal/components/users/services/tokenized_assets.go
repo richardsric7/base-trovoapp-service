@@ -3328,8 +3328,9 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	dbTX.Commit()
 	//log message
 	fraction := decimal.NewFromFloat(ato.PricePerToken).Rat()
-
-	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String())
+	d := int32(fraction.Denom().Int64())
+	n := int32(fraction.Num().Int64())
+	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).StringFixed(7), decimal.NewFromInt32(d).StringFixed(7))
 	gc.LogDiscordFailedRequest(msg)
 	return ato, nil
 
