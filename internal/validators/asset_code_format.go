@@ -19,7 +19,7 @@ func ValidateAssetCodeFormat(assetCode string) error {
 		return &errors.ErrorInvalidAssetCode{}
 	}
 
-	matched, _ := regexp.MatchString("(?i)^[a-z][a-z0-9]+$", assetCode)
+	matched, _ := regexp.MatchString("(?i)^[a-z0-9][a-z0-9]+$", assetCode)
 
 	if !matched {
 		return &errors.ErrorInvalidAssetCode{}
