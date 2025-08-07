@@ -2967,82 +2967,10 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		NumberOfApprovalsNeeded: len(aps) - 2,
 		Permissions:             permInfo,
 	}
-	//check if it has naira asset balance and check if the naira asset has authorization
-	ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-	nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
-	_, ntrusted, _, _, dwalletSource, _ := network.BlockchainAccountProperties(client, distributionWallet.ID, nairaAsset)
-
-	if strings.EqualFold(*t.AssetQuoteCurrency, ndab[0]) {
-		//it has naira asset
-
-		if !ntrusted {
-
-			//adistributor wallet does not trust naura asset yet..
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, ndab[0])
-
-			err = &tErrors.CustomError{
-				Param:      "IssuingWalletPublicKey",
-				Err:        "error-asset-trustline-not-authorized",
-				ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
-				Code:       404,
-			}
-			return "", "", messages, issuingWallet, err
-		}
-
-		//get the naira asset balance
-		for _, bal := range dwalletSource.Balances {
-			if strings.EqualFold(ndab[0], bal.Code) {
-				//naira bal....perform the critical check
-
-				bantuAsset := userModels.BantuAsset{
-					AssetCode:   ndab[0],
-					AssetIssuer: ndab[1],
-				}
-				bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
-				if e != nil {
-					err = &tErrors.ErrorTemporaryServerError{}
-					return "", "", messages, issuingWallet, err
-
-				}
-				if len(bcAsset.Code) == 0 {
-					err = &tErrors.ErrorTemporaryServerError{}
-					return "", "", messages, issuingWallet, err
-
-				}
-
-				if bcAsset.Flags.AuthRequired {
-					if bal.IsAuthorized != nil {
-						if !*bal.IsAuthorized {
-							//authorization has not been given. abort process.
-							log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
-
-							err = &tErrors.CustomError{
-								Param:      "IssuingWalletPublicKey",
-								Err:        "error-asset-trustline-not-authorized",
-								ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
-								Code:       404,
-							}
-							return "", "", messages, issuingWallet, err
-						}
-					} else {
-						//authorization has not been given. abort process.
-						log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
-
-						err = &tErrors.CustomError{
-							Param:      "IssuingWalletPublicKey",
-							Err:        "error-asset-trustline-not-authorized",
-							ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
-							Code:       404,
-						}
-						return "", "", messages, issuingWallet, err
-					}
-
-				}
-
-			}
-
-		}
+	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(*t.AssetQuoteCurrency, &distributionWallet, gc); err != nil {
+		return "", "", messages, issuingWallet, err
 	}
+
 	if issuingWallet.SharedAccessEnabled == 0 {
 
 		//create sharedAccess on issuing wallet
@@ -3567,6 +3495,87 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	return xdrBase64, nil
 
+}
+
+func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrency string, distributionWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (err error) {
+	//check if it has naira asset balance and check if the naira asset has authorization
+
+	ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
+	nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
+	_, ntrusted, _, _, dwalletSource, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, nairaAsset)
+
+	if strings.EqualFold(assetQuoteCurrency, ndab[0]) {
+		//it has naira asset
+
+		if !ntrusted {
+
+			//adistributor wallet does not trust naura asset yet..
+			log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, ndab[0])
+
+			err = &tErrors.CustomError{
+				Param:      "IssuingWalletPublicKey",
+				Err:        "error-asset-trustline-not-authorized",
+				ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
+				Code:       404,
+			}
+			return err
+		}
+
+		//get the naira asset balance
+		for _, bal := range dwalletSource.Balances {
+			if strings.EqualFold(ndab[0], bal.Code) {
+				//naira bal....perform the critical check
+
+				bantuAsset := userModels.BantuAsset{
+					AssetCode:   ndab[0],
+					AssetIssuer: ndab[1],
+				}
+				bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
+				if e != nil {
+					err = &tErrors.ErrorTemporaryServerError{}
+					return err
+
+				}
+				if len(bcAsset.Code) == 0 {
+					err = &tErrors.ErrorTemporaryServerError{}
+					return err
+
+				}
+
+				if bcAsset.Flags.AuthRequired {
+					if bal.IsAuthorized != nil {
+						if !*bal.IsAuthorized {
+							//authorization has not been given. abort process.
+							log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
+
+							err = &tErrors.CustomError{
+								Param:      "IssuingWalletPublicKey",
+								Err:        "error-asset-trustline-not-authorized",
+								ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
+								Code:       404,
+							}
+							return err
+						}
+					} else {
+						//authorization has not been given. abort process.
+						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
+
+						err = &tErrors.CustomError{
+							Param:      "IssuingWalletPublicKey",
+							Err:        "error-asset-trustline-not-authorized",
+							ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
+							Code:       404,
+						}
+						return err
+					}
+
+				}
+
+			}
+
+		}
+	}
+	return nil
 }
 
 func logDiscordFailedTokenizedAssetSubscription(msg string) {
