@@ -3075,14 +3075,16 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
+	xdrPrice := xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)}
 	ops = append(ops, &txnbuild.ManageSellOffer{
 		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
 		Selling:       txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
+		Price:         xdrPrice,
 		SourceAccount: distributionWallet.ID,
 	})
-
+	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. Fraction: %v. N: %v, D: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrPrice)
+	gc.LogDiscordFailedRequest(msg)
 	//check if issuing account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	_, _, walletAccountNativeBalance, _, _, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
