@@ -559,6 +559,7 @@ type TokenizedAssetJSON struct {
 	NumberOfSubscribers                          int64                           `json:"numberOfSubscribers"`
 	QuantityOfTokensSold                         float64                         `json:"quantityOfTokensSold"`
 	QuantityOfTokensSoldInFiat                   float64                         `json:"quantityOfTokensSoldInFiat"`
+	ExpressedInterestAmount                      float64                         `json:"expressedInterestAmount"`
 }
 
 type TokenizedAssetSector struct {
@@ -1046,6 +1047,18 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 	}
 
 	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Subscriber_Username = ?", t.ID, subscriber).First(&exp).Error
+
+	return
+}
+
+// SumExpressedInterest sums the amount that is commited in expression of interest
+func (t *TokenizedAsset) SumExpressedInterest(gc *sharedconfig.GlobalConfig) (sum float64) {
+	if t == nil {
+		log.Println("[TokenizedAsset::SumExpressedInterest] Error tokenized asset is nil")
+		return
+	}
+
+	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2355,7 +2368,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.NumberOfExpressedInterests = ti.CountExpressedInterests(gc)
 	t.NumberOfSubscribers = ti.CountNumberOfSubscribers(gc)
 	t.QuantityOfTokensSoldInFiat = ti.SumAmountSoldInFiat(gc)
-	t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
+	if t.PricePerToken > 0 {
+		t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
+	}
+	t.ExpressedInterestAmount = ti.SumExpressedInterest(gc)
 
 	return t
 
