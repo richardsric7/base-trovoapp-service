@@ -559,7 +559,7 @@ type TokenizedAssetJSON struct {
 	NumberOfSubscribers                          int64                           `json:"numberOfSubscribers"`
 	QuantityOfTokensSold                         float64                         `json:"quantityOfTokensSold"`
 	QuantityOfTokensSoldInFiat                   float64                         `json:"quantityOfTokensSoldInFiat"`
-	ExpressedInterestAmount                      float64                         `json:"expressedInterestAmount"`
+	PurchaseCommitments                          float64                         `json:"purchaseCommitments"`
 }
 
 type TokenizedAssetSector struct {
@@ -2371,7 +2371,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if t.PricePerToken > 0 {
 		t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
-	t.ExpressedInterestAmount = ti.SumExpressedInterest(gc)
+	t.PurchaseCommitments = ti.SumExpressedInterest(gc)
 
 	return t
 
