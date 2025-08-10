@@ -558,6 +558,7 @@ type TokenizedAssetJSON struct {
 	NumberOfExpressedInterests                   int64                           `json:"numberOfExpressedInterests"`
 	NumberOfSubscribers                          int64                           `json:"numberOfSubscribers"`
 	QuantityOfTokensSold                         float64                         `json:"quantityOfTokensSold"`
+	QuantityOfTokensSoldInFiat                   float64                         `json:"quantityOfTokensSoldInFiat"`
 }
 
 type TokenizedAssetSector struct {
@@ -1071,10 +1072,10 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 	return
 }
 
-// SumQuantitySold suma the total amount in fiat sold so far
-func (t *TokenizedAsset) SumQuantitySold(gc *sharedconfig.GlobalConfig) (sum float64) {
+// SumAmountSoldInFiat sums the total amount in fiat sold so far
+func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum float64) {
 	if t == nil {
-		log.Println("[TokenizedAsset::SumQuantitySold] Error tokenized asset is nil")
+		log.Println("[TokenizedAsset::SumAmountSoldInFiat] Error tokenized asset is nil")
 		return
 	}
 	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
@@ -2353,7 +2354,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 
 	t.NumberOfExpressedInterests = ti.CountExpressedInterests(gc)
 	t.NumberOfSubscribers = ti.CountNumberOfSubscribers(gc)
-	t.QuantityOfTokensSold = ti.SumQuantitySold(gc)
+	t.QuantityOfTokensSoldInFiat = ti.SumAmountSoldInFiat(gc)
+	t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 
 	return t
 
