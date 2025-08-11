@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -84,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     controller.repeat();
-    Timer(const Duration(seconds: 4), () {
+    Timer(Duration(seconds: appState.appIsOpen ? 1 : 4), () {
       timerIsDone = true;
     });
   }
@@ -431,6 +432,7 @@ class _SplashScreenState extends State<SplashScreen>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
+    inspect(responseData);
     if (responseData['statusCode'] == 200) {
       return responseData['data'].toString();
     }

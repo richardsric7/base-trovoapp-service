@@ -52,6 +52,7 @@ class TokenizedAsset {
   String? assetLogo;
   bool? expressedInterest;
   double? expressedInterestAmount;
+  double? purchaseCommitments;
   bool? isSubscribed;
   double? subscriptionAmount;
   String? exemptedCountries;
@@ -225,6 +226,7 @@ class TokenizedAsset {
     this.subscriptionAmount,
     this.expressedInterest,
     this.expressedInterestAmount,
+    this.purchaseCommitments,
     this.proofOfPaymentDocuments,
     this.agreeTransferTitleToCustodian,
     this.contractualProtectionRevGuarantees,
@@ -375,6 +377,7 @@ class TokenizedAsset {
       exemptedCountries: m["exemptedCountries"],
       hasAdditionalKYCRequirements: m["hasAdditionalKYCRequirements"],
       proceedPayoutCurrency: m["proceedPayoutCurrency"],
+      purchaseCommitments: double.parse(m["purchaseCommitments"].toString()),
       additionalKYCRequirements: m["additionalKYCRequirements"],
       investorAccreditationRequired: m["investorAccreditationRequired"],
       lastUpdatedBy: m["lastUpdatedBy"],

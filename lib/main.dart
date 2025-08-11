@@ -9,7 +9,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
-import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/back_dispatcher.dart';
 import 'package:trovo_app/router/route_parser.dart';
@@ -108,30 +107,14 @@ class _AppState extends State<App> {
     appLinks.uriLinkStream.listen((uri) {
       print('this is the uri =========> $uri');
       print('this is the path =========> ${uri.path.replaceAll('/', '')}');
+      print('this is the path =========> ${appState.appIsOpen}');
       appState.linkId = uri.path.replaceAll('/', '');
 
       if (appState.appIsOpen) {
-        processShortlink(appState.linkId);
+        appState.setPage(page: SplashPageConfig);
       }
     });
     initAppNotification(context, appState);
-  }
-
-  Future<void> processShortlink(String linkId) async {
-    var uri = '/v1/shortlinks/$linkId';
-
-    Map responseData = await makeGetRequest(
-      uri: Uri.encodeFull(uri),
-      signer: appState.primaryWallet.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
-    );
-    if (responseData['statusCode'] == 200) {
-      appState.processDeepLink(
-        context,
-        Uri.parse(responseData['data'].toString()),
-      );
-    }
   }
 
   @override
