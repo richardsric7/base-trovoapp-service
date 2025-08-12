@@ -32,88 +32,67 @@ class _CorporateBondAssetInformationView
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late String assetOwnership;
-  late String thirdPartyOwnerType;
-  late String assetDescription;
-  late String assetPhysicalAddress;
-  late double latitude;
-  late double longitude;
-  late DateTime? fundLaunchDate;
-  late String nameOfOwner;
-  late String assetName;
-  late String addressOfOwner;
-  late double currentValueOfAsset;
-  late double assetMiscCost;
-  late double valueOfTokenizedAsset;
-  late double assetOwnerRetainedOrContributedValue;
-  late List<String> assetProtectionInPlace;
-  late String insuranceCompanyName;
-  late String insurancePolicyNumber;
-  late String insurancePolicyHolder;
-  late double percentageValueOfInsurance;
-  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
-  String projectStrategicObjectives = "";
-  String projectDevelopmentTimeline = "";
-  String projectKeyMilestoneAndDates = "";
-  String projectScope = "";
-  String projectEconomicBenefits = "";
-  int projectExpectedNoOfJobs = 0;
-  String projectIntendedSocialBenefits = "";
-  String projectTechnicalPartners = "";
-  String projectFinancialPartners = "";
+  // Bond Issuer and Legal Information
+  late String corporateBondIssuerName;
+  late String corporateBondIssuerType;
+  late String corporateBondIssuerRegistrationNo;
+  late String corporateBondSectorAndIndustry;
+  late String corporateBondRegulatoryApprovalId;
+  late String corporateBondLicenseOrPermitNumber;
+  late String corporateBondListingStatus;
+  late String corporateBondIssuerAdditionalInfo;
 
-  double percentageFromPromoters = 0;
-  double estimatedProjectIRR = 0;
-  double estimatedProjectROI = 0;
-  double estimatedProjectNPV = 0;
-  int estimatedProjectPaybackPeriodsInMonths = 0;
-  String keyAssumptionsList = "";
-  String projectIdentifiedLegalRisks = "";
-  String projectIdentifiedRegulatoryRisks = "";
-  String projectIdentifiedOperationalOrExecutionRisks = "";
-  String projectIdentifiedMarketRisks = "";
-  String projectIdentifiedOtherRelevantRisks = "";
+  // Bond Instrument Details
+  late String corporateBondName;
+  late String corporateBondType;
+  late String corporateBondIsinSerialNumber;
+  late int corporateBondTotalIssueSize;
+  late String corporateBondCurrencyOfIssuance;
+  DateTime? corporateBondIssueDate;
+  DateTime? corporateBondMaturityDate;
+  late String corporateBondTenor;
+  late double corporateBondFaceValuePerUnit;
+  late double corporateBondMinimumInvestmentAmount;
+  late String corporateBondCouponRateType;
+  late double corporateBondCouponRate;
+  late String corporateBondReferenceIndex;
+  late double corporateBondSpreadOrMargin;
+  late String corporateBondResetFrequency;
+  late String corporateBondCouponPaymentFrequency;
+  late String corporateBondRedemptionStructure;
+  late String corporateBondEarlyRedemptionOption;
+  late double corporateBondEarlyRedemptionPenalty;
+  late String corporateBondTaxTreatment;
+  late String corporateBondNavOrMarketValueUpdates;
+  late String corporateBondSummaryOfUseOfProceeds;
+  late String corporateBondEsgOrImpactMetrics;
+  late String corporateBondInstrumentAdditionalInfo;
 
-  String independentMonitoringList = "";
-  String otherAssetProtection = "";
-  String legalAdvisor = "";
-  String financialAdvisor = "";
+  // Bond Security and Risk Profile
+  late String corporateBondCreditRating;
+  late String corporateBondCreditRatingAgency;
+  late String corporateBondLegalBacking;
+  late String corporateBondSecurityType;
+  late String corporateBondCollateralDescription;
+  late String corporateBondCovenantSummary;
+  late String corporateBondCovenantTestingFrequency;
+  late String corporateBondDefaultHistory;
+  late String corporateBondEventOfDefaultClauses;
+  late String corporateBondLegalEnforcementMechanism;
+  late String corporateBondGuarantee;
+  late double corporateBondRecoveryEstimate;
+  late String corporateBondRiskFactorsSummary;
+  late String corporateBondRiskProfileAdditionalInfo;
 
-  bool hasIndependentMonitoring = false;
-  bool hasLegalAdvisor = false;
-  bool hasFinancialAdvisor = false;
-  bool hasOtherAssetProtection = false;
-
-  bool contractualProtectionRevGuarantees = false;
-  bool contractualProtectionPerfBond = false;
-  bool contractualProtectionSLA = false;
-  bool riskSharingMechanismPPPs = false;
-  bool riskSharingMechanismHedgeInstruments = false;
-  bool riskSharingMechanismCompletionGuarantees = false;
-  bool eSGSafeguardsSusCerts = false;
-  bool eSGSafeguardsCommEngPlans = false;
-  bool securityMeasuresAccessControl = false;
-  bool securityMeasuresSurveilanceSystems = false;
-  bool securityMeasuresOnSiteSecurityPersonnel = false;
-  bool securityMeasuresPerimeterSecurity = false;
-  bool securityMeasuresCriticalInfraProtections = false;
-  bool undertakingNoLien = false;
-  bool undertakingNotCollateral = false;
-  bool undertakingNoClaims = false;
-  bool undertakingNoForeclosure = false;
-  bool complianceNoViolation = false;
-  bool complianceAllPermits = false;
-  bool outstandingFinancialRespNoDebts = false;
-  bool outstandingFinancialRespNoHiddenLiabilities = false;
-  bool riskManagementFullyInsured = false;
-  bool riskManagementDeclaredValue = false;
-  bool physicalConditionSound = false;
-  bool physicalConditionNoUndisclosedEasements = false;
-  bool physicalConditionNolease = false;
-  bool hasInsurance = false;
+  // Additional Parties
+  late String corporateBondTrustee;
+  late String corporateBondPayingAgent;
+  late String corporateBondLegalAdvisor;
+  late String corporateBondAuditor;
+  late String corporateBondRegistrarOrCSCSAgent;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -151,144 +130,6 @@ class _CorporateBondAssetInformationView
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
-    assetOwnership =
-        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
-    thirdPartyOwnerType =
-        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
-    assetName = data['assetName'] ?? "";
-    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
-    assetDescription = data['assetDescription'] ?? "";
-    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
-    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
-    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
-    nameOfOwner = data['assetOwnerName'] ?? "";
-    addressOfOwner = data['assetOwnerAddress'] ?? "";
-    currentValueOfAsset =
-        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
-          data['assetOwnerRetainedOrContributedValue'].toString(),
-        ) ??
-        0;
-    assetMiscCost =
-        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
-    valueOfTokenizedAsset =
-        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
-            data['protectionMethods'].toString().isEmpty
-        ? []
-        : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
-    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
-    percentageValueOfInsurance =
-        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-
-    valueOfAssetController.text = currentValueOfAsset == 0
-        ? ''
-        : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
-    assetOwnerRetainedOrContributedValueController.text =
-        assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
-    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
-        ? ''
-        : percentageValueOfInsurance.toString();
-
-    independentMonitoringList = data['independentMonitoringList'] ?? "";
-    otherAssetProtection = data['otherAssetProtection'] ?? "";
-    legalAdvisor = data['legalAdvisor'] ?? "";
-    financialAdvisor = data['financialAdvisor'] ?? "";
-
-    contractualProtectionRevGuarantees =
-        data['contractualProtectionRevGuarantees'] == 1;
-    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
-    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
-    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
-    riskSharingMechanismHedgeInstruments =
-        data['riskSharingMechanismHedgeInstruments'] == 1;
-    riskSharingMechanismCompletionGuarantees =
-        data['riskSharingMechanismCompletionGuarantees'] == 1;
-    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
-    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
-    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
-    securityMeasuresSurveilanceSystems =
-        data['securityMeasuresSurveilanceSystems'] == 1;
-    securityMeasuresOnSiteSecurityPersonnel =
-        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
-    securityMeasuresPerimeterSecurity =
-        data['securityMeasuresPerimeterSecurity'] == 1;
-    securityMeasuresCriticalInfraProtections =
-        data['securityMeasuresCriticalInfraProtections'] == 1;
-    undertakingNoLien = data['undertakingNoLien'] == 1;
-    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
-    undertakingNoClaims = data['undertakingNoClaims'] == 1;
-    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
-    complianceNoViolation = data['complianceNoViolation'] == 1;
-    complianceAllPermits = data['complianceAllPermits'] == 1;
-    outstandingFinancialRespNoDebts =
-        data['outstandingFinancialRespNoDebts'] == 1;
-    outstandingFinancialRespNoHiddenLiabilities =
-        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
-    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
-    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
-    physicalConditionSound = data['physicalConditionSound'] == 1;
-    physicalConditionNoUndisclosedEasements =
-        data['physicalConditionNoUndisclosedEasements'] == 1;
-    physicalConditionNolease = data['physicalConditionNolease'] == 1;
-    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
-    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
-    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
-
-    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
-    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
-    projectScope = data['projectScope'] ?? "";
-    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
-    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
-    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
-    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
-    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
-
-    estimatedProjectPaybackPeriodsInMonths =
-        data['estimatedProjectPaybackPeriodsInMonths'];
-    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
-    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
-    projectIdentifiedRegulatoryRisks =
-        data['projectIdentifiedRegulatoryRisks'] ?? "";
-    projectIdentifiedOperationalOrExecutionRisks =
-        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
-    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
-    projectIdentifiedOtherRelevantRisks =
-        data['projectIdentifiedOtherRelevantRisks'] ?? "";
-
-    estimatedProjectIRR =
-        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
-    estimatedProjectROI =
-        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
-    estimatedProjectNPV =
-        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
-
-    percentageFromPromoters =
-        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text = percentageFromPromoters.isNaN
-        ? '0'
-        : formatNumberShort(percentageFromPromoters);
-
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -364,10 +205,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondIssuerName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondIssuerName = value;
                         });
                       },
                       validator: (value) {
@@ -378,7 +219,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondIssuerName = value!;
                         });
                       },
                     ),
@@ -409,7 +250,9 @@ class _CorporateBondAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      corporateBondIssuerType = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -455,10 +298,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondIssuerRegistrationNo,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondIssuerRegistrationNo = value;
                         });
                       },
                       validator: (value) {
@@ -469,7 +312,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondIssuerRegistrationNo = value!;
                         });
                       },
                     ),
@@ -510,10 +353,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondSectorAndIndustry,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondSectorAndIndustry = value;
                         });
                       },
                       validator: (value) {
@@ -524,7 +367,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondSectorAndIndustry = value!;
                         });
                       },
                     ),
@@ -565,10 +408,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRegulatoryApprovalId,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRegulatoryApprovalId = value;
                         });
                       },
                       validator: (value) {
@@ -579,7 +422,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRegulatoryApprovalId = value!;
                         });
                       },
                     ),
@@ -619,10 +462,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondLicenseOrPermitNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondLicenseOrPermitNumber = value;
                         });
                       },
                       validator: (value) {
@@ -633,7 +476,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondLicenseOrPermitNumber = value!;
                         });
                       },
                     ),
@@ -673,10 +516,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondListingStatus,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondListingStatus = value;
                         });
                       },
                       validator: (value) {
@@ -687,7 +530,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondListingStatus = value!;
                         });
                       },
                     ),
@@ -727,10 +570,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondIssuerAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondIssuerAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -741,7 +584,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondIssuerAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -817,10 +660,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondName = value;
                         });
                       },
                       validator: (value) {
@@ -831,7 +674,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondName = value!;
                         });
                       },
                     ),
@@ -861,7 +704,9 @@ class _CorporateBondAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      corporateBondType = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -909,10 +754,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondIsinSerialNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondIsinSerialNumber = value;
                         });
                       },
                       validator: (value) {
@@ -923,7 +768,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondIsinSerialNumber = value!;
                         });
                       },
                     ),
@@ -963,10 +808,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondTotalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondTotalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -977,7 +822,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondTotalIssueSize = value!;
                         });
                       },
                     ),
@@ -1017,10 +862,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCurrencyOfIssuance,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCurrencyOfIssuance = value;
                         });
                       },
                       validator: (value) {
@@ -1031,7 +876,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCurrencyOfIssuance = value!;
                         });
                       },
                     ),
@@ -1057,40 +902,30 @@ class _CorporateBondAssetInformationView
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        corporateBondIssueDate = value;
+                      }),
+                    },
+                  );
+                },
               ),
               Row(
                 children: [
@@ -1111,40 +946,30 @@ class _CorporateBondAssetInformationView
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              ButtonOutlined(
+                // fundLaunchDate != null
+                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                //     : "ends".tr(),
+                "Select date",
+                notifier.getwihitecolor,
+                notifier.getgrey,
+                borderColor: notifier.getgrey,
+                width: 320,
+                height: 50.sp,
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
+                    lastDate: DateTime.now().add(Duration(days: 730)),
+                  ).then(
+                    (value) => {
+                      setState(() {
+                        corporateBondMaturityDate = value;
+                      }),
+                    },
+                  );
+                },
               ),
               Row(
                 children: [
@@ -1179,10 +1004,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondTenor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondTenor = value;
                         });
                       },
                       validator: (value) {
@@ -1193,7 +1018,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondTenor = value!;
                         });
                       },
                     ),
@@ -1233,10 +1058,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondFaceValuePerUnit,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondFaceValuePerUnit = value;
                         });
                       },
                       validator: (value) {
@@ -1247,7 +1072,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondFaceValuePerUnit = value!;
                         });
                       },
                     ),
@@ -1284,10 +1109,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondMinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondMinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1298,7 +1123,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondMinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1338,10 +1163,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCouponRateType,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCouponRateType = value;
                         });
                       },
                       validator: (value) {
@@ -1352,7 +1177,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCouponRateType = value!;
                         });
                       },
                     ),
@@ -1392,10 +1217,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCouponRate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCouponRate = value;
                         });
                       },
                       validator: (value) {
@@ -1406,7 +1231,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCouponRate = value!;
                         });
                       },
                     ),
@@ -1446,10 +1271,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondReferenceIndex,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondReferenceIndex = value;
                         });
                       },
                       validator: (value) {
@@ -1460,7 +1285,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondReferenceIndex = value!;
                         });
                       },
                     ),
@@ -1500,10 +1325,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondSpreadOrMargin,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondSpreadOrMargin = value;
                         });
                       },
                       validator: (value) {
@@ -1514,7 +1339,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondSpreadOrMargin = value!;
                         });
                       },
                     ),
@@ -1554,10 +1379,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondResetFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondResetFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1568,7 +1393,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondResetFrequency = value!;
                         });
                       },
                     ),
@@ -1608,10 +1433,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCouponPaymentFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCouponPaymentFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1622,7 +1447,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCouponPaymentFrequency = value!;
                         });
                       },
                     ),
@@ -1662,10 +1487,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRedemptionStructure,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRedemptionStructure = value;
                         });
                       },
                       validator: (value) {
@@ -1676,7 +1501,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRedemptionStructure = value!;
                         });
                       },
                     ),
@@ -1716,10 +1541,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondEarlyRedemptionOption,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondEarlyRedemptionOption = value;
                         });
                       },
                       validator: (value) {
@@ -1730,7 +1555,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondEarlyRedemptionOption = value!;
                         });
                       },
                     ),
@@ -1770,10 +1595,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondEarlyRedemptionPenalty,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondEarlyRedemptionPenalty = value;
                         });
                       },
                       validator: (value) {
@@ -1784,7 +1609,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondEarlyRedemptionPenalty = value!;
                         });
                       },
                     ),
@@ -1824,10 +1649,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondTaxTreatment,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondTaxTreatment = value;
                         });
                       },
                       validator: (value) {
@@ -1838,7 +1663,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondTaxTreatment = value!;
                         });
                       },
                     ),
@@ -1878,10 +1703,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondNavOrMarketValueUpdates,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondNavOrMarketValueUpdates = value;
                         });
                       },
                       validator: (value) {
@@ -1892,7 +1717,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondNavOrMarketValueUpdates = value!;
                         });
                       },
                     ),
@@ -1932,10 +1757,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondSummaryOfUseOfProceeds,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondSummaryOfUseOfProceeds = value;
                         });
                       },
                       validator: (value) {
@@ -1946,7 +1771,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondSummaryOfUseOfProceeds = value!;
                         });
                       },
                     ),
@@ -1986,10 +1811,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondEsgOrImpactMetrics,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondEsgOrImpactMetrics = value;
                         });
                       },
                       validator: (value) {
@@ -2000,7 +1825,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondEsgOrImpactMetrics = value!;
                         });
                       },
                     ),
@@ -2040,10 +1865,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondInstrumentAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondInstrumentAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -2054,7 +1879,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondInstrumentAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -2129,10 +1954,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCreditRating,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCreditRating = value;
                         });
                       },
                       validator: (value) {
@@ -2143,7 +1968,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCreditRating = value!;
                         });
                       },
                     ),
@@ -2183,10 +2008,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCreditRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCreditRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -2197,7 +2022,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCreditRatingAgency = value!;
                         });
                       },
                     ),
@@ -2237,10 +2062,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondLegalBacking,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondLegalBacking = value;
                         });
                       },
                       validator: (value) {
@@ -2251,7 +2076,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondLegalBacking = value!;
                         });
                       },
                     ),
@@ -2291,10 +2116,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondSecurityType,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondSecurityType = value;
                         });
                       },
                       validator: (value) {
@@ -2305,7 +2130,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondSecurityType = value!;
                         });
                       },
                     ),
@@ -2345,10 +2170,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCollateralDescription,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCollateralDescription = value;
                         });
                       },
                       validator: (value) {
@@ -2359,7 +2184,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCollateralDescription = value!;
                         });
                       },
                     ),
@@ -2399,10 +2224,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCovenantSummary,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCovenantSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2413,7 +2238,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCovenantSummary = value!;
                         });
                       },
                     ),
@@ -2453,10 +2278,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondCovenantTestingFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondCovenantTestingFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -2467,7 +2292,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondCovenantTestingFrequency = value!;
                         });
                       },
                     ),
@@ -2507,10 +2332,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondDefaultHistory,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondDefaultHistory = value;
                         });
                       },
                       validator: (value) {
@@ -2521,7 +2346,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondDefaultHistory = value!;
                         });
                       },
                     ),
@@ -2561,10 +2386,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondEventOfDefaultClauses,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondEventOfDefaultClauses = value;
                         });
                       },
                       validator: (value) {
@@ -2575,7 +2400,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondEventOfDefaultClauses = value!;
                         });
                       },
                     ),
@@ -2615,10 +2440,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondLegalEnforcementMechanism,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondLegalEnforcementMechanism = value;
                         });
                       },
                       validator: (value) {
@@ -2629,7 +2454,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondLegalEnforcementMechanism = value!;
                         });
                       },
                     ),
@@ -2669,10 +2494,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondGuarantee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondGuarantee = value;
                         });
                       },
                       validator: (value) {
@@ -2683,7 +2508,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondGuarantee = value!;
                         });
                       },
                     ),
@@ -2723,10 +2548,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRecoveryEstimate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRecoveryEstimate = value;
                         });
                       },
                       validator: (value) {
@@ -2737,7 +2562,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRecoveryEstimate = value!;
                         });
                       },
                     ),
@@ -2777,10 +2602,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRiskFactorsSummary,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRiskFactorsSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2791,7 +2616,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRiskFactorsSummary = value!;
                         });
                       },
                     ),
@@ -2831,10 +2656,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRiskProfileAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRiskProfileAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -2845,7 +2670,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRiskProfileAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -2920,10 +2745,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondTrustee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondTrustee = value;
                         });
                       },
                       validator: (value) {
@@ -2934,7 +2759,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondTrustee = value!;
                         });
                       },
                     ),
@@ -2974,10 +2799,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondPayingAgent,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondPayingAgent = value;
                         });
                       },
                       validator: (value) {
@@ -2988,7 +2813,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondPayingAgent = value!;
                         });
                       },
                     ),
@@ -3028,10 +2853,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondLegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondLegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -3042,7 +2867,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondLegalAdvisor = value!;
                         });
                       },
                     ),
@@ -3082,10 +2907,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondAuditor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondAuditor = value;
                         });
                       },
                       validator: (value) {
@@ -3096,7 +2921,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondAuditor = value!;
                         });
                       },
                     ),
@@ -3136,10 +2961,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: corporateBondRegistrarOrCSCSAgent,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          corporateBondRegistrarOrCSCSAgent = value;
                         });
                       },
                       validator: (value) {
@@ -3150,7 +2975,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          corporateBondRegistrarOrCSCSAgent = value!;
                         });
                       },
                     ),
@@ -3188,126 +3013,7 @@ class _CorporateBondAssetInformationView
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      if (!hasInsurance) {
-        insuranceCompanyName = "";
-        insurancePolicyNumber = "";
-        insurancePolicyHolder = "";
-        percentageValueOfInsurance = 0;
-      }
-
-      if (!hasLegalAdvisor) {
-        legalAdvisor = "";
-      }
-
-      if (!hasFinancialAdvisor) {
-        financialAdvisor = "";
-      }
-
-      if (!hasIndependentMonitoring) {
-        independentMonitoringList = "";
-      }
-
-      if (!hasOtherAssetProtection) {
-        otherAssetProtection = "";
-      }
       var newData = {...data as Map};
-
-      newData['ownershipType'] = assetOwnership;
-      newData['ownershipKind'] = thirdPartyOwnerType;
-      newData['assetName'] = assetName;
-      newData['assetDescription'] = assetDescription;
-      newData['assetPhysicalAddress'] = assetPhysicalAddress;
-      newData['assetLatitude'] = latitude.toString();
-      newData['assetLongitude'] = longitude.toString();
-      newData['assetOwnerName'] = nameOfOwner;
-      newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
-      newData['assetOwnerRetainedOrContributedValue'] =
-          assetOwnerRetainedOrContributedValue;
-      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      newData['protectionMethods'] = assetProtectionInPlace.join(',');
-      newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurancePolicyNumber'] = insurancePolicyNumber;
-      newData['insurancePolicyHolder'] = insurancePolicyHolder;
-      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-
-      newData['independentMonitoringList'] = independentMonitoringList;
-      newData['otherAssetProtection'] = otherAssetProtection;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['financialAdvisor'] = financialAdvisor;
-
-      newData['contractualProtectionRevGuarantees'] =
-          contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
-      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
-      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
-      newData['riskSharingMechanismHedgeInstruments'] =
-          riskSharingMechanismHedgeInstruments ? 1 : 0;
-      newData['riskSharingMechanismCompletionGuarantees'] =
-          riskSharingMechanismCompletionGuarantees ? 1 : 0;
-      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
-      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
-      newData['securityMeasuresSurveilanceSystems'] =
-          securityMeasuresSurveilanceSystems ? 1 : 0;
-      newData['securityMeasuresOnSiteSecurityPersonnel'] =
-          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
-      newData['securityMeasuresPerimeterSecurity'] =
-          securityMeasuresPerimeterSecurity ? 1 : 0;
-      newData['securityMeasuresCriticalInfraProtections'] =
-          securityMeasuresCriticalInfraProtections ? 1 : 0;
-      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
-      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
-      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
-      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
-      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
-      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
-      newData['outstandingFinancialRespNoDebts'] =
-          outstandingFinancialRespNoDebts ? 1 : 0;
-      newData['outstandingFinancialRespNoHiddenLiabilities'] =
-          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
-      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
-      newData['physicalConditionNoUndisclosedEasements'] =
-          physicalConditionNoUndisclosedEasements ? 1 : 0;
-      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
-      newData['hasInsurance'] = hasInsurance ? 1 : 0;
-
-      newData['projectStrategicObjectives'] = projectStrategicObjectives;
-      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
-      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
-      newData['projectScope'] = projectScope;
-      newData['projectEconomicBenefits'] = projectEconomicBenefits;
-      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
-      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
-      newData['projectTechnicalPartners'] = projectTechnicalPartners;
-      newData['projectFinancialPartners'] = projectFinancialPartners;
-
-      newData['estimatedProjectPaybackPeriodsInMonths'] =
-          estimatedProjectPaybackPeriodsInMonths;
-      newData['keyAssumptionsList'] = keyAssumptionsList;
-      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
-      newData['projectIdentifiedRegulatoryRisks'] =
-          projectIdentifiedRegulatoryRisks;
-      newData['projectIdentifiedOperationalOrExecutionRisks'] =
-          projectIdentifiedOperationalOrExecutionRisks;
-      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
-      newData['projectIdentifiedOtherRelevantRisks'] =
-          projectIdentifiedOtherRelevantRisks;
-
-      newData['estimatedProjectIRR'] = estimatedProjectIRR;
-      newData['estimatedProjectROI'] = estimatedProjectROI;
-      newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(

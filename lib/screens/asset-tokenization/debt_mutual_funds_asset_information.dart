@@ -33,88 +33,50 @@ class _DebtMutualFundsAssetInformationView
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late String assetOwnership;
-  late String thirdPartyOwnerType;
-  late String assetDescription;
-  late String assetPhysicalAddress;
-  late double latitude;
-  late double longitude;
-  late DateTime? fundLaunchDate;
-  late String nameOfOwner;
   late String assetName;
-  late String addressOfOwner;
-  late double currentValueOfAsset;
-  late double assetMiscCost;
-  late double valueOfTokenizedAsset;
-  late double assetOwnerRetainedOrContributedValue;
-  late List<String> assetProtectionInPlace;
-  late String insuranceCompanyName;
-  late String insurancePolicyNumber;
-  late String insurancePolicyHolder;
-  late double percentageValueOfInsurance;
-  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
-  String projectStrategicObjectives = "";
-  String projectDevelopmentTimeline = "";
-  String projectKeyMilestoneAndDates = "";
-  String projectScope = "";
-  String projectEconomicBenefits = "";
-  int projectExpectedNoOfJobs = 0;
-  String projectIntendedSocialBenefits = "";
-  String projectTechnicalPartners = "";
-  String projectFinancialPartners = "";
-
-  double percentageFromPromoters = 0;
-  double estimatedProjectIRR = 0;
-  double estimatedProjectROI = 0;
-  double estimatedProjectNPV = 0;
-  int estimatedProjectPaybackPeriodsInMonths = 0;
-  String keyAssumptionsList = "";
-  String projectIdentifiedLegalRisks = "";
-  String projectIdentifiedRegulatoryRisks = "";
-  String projectIdentifiedOperationalOrExecutionRisks = "";
-  String projectIdentifiedMarketRisks = "";
-  String projectIdentifiedOtherRelevantRisks = "";
-
-  String independentMonitoringList = "";
-  String otherAssetProtection = "";
-  String legalAdvisor = "";
-  String financialAdvisor = "";
-
-  bool hasIndependentMonitoring = false;
-  bool hasLegalAdvisor = false;
-  bool hasFinancialAdvisor = false;
-  bool hasOtherAssetProtection = false;
-
-  bool contractualProtectionRevGuarantees = false;
-  bool contractualProtectionPerfBond = false;
-  bool contractualProtectionSLA = false;
-  bool riskSharingMechanismPPPs = false;
-  bool riskSharingMechanismHedgeInstruments = false;
-  bool riskSharingMechanismCompletionGuarantees = false;
-  bool eSGSafeguardsSusCerts = false;
-  bool eSGSafeguardsCommEngPlans = false;
-  bool securityMeasuresAccessControl = false;
-  bool securityMeasuresSurveilanceSystems = false;
-  bool securityMeasuresOnSiteSecurityPersonnel = false;
-  bool securityMeasuresPerimeterSecurity = false;
-  bool securityMeasuresCriticalInfraProtections = false;
-  bool undertakingNoLien = false;
-  bool undertakingNotCollateral = false;
-  bool undertakingNoClaims = false;
-  bool undertakingNoForeclosure = false;
-  bool complianceNoViolation = false;
-  bool complianceAllPermits = false;
-  bool outstandingFinancialRespNoDebts = false;
-  bool outstandingFinancialRespNoHiddenLiabilities = false;
-  bool riskManagementFullyInsured = false;
-  bool riskManagementDeclaredValue = false;
-  bool physicalConditionSound = false;
-  bool physicalConditionNoUndisclosedEasements = false;
-  bool physicalConditionNolease = false;
-  bool hasInsurance = false;
+  late String debMutualFundFundName;
+  late String debMutualFundFundType;
+  late String debMutualFundFundStructure;
+  late List<String> debMutualFundFundManagers; // Names/profiles list
+  late String debMutualFundLicenseNumber;
+  late String debMutualFundIsinOrSecFundCode;
+  DateTime? debMutualFundFundLaunchDate;
+  double? debMutualFundTotalExpenseRatio; // as percentage
+  double? debMutualFundExitLoadFee;
+  late String
+  debMutualFundTenure; // could be string like "3 years" or int months/years
+  double? debMutualFundInitialNetAssetValue;
+  late String debMutualFundNavUpdateFrequency;
+  late String debMutualFundNavCalculationMethod;
+  double? debMutualFundMinimumInvestmentAmount;
+  late String debMutualFundRedemptionRules;
+  late String debMutualFundLockInPeriod;
+  double? debMutualFundEntryLoadFee;
+  double? debMutualFundPerformanceFee;
+  late String debMutualFundFundRiskRating;
+  late String debMutualFundLiquidityProfile;
+  late String debMutualFundDistributionFrequency;
+  late String debMutualFundDistributionMethod;
+  late String debMutualFundBenchmarkComparisonMethod;
+  late String debMutualFundFeeBreakdownSummary;
+  late String debMutualFundInvestmentObjective;
+  late String debMutualFundAssetAllocation;
+  late String debMutualFundTopHoldings;
+  double? debMutualFundAverageMaturity;
+  double? debMutualFundYieldToMaturity;
+  late String debMutualFundCreditRatingProfile;
+  late String debMutualFundPortfolioLockInPeriod;
+  double? debMutualFundPortfolioPerformanceFee;
+  late String debMutualFundTrusteeName;
+  late String debMutualFundCustodian;
+  late String debMutualFundAuditor;
+  late String debMutualFundFundAdministrator;
+  late String debMutualFundLegalAdvisor;
+  late String debMutualFundRatingAgency;
+  late List<String> debMutualFundInvestmentCommitteeMembers;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -152,144 +114,6 @@ class _DebtMutualFundsAssetInformationView
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
-    assetOwnership =
-        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
-    thirdPartyOwnerType =
-        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
-    assetName = data['assetName'] ?? "";
-    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
-    assetDescription = data['assetDescription'] ?? "";
-    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
-    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
-    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
-    nameOfOwner = data['assetOwnerName'] ?? "";
-    addressOfOwner = data['assetOwnerAddress'] ?? "";
-    currentValueOfAsset =
-        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
-          data['assetOwnerRetainedOrContributedValue'].toString(),
-        ) ??
-        0;
-    assetMiscCost =
-        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
-    valueOfTokenizedAsset =
-        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
-            data['protectionMethods'].toString().isEmpty
-        ? []
-        : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
-    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
-    percentageValueOfInsurance =
-        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-
-    valueOfAssetController.text = currentValueOfAsset == 0
-        ? ''
-        : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
-    assetOwnerRetainedOrContributedValueController.text =
-        assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
-    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
-        ? ''
-        : percentageValueOfInsurance.toString();
-
-    independentMonitoringList = data['independentMonitoringList'] ?? "";
-    otherAssetProtection = data['otherAssetProtection'] ?? "";
-    legalAdvisor = data['legalAdvisor'] ?? "";
-    financialAdvisor = data['financialAdvisor'] ?? "";
-
-    contractualProtectionRevGuarantees =
-        data['contractualProtectionRevGuarantees'] == 1;
-    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
-    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
-    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
-    riskSharingMechanismHedgeInstruments =
-        data['riskSharingMechanismHedgeInstruments'] == 1;
-    riskSharingMechanismCompletionGuarantees =
-        data['riskSharingMechanismCompletionGuarantees'] == 1;
-    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
-    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
-    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
-    securityMeasuresSurveilanceSystems =
-        data['securityMeasuresSurveilanceSystems'] == 1;
-    securityMeasuresOnSiteSecurityPersonnel =
-        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
-    securityMeasuresPerimeterSecurity =
-        data['securityMeasuresPerimeterSecurity'] == 1;
-    securityMeasuresCriticalInfraProtections =
-        data['securityMeasuresCriticalInfraProtections'] == 1;
-    undertakingNoLien = data['undertakingNoLien'] == 1;
-    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
-    undertakingNoClaims = data['undertakingNoClaims'] == 1;
-    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
-    complianceNoViolation = data['complianceNoViolation'] == 1;
-    complianceAllPermits = data['complianceAllPermits'] == 1;
-    outstandingFinancialRespNoDebts =
-        data['outstandingFinancialRespNoDebts'] == 1;
-    outstandingFinancialRespNoHiddenLiabilities =
-        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
-    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
-    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
-    physicalConditionSound = data['physicalConditionSound'] == 1;
-    physicalConditionNoUndisclosedEasements =
-        data['physicalConditionNoUndisclosedEasements'] == 1;
-    physicalConditionNolease = data['physicalConditionNolease'] == 1;
-    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
-    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
-    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
-
-    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
-    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
-    projectScope = data['projectScope'] ?? "";
-    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
-    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
-    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
-    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
-    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
-
-    estimatedProjectPaybackPeriodsInMonths =
-        data['estimatedProjectPaybackPeriodsInMonths'];
-    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
-    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
-    projectIdentifiedRegulatoryRisks =
-        data['projectIdentifiedRegulatoryRisks'] ?? "";
-    projectIdentifiedOperationalOrExecutionRisks =
-        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
-    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
-    projectIdentifiedOtherRelevantRisks =
-        data['projectIdentifiedOtherRelevantRisks'] ?? "";
-
-    estimatedProjectIRR =
-        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
-    estimatedProjectROI =
-        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
-    estimatedProjectNPV =
-        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
-
-    percentageFromPromoters =
-        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text = percentageFromPromoters.isNaN
-        ? '0'
-        : formatNumberShort(percentageFromPromoters);
-
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -362,10 +186,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundFundName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundFundName = value;
                         });
                       },
                       validator: (value) {
@@ -376,7 +200,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundFundName = value!;
                         });
                       },
                     ),
@@ -414,10 +238,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundFundType,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundFundType = value;
                         });
                       },
                       validator: (value) {
@@ -428,7 +252,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundFundType = value!;
                         });
                       },
                     ),
@@ -456,7 +280,9 @@ class _DebtMutualFundsAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      debMutualFundFundStructure = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -627,10 +453,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundLicenseNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundLicenseNumber = value;
                         });
                       },
                       validator: (value) {
@@ -641,7 +467,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundLicenseNumber = value!;
                         });
                       },
                     ),
@@ -681,10 +507,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundIsinOrSecFundCode,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundIsinOrSecFundCode = value;
                         });
                       },
                       validator: (value) {
@@ -695,7 +521,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundIsinOrSecFundCode = value!;
                         });
                       },
                     ),
@@ -740,7 +566,7 @@ class _DebtMutualFundsAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        fundLaunchDate = value;
+                        debMutualFundFundLaunchDate = value;
                       }),
                     },
                   );
@@ -779,10 +605,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundTotalExpenseRatio,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundTotalExpenseRatio = value;
                         });
                       },
                       validator: (value) {
@@ -793,7 +619,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundTotalExpenseRatio = value!;
                         });
                       },
                     ),
@@ -835,17 +661,7 @@ class _DebtMutualFundsAssetInformationView
                       width / 1.12,
                       onChanged: (value) {
                         setState(() {
-                          if (value.toString().isEmpty) {
-                            currentValueOfAsset = 0;
-                            valueOfTokenizedAsset = 0;
-                            return;
-                          }
-
-                          currentValueOfAsset = double.parse(
-                            value!.toString().replaceAll(',', ''),
-                          );
-                          valueOfTokenizedAsset =
-                              (assetMiscCost + currentValueOfAsset);
+                          debMutualFundExitLoadFee = value;
                         });
                       },
                       validator: (value) {
@@ -855,7 +671,9 @@ class _DebtMutualFundsAssetInformationView
                         return null;
                       },
                       onSaved: (value) {
-                        currentValueOfAsset = double.parse(value!.toString());
+                        debMutualFundExitLoadFee = double.parse(
+                          value!.toString(),
+                        );
                       },
                       autoFormatNumber: true,
                       isFiat: true,
@@ -936,10 +754,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundTenure,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundTenure = value;
                         });
                       },
                       validator: (value) {
@@ -950,7 +768,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundTenure = value!;
                         });
                       },
                     ),
@@ -990,10 +808,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundInitialNetAssetValue,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundInitialNetAssetValue = value;
                         });
                       },
                       validator: (value) {
@@ -1004,7 +822,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundInitialNetAssetValue = value!;
                         });
                       },
                     ),
@@ -1044,10 +862,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundNavUpdateFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundNavUpdateFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1058,7 +876,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundNavUpdateFrequency = value!;
                         });
                       },
                     ),
@@ -1098,10 +916,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundNavCalculationMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundNavCalculationMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1112,7 +930,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundNavCalculationMethod = value!;
                         });
                       },
                     ),
@@ -1152,10 +970,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundMinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundMinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1166,7 +984,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundMinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1206,10 +1024,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundRedemptionRules,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundRedemptionRules = value;
                         });
                       },
                       validator: (value) {
@@ -1220,7 +1038,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundRedemptionRules = value!;
                         });
                       },
                     ),
@@ -1260,10 +1078,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundLockInPeriod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundLockInPeriod = value;
                         });
                       },
                       validator: (value) {
@@ -1274,7 +1092,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundLockInPeriod = value!;
                         });
                       },
                     ),
@@ -1314,10 +1132,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundEntryLoadFee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundEntryLoadFee = value;
                         });
                       },
                       validator: (value) {
@@ -1328,7 +1146,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundEntryLoadFee = value!;
                         });
                       },
                     ),
@@ -1368,10 +1186,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundPerformanceFee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundPerformanceFee = value;
                         });
                       },
                       validator: (value) {
@@ -1382,7 +1200,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundPerformanceFee = value!;
                         });
                       },
                     ),
@@ -1422,10 +1240,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundFundRiskRating,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundFundRiskRating = value;
                         });
                       },
                       validator: (value) {
@@ -1436,7 +1254,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundFundRiskRating = value!;
                         });
                       },
                     ),
@@ -1476,10 +1294,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundLiquidityProfile,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundLiquidityProfile = value;
                         });
                       },
                       validator: (value) {
@@ -1490,7 +1308,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundLiquidityProfile = value!;
                         });
                       },
                     ),
@@ -1530,10 +1348,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundDistributionFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundDistributionFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1544,7 +1362,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundDistributionFrequency = value!;
                         });
                       },
                     ),
@@ -1584,10 +1402,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundDistributionMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundDistributionMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1598,7 +1416,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundDistributionMethod = value!;
                         });
                       },
                     ),
@@ -1638,10 +1456,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundBenchmarkComparisonMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundBenchmarkComparisonMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1652,7 +1470,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundBenchmarkComparisonMethod = value!;
                         });
                       },
                     ),
@@ -1692,10 +1510,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundFeeBreakdownSummary,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundFeeBreakdownSummary = value;
                         });
                       },
                       validator: (value) {
@@ -1706,7 +1524,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundFeeBreakdownSummary = value!;
                         });
                       },
                     ),
@@ -1781,10 +1599,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundInvestmentObjective,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundInvestmentObjective = value;
                         });
                       },
                       validator: (value) {
@@ -1795,7 +1613,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundInvestmentObjective = value!;
                         });
                       },
                     ),
@@ -1835,10 +1653,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundAssetAllocation,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundAssetAllocation = value;
                         });
                       },
                       validator: (value) {
@@ -1849,7 +1667,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundAssetAllocation = value!;
                         });
                       },
                     ),
@@ -1889,10 +1707,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundTopHoldings,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundTopHoldings = value;
                         });
                       },
                       validator: (value) {
@@ -1903,7 +1721,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundTopHoldings = value!;
                         });
                       },
                     ),
@@ -1943,10 +1761,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundAverageMaturity,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundAverageMaturity = value;
                         });
                       },
                       validator: (value) {
@@ -1957,7 +1775,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundAverageMaturity = value!;
                         });
                       },
                     ),
@@ -1997,10 +1815,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundYieldToMaturity,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundYieldToMaturity = value;
                         });
                       },
                       validator: (value) {
@@ -2011,7 +1829,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundYieldToMaturity = value!;
                         });
                       },
                     ),
@@ -2051,10 +1869,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundCreditRatingProfile,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundCreditRatingProfile = value;
                         });
                       },
                       validator: (value) {
@@ -2065,7 +1883,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundCreditRatingProfile = value!;
                         });
                       },
                     ),
@@ -2105,10 +1923,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundPortfolioLockInPeriod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundPortfolioLockInPeriod = value;
                         });
                       },
                       validator: (value) {
@@ -2119,7 +1937,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundPortfolioLockInPeriod = value!;
                         });
                       },
                     ),
@@ -2159,10 +1977,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundPortfolioPerformanceFee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundPortfolioPerformanceFee = value;
                         });
                       },
                       validator: (value) {
@@ -2173,7 +1991,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundPortfolioPerformanceFee = value!;
                         });
                       },
                     ),
@@ -2248,10 +2066,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundTrusteeName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundTrusteeName = value;
                         });
                       },
                       validator: (value) {
@@ -2262,7 +2080,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundTrusteeName = value!;
                         });
                       },
                     ),
@@ -2303,10 +2121,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundCustodian,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundCustodian = value;
                         });
                       },
                       validator: (value) {
@@ -2317,7 +2135,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundCustodian = value!;
                         });
                       },
                     ),
@@ -2357,10 +2175,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundAuditor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundAuditor = value;
                         });
                       },
                       validator: (value) {
@@ -2371,7 +2189,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundAuditor = value!;
                         });
                       },
                     ),
@@ -2411,10 +2229,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundFundAdministrator,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundFundAdministrator = value;
                         });
                       },
                       validator: (value) {
@@ -2425,7 +2243,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundFundAdministrator = value!;
                         });
                       },
                     ),
@@ -2465,10 +2283,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundLegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundLegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2479,7 +2297,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundLegalAdvisor = value!;
                         });
                       },
                     ),
@@ -2519,10 +2337,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -2533,7 +2351,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundRatingAgency = value!;
                         });
                       },
                     ),
@@ -2573,10 +2391,10 @@ class _DebtMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: debMutualFundInvestmentCommitteeMembers,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          debMutualFundInvestmentCommitteeMembers = value;
                         });
                       },
                       validator: (value) {
@@ -2587,7 +2405,7 @@ class _DebtMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          debMutualFundInvestmentCommitteeMembers = value!;
                         });
                       },
                     ),
@@ -2623,128 +2441,7 @@ class _DebtMutualFundsAssetInformationView
   void submitForm() async {
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credential
-      if (!hasInsurance) {
-        insuranceCompanyName = "";
-        insurancePolicyNumber = "";
-        insurancePolicyHolder = "";
-        percentageValueOfInsurance = 0;
-      }
-
-      if (!hasLegalAdvisor) {
-        legalAdvisor = "";
-      }
-
-      if (!hasFinancialAdvisor) {
-        financialAdvisor = "";
-      }
-
-      if (!hasIndependentMonitoring) {
-        independentMonitoringList = "";
-      }
-
-      if (!hasOtherAssetProtection) {
-        otherAssetProtection = "";
-      }
       var newData = {...data as Map};
-
-      newData['ownershipType'] = assetOwnership;
-      newData['ownershipKind'] = thirdPartyOwnerType;
-      newData['assetName'] = assetName;
-      newData['assetDescription'] = assetDescription;
-      newData['assetPhysicalAddress'] = assetPhysicalAddress;
-      newData['assetLatitude'] = latitude.toString();
-      newData['assetLongitude'] = longitude.toString();
-      newData['assetOwnerName'] = nameOfOwner;
-      newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
-      newData['assetOwnerRetainedOrContributedValue'] =
-          assetOwnerRetainedOrContributedValue;
-      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      newData['protectionMethods'] = assetProtectionInPlace.join(',');
-      newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurancePolicyNumber'] = insurancePolicyNumber;
-      newData['insurancePolicyHolder'] = insurancePolicyHolder;
-      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-
-      newData['independentMonitoringList'] = independentMonitoringList;
-      newData['otherAssetProtection'] = otherAssetProtection;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['financialAdvisor'] = financialAdvisor;
-
-      newData['contractualProtectionRevGuarantees'] =
-          contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
-      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
-      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
-      newData['riskSharingMechanismHedgeInstruments'] =
-          riskSharingMechanismHedgeInstruments ? 1 : 0;
-      newData['riskSharingMechanismCompletionGuarantees'] =
-          riskSharingMechanismCompletionGuarantees ? 1 : 0;
-      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
-      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
-      newData['securityMeasuresSurveilanceSystems'] =
-          securityMeasuresSurveilanceSystems ? 1 : 0;
-      newData['securityMeasuresOnSiteSecurityPersonnel'] =
-          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
-      newData['securityMeasuresPerimeterSecurity'] =
-          securityMeasuresPerimeterSecurity ? 1 : 0;
-      newData['securityMeasuresCriticalInfraProtections'] =
-          securityMeasuresCriticalInfraProtections ? 1 : 0;
-      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
-      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
-      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
-      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
-      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
-      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
-      newData['outstandingFinancialRespNoDebts'] =
-          outstandingFinancialRespNoDebts ? 1 : 0;
-      newData['outstandingFinancialRespNoHiddenLiabilities'] =
-          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
-      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
-      newData['physicalConditionNoUndisclosedEasements'] =
-          physicalConditionNoUndisclosedEasements ? 1 : 0;
-      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
-      newData['hasInsurance'] = hasInsurance ? 1 : 0;
-
-      newData['projectStrategicObjectives'] = projectStrategicObjectives;
-      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
-      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
-      newData['projectScope'] = projectScope;
-      newData['projectEconomicBenefits'] = projectEconomicBenefits;
-      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
-      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
-      newData['projectTechnicalPartners'] = projectTechnicalPartners;
-      newData['projectFinancialPartners'] = projectFinancialPartners;
-
-      newData['estimatedProjectPaybackPeriodsInMonths'] =
-          estimatedProjectPaybackPeriodsInMonths;
-      newData['keyAssumptionsList'] = keyAssumptionsList;
-      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
-      newData['projectIdentifiedRegulatoryRisks'] =
-          projectIdentifiedRegulatoryRisks;
-      newData['projectIdentifiedOperationalOrExecutionRisks'] =
-          projectIdentifiedOperationalOrExecutionRisks;
-      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
-      newData['projectIdentifiedOtherRelevantRisks'] =
-          projectIdentifiedOtherRelevantRisks;
-
-      newData['estimatedProjectIRR'] = estimatedProjectIRR;
-      newData['estimatedProjectROI'] = estimatedProjectROI;
-      newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(
