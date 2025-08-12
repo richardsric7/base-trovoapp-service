@@ -1064,7 +1064,21 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		return
 
 	}
+	if ato.TokenizationFeeID != nil {
+		if *ato.TokenizationFeeID == 0 {
+			// error tokenization is already in progress
+			log.Printf("[VetTokenizationAssetInfo] Error tokenization fee was not selected: %v\n", tokenizationID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+			return
 
+		}
+	} else {
+		// error tokenization is already in progress
+		log.Printf("[VetTokenizationAssetInfo] Error tokenization fee was not selected: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+		return
+
+	}
 	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
 		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
@@ -1608,6 +1622,21 @@ func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, t
 	if len(*ato.AssetCountryLocation) != 2 {
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
 		return
+	}
+	if ato.TokenizationFeeID != nil {
+		if *ato.TokenizationFeeID == 0 {
+			// error tokenization is already in progress
+			log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Error tokenization fee was not selected: %v\n", tokenizationID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Please go and choose a fee structure of your choice before you can continue."}
+			return
+
+		}
+	} else {
+		// error tokenization is already in progress
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Error tokenization fee was not selected: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Please go and choose a fee structure of your choice before you can continue."}
+		return
+
 	}
 
 	//begin a database transaction here
@@ -3189,7 +3218,21 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 
 	}
+	if ato.TokenizationFeeID != nil {
+		if *ato.TokenizationFeeID == 0 {
+			// error tokenization is already in progress
+			log.Printf("[MintRegulatedTokenizedAsset] Error tokenization fee was not selected: %v\n", tokenizationID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+			return
 
+		}
+	} else {
+		// error tokenization is already in progress
+		log.Printf("[MintRegulatedTokenizedAsset] Error tokenization fee was not selected: %v\n", tokenizationID)
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+		return
+
+	}
 	if decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
 		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
