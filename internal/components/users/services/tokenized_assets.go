@@ -1066,16 +1066,20 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 	}
 	if ato.TokenizationFeeID != nil {
 		if *ato.TokenizationFeeID == 0 {
-			// error tokenization is already in progress
+			// return it to fee state.
+			ato.AssetTokenizationStatus = 0
+			gc.DB.Omit(clause.Associations).Save(&ato)
 			log.Printf("[VetTokenizationAssetInfo] Error tokenization fee was not selected: %v\n", tokenizationID)
-			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Status has been returned to allow applicant to choose fee."}
 			return
 
 		}
 	} else {
-		// error tokenization is already in progress
+		//
+		ato.AssetTokenizationStatus = 0
+		gc.DB.Omit(clause.Associations).Save(&ato)
 		log.Printf("[VetTokenizationAssetInfo] Error tokenization fee was not selected: %v\n", tokenizationID)
-		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Status has been returned to allow applicant to choose fee."}
 		return
 
 	}
@@ -1625,14 +1629,18 @@ func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, t
 	}
 	if ato.TokenizationFeeID != nil {
 		if *ato.TokenizationFeeID == 0 {
-			// error tokenization is already in progress
+			//
+			ato.AssetTokenizationStatus = 0
+			gc.DB.Omit(clause.Associations).Save(&ato)
 			log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Error tokenization fee was not selected: %v\n", tokenizationID)
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Please go and choose a fee structure of your choice before you can continue."}
 			return
 
 		}
 	} else {
-		// error tokenization is already in progress
+		//
+		ato.AssetTokenizationStatus = 0
+		gc.DB.Omit(clause.Associations).Save(&ato)
 		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] Error tokenization fee was not selected: %v\n", tokenizationID)
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Please go and choose a fee structure of your choice before you can continue."}
 		return
