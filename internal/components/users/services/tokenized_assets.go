@@ -3100,27 +3100,29 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
-
-	//deduct fee to fee wallet, from distribution wallet
-	feeInAssetPayment := &txnbuild.Payment{
-		Destination:   feeWallet.Address(),
-		Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
-		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SourceAccount: distributionWallet.ID,
-	}
-	if e := feeInAssetPayment.Validate(); e != nil {
-		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] FeeInAssetPayment Operation Failed validation: %v. Fee In Asset figure: %v. Fields: %+v", e, decimal.NewFromFloat(t.FeeInAsset).StringFixed(7), *feeInAssetPayment)
-		gc.LogDiscordFailedRequest(msg)
-		err = &tErrors.CustomError{
-			Param:      "IssuingWalletPublicKey",
-			Err:        "error-could-not-approve-tokenization",
-			ErrMessage: "Could not approve tokenization. A fee Payment operation could not pass validation.",
-			Code:       404,
+	if t.FeeInAsset > 0 {
+		//deduct fee to fee wallet, from distribution wallet
+		feeInAssetPayment := &txnbuild.Payment{
+			Destination:   feeWallet.Address(),
+			Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
+			Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+			SourceAccount: distributionWallet.ID,
 		}
-		return "", "", messages, issuingWallet, err
+		// if e := feeInAssetPayment.Validate(); e != nil {
+		// 	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] FeeInAssetPayment Operation Failed validation: %v. Fee In Asset figure: %v. Fields: %+v", e, decimal.NewFromFloat(t.FeeInAsset).StringFixed(7), *feeInAssetPayment)
+		// 	gc.LogDiscordFailedRequest(msg)
+		// 	err = &tErrors.CustomError{
+		// 		Param:      "IssuingWalletPublicKey",
+		// 		Err:        "error-could-not-approve-tokenization",
+		// 		ErrMessage: "Could not approve tokenization. A fee Payment operation could not pass validation.",
+		// 		Code:       404,
+		// 	}
+		// 	return "", "", messages, issuingWallet, err
+		// }
+
+		ops = append(ops, feeInAssetPayment)
 	}
 
-	ops = append(ops, feeInAssetPayment)
 	//make market
 	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
 	d := int32(fraction.Denom().Int64())
