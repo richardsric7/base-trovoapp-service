@@ -3065,24 +3065,50 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	})
 
 	//deduct fee to fee wallet, from distribution wallet
-	ops = append(ops, &txnbuild.Payment{
+	feeInAssetPayment := &txnbuild.Payment{
 		Destination:   feeWallet.Address(),
 		Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		SourceAccount: distributionWallet.ID,
-	})
+	}
+	if e := feeInAssetPayment.Validate(); e != nil {
+		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] FeeInAssetPayment Operation Failed validation: %v. Fee In Asset figure: %v. Fields: %+v", e, decimal.NewFromFloat(t.FeeInAsset).StringFixed(7), *feeInAssetPayment)
+		gc.LogDiscordFailedRequest(msg)
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletPublicKey",
+			Err:        "error-could-not-approve-tokenization",
+			ErrMessage: "Could not approve tokenization. A fee Payment operation could not pass validation.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+
+	ops = append(ops, feeInAssetPayment)
 	//make market
 	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
 	xdrPrice := xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)}
-	ops = append(ops, &txnbuild.ManageSellOffer{
+	marketOffer := &txnbuild.ManageSellOffer{
 		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
 		Selling:       txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		Price:         xdrPrice,
 		SourceAccount: distributionWallet.ID,
-	})
+	}
+	if e := marketOffer.Validate(); e != nil {
+		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] marketOffer Operation Failed validation: %v. Offer figure: %v. Fields: %+v", e, t.MaxNumberOfTokenAvailableForSale, *marketOffer)
+		gc.LogDiscordFailedRequest(msg)
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletPublicKey",
+			Err:        "error-could-not-approve-tokenization",
+			ErrMessage: "Could not approve tokenization. Market offer operation could not pass validation.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+
+	ops = append(ops, marketOffer)
 	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. Fraction: %v. N: %v, D: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrPrice)
 	gc.LogDiscordFailedRequest(msg)
 	//check if issuing account has native enough native balance
