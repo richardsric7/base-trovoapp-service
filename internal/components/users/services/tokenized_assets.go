@@ -3228,16 +3228,22 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	if ato.TokenizationFeeID != nil {
 		if *ato.TokenizationFeeID == 0 {
-			// error tokenization is already in progress
+			//
+			ato.AssetTokenizationStatus = 0
+			ato.VettingStatus = 0
+			gc.DB.Omit(clause.Associations).Save(&ato)
 			log.Printf("[MintRegulatedTokenizedAsset] Error tokenization fee was not selected: %v\n", tokenizationID)
-			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Status has been returnd to allow applicant select fee."}
 			return
 
 		}
 	} else {
-		// error tokenization is already in progress
+		//
+		ato.AssetTokenizationStatus = 0
+		ato.VettingStatus = 0
+		gc.DB.Omit(clause.Associations).Save(&ato)
 		log.Printf("[MintRegulatedTokenizedAsset] Error tokenization fee was not selected: %v\n", tokenizationID)
-		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected."}
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-fee-not-selected", ErrMessage: "Tokenization fee was not selected. Status has been returned to allow applicant select fee."}
 		return
 
 	}
