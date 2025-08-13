@@ -33,88 +33,74 @@ class _HybridMutualFundsAssetInformationView
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late String assetOwnership;
-  late String thirdPartyOwnerType;
-  late String assetDescription;
-  late String assetPhysicalAddress;
-  late double latitude;
-  late double longitude;
-  late DateTime? fundLaunchDate;
-  late String nameOfOwner;
+
   late String assetName;
-  late String addressOfOwner;
-  late double currentValueOfAsset;
-  late double assetMiscCost;
-  late double valueOfTokenizedAsset;
-  late double assetOwnerRetainedOrContributedValue;
-  late List<String> assetProtectionInPlace;
-  late String insuranceCompanyName;
-  late String insurancePolicyNumber;
-  late String insurancePolicyHolder;
-  late double percentageValueOfInsurance;
   bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
-  String projectStrategicObjectives = "";
-  String projectDevelopmentTimeline = "";
-  String projectKeyMilestoneAndDates = "";
-  String projectScope = "";
-  String projectEconomicBenefits = "";
-  int projectExpectedNoOfJobs = 0;
-  String projectIntendedSocialBenefits = "";
-  String projectTechnicalPartners = "";
-  String projectFinancialPartners = "";
-
-  double percentageFromPromoters = 0;
-  double estimatedProjectIRR = 0;
-  double estimatedProjectROI = 0;
-  double estimatedProjectNPV = 0;
-  int estimatedProjectPaybackPeriodsInMonths = 0;
-  String keyAssumptionsList = "";
-  String projectIdentifiedLegalRisks = "";
-  String projectIdentifiedRegulatoryRisks = "";
-  String projectIdentifiedOperationalOrExecutionRisks = "";
-  String projectIdentifiedMarketRisks = "";
-  String projectIdentifiedOtherRelevantRisks = "";
-
-  String independentMonitoringList = "";
-  String otherAssetProtection = "";
-  String legalAdvisor = "";
-  String financialAdvisor = "";
-
-  bool hasIndependentMonitoring = false;
-  bool hasLegalAdvisor = false;
-  bool hasFinancialAdvisor = false;
-  bool hasOtherAssetProtection = false;
-
-  bool contractualProtectionRevGuarantees = false;
-  bool contractualProtectionPerfBond = false;
-  bool contractualProtectionSLA = false;
-  bool riskSharingMechanismPPPs = false;
-  bool riskSharingMechanismHedgeInstruments = false;
-  bool riskSharingMechanismCompletionGuarantees = false;
-  bool eSGSafeguardsSusCerts = false;
-  bool eSGSafeguardsCommEngPlans = false;
-  bool securityMeasuresAccessControl = false;
-  bool securityMeasuresSurveilanceSystems = false;
-  bool securityMeasuresOnSiteSecurityPersonnel = false;
-  bool securityMeasuresPerimeterSecurity = false;
-  bool securityMeasuresCriticalInfraProtections = false;
-  bool undertakingNoLien = false;
-  bool undertakingNotCollateral = false;
-  bool undertakingNoClaims = false;
-  bool undertakingNoForeclosure = false;
-  bool complianceNoViolation = false;
-  bool complianceAllPermits = false;
-  bool outstandingFinancialRespNoDebts = false;
-  bool outstandingFinancialRespNoHiddenLiabilities = false;
-  bool riskManagementFullyInsured = false;
-  bool riskManagementDeclaredValue = false;
-  bool physicalConditionSound = false;
-  bool physicalConditionNoUndisclosedEasements = false;
-  bool physicalConditionNolease = false;
-  bool hasInsurance = false;
+  late String FundName;
+  late String FundType;
+  late String FundStructure;
+  late String AssetManagementCompanyName;
+  late String
+  FundManagers; // Names & profiles as a single string or serialized JSON
+  late String RegulatoryLicenseNumber;
+  late String IsinOrSecFundCode;
+  DateTime? FundLaunchDate;
+  double? TotalExpenseRatio; // % value
+  double? ExitLoadOrRedemptionFee; // % value
+  int? Tenure; // Duration in years
+  double? InitialNetAssetValue;
+  late String NavUpdateFrequency;
+  late String NavCalculationMethod;
+  double? MinimumInvestmentAmount;
+  late String RedemptionRules;
+  late String LockInPeriod;
+  double? EntryLoad;
+  double? PerformanceFee;
+  late String DividendPolicy;
+  late String FundRiskRating;
+  late String LiquidityProfile;
+  late String DistributionFrequency;
+  late String DistributionMethod;
+  late String BenchmarkComparisonMethod;
+  late String FeeBreakdownSummary;
+  late String InvestmentObjective;
+  late String AssetAllocation;
+  late String TopHoldings;
+  double? AverageMaturity;
+  double? YieldToMaturity;
+  late String CreditRatingProfile;
+  late String
+  LockInPeriodPortfolio; // Another Lock-In Period field in portfolio section
+  double? PerformanceFeeIfAny;
+  late String EquityStrategy;
+  late String MarketCapitalizationFocus;
+  late String BenchmarkIndex;
+  late String SectorExposureLimits;
+  late String TopEquityHoldings;
+  late String GeographicExposure;
+  late String RiskProfile;
+  double? VolatilityEstimate;
+  late String TargetAllocation;
+  late String AllowedAllocationRange;
+  late String AssetClassesIncluded;
+  late String RebalancingFrequency;
+  late String BenchmarkIndexComposite;
+  late String TopEquityHoldingsList;
+  late String TopDebtHoldings;
+  double? DividendYield;
+  late String CreditRatingDistribution;
+  double? AverageMaturityHybrid;
+  double? YieldToMaturityHybrid;
+  late String TrusteeName;
+  late String Custodian;
+  late String Auditor;
+  late String FundAdministrator;
+  late String LegalAdvisor;
+  late String RatingAgency;
+  late String InvestmentCommitteeMembers;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -152,144 +138,6 @@ class _HybridMutualFundsAssetInformationView
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
-    assetOwnership =
-        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
-    thirdPartyOwnerType =
-        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
-    assetName = data['assetName'] ?? "";
-    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
-    assetDescription = data['assetDescription'] ?? "";
-    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
-    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
-    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
-    nameOfOwner = data['assetOwnerName'] ?? "";
-    addressOfOwner = data['assetOwnerAddress'] ?? "";
-    currentValueOfAsset =
-        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
-          data['assetOwnerRetainedOrContributedValue'].toString(),
-        ) ??
-        0;
-    assetMiscCost =
-        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
-    valueOfTokenizedAsset =
-        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
-            data['protectionMethods'].toString().isEmpty
-        ? []
-        : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
-    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
-    percentageValueOfInsurance =
-        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-
-    valueOfAssetController.text = currentValueOfAsset == 0
-        ? ''
-        : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
-    assetOwnerRetainedOrContributedValueController.text =
-        assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
-    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
-        ? ''
-        : percentageValueOfInsurance.toString();
-
-    independentMonitoringList = data['independentMonitoringList'] ?? "";
-    otherAssetProtection = data['otherAssetProtection'] ?? "";
-    legalAdvisor = data['legalAdvisor'] ?? "";
-    financialAdvisor = data['financialAdvisor'] ?? "";
-
-    contractualProtectionRevGuarantees =
-        data['contractualProtectionRevGuarantees'] == 1;
-    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
-    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
-    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
-    riskSharingMechanismHedgeInstruments =
-        data['riskSharingMechanismHedgeInstruments'] == 1;
-    riskSharingMechanismCompletionGuarantees =
-        data['riskSharingMechanismCompletionGuarantees'] == 1;
-    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
-    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
-    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
-    securityMeasuresSurveilanceSystems =
-        data['securityMeasuresSurveilanceSystems'] == 1;
-    securityMeasuresOnSiteSecurityPersonnel =
-        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
-    securityMeasuresPerimeterSecurity =
-        data['securityMeasuresPerimeterSecurity'] == 1;
-    securityMeasuresCriticalInfraProtections =
-        data['securityMeasuresCriticalInfraProtections'] == 1;
-    undertakingNoLien = data['undertakingNoLien'] == 1;
-    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
-    undertakingNoClaims = data['undertakingNoClaims'] == 1;
-    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
-    complianceNoViolation = data['complianceNoViolation'] == 1;
-    complianceAllPermits = data['complianceAllPermits'] == 1;
-    outstandingFinancialRespNoDebts =
-        data['outstandingFinancialRespNoDebts'] == 1;
-    outstandingFinancialRespNoHiddenLiabilities =
-        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
-    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
-    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
-    physicalConditionSound = data['physicalConditionSound'] == 1;
-    physicalConditionNoUndisclosedEasements =
-        data['physicalConditionNoUndisclosedEasements'] == 1;
-    physicalConditionNolease = data['physicalConditionNolease'] == 1;
-    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
-    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
-    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
-
-    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
-    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
-    projectScope = data['projectScope'] ?? "";
-    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
-    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
-    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
-    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
-    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
-
-    estimatedProjectPaybackPeriodsInMonths =
-        data['estimatedProjectPaybackPeriodsInMonths'];
-    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
-    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
-    projectIdentifiedRegulatoryRisks =
-        data['projectIdentifiedRegulatoryRisks'] ?? "";
-    projectIdentifiedOperationalOrExecutionRisks =
-        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
-    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
-    projectIdentifiedOtherRelevantRisks =
-        data['projectIdentifiedOtherRelevantRisks'] ?? "";
-
-    estimatedProjectIRR =
-        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
-    estimatedProjectROI =
-        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
-    estimatedProjectNPV =
-        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
-
-    percentageFromPromoters =
-        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text = percentageFromPromoters.isNaN
-        ? '0'
-        : formatNumberShort(percentageFromPromoters);
-
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -362,10 +210,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FundName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FundName = value;
                         });
                       },
                       validator: (value) {
@@ -376,7 +224,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FundName = value!;
                         });
                       },
                     ),
@@ -414,10 +262,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FundType,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FundType = value;
                         });
                       },
                       validator: (value) {
@@ -428,7 +276,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FundType = value!;
                         });
                       },
                     ),
@@ -456,7 +304,9 @@ class _HybridMutualFundsAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      FundStructure = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -502,10 +352,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AssetManagementCompanyName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AssetManagementCompanyName = value;
                         });
                       },
                       validator: (value) {
@@ -516,7 +366,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AssetManagementCompanyName = value!;
                         });
                       },
                     ),
@@ -678,10 +528,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RegulatoryLicenseNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RegulatoryLicenseNumber = value;
                         });
                       },
                       validator: (value) {
@@ -692,7 +542,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RegulatoryLicenseNumber = value!;
                         });
                       },
                     ),
@@ -732,10 +582,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IsinOrSecFundCode,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IsinOrSecFundCode = value;
                         });
                       },
                       validator: (value) {
@@ -746,7 +596,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IsinOrSecFundCode = value!;
                         });
                       },
                     ),
@@ -791,7 +641,7 @@ class _HybridMutualFundsAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        fundLaunchDate = value;
+                        FundLaunchDate = value;
                       }),
                     },
                   );
@@ -830,10 +680,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TotalExpenseRatio,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TotalExpenseRatio = value;
                         });
                       },
                       validator: (value) {
@@ -844,7 +694,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TotalExpenseRatio = value!;
                         });
                       },
                     ),
@@ -886,17 +736,7 @@ class _HybridMutualFundsAssetInformationView
                       width / 1.12,
                       onChanged: (value) {
                         setState(() {
-                          if (value.toString().isEmpty) {
-                            currentValueOfAsset = 0;
-                            valueOfTokenizedAsset = 0;
-                            return;
-                          }
-
-                          currentValueOfAsset = double.parse(
-                            value!.toString().replaceAll(',', ''),
-                          );
-                          valueOfTokenizedAsset =
-                              (assetMiscCost + currentValueOfAsset);
+                          ExitLoadOrRedemptionFee = value;
                         });
                       },
                       validator: (value) {
@@ -906,7 +746,9 @@ class _HybridMutualFundsAssetInformationView
                         return null;
                       },
                       onSaved: (value) {
-                        currentValueOfAsset = double.parse(value!.toString());
+                        ExitLoadOrRedemptionFee = double.parse(
+                          value!.toString(),
+                        );
                       },
                       autoFormatNumber: true,
                       isFiat: true,
@@ -987,10 +829,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Tenure,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Tenure = value;
                         });
                       },
                       validator: (value) {
@@ -1001,7 +843,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Tenure = value!;
                         });
                       },
                     ),
@@ -1041,10 +883,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: InitialNetAssetValue,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          InitialNetAssetValue = value;
                         });
                       },
                       validator: (value) {
@@ -1055,7 +897,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          InitialNetAssetValue = value!;
                         });
                       },
                     ),
@@ -1095,10 +937,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: NavUpdateFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          NavUpdateFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1109,7 +951,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          NavUpdateFrequency = value!;
                         });
                       },
                     ),
@@ -1149,10 +991,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: NavCalculationMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          NavCalculationMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1163,7 +1005,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          NavCalculationMethod = value!;
                         });
                       },
                     ),
@@ -1203,10 +1045,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: MinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          MinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1217,7 +1059,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          MinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1257,10 +1099,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RedemptionRules,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RedemptionRules = value;
                         });
                       },
                       validator: (value) {
@@ -1271,7 +1113,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RedemptionRules = value!;
                         });
                       },
                     ),
@@ -1311,10 +1153,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LockInPeriod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LockInPeriod = value;
                         });
                       },
                       validator: (value) {
@@ -1325,7 +1167,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LockInPeriod = value!;
                         });
                       },
                     ),
@@ -1365,10 +1207,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: EntryLoad,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          EntryLoad = value;
                         });
                       },
                       validator: (value) {
@@ -1379,7 +1221,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          EntryLoad = value!;
                         });
                       },
                     ),
@@ -1419,10 +1261,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: PerformanceFee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          PerformanceFee = value;
                         });
                       },
                       validator: (value) {
@@ -1433,7 +1275,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          PerformanceFee = value!;
                         });
                       },
                     ),
@@ -1470,10 +1312,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: DividendPolicy,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          DividendPolicy = value;
                         });
                       },
                       validator: (value) {
@@ -1484,7 +1326,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          DividendPolicy = value!;
                         });
                       },
                     ),
@@ -1524,10 +1366,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FundRiskRating,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FundRiskRating = value;
                         });
                       },
                       validator: (value) {
@@ -1538,7 +1380,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FundRiskRating = value!;
                         });
                       },
                     ),
@@ -1578,10 +1420,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LiquidityProfile,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LiquidityProfile = value;
                         });
                       },
                       validator: (value) {
@@ -1592,7 +1434,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LiquidityProfile = value!;
                         });
                       },
                     ),
@@ -1632,10 +1474,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: DistributionFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          DistributionFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1646,7 +1488,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          DistributionFrequency = value!;
                         });
                       },
                     ),
@@ -1686,10 +1528,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: DistributionMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          DistributionMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1700,7 +1542,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          DistributionMethod = value!;
                         });
                       },
                     ),
@@ -1740,10 +1582,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: BenchmarkComparisonMethod,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          BenchmarkComparisonMethod = value;
                         });
                       },
                       validator: (value) {
@@ -1754,7 +1596,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          BenchmarkComparisonMethod = value!;
                         });
                       },
                     ),
@@ -1794,10 +1636,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FeeBreakdownSummary,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FeeBreakdownSummary = value;
                         });
                       },
                       validator: (value) {
@@ -1808,7 +1650,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FeeBreakdownSummary = value!;
                         });
                       },
                     ),
@@ -1883,10 +1725,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: InvestmentObjective,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          InvestmentObjective = value;
                         });
                       },
                       validator: (value) {
@@ -1897,7 +1739,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          InvestmentObjective = value!;
                         });
                       },
                     ),
@@ -1937,10 +1779,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AssetAllocation,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AssetAllocation = value;
                         });
                       },
                       validator: (value) {
@@ -1951,7 +1793,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AssetAllocation = value!;
                         });
                       },
                     ),
@@ -1991,10 +1833,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TopHoldings,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TopHoldings = value;
                         });
                       },
                       validator: (value) {
@@ -2005,7 +1847,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TopHoldings = value!;
                         });
                       },
                     ),
@@ -2045,10 +1887,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AverageMaturity,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AverageMaturity = value;
                         });
                       },
                       validator: (value) {
@@ -2059,7 +1901,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AverageMaturity = value!;
                         });
                       },
                     ),
@@ -2099,10 +1941,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: YieldToMaturity,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          YieldToMaturity = value;
                         });
                       },
                       validator: (value) {
@@ -2113,7 +1955,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          YieldToMaturity = value!;
                         });
                       },
                     ),
@@ -2153,10 +1995,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRatingProfile,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRatingProfile = value;
                         });
                       },
                       validator: (value) {
@@ -2167,7 +2009,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRatingProfile = value!;
                         });
                       },
                     ),
@@ -2207,10 +2049,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LockInPeriodPortfolio,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LockInPeriodPortfolio = value;
                         });
                       },
                       validator: (value) {
@@ -2221,7 +2063,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LockInPeriodPortfolio = value!;
                         });
                       },
                     ),
@@ -2261,10 +2103,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: PerformanceFeeIfAny,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          PerformanceFeeIfAny = value;
                         });
                       },
                       validator: (value) {
@@ -2275,7 +2117,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          PerformanceFeeIfAny = value!;
                         });
                       },
                     ),
@@ -2305,7 +2147,9 @@ class _HybridMutualFundsAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      EquityStrategy = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -2344,7 +2188,9 @@ class _HybridMutualFundsAssetInformationView
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      MarketCapitalizationFocus = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -2393,10 +2239,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: BenchmarkIndex,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          BenchmarkIndex = value;
                         });
                       },
                       validator: (value) {
@@ -2407,7 +2253,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          BenchmarkIndex = value!;
                         });
                       },
                     ),
@@ -2447,10 +2293,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: SectorExposureLimits,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          SectorExposureLimits = value;
                         });
                       },
                       validator: (value) {
@@ -2461,7 +2307,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          SectorExposureLimits = value!;
                         });
                       },
                     ),
@@ -2499,7 +2345,7 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: TopEquityHoldings,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2508,7 +2354,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          TopEquityHoldings = value!;
                         });
                       },
                       minLines: 3,
@@ -2549,7 +2395,7 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: GeographicExposure,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2558,7 +2404,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          GeographicExposure = value!;
                         });
                       },
                       minLines: 3,
@@ -2601,10 +2447,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RiskProfile,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RiskProfile = value;
                         });
                       },
                       validator: (value) {
@@ -2615,7 +2461,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RiskProfile = value!;
                         });
                       },
                     ),
@@ -2655,10 +2501,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: VolatilityEstimate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          VolatilityEstimate = value;
                         });
                       },
                       validator: (value) {
@@ -2669,7 +2515,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          VolatilityEstimate = value!;
                         });
                       },
                     ),
@@ -2709,10 +2555,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TargetAllocation,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TargetAllocation = value;
                         });
                       },
                       validator: (value) {
@@ -2723,7 +2569,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TargetAllocation = value!;
                         });
                       },
                     ),
@@ -2763,10 +2609,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AllowedAllocationRange,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AllowedAllocationRange = value;
                         });
                       },
                       validator: (value) {
@@ -2777,7 +2623,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AllowedAllocationRange = value!;
                         });
                       },
                     ),
@@ -2817,10 +2663,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AssetClassesIncluded,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AssetClassesIncluded = value;
                         });
                       },
                       validator: (value) {
@@ -2831,7 +2677,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AssetClassesIncluded = value!;
                         });
                       },
                     ),
@@ -2871,10 +2717,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RebalancingFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RebalancingFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -2885,7 +2731,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RebalancingFrequency = value!;
                         });
                       },
                     ),
@@ -2925,10 +2771,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: BenchmarkIndexComposite,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          BenchmarkIndexComposite = value;
                         });
                       },
                       validator: (value) {
@@ -2939,7 +2785,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          BenchmarkIndexComposite = value!;
                         });
                       },
                     ),
@@ -2979,10 +2825,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TopEquityHoldingsList,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TopEquityHoldingsList = value;
                         });
                       },
                       validator: (value) {
@@ -2993,7 +2839,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TopEquityHoldingsList = value!;
                         });
                       },
                     ),
@@ -3033,10 +2879,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TopDebtHoldings,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TopDebtHoldings = value;
                         });
                       },
                       validator: (value) {
@@ -3047,7 +2893,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TopDebtHoldings = value!;
                         });
                       },
                     ),
@@ -3087,10 +2933,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: DividendYield,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          DividendYield = value;
                         });
                       },
                       validator: (value) {
@@ -3101,7 +2947,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          DividendYield = value!;
                         });
                       },
                     ),
@@ -3141,10 +2987,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRatingDistribution,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRatingDistribution = value;
                         });
                       },
                       validator: (value) {
@@ -3155,7 +3001,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRatingDistribution = value!;
                         });
                       },
                     ),
@@ -3195,10 +3041,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AverageMaturityHybrid,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AverageMaturityHybrid = value;
                         });
                       },
                       validator: (value) {
@@ -3209,7 +3055,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AverageMaturityHybrid = value!;
                         });
                       },
                     ),
@@ -3249,10 +3095,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: YieldToMaturityHybrid,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          YieldToMaturityHybrid = value;
                         });
                       },
                       validator: (value) {
@@ -3263,7 +3109,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          YieldToMaturityHybrid = value!;
                         });
                       },
                     ),
@@ -3338,10 +3184,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TrusteeName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TrusteeName = value;
                         });
                       },
                       validator: (value) {
@@ -3352,7 +3198,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TrusteeName = value!;
                         });
                       },
                     ),
@@ -3392,10 +3238,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Custodian,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Custodian = value;
                         });
                       },
                       validator: (value) {
@@ -3406,7 +3252,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Custodian = value!;
                         });
                       },
                     ),
@@ -3446,10 +3292,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Auditor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Auditor = value;
                         });
                       },
                       validator: (value) {
@@ -3460,7 +3306,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Auditor = value!;
                         });
                       },
                     ),
@@ -3500,10 +3346,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FundAdministrator,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FundAdministrator = value;
                         });
                       },
                       validator: (value) {
@@ -3514,7 +3360,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FundAdministrator = value!;
                         });
                       },
                     ),
@@ -3554,10 +3400,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -3568,7 +3414,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LegalAdvisor = value!;
                         });
                       },
                     ),
@@ -3608,10 +3454,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -3622,7 +3468,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RatingAgency = value!;
                         });
                       },
                     ),
@@ -3662,10 +3508,10 @@ class _HybridMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: InvestmentCommitteeMembers,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          InvestmentCommitteeMembers = value;
                         });
                       },
                       validator: (value) {
@@ -3676,7 +3522,7 @@ class _HybridMutualFundsAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          InvestmentCommitteeMembers = value!;
                         });
                       },
                     ),
@@ -3712,128 +3558,7 @@ class _HybridMutualFundsAssetInformationView
   void submitForm() async {
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credential
-      if (!hasInsurance) {
-        insuranceCompanyName = "";
-        insurancePolicyNumber = "";
-        insurancePolicyHolder = "";
-        percentageValueOfInsurance = 0;
-      }
-
-      if (!hasLegalAdvisor) {
-        legalAdvisor = "";
-      }
-
-      if (!hasFinancialAdvisor) {
-        financialAdvisor = "";
-      }
-
-      if (!hasIndependentMonitoring) {
-        independentMonitoringList = "";
-      }
-
-      if (!hasOtherAssetProtection) {
-        otherAssetProtection = "";
-      }
       var newData = {...data as Map};
-
-      newData['ownershipType'] = assetOwnership;
-      newData['ownershipKind'] = thirdPartyOwnerType;
-      newData['assetName'] = assetName;
-      newData['assetDescription'] = assetDescription;
-      newData['assetPhysicalAddress'] = assetPhysicalAddress;
-      newData['assetLatitude'] = latitude.toString();
-      newData['assetLongitude'] = longitude.toString();
-      newData['assetOwnerName'] = nameOfOwner;
-      newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
-      newData['assetOwnerRetainedOrContributedValue'] =
-          assetOwnerRetainedOrContributedValue;
-      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      newData['protectionMethods'] = assetProtectionInPlace.join(',');
-      newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurancePolicyNumber'] = insurancePolicyNumber;
-      newData['insurancePolicyHolder'] = insurancePolicyHolder;
-      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-
-      newData['independentMonitoringList'] = independentMonitoringList;
-      newData['otherAssetProtection'] = otherAssetProtection;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['financialAdvisor'] = financialAdvisor;
-
-      newData['contractualProtectionRevGuarantees'] =
-          contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
-      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
-      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
-      newData['riskSharingMechanismHedgeInstruments'] =
-          riskSharingMechanismHedgeInstruments ? 1 : 0;
-      newData['riskSharingMechanismCompletionGuarantees'] =
-          riskSharingMechanismCompletionGuarantees ? 1 : 0;
-      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
-      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
-      newData['securityMeasuresSurveilanceSystems'] =
-          securityMeasuresSurveilanceSystems ? 1 : 0;
-      newData['securityMeasuresOnSiteSecurityPersonnel'] =
-          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
-      newData['securityMeasuresPerimeterSecurity'] =
-          securityMeasuresPerimeterSecurity ? 1 : 0;
-      newData['securityMeasuresCriticalInfraProtections'] =
-          securityMeasuresCriticalInfraProtections ? 1 : 0;
-      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
-      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
-      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
-      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
-      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
-      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
-      newData['outstandingFinancialRespNoDebts'] =
-          outstandingFinancialRespNoDebts ? 1 : 0;
-      newData['outstandingFinancialRespNoHiddenLiabilities'] =
-          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
-      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
-      newData['physicalConditionNoUndisclosedEasements'] =
-          physicalConditionNoUndisclosedEasements ? 1 : 0;
-      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
-      newData['hasInsurance'] = hasInsurance ? 1 : 0;
-
-      newData['projectStrategicObjectives'] = projectStrategicObjectives;
-      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
-      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
-      newData['projectScope'] = projectScope;
-      newData['projectEconomicBenefits'] = projectEconomicBenefits;
-      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
-      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
-      newData['projectTechnicalPartners'] = projectTechnicalPartners;
-      newData['projectFinancialPartners'] = projectFinancialPartners;
-
-      newData['estimatedProjectPaybackPeriodsInMonths'] =
-          estimatedProjectPaybackPeriodsInMonths;
-      newData['keyAssumptionsList'] = keyAssumptionsList;
-      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
-      newData['projectIdentifiedRegulatoryRisks'] =
-          projectIdentifiedRegulatoryRisks;
-      newData['projectIdentifiedOperationalOrExecutionRisks'] =
-          projectIdentifiedOperationalOrExecutionRisks;
-      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
-      newData['projectIdentifiedOtherRelevantRisks'] =
-          projectIdentifiedOtherRelevantRisks;
-
-      newData['estimatedProjectIRR'] = estimatedProjectIRR;
-      newData['estimatedProjectROI'] = estimatedProjectROI;
-      newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(

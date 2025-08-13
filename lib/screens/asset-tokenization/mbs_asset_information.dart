@@ -30,88 +30,65 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late String assetOwnership;
-  late String thirdPartyOwnerType;
-  late String assetDescription;
-  late String assetPhysicalAddress;
-  late double latitude;
-  late double longitude;
-  late DateTime? fundLaunchDate;
-  late String nameOfOwner;
-  late String assetName;
-  late String addressOfOwner;
-  late double currentValueOfAsset;
-  late double assetMiscCost;
-  late double valueOfTokenizedAsset;
-  late double assetOwnerRetainedOrContributedValue;
-  late List<String> assetProtectionInPlace;
-  late String insuranceCompanyName;
-  late String insurancePolicyNumber;
-  late String insurancePolicyHolder;
-  late double percentageValueOfInsurance;
-  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
-  String projectStrategicObjectives = "";
-  String projectDevelopmentTimeline = "";
-  String projectKeyMilestoneAndDates = "";
-  String projectScope = "";
-  String projectEconomicBenefits = "";
-  int projectExpectedNoOfJobs = 0;
-  String projectIntendedSocialBenefits = "";
-  String projectTechnicalPartners = "";
-  String projectFinancialPartners = "";
+  late String IsinOrSerialNumber;
+  late String Name;
+  late String Type;
+  double? TotalIssueSize;
+  DateTime? IssueDate;
+  DateTime? MaturityDate;
+  int? Tenor;
+  double? FaceValuePerUnit;
+  late String CouponOrInterestRateType;
+  double? CouponOrInterestRate;
+  late String ReferenceIndex;
+  double? ExpectedYield;
+  late String EarlyRedemptionOptionInvestor;
+  double? MinimumInvestmentAmount;
+  late String TaxTreatmentTokenHolders;
+  late String PaymentStructureToTokenHolders;
+  late String RedemptionMethod;
+  late String PaymentStructure;
+  late String RepaymentMethod;
+  late String PaymentCycle;
+  double? WeightedAverageLife;
+  double? UnderlyingAssetPoolSize;
+  late String PoolComposition;
+  late String CreditEnhancementMethod;
+  late String SummaryOfUseOfProceeds;
+  late String CreditRatingIfAny;
+  late String IssuerName;
+  late String IssuerType;
+  late String IssuerContactPerson;
+  late String ContactEmail;
+  late String ContactPhoneNumber;
+  late String BriefCompanyOverview;
 
-  double percentageFromPromoters = 0;
-  double estimatedProjectIRR = 0;
-  double estimatedProjectROI = 0;
-  double estimatedProjectNPV = 0;
-  int estimatedProjectPaybackPeriodsInMonths = 0;
-  String keyAssumptionsList = "";
-  String projectIdentifiedLegalRisks = "";
-  String projectIdentifiedRegulatoryRisks = "";
-  String projectIdentifiedOperationalOrExecutionRisks = "";
-  String projectIdentifiedMarketRisks = "";
-  String projectIdentifiedOtherRelevantRisks = "";
+  // Parties Involved
+  late String MortgageOriginators;
+  late String Servicer;
+  late String SpecialPurposeVehicle;
+  late String Trustee;
+  late String Custodian;
+  late String AssetManagerOrAdministrator;
+  late String LegalAdvisor;
+  late String UnderwriterIfAny;
+  late String CreditRatingAgency;
+  late String AuditorOrVerifier;
 
-  String independentMonitoringList = "";
-  String otherAssetProtection = "";
-  String legalAdvisor = "";
-  String financialAdvisor = "";
-
-  bool hasIndependentMonitoring = false;
-  bool hasLegalAdvisor = false;
-  bool hasFinancialAdvisor = false;
-  bool hasOtherAssetProtection = false;
-
-  bool contractualProtectionRevGuarantees = false;
-  bool contractualProtectionPerfBond = false;
-  bool contractualProtectionSLA = false;
-  bool riskSharingMechanismPPPs = false;
-  bool riskSharingMechanismHedgeInstruments = false;
-  bool riskSharingMechanismCompletionGuarantees = false;
-  bool eSGSafeguardsSusCerts = false;
-  bool eSGSafeguardsCommEngPlans = false;
-  bool securityMeasuresAccessControl = false;
-  bool securityMeasuresSurveilanceSystems = false;
-  bool securityMeasuresOnSiteSecurityPersonnel = false;
-  bool securityMeasuresPerimeterSecurity = false;
-  bool securityMeasuresCriticalInfraProtections = false;
-  bool undertakingNoLien = false;
-  bool undertakingNotCollateral = false;
-  bool undertakingNoClaims = false;
-  bool undertakingNoForeclosure = false;
-  bool complianceNoViolation = false;
-  bool complianceAllPermits = false;
-  bool outstandingFinancialRespNoDebts = false;
-  bool outstandingFinancialRespNoHiddenLiabilities = false;
-  bool riskManagementFullyInsured = false;
-  bool riskManagementDeclaredValue = false;
-  bool physicalConditionSound = false;
-  bool physicalConditionNoUndisclosedEasements = false;
-  bool physicalConditionNolease = false;
-  bool hasInsurance = false;
+  // Risk Profile
+  late String CreditRiskAssessment;
+  late String CreditRating;
+  late String PrepaymentRisk;
+  late String InterestRateRisk;
+  late String StructuralComplexityRisk;
+  late String LegalOrRegulatoryRisk;
+  late String OperationalRisk;
+  late String MarketRisk;
+  late String EsgRisk;
+  late String MitigationMeasures;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -149,144 +126,6 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
-    assetOwnership =
-        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
-    thirdPartyOwnerType =
-        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
-    assetName = data['assetName'] ?? "";
-    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
-    assetDescription = data['assetDescription'] ?? "";
-    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
-    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
-    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
-    nameOfOwner = data['assetOwnerName'] ?? "";
-    addressOfOwner = data['assetOwnerAddress'] ?? "";
-    currentValueOfAsset =
-        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
-          data['assetOwnerRetainedOrContributedValue'].toString(),
-        ) ??
-        0;
-    assetMiscCost =
-        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
-    valueOfTokenizedAsset =
-        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
-            data['protectionMethods'].toString().isEmpty
-        ? []
-        : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
-    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
-    percentageValueOfInsurance =
-        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-
-    valueOfAssetController.text = currentValueOfAsset == 0
-        ? ''
-        : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
-    assetOwnerRetainedOrContributedValueController.text =
-        assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
-    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
-        ? ''
-        : percentageValueOfInsurance.toString();
-
-    independentMonitoringList = data['independentMonitoringList'] ?? "";
-    otherAssetProtection = data['otherAssetProtection'] ?? "";
-    legalAdvisor = data['legalAdvisor'] ?? "";
-    financialAdvisor = data['financialAdvisor'] ?? "";
-
-    contractualProtectionRevGuarantees =
-        data['contractualProtectionRevGuarantees'] == 1;
-    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
-    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
-    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
-    riskSharingMechanismHedgeInstruments =
-        data['riskSharingMechanismHedgeInstruments'] == 1;
-    riskSharingMechanismCompletionGuarantees =
-        data['riskSharingMechanismCompletionGuarantees'] == 1;
-    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
-    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
-    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
-    securityMeasuresSurveilanceSystems =
-        data['securityMeasuresSurveilanceSystems'] == 1;
-    securityMeasuresOnSiteSecurityPersonnel =
-        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
-    securityMeasuresPerimeterSecurity =
-        data['securityMeasuresPerimeterSecurity'] == 1;
-    securityMeasuresCriticalInfraProtections =
-        data['securityMeasuresCriticalInfraProtections'] == 1;
-    undertakingNoLien = data['undertakingNoLien'] == 1;
-    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
-    undertakingNoClaims = data['undertakingNoClaims'] == 1;
-    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
-    complianceNoViolation = data['complianceNoViolation'] == 1;
-    complianceAllPermits = data['complianceAllPermits'] == 1;
-    outstandingFinancialRespNoDebts =
-        data['outstandingFinancialRespNoDebts'] == 1;
-    outstandingFinancialRespNoHiddenLiabilities =
-        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
-    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
-    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
-    physicalConditionSound = data['physicalConditionSound'] == 1;
-    physicalConditionNoUndisclosedEasements =
-        data['physicalConditionNoUndisclosedEasements'] == 1;
-    physicalConditionNolease = data['physicalConditionNolease'] == 1;
-    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
-    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
-    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
-
-    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
-    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
-    projectScope = data['projectScope'] ?? "";
-    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
-    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
-    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
-    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
-    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
-
-    estimatedProjectPaybackPeriodsInMonths =
-        data['estimatedProjectPaybackPeriodsInMonths'];
-    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
-    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
-    projectIdentifiedRegulatoryRisks =
-        data['projectIdentifiedRegulatoryRisks'] ?? "";
-    projectIdentifiedOperationalOrExecutionRisks =
-        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
-    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
-    projectIdentifiedOtherRelevantRisks =
-        data['projectIdentifiedOtherRelevantRisks'] ?? "";
-
-    estimatedProjectIRR =
-        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
-    estimatedProjectROI =
-        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
-    estimatedProjectNPV =
-        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
-
-    percentageFromPromoters =
-        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text = percentageFromPromoters.isNaN
-        ? '0'
-        : formatNumberShort(percentageFromPromoters);
-
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -365,10 +204,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IsinOrSerialNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IsinOrSerialNumber = value;
                         });
                       },
                       validator: (value) {
@@ -379,7 +218,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IsinOrSerialNumber = value!;
                         });
                       },
                     ),
@@ -419,10 +258,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Name,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Name = value;
                         });
                       },
                       validator: (value) {
@@ -433,7 +272,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Name = value!;
                         });
                       },
                     ),
@@ -463,7 +302,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      Type = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -509,10 +350,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TotalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TotalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -523,7 +364,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TotalIssueSize = value!;
                         });
                       },
                     ),
@@ -565,7 +406,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                   ).then(
                     (value) => {
                       setState(() {
-                        fundLaunchDate = value;
+                        IssueDate = value;
                       }),
                     },
                   );
@@ -610,7 +451,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                   ).then(
                     (value) => {
                       setState(() {
-                        fundLaunchDate = value;
+                        MaturityDate = value;
                       }),
                     },
                   );
@@ -650,10 +491,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Tenor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Tenor = value;
                         });
                       },
                       validator: (value) {
@@ -664,7 +505,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Tenor = value!;
                         });
                       },
                     ),
@@ -704,10 +545,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FaceValuePerUnit,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FaceValuePerUnit = value;
                         });
                       },
                       validator: (value) {
@@ -718,7 +559,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FaceValuePerUnit = value!;
                         });
                       },
                     ),
@@ -748,7 +589,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      CouponOrInterestRateType = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -797,10 +640,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CouponOrInterestRate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CouponOrInterestRate = value;
                         });
                       },
                       validator: (value) {
@@ -811,7 +654,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CouponOrInterestRate = value!;
                         });
                       },
                     ),
@@ -851,10 +694,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ReferenceIndex,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ReferenceIndex = value;
                         });
                       },
                       validator: (value) {
@@ -865,7 +708,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ReferenceIndex = value!;
                         });
                       },
                     ),
@@ -905,10 +748,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ExpectedYield,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ExpectedYield = value;
                         });
                       },
                       validator: (value) {
@@ -919,7 +762,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ExpectedYield = value!;
                         });
                       },
                     ),
@@ -959,10 +802,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: EarlyRedemptionOptionInvestor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          EarlyRedemptionOptionInvestor = value;
                         });
                       },
                       validator: (value) {
@@ -973,7 +816,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          EarlyRedemptionOptionInvestor = value!;
                         });
                       },
                     ),
@@ -1013,10 +856,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: MinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          MinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1027,7 +870,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          MinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1065,7 +908,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: TaxTreatmentTokenHolders,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1074,7 +917,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          TaxTreatmentTokenHolders = value!;
                         });
                       },
                       minLines: 3,
@@ -1108,7 +951,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      PaymentStructureToTokenHolders = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1155,7 +1000,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: RedemptionMethod,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1164,7 +1009,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          RedemptionMethod = value!;
                         });
                       },
                       minLines: 3,
@@ -1198,7 +1043,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      PaymentStructure = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1237,7 +1084,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      RepaymentMethod = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1276,7 +1125,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      PaymentCycle = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1325,10 +1176,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: WeightedAverageLife,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          WeightedAverageLife = value;
                         });
                       },
                       validator: (value) {
@@ -1339,61 +1190,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Expected Yield",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
+                          WeightedAverageLife = value!;
                         });
                       },
                     ),
@@ -1433,10 +1230,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: UnderlyingAssetPoolSize,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          UnderlyingAssetPoolSize = value;
                         });
                       },
                       validator: (value) {
@@ -1447,7 +1244,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          UnderlyingAssetPoolSize = value!;
                         });
                       },
                     ),
@@ -1485,7 +1282,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: PoolComposition,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1494,7 +1291,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          PoolComposition = value!;
                         });
                       },
                       minLines: 3,
@@ -1528,7 +1325,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      CreditEnhancementMethod = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1575,7 +1374,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: SummaryOfUseOfProceeds,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1584,7 +1383,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          SummaryOfUseOfProceeds = value!;
                         });
                       },
                       minLines: 3,
@@ -1628,10 +1427,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRatingIfAny,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRatingIfAny = value;
                         });
                       },
                       validator: (value) {
@@ -1642,7 +1441,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRatingIfAny = value!;
                         });
                       },
                     ),
@@ -1682,10 +1481,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IssuerName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IssuerName = value;
                         });
                       },
                       validator: (value) {
@@ -1696,7 +1495,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IssuerName = value!;
                         });
                       },
                     ),
@@ -1726,7 +1525,9 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      IssuerType = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -1775,10 +1576,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IssuerContactPerson,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IssuerContactPerson = value;
                         });
                       },
                       validator: (value) {
@@ -1789,7 +1590,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IssuerContactPerson = value!;
                         });
                       },
                     ),
@@ -1829,10 +1630,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ContactEmail,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ContactEmail = value;
                         });
                       },
                       validator: (value) {
@@ -1843,7 +1644,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ContactEmail = value!;
                         });
                       },
                     ),
@@ -1883,10 +1684,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ContactPhoneNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ContactPhoneNumber = value;
                         });
                       },
                       validator: (value) {
@@ -1897,7 +1698,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ContactPhoneNumber = value!;
                         });
                       },
                     ),
@@ -1937,10 +1738,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: BriefCompanyOverview,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          BriefCompanyOverview = value;
                         });
                       },
                       validator: (value) {
@@ -1951,7 +1752,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          BriefCompanyOverview = value!;
                         });
                       },
                     ),
@@ -2025,7 +1826,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: MortgageOriginators,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2034,7 +1835,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          MortgageOriginators = value!;
                         });
                       },
                       minLines: 3,
@@ -2077,10 +1878,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Servicer,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Servicer = value;
                         });
                       },
                       validator: (value) {
@@ -2091,7 +1892,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Servicer = value!;
                         });
                       },
                     ),
@@ -2131,10 +1932,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: SpecialPurposeVehicle,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          SpecialPurposeVehicle = value;
                         });
                       },
                       validator: (value) {
@@ -2145,7 +1946,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          SpecialPurposeVehicle = value!;
                         });
                       },
                     ),
@@ -2185,10 +1986,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Trustee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Trustee = value;
                         });
                       },
                       validator: (value) {
@@ -2199,7 +2000,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Trustee = value!;
                         });
                       },
                     ),
@@ -2239,10 +2040,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Custodian,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Custodian = value;
                         });
                       },
                       validator: (value) {
@@ -2253,7 +2054,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Custodian = value!;
                         });
                       },
                     ),
@@ -2293,10 +2094,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AssetManagerOrAdministrator,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AssetManagerOrAdministrator = value;
                         });
                       },
                       validator: (value) {
@@ -2307,7 +2108,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AssetManagerOrAdministrator = value!;
                         });
                       },
                     ),
@@ -2347,10 +2148,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2361,7 +2162,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LegalAdvisor = value!;
                         });
                       },
                     ),
@@ -2401,10 +2202,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: UnderwriterIfAny,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          UnderwriterIfAny = value;
                         });
                       },
                       validator: (value) {
@@ -2415,7 +2216,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          UnderwriterIfAny = value!;
                         });
                       },
                     ),
@@ -2455,10 +2256,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -2469,7 +2270,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRatingAgency = value!;
                         });
                       },
                     ),
@@ -2509,10 +2310,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: AuditorOrVerifier,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          AuditorOrVerifier = value;
                         });
                       },
                       validator: (value) {
@@ -2523,7 +2324,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          AuditorOrVerifier = value!;
                         });
                       },
                     ),
@@ -2597,7 +2398,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: CreditRiskAssessment,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2606,7 +2407,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          CreditRiskAssessment = value!;
                         });
                       },
                       minLines: 3,
@@ -2649,10 +2450,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRating,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRating = value;
                         });
                       },
                       validator: (value) {
@@ -2663,7 +2464,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRating = value!;
                         });
                       },
                     ),
@@ -2701,7 +2502,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: PrepaymentRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2710,7 +2511,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          PrepaymentRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2751,7 +2552,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: InterestRateRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2760,7 +2561,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          InterestRateRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2801,7 +2602,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: StructuralComplexityRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2810,7 +2611,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          StructuralComplexityRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2851,7 +2652,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: LegalOrRegulatoryRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2860,7 +2661,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          LegalOrRegulatoryRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2901,7 +2702,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: OperationalRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2910,7 +2711,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          OperationalRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2951,7 +2752,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: MarketRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2960,7 +2761,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          MarketRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -3001,7 +2802,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
+                      initialValue: EsgRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -3010,7 +2811,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetDescription = value!;
+                          EsgRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -3053,10 +2854,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: MitigationMeasures,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          MitigationMeasures = value;
                         });
                       },
                       validator: (value) {
@@ -3067,7 +2868,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          MitigationMeasures = value!;
                         });
                       },
                     ),
@@ -3103,128 +2904,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
   void submitForm() async {
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credential
-      if (!hasInsurance) {
-        insuranceCompanyName = "";
-        insurancePolicyNumber = "";
-        insurancePolicyHolder = "";
-        percentageValueOfInsurance = 0;
-      }
-
-      if (!hasLegalAdvisor) {
-        legalAdvisor = "";
-      }
-
-      if (!hasFinancialAdvisor) {
-        financialAdvisor = "";
-      }
-
-      if (!hasIndependentMonitoring) {
-        independentMonitoringList = "";
-      }
-
-      if (!hasOtherAssetProtection) {
-        otherAssetProtection = "";
-      }
       var newData = {...data as Map};
-
-      newData['ownershipType'] = assetOwnership;
-      newData['ownershipKind'] = thirdPartyOwnerType;
-      newData['assetName'] = assetName;
-      newData['assetDescription'] = assetDescription;
-      newData['assetPhysicalAddress'] = assetPhysicalAddress;
-      newData['assetLatitude'] = latitude.toString();
-      newData['assetLongitude'] = longitude.toString();
-      newData['assetOwnerName'] = nameOfOwner;
-      newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
-      newData['assetOwnerRetainedOrContributedValue'] =
-          assetOwnerRetainedOrContributedValue;
-      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      newData['protectionMethods'] = assetProtectionInPlace.join(',');
-      newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurancePolicyNumber'] = insurancePolicyNumber;
-      newData['insurancePolicyHolder'] = insurancePolicyHolder;
-      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-
-      newData['independentMonitoringList'] = independentMonitoringList;
-      newData['otherAssetProtection'] = otherAssetProtection;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['financialAdvisor'] = financialAdvisor;
-
-      newData['contractualProtectionRevGuarantees'] =
-          contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
-      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
-      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
-      newData['riskSharingMechanismHedgeInstruments'] =
-          riskSharingMechanismHedgeInstruments ? 1 : 0;
-      newData['riskSharingMechanismCompletionGuarantees'] =
-          riskSharingMechanismCompletionGuarantees ? 1 : 0;
-      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
-      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
-      newData['securityMeasuresSurveilanceSystems'] =
-          securityMeasuresSurveilanceSystems ? 1 : 0;
-      newData['securityMeasuresOnSiteSecurityPersonnel'] =
-          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
-      newData['securityMeasuresPerimeterSecurity'] =
-          securityMeasuresPerimeterSecurity ? 1 : 0;
-      newData['securityMeasuresCriticalInfraProtections'] =
-          securityMeasuresCriticalInfraProtections ? 1 : 0;
-      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
-      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
-      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
-      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
-      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
-      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
-      newData['outstandingFinancialRespNoDebts'] =
-          outstandingFinancialRespNoDebts ? 1 : 0;
-      newData['outstandingFinancialRespNoHiddenLiabilities'] =
-          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
-      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
-      newData['physicalConditionNoUndisclosedEasements'] =
-          physicalConditionNoUndisclosedEasements ? 1 : 0;
-      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
-      newData['hasInsurance'] = hasInsurance ? 1 : 0;
-
-      newData['projectStrategicObjectives'] = projectStrategicObjectives;
-      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
-      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
-      newData['projectScope'] = projectScope;
-      newData['projectEconomicBenefits'] = projectEconomicBenefits;
-      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
-      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
-      newData['projectTechnicalPartners'] = projectTechnicalPartners;
-      newData['projectFinancialPartners'] = projectFinancialPartners;
-
-      newData['estimatedProjectPaybackPeriodsInMonths'] =
-          estimatedProjectPaybackPeriodsInMonths;
-      newData['keyAssumptionsList'] = keyAssumptionsList;
-      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
-      newData['projectIdentifiedRegulatoryRisks'] =
-          projectIdentifiedRegulatoryRisks;
-      newData['projectIdentifiedOperationalOrExecutionRisks'] =
-          projectIdentifiedOperationalOrExecutionRisks;
-      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
-      newData['projectIdentifiedOtherRelevantRisks'] =
-          projectIdentifiedOtherRelevantRisks;
-
-      newData['estimatedProjectIRR'] = estimatedProjectIRR;
-      newData['estimatedProjectROI'] = estimatedProjectROI;
-      newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(

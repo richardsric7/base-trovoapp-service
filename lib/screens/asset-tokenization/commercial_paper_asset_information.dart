@@ -35,52 +35,52 @@ class _CommercialPapersAssetInformationView
   bool formHasError = false;
   late dynamic data = {};
 
-  String commercialPaperTitleOfIssuance = '';
-  String commercialPaperTypeOfCommercialPaper = '';
-  double commercialPaperTotalIssueSize = 0;
-  DateTime? commercialPaperIssueDate;
-  DateTime? commercialPaperMaturityDate;
-  int commercialPaperTenor = 0;
-  double commercialPaperPricingYield = 0;
-  String commercialPaperRedemptionStructure = '';
-  String commercialPaperUseOfProceeds = '';
-  String commercialPaperRanking = '';
-  String commercialPaperBackingSecurity = '';
-  String commercialPaperTaxTreatment = '';
-  String commercialPaperIssuerName = '';
-  String commercialPaperIssuerType = '';
-  String commercialPaperIssuerRegistrationNumber = '';
-  DateTime? commercialPaperIncorporationDate;
-  String commercialPaperRcNumber = '';
-  String commercialPaperTaxIdNumber = '';
-  String commercialPaperOfficeAddress = '';
-  String commercialPaperIssuerContactPerson = '';
-  String commercialPaperContactEmail = '';
-  String commercialPaperContactPhoneNumber = '';
-  String commercialPaperBriefCompanyOverview = '';
-  // FileUpload commercialPaperSummaryOfFinancials = '';
-  String commercialPaperRating = '';
-  String commercialPaperRatingAgency = '';
-  String commercialPapersPartiesInvolvedIssuer = '';
-  String commercialPapersPartiesInvolvedArranger = '';
-  String commercialPapersPartiesInvolvedLegalAdviser = '';
-  String commercialPapersPartiesInvolvedAuditor = '';
-  String commercialPapersPartiesInvolvedRatingAgency = '';
-  String commercialPapersPartiesInvolvedCustodian = '';
-  String commercialPapersPartiesInvolvedTrustee = '';
-  String commercialPapersPartiesInvolvedAuditorVerifier = '';
-  String commercialPapersSecurityRiskLegalBacking = '';
-  String commercialPapersSecurityRiskCollateral = '';
-  String commercialPapersSecurityRiskDefaultHistory = '';
-  String commercialPapersSecurityRiskCreditRating = '';
-  String commercialPapersSecurityRiskRiskFactorsSummary = '';
-  String commercialPapersSecurityRiskBusinessRisk = '';
-  String commercialPapersSecurityRiskDefaultRisk = '';
-  String commercialPapersSecurityRiskLiquidityRisk = '';
-  String commercialPapersSecurityRiskRegulatoryRisk = '';
-  String commercialPapersSecurityRiskMarketRisk = '';
-  String commercialPapersSecurityRiskOperationalRisk = '';
-  String commercialPapersSecurityRiskMitigationMeasures = '';
+  String TitleOfIssuance = '';
+  String TypeOfCommercialPaper = '';
+  double TotalIssueSize = 0;
+  DateTime? IssueDate;
+  DateTime? MaturityDate;
+  int Tenor = 0;
+  double PricingYield = 0;
+  String RedemptionStructure = '';
+  String UseOfProceeds = '';
+  String Ranking = '';
+  String BackingSecurity = '';
+  String TaxTreatment = '';
+  String IssuerName = '';
+  String IssuerType = '';
+  String IssuerRegistrationNumber = '';
+  DateTime? IncorporationDate;
+  String RcNumber = '';
+  String TaxIdNumber = '';
+  String OfficeAddress = '';
+  String IssuerContactPerson = '';
+  String ContactEmail = '';
+  String ContactPhoneNumber = '';
+  String BriefCompanyOverview = '';
+  // FileUpload SummaryOfFinancials = '';
+  String Rating = '';
+  String RatingAgency = '';
+  String PartiesInvolvedIssuer = '';
+  String PartiesInvolvedArranger = '';
+  String PartiesInvolvedLegalAdviser = '';
+  String PartiesInvolvedAuditor = '';
+  String PartiesInvolvedRatingAgency = '';
+  String PartiesInvolvedCustodian = '';
+  String PartiesInvolvedTrustee = '';
+  String PartiesInvolvedAuditorVerifier = '';
+  String SecurityRiskLegalBacking = '';
+  String SecurityRiskCollateral = '';
+  String SecurityRiskDefaultHistory = '';
+  String SecurityRiskCreditRating = '';
+  String SecurityRiskRiskFactorsSummary = '';
+  String SecurityRiskBusinessRisk = '';
+  String SecurityRiskDefaultRisk = '';
+  String SecurityRiskLiquidityRisk = '';
+  String SecurityRiskRegulatoryRisk = '';
+  String SecurityRiskMarketRisk = '';
+  String SecurityRiskOperationalRisk = '';
+  String SecurityRiskMitigationMeasures = '';
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -196,10 +196,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperTitleOfIssuance,
+                      initialValue: TitleOfIssuance,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperTitleOfIssuance = value;
+                          TitleOfIssuance = value;
                         });
                       },
                       validator: (value) {
@@ -210,7 +210,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperTitleOfIssuance = value!;
+                          TitleOfIssuance = value!;
                         });
                       },
                     ),
@@ -241,7 +241,7 @@ class _CommercialPapersAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      commercialPaperTypeOfCommercialPaper = value.toString();
+                      TypeOfCommercialPaper = value.toString();
                     });
                   },
                   [],
@@ -291,10 +291,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperTotalIssueSize,
+                      initialValue: TotalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperTotalIssueSize = value;
+                          TotalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -305,7 +305,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperTotalIssueSize = value!;
+                          TotalIssueSize = value!;
                         });
                       },
                     ),
@@ -347,7 +347,7 @@ class _CommercialPapersAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        commercialPaperIssueDate = value;
+                        IssueDate = value;
                       }),
                     },
                   );
@@ -392,7 +392,7 @@ class _CommercialPapersAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        commercialPaperMaturityDate = value;
+                        MaturityDate = value;
                       }),
                     },
                   );
@@ -432,10 +432,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperTenor,
+                      initialValue: Tenor,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperTenor = value;
+                          Tenor = value;
                         });
                       },
                       validator: (value) {
@@ -446,7 +446,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperTenor = value!;
+                          Tenor = value!;
                         });
                       },
                     ),
@@ -486,10 +486,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperPricingYield,
+                      initialValue: PricingYield,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperPricingYield = value;
+                          PricingYield = value;
                         });
                       },
                       validator: (value) {
@@ -500,7 +500,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperPricingYield = value!;
+                          PricingYield = value!;
                         });
                       },
                     ),
@@ -531,7 +531,7 @@ class _CommercialPapersAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      commercialPaperRedemptionStructure = value.toString();
+                      RedemptionStructure = value.toString();
                     });
                   },
                   [],
@@ -579,7 +579,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPaperUseOfProceeds,
+                      initialValue: UseOfProceeds,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -588,7 +588,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperUseOfProceeds = value!;
+                          UseOfProceeds = value!;
                         });
                       },
                       minLines: 3,
@@ -623,7 +623,7 @@ class _CommercialPapersAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      commercialPaperRanking = value.toString();
+                      Ranking = value.toString();
                     });
                   },
                   [],
@@ -664,7 +664,7 @@ class _CommercialPapersAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      commercialPaperBackingSecurity = value.toString();
+                      BackingSecurity = value.toString();
                     });
                   },
                   [],
@@ -712,7 +712,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPaperTaxTreatment,
+                      initialValue: TaxTreatment,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -721,7 +721,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperTaxTreatment = value!;
+                          TaxTreatment = value!;
                         });
                       },
                       minLines: 3,
@@ -765,10 +765,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperIssuerName,
+                      initialValue: IssuerName,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperIssuerName = value;
+                          IssuerName = value;
                         });
                       },
                       validator: (value) {
@@ -779,7 +779,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperIssuerName = value!;
+                          IssuerName = value!;
                         });
                       },
                     ),
@@ -817,7 +817,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPaperIssuerType,
+                      initialValue: IssuerType,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -826,7 +826,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperIssuerType = value!;
+                          IssuerType = value!;
                         });
                       },
                       minLines: 3,
@@ -870,10 +870,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperIssuerRegistrationNumber,
+                      initialValue: IssuerRegistrationNumber,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperIssuerRegistrationNumber = value;
+                          IssuerRegistrationNumber = value;
                         });
                       },
                       validator: (value) {
@@ -884,7 +884,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperIssuerRegistrationNumber = value!;
+                          IssuerRegistrationNumber = value!;
                         });
                       },
                     ),
@@ -929,7 +929,7 @@ class _CommercialPapersAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        commercialPaperIncorporationDate = value;
+                        IncorporationDate = value;
                       }),
                     },
                   );
@@ -969,10 +969,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperRcNumber,
+                      initialValue: RcNumber,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperRcNumber = value;
+                          RcNumber = value;
                         });
                       },
                       validator: (value) {
@@ -983,7 +983,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperRcNumber = value!;
+                          RcNumber = value!;
                         });
                       },
                     ),
@@ -1023,10 +1023,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperTaxIdNumber,
+                      initialValue: TaxIdNumber,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperTaxIdNumber = value;
+                          TaxIdNumber = value;
                         });
                       },
                       validator: (value) {
@@ -1037,7 +1037,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperTaxIdNumber = value!;
+                          TaxIdNumber = value!;
                         });
                       },
                     ),
@@ -1077,10 +1077,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperOfficeAddress,
+                      initialValue: OfficeAddress,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperOfficeAddress = value;
+                          OfficeAddress = value;
                         });
                       },
                       validator: (value) {
@@ -1091,7 +1091,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperOfficeAddress = value!;
+                          OfficeAddress = value!;
                         });
                       },
                     ),
@@ -1131,10 +1131,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperIssuerContactPerson,
+                      initialValue: IssuerContactPerson,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperIssuerContactPerson = value;
+                          IssuerContactPerson = value;
                         });
                       },
                       validator: (value) {
@@ -1145,7 +1145,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperIssuerContactPerson = value!;
+                          IssuerContactPerson = value!;
                         });
                       },
                     ),
@@ -1185,10 +1185,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperContactEmail,
+                      initialValue: ContactEmail,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperContactEmail = value;
+                          ContactEmail = value;
                         });
                       },
                       validator: (value) {
@@ -1199,7 +1199,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperContactEmail = value!;
+                          ContactEmail = value!;
                         });
                       },
                     ),
@@ -1239,10 +1239,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperContactPhoneNumber,
+                      initialValue: ContactPhoneNumber,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperContactPhoneNumber = value;
+                          ContactPhoneNumber = value;
                         });
                       },
                       validator: (value) {
@@ -1253,7 +1253,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperContactPhoneNumber = value!;
+                          ContactPhoneNumber = value!;
                         });
                       },
                     ),
@@ -1291,7 +1291,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPaperBriefCompanyOverview,
+                      initialValue: BriefCompanyOverview,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1300,7 +1300,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperBriefCompanyOverview = value!;
+                          BriefCompanyOverview = value!;
                         });
                       },
                       minLines: 3,
@@ -1335,7 +1335,7 @@ class _CommercialPapersAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      // commercialPaperSummaryOfFinancials = value.toString();
+                      // SummaryOfFinancials = value.toString();
                     });
                   },
                   [],
@@ -1385,10 +1385,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperRating,
+                      initialValue: Rating,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperRating = value;
+                          Rating = value;
                         });
                       },
                       validator: (value) {
@@ -1399,7 +1399,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperRating = value!;
+                          Rating = value!;
                         });
                       },
                     ),
@@ -1439,10 +1439,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPaperRatingAgency,
+                      initialValue: RatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          commercialPaperRatingAgency = value;
+                          RatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -1453,7 +1453,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPaperRatingAgency = value!;
+                          RatingAgency = value!;
                         });
                       },
                     ),
@@ -1529,10 +1529,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedIssuer,
+                      initialValue: PartiesInvolvedIssuer,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedIssuer = value;
+                          PartiesInvolvedIssuer = value;
                         });
                       },
                       validator: (value) {
@@ -1543,7 +1543,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedIssuer = value!;
+                          PartiesInvolvedIssuer = value!;
                         });
                       },
                     ),
@@ -1583,10 +1583,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedArranger,
+                      initialValue: PartiesInvolvedArranger,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedArranger = value;
+                          PartiesInvolvedArranger = value;
                         });
                       },
                       validator: (value) {
@@ -1597,7 +1597,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedArranger = value!;
+                          PartiesInvolvedArranger = value!;
                         });
                       },
                     ),
@@ -1637,10 +1637,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedLegalAdviser,
+                      initialValue: PartiesInvolvedLegalAdviser,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedLegalAdviser = value;
+                          PartiesInvolvedLegalAdviser = value;
                         });
                       },
                       validator: (value) {
@@ -1651,7 +1651,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedLegalAdviser = value!;
+                          PartiesInvolvedLegalAdviser = value!;
                         });
                       },
                     ),
@@ -1691,10 +1691,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedAuditor,
+                      initialValue: PartiesInvolvedAuditor,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedAuditor = value;
+                          PartiesInvolvedAuditor = value;
                         });
                       },
                       validator: (value) {
@@ -1705,7 +1705,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedAuditor = value!;
+                          PartiesInvolvedAuditor = value!;
                         });
                       },
                     ),
@@ -1745,10 +1745,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedRatingAgency,
+                      initialValue: PartiesInvolvedRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedRatingAgency = value;
+                          PartiesInvolvedRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -1759,7 +1759,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedRatingAgency = value!;
+                          PartiesInvolvedRatingAgency = value!;
                         });
                       },
                     ),
@@ -1799,10 +1799,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedCustodian,
+                      initialValue: PartiesInvolvedCustodian,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedCustodian = value;
+                          PartiesInvolvedCustodian = value;
                         });
                       },
                       validator: (value) {
@@ -1813,7 +1813,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedCustodian = value!;
+                          PartiesInvolvedCustodian = value!;
                         });
                       },
                     ),
@@ -1853,10 +1853,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersPartiesInvolvedTrustee,
+                      initialValue: PartiesInvolvedTrustee,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedTrustee = value;
+                          PartiesInvolvedTrustee = value;
                         });
                       },
                       validator: (value) {
@@ -1867,7 +1867,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedTrustee = value!;
+                          PartiesInvolvedTrustee = value!;
                         });
                       },
                     ),
@@ -1907,12 +1907,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue:
-                          commercialPapersPartiesInvolvedAuditorVerifier,
+                      initialValue: PartiesInvolvedAuditorVerifier,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedAuditorVerifier =
-                              value;
+                          PartiesInvolvedAuditorVerifier = value;
                         });
                       },
                       validator: (value) {
@@ -1923,8 +1921,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersPartiesInvolvedAuditorVerifier =
-                              value!;
+                          PartiesInvolvedAuditorVerifier = value!;
                         });
                       },
                     ),
@@ -1998,7 +1995,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPapersSecurityRiskCreditRating,
+                      initialValue: SecurityRiskCreditRating,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2007,7 +2004,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskCreditRating = value!;
+                          SecurityRiskCreditRating = value!;
                         });
                       },
                       minLines: 3,
@@ -2051,10 +2048,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskLegalBacking,
+                      initialValue: SecurityRiskLegalBacking,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskLegalBacking = value;
+                          SecurityRiskLegalBacking = value;
                         });
                       },
                       validator: (value) {
@@ -2065,7 +2062,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskLegalBacking = value!;
+                          SecurityRiskLegalBacking = value!;
                         });
                       },
                     ),
@@ -2103,7 +2100,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPapersSecurityRiskCollateral,
+                      initialValue: SecurityRiskCollateral,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2112,7 +2109,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskCollateral = value!;
+                          SecurityRiskCollateral = value!;
                         });
                       },
                       minLines: 3,
@@ -2154,7 +2151,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: commercialPapersSecurityRiskDefaultHistory,
+                      initialValue: SecurityRiskDefaultHistory,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2163,7 +2160,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskDefaultHistory = value!;
+                          SecurityRiskDefaultHistory = value!;
                         });
                       },
                       minLines: 3,
@@ -2205,8 +2202,7 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue:
-                          commercialPapersSecurityRiskRiskFactorsSummary,
+                      initialValue: SecurityRiskRiskFactorsSummary,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2215,8 +2211,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskRiskFactorsSummary =
-                              value!;
+                          SecurityRiskRiskFactorsSummary = value!;
                         });
                       },
                       minLines: 3,
@@ -2260,10 +2255,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskBusinessRisk,
+                      initialValue: SecurityRiskBusinessRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskBusinessRisk = value;
+                          SecurityRiskBusinessRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2274,7 +2269,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskBusinessRisk = value!;
+                          SecurityRiskBusinessRisk = value!;
                         });
                       },
                     ),
@@ -2314,10 +2309,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskDefaultRisk,
+                      initialValue: SecurityRiskDefaultRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskDefaultRisk = value;
+                          SecurityRiskDefaultRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2328,7 +2323,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskDefaultRisk = value!;
+                          SecurityRiskDefaultRisk = value!;
                         });
                       },
                     ),
@@ -2368,10 +2363,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskLiquidityRisk,
+                      initialValue: SecurityRiskLiquidityRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskLiquidityRisk = value;
+                          SecurityRiskLiquidityRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2382,7 +2377,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskLiquidityRisk = value!;
+                          SecurityRiskLiquidityRisk = value!;
                         });
                       },
                     ),
@@ -2422,10 +2417,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskRegulatoryRisk,
+                      initialValue: SecurityRiskRegulatoryRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskRegulatoryRisk = value;
+                          SecurityRiskRegulatoryRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2436,7 +2431,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskRegulatoryRisk = value!;
+                          SecurityRiskRegulatoryRisk = value!;
                         });
                       },
                     ),
@@ -2476,10 +2471,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskMarketRisk,
+                      initialValue: SecurityRiskMarketRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskMarketRisk = value;
+                          SecurityRiskMarketRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2490,7 +2485,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskMarketRisk = value!;
+                          SecurityRiskMarketRisk = value!;
                         });
                       },
                     ),
@@ -2530,10 +2525,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: commercialPapersSecurityRiskOperationalRisk,
+                      initialValue: SecurityRiskOperationalRisk,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskOperationalRisk = value;
+                          SecurityRiskOperationalRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2544,7 +2539,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskOperationalRisk = value!;
+                          SecurityRiskOperationalRisk = value!;
                         });
                       },
                     ),
@@ -2584,12 +2579,10 @@ class _CommercialPapersAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue:
-                          commercialPapersSecurityRiskMitigationMeasures,
+                      initialValue: SecurityRiskMitigationMeasures,
                       onChanged: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskMitigationMeasures =
-                              value;
+                          SecurityRiskMitigationMeasures = value;
                         });
                       },
                       validator: (value) {
@@ -2600,8 +2593,7 @@ class _CommercialPapersAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          commercialPapersSecurityRiskMitigationMeasures =
-                              value!;
+                          SecurityRiskMitigationMeasures = value!;
                         });
                       },
                     ),

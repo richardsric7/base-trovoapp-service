@@ -20,7 +20,7 @@ import 'package:trovo_app/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_app/bottom_bar/bottom_bar.dart';
 import 'package:trovo_app/screens/asset-tokenization/asset_verification_document_options.dart';
-import 'package:trovo_app/screens/asset-tokenization/bond_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/govrnment_bond_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
 import 'package:trovo_app/screens/asset-tokenization/commercial_paper_asset_information.dart';

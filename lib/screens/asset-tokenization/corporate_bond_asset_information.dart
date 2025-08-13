@@ -36,63 +36,63 @@ class _CorporateBondAssetInformationView
   late dynamic data = {};
 
   // Bond Issuer and Legal Information
-  late String corporateBondIssuerName;
-  late String corporateBondIssuerType;
-  late String corporateBondIssuerRegistrationNo;
-  late String corporateBondSectorAndIndustry;
-  late String corporateBondRegulatoryApprovalId;
-  late String corporateBondLicenseOrPermitNumber;
-  late String corporateBondListingStatus;
-  late String corporateBondIssuerAdditionalInfo;
+  late String IssuerName;
+  late String IssuerType;
+  late String IssuerRegistrationNo;
+  late String SectorAndIndustry;
+  late String RegulatoryApprovalId;
+  late String LicenseOrPermitNumber;
+  late String ListingStatus;
+  late String IssuerAdditionalInfo;
 
   // Bond Instrument Details
-  late String corporateBondName;
-  late String corporateBondType;
-  late String corporateBondIsinSerialNumber;
-  late int corporateBondTotalIssueSize;
-  late String corporateBondCurrencyOfIssuance;
-  DateTime? corporateBondIssueDate;
-  DateTime? corporateBondMaturityDate;
-  late String corporateBondTenor;
-  late double corporateBondFaceValuePerUnit;
-  late double corporateBondMinimumInvestmentAmount;
-  late String corporateBondCouponRateType;
-  late double corporateBondCouponRate;
-  late String corporateBondReferenceIndex;
-  late double corporateBondSpreadOrMargin;
-  late String corporateBondResetFrequency;
-  late String corporateBondCouponPaymentFrequency;
-  late String corporateBondRedemptionStructure;
-  late String corporateBondEarlyRedemptionOption;
-  late double corporateBondEarlyRedemptionPenalty;
-  late String corporateBondTaxTreatment;
-  late String corporateBondNavOrMarketValueUpdates;
-  late String corporateBondSummaryOfUseOfProceeds;
-  late String corporateBondEsgOrImpactMetrics;
-  late String corporateBondInstrumentAdditionalInfo;
+  late String Name;
+  late String Type;
+  late String IsinSerialNumber;
+  late int TotalIssueSize;
+  late String CurrencyOfIssuance;
+  DateTime? IssueDate;
+  DateTime? MaturityDate;
+  late String Tenor;
+  late double FaceValuePerUnit;
+  late double MinimumInvestmentAmount;
+  late String CouponRateType;
+  late double CouponRate;
+  late String ReferenceIndex;
+  late double SpreadOrMargin;
+  late String ResetFrequency;
+  late String CouponPaymentFrequency;
+  late String RedemptionStructure;
+  late String EarlyRedemptionOption;
+  late double EarlyRedemptionPenalty;
+  late String TaxTreatment;
+  late String NavOrMarketValueUpdates;
+  late String SummaryOfUseOfProceeds;
+  late String EsgOrImpactMetrics;
+  late String InstrumentAdditionalInfo;
 
   // Bond Security and Risk Profile
-  late String corporateBondCreditRating;
-  late String corporateBondCreditRatingAgency;
-  late String corporateBondLegalBacking;
-  late String corporateBondSecurityType;
-  late String corporateBondCollateralDescription;
-  late String corporateBondCovenantSummary;
-  late String corporateBondCovenantTestingFrequency;
-  late String corporateBondDefaultHistory;
-  late String corporateBondEventOfDefaultClauses;
-  late String corporateBondLegalEnforcementMechanism;
-  late String corporateBondGuarantee;
-  late double corporateBondRecoveryEstimate;
-  late String corporateBondRiskFactorsSummary;
-  late String corporateBondRiskProfileAdditionalInfo;
+  late String CreditRating;
+  late String CreditRatingAgency;
+  late String LegalBacking;
+  late String SecurityType;
+  late String CollateralDescription;
+  late String CovenantSummary;
+  late String CovenantTestingFrequency;
+  late String DefaultHistory;
+  late String EventOfDefaultClauses;
+  late String LegalEnforcementMechanism;
+  late String Guarantee;
+  late double RecoveryEstimate;
+  late String RiskFactorsSummary;
+  late String RiskProfileAdditionalInfo;
 
   // Additional Parties
-  late String corporateBondTrustee;
-  late String corporateBondPayingAgent;
-  late String corporateBondLegalAdvisor;
-  late String corporateBondAuditor;
-  late String corporateBondRegistrarOrCSCSAgent;
+  late String Trustee;
+  late String PayingAgent;
+  late String LegalAdvisor;
+  late String Auditor;
+  late String RegistrarOrCSCSAgent;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -205,10 +205,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondIssuerName,
+                      initialValue: IssuerName,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondIssuerName = value;
+                          IssuerName = value;
                         });
                       },
                       validator: (value) {
@@ -219,7 +219,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondIssuerName = value!;
+                          IssuerName = value!;
                         });
                       },
                     ),
@@ -251,7 +251,7 @@ class _CorporateBondAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      corporateBondIssuerType = value.toString();
+                      IssuerType = value.toString();
                     });
                   },
                   [],
@@ -298,10 +298,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondIssuerRegistrationNo,
+                      initialValue: IssuerRegistrationNo,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondIssuerRegistrationNo = value;
+                          IssuerRegistrationNo = value;
                         });
                       },
                       validator: (value) {
@@ -312,7 +312,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondIssuerRegistrationNo = value!;
+                          IssuerRegistrationNo = value!;
                         });
                       },
                     ),
@@ -353,10 +353,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondSectorAndIndustry,
+                      initialValue: SectorAndIndustry,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondSectorAndIndustry = value;
+                          SectorAndIndustry = value;
                         });
                       },
                       validator: (value) {
@@ -367,7 +367,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondSectorAndIndustry = value!;
+                          SectorAndIndustry = value!;
                         });
                       },
                     ),
@@ -408,10 +408,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRegulatoryApprovalId,
+                      initialValue: RegulatoryApprovalId,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRegulatoryApprovalId = value;
+                          RegulatoryApprovalId = value;
                         });
                       },
                       validator: (value) {
@@ -422,7 +422,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRegulatoryApprovalId = value!;
+                          RegulatoryApprovalId = value!;
                         });
                       },
                     ),
@@ -462,10 +462,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondLicenseOrPermitNumber,
+                      initialValue: LicenseOrPermitNumber,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondLicenseOrPermitNumber = value;
+                          LicenseOrPermitNumber = value;
                         });
                       },
                       validator: (value) {
@@ -476,7 +476,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondLicenseOrPermitNumber = value!;
+                          LicenseOrPermitNumber = value!;
                         });
                       },
                     ),
@@ -516,10 +516,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondListingStatus,
+                      initialValue: ListingStatus,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondListingStatus = value;
+                          ListingStatus = value;
                         });
                       },
                       validator: (value) {
@@ -530,7 +530,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondListingStatus = value!;
+                          ListingStatus = value!;
                         });
                       },
                     ),
@@ -570,10 +570,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondIssuerAdditionalInfo,
+                      initialValue: IssuerAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondIssuerAdditionalInfo = value;
+                          IssuerAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -584,7 +584,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondIssuerAdditionalInfo = value!;
+                          IssuerAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -660,10 +660,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondName,
+                      initialValue: Name,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondName = value;
+                          Name = value;
                         });
                       },
                       validator: (value) {
@@ -674,7 +674,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondName = value!;
+                          Name = value!;
                         });
                       },
                     ),
@@ -705,7 +705,7 @@ class _CorporateBondAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      corporateBondType = value.toString();
+                      Type = value.toString();
                     });
                   },
                   [],
@@ -754,10 +754,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondIsinSerialNumber,
+                      initialValue: IsinSerialNumber,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondIsinSerialNumber = value;
+                          IsinSerialNumber = value;
                         });
                       },
                       validator: (value) {
@@ -768,7 +768,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondIsinSerialNumber = value!;
+                          IsinSerialNumber = value!;
                         });
                       },
                     ),
@@ -808,10 +808,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondTotalIssueSize,
+                      initialValue: TotalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondTotalIssueSize = value;
+                          TotalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -822,7 +822,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondTotalIssueSize = value!;
+                          TotalIssueSize = value!;
                         });
                       },
                     ),
@@ -862,10 +862,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCurrencyOfIssuance,
+                      initialValue: CurrencyOfIssuance,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCurrencyOfIssuance = value;
+                          CurrencyOfIssuance = value;
                         });
                       },
                       validator: (value) {
@@ -876,7 +876,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCurrencyOfIssuance = value!;
+                          CurrencyOfIssuance = value!;
                         });
                       },
                     ),
@@ -921,7 +921,7 @@ class _CorporateBondAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        corporateBondIssueDate = value;
+                        IssueDate = value;
                       }),
                     },
                   );
@@ -965,7 +965,7 @@ class _CorporateBondAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        corporateBondMaturityDate = value;
+                        MaturityDate = value;
                       }),
                     },
                   );
@@ -1004,10 +1004,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondTenor,
+                      initialValue: Tenor,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondTenor = value;
+                          Tenor = value;
                         });
                       },
                       validator: (value) {
@@ -1018,7 +1018,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondTenor = value!;
+                          Tenor = value!;
                         });
                       },
                     ),
@@ -1058,10 +1058,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondFaceValuePerUnit,
+                      initialValue: FaceValuePerUnit,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondFaceValuePerUnit = value;
+                          FaceValuePerUnit = value;
                         });
                       },
                       validator: (value) {
@@ -1072,7 +1072,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondFaceValuePerUnit = value!;
+                          FaceValuePerUnit = value!;
                         });
                       },
                     ),
@@ -1109,10 +1109,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondMinimumInvestmentAmount,
+                      initialValue: MinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondMinimumInvestmentAmount = value;
+                          MinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1123,7 +1123,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondMinimumInvestmentAmount = value!;
+                          MinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1163,10 +1163,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCouponRateType,
+                      initialValue: CouponRateType,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCouponRateType = value;
+                          CouponRateType = value;
                         });
                       },
                       validator: (value) {
@@ -1177,7 +1177,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCouponRateType = value!;
+                          CouponRateType = value!;
                         });
                       },
                     ),
@@ -1217,10 +1217,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCouponRate,
+                      initialValue: CouponRate,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCouponRate = value;
+                          CouponRate = value;
                         });
                       },
                       validator: (value) {
@@ -1231,7 +1231,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCouponRate = value!;
+                          CouponRate = value!;
                         });
                       },
                     ),
@@ -1271,10 +1271,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondReferenceIndex,
+                      initialValue: ReferenceIndex,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondReferenceIndex = value;
+                          ReferenceIndex = value;
                         });
                       },
                       validator: (value) {
@@ -1285,7 +1285,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondReferenceIndex = value!;
+                          ReferenceIndex = value!;
                         });
                       },
                     ),
@@ -1325,10 +1325,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondSpreadOrMargin,
+                      initialValue: SpreadOrMargin,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondSpreadOrMargin = value;
+                          SpreadOrMargin = value;
                         });
                       },
                       validator: (value) {
@@ -1339,7 +1339,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondSpreadOrMargin = value!;
+                          SpreadOrMargin = value!;
                         });
                       },
                     ),
@@ -1379,10 +1379,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondResetFrequency,
+                      initialValue: ResetFrequency,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondResetFrequency = value;
+                          ResetFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1393,7 +1393,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondResetFrequency = value!;
+                          ResetFrequency = value!;
                         });
                       },
                     ),
@@ -1433,10 +1433,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCouponPaymentFrequency,
+                      initialValue: CouponPaymentFrequency,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCouponPaymentFrequency = value;
+                          CouponPaymentFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1447,7 +1447,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCouponPaymentFrequency = value!;
+                          CouponPaymentFrequency = value!;
                         });
                       },
                     ),
@@ -1487,10 +1487,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRedemptionStructure,
+                      initialValue: RedemptionStructure,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRedemptionStructure = value;
+                          RedemptionStructure = value;
                         });
                       },
                       validator: (value) {
@@ -1501,7 +1501,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRedemptionStructure = value!;
+                          RedemptionStructure = value!;
                         });
                       },
                     ),
@@ -1541,10 +1541,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondEarlyRedemptionOption,
+                      initialValue: EarlyRedemptionOption,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondEarlyRedemptionOption = value;
+                          EarlyRedemptionOption = value;
                         });
                       },
                       validator: (value) {
@@ -1555,7 +1555,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondEarlyRedemptionOption = value!;
+                          EarlyRedemptionOption = value!;
                         });
                       },
                     ),
@@ -1595,10 +1595,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondEarlyRedemptionPenalty,
+                      initialValue: EarlyRedemptionPenalty,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondEarlyRedemptionPenalty = value;
+                          EarlyRedemptionPenalty = value;
                         });
                       },
                       validator: (value) {
@@ -1609,7 +1609,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondEarlyRedemptionPenalty = value!;
+                          EarlyRedemptionPenalty = value!;
                         });
                       },
                     ),
@@ -1649,10 +1649,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondTaxTreatment,
+                      initialValue: TaxTreatment,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondTaxTreatment = value;
+                          TaxTreatment = value;
                         });
                       },
                       validator: (value) {
@@ -1663,7 +1663,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondTaxTreatment = value!;
+                          TaxTreatment = value!;
                         });
                       },
                     ),
@@ -1703,10 +1703,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondNavOrMarketValueUpdates,
+                      initialValue: NavOrMarketValueUpdates,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondNavOrMarketValueUpdates = value;
+                          NavOrMarketValueUpdates = value;
                         });
                       },
                       validator: (value) {
@@ -1717,7 +1717,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondNavOrMarketValueUpdates = value!;
+                          NavOrMarketValueUpdates = value!;
                         });
                       },
                     ),
@@ -1757,10 +1757,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondSummaryOfUseOfProceeds,
+                      initialValue: SummaryOfUseOfProceeds,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondSummaryOfUseOfProceeds = value;
+                          SummaryOfUseOfProceeds = value;
                         });
                       },
                       validator: (value) {
@@ -1771,7 +1771,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondSummaryOfUseOfProceeds = value!;
+                          SummaryOfUseOfProceeds = value!;
                         });
                       },
                     ),
@@ -1811,10 +1811,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondEsgOrImpactMetrics,
+                      initialValue: EsgOrImpactMetrics,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondEsgOrImpactMetrics = value;
+                          EsgOrImpactMetrics = value;
                         });
                       },
                       validator: (value) {
@@ -1825,7 +1825,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondEsgOrImpactMetrics = value!;
+                          EsgOrImpactMetrics = value!;
                         });
                       },
                     ),
@@ -1865,10 +1865,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondInstrumentAdditionalInfo,
+                      initialValue: InstrumentAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondInstrumentAdditionalInfo = value;
+                          InstrumentAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -1879,7 +1879,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondInstrumentAdditionalInfo = value!;
+                          InstrumentAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -1954,10 +1954,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCreditRating,
+                      initialValue: CreditRating,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCreditRating = value;
+                          CreditRating = value;
                         });
                       },
                       validator: (value) {
@@ -1968,7 +1968,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCreditRating = value!;
+                          CreditRating = value!;
                         });
                       },
                     ),
@@ -2008,10 +2008,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCreditRatingAgency,
+                      initialValue: CreditRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCreditRatingAgency = value;
+                          CreditRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -2022,7 +2022,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCreditRatingAgency = value!;
+                          CreditRatingAgency = value!;
                         });
                       },
                     ),
@@ -2062,10 +2062,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondLegalBacking,
+                      initialValue: LegalBacking,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondLegalBacking = value;
+                          LegalBacking = value;
                         });
                       },
                       validator: (value) {
@@ -2076,7 +2076,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondLegalBacking = value!;
+                          LegalBacking = value!;
                         });
                       },
                     ),
@@ -2116,10 +2116,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondSecurityType,
+                      initialValue: SecurityType,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondSecurityType = value;
+                          SecurityType = value;
                         });
                       },
                       validator: (value) {
@@ -2130,7 +2130,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondSecurityType = value!;
+                          SecurityType = value!;
                         });
                       },
                     ),
@@ -2170,10 +2170,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCollateralDescription,
+                      initialValue: CollateralDescription,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCollateralDescription = value;
+                          CollateralDescription = value;
                         });
                       },
                       validator: (value) {
@@ -2184,7 +2184,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCollateralDescription = value!;
+                          CollateralDescription = value!;
                         });
                       },
                     ),
@@ -2224,10 +2224,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCovenantSummary,
+                      initialValue: CovenantSummary,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCovenantSummary = value;
+                          CovenantSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2238,7 +2238,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCovenantSummary = value!;
+                          CovenantSummary = value!;
                         });
                       },
                     ),
@@ -2278,10 +2278,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondCovenantTestingFrequency,
+                      initialValue: CovenantTestingFrequency,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondCovenantTestingFrequency = value;
+                          CovenantTestingFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -2292,7 +2292,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondCovenantTestingFrequency = value!;
+                          CovenantTestingFrequency = value!;
                         });
                       },
                     ),
@@ -2332,10 +2332,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondDefaultHistory,
+                      initialValue: DefaultHistory,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondDefaultHistory = value;
+                          DefaultHistory = value;
                         });
                       },
                       validator: (value) {
@@ -2346,7 +2346,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondDefaultHistory = value!;
+                          DefaultHistory = value!;
                         });
                       },
                     ),
@@ -2386,10 +2386,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondEventOfDefaultClauses,
+                      initialValue: EventOfDefaultClauses,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondEventOfDefaultClauses = value;
+                          EventOfDefaultClauses = value;
                         });
                       },
                       validator: (value) {
@@ -2400,7 +2400,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondEventOfDefaultClauses = value!;
+                          EventOfDefaultClauses = value!;
                         });
                       },
                     ),
@@ -2440,10 +2440,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondLegalEnforcementMechanism,
+                      initialValue: LegalEnforcementMechanism,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondLegalEnforcementMechanism = value;
+                          LegalEnforcementMechanism = value;
                         });
                       },
                       validator: (value) {
@@ -2454,7 +2454,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondLegalEnforcementMechanism = value!;
+                          LegalEnforcementMechanism = value!;
                         });
                       },
                     ),
@@ -2494,10 +2494,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondGuarantee,
+                      initialValue: Guarantee,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondGuarantee = value;
+                          Guarantee = value;
                         });
                       },
                       validator: (value) {
@@ -2508,7 +2508,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondGuarantee = value!;
+                          Guarantee = value!;
                         });
                       },
                     ),
@@ -2548,10 +2548,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRecoveryEstimate,
+                      initialValue: RecoveryEstimate,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRecoveryEstimate = value;
+                          RecoveryEstimate = value;
                         });
                       },
                       validator: (value) {
@@ -2562,7 +2562,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRecoveryEstimate = value!;
+                          RecoveryEstimate = value!;
                         });
                       },
                     ),
@@ -2602,10 +2602,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRiskFactorsSummary,
+                      initialValue: RiskFactorsSummary,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRiskFactorsSummary = value;
+                          RiskFactorsSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2616,7 +2616,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRiskFactorsSummary = value!;
+                          RiskFactorsSummary = value!;
                         });
                       },
                     ),
@@ -2656,10 +2656,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRiskProfileAdditionalInfo,
+                      initialValue: RiskProfileAdditionalInfo,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRiskProfileAdditionalInfo = value;
+                          RiskProfileAdditionalInfo = value;
                         });
                       },
                       validator: (value) {
@@ -2670,7 +2670,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRiskProfileAdditionalInfo = value!;
+                          RiskProfileAdditionalInfo = value!;
                         });
                       },
                     ),
@@ -2745,10 +2745,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondTrustee,
+                      initialValue: Trustee,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondTrustee = value;
+                          Trustee = value;
                         });
                       },
                       validator: (value) {
@@ -2759,7 +2759,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondTrustee = value!;
+                          Trustee = value!;
                         });
                       },
                     ),
@@ -2799,10 +2799,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondPayingAgent,
+                      initialValue: PayingAgent,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondPayingAgent = value;
+                          PayingAgent = value;
                         });
                       },
                       validator: (value) {
@@ -2813,7 +2813,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondPayingAgent = value!;
+                          PayingAgent = value!;
                         });
                       },
                     ),
@@ -2853,10 +2853,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondLegalAdvisor,
+                      initialValue: LegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondLegalAdvisor = value;
+                          LegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2867,7 +2867,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondLegalAdvisor = value!;
+                          LegalAdvisor = value!;
                         });
                       },
                     ),
@@ -2907,10 +2907,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondAuditor,
+                      initialValue: Auditor,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondAuditor = value;
+                          Auditor = value;
                         });
                       },
                       validator: (value) {
@@ -2921,7 +2921,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondAuditor = value!;
+                          Auditor = value!;
                         });
                       },
                     ),
@@ -2961,10 +2961,10 @@ class _CorporateBondAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: corporateBondRegistrarOrCSCSAgent,
+                      initialValue: RegistrarOrCSCSAgent,
                       onChanged: (value) {
                         setState(() {
-                          corporateBondRegistrarOrCSCSAgent = value;
+                          RegistrarOrCSCSAgent = value;
                         });
                       },
                       validator: (value) {
@@ -2975,7 +2975,7 @@ class _CorporateBondAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          corporateBondRegistrarOrCSCSAgent = value!;
+                          RegistrarOrCSCSAgent = value!;
                         });
                       },
                     ),

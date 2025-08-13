@@ -30,88 +30,54 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
   late ColorNotifier notifier;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  late String assetOwnership;
-  late String thirdPartyOwnerType;
-  late String assetDescription;
-  late String assetPhysicalAddress;
-  late double latitude;
-  late double longitude;
-  late DateTime? fundLaunchDate;
-  late String nameOfOwner;
-  late String assetName;
-  late String addressOfOwner;
-  late double currentValueOfAsset;
-  late double assetMiscCost;
-  late double valueOfTokenizedAsset;
-  late double assetOwnerRetainedOrContributedValue;
-  late List<String> assetProtectionInPlace;
-  late String insuranceCompanyName;
-  late String insurancePolicyNumber;
-  late String insurancePolicyHolder;
-  late double percentageValueOfInsurance;
-  bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
 
-  String projectStrategicObjectives = "";
-  String projectDevelopmentTimeline = "";
-  String projectKeyMilestoneAndDates = "";
-  String projectScope = "";
-  String projectEconomicBenefits = "";
-  int projectExpectedNoOfJobs = 0;
-  String projectIntendedSocialBenefits = "";
-  String projectTechnicalPartners = "";
-  String projectFinancialPartners = "";
+  // Bond Issuer and Legal Information
+  late String IssuerName;
+  late String IssuingAuthority;
+  late String RegulatoryApprovalId;
+  late String LicenseApprovalReferenceNumber;
+  late String ListingStatus;
 
-  double percentageFromPromoters = 0;
-  double estimatedProjectIRR = 0;
-  double estimatedProjectROI = 0;
-  double estimatedProjectNPV = 0;
-  int estimatedProjectPaybackPeriodsInMonths = 0;
-  String keyAssumptionsList = "";
-  String projectIdentifiedLegalRisks = "";
-  String projectIdentifiedRegulatoryRisks = "";
-  String projectIdentifiedOperationalOrExecutionRisks = "";
-  String projectIdentifiedMarketRisks = "";
-  String projectIdentifiedOtherRelevantRisks = "";
+  // Bond Instrument Details
+  late String Name;
+  late String Type;
+  late String ISINOrSerialNumber;
+  late double TotalIssueSize;
+  late String CurrencyOfIssuance;
+  DateTime? IssueDate;
+  DateTime? MaturityDate;
+  late String Tenor;
+  late double FaceValuePerUnit;
+  late double MinimumInvestmentAmount;
+  late String CouponRateType;
+  late double CouponRate;
+  late String ReferenceIndex;
+  late double SpreadOrMargin;
+  late String ResetFrequency;
+  late String CouponPaymentFrequency;
+  late String RedemptionStructure;
+  late String EarlyRedemptionOption;
+  late String EarlyRedemptionPenalty;
+  late String TaxTreatment;
+  late String NAVOrMarketValueUpdates;
+  late String SummaryOfUseOfProceeds;
+  late String ImpactMetrics;
 
-  String independentMonitoringList = "";
-  String otherAssetProtection = "";
-  String legalAdvisor = "";
-  String financialAdvisor = "";
+  // Bond Security and Risk Profile
+  late String CreditRating;
+  late String CreditRatingAgency;
+  late String LegalBacking;
+  late String DefaultHistory;
+  late String RiskFactorsSummary;
 
-  bool hasIndependentMonitoring = false;
-  bool hasLegalAdvisor = false;
-  bool hasFinancialAdvisor = false;
-  bool hasOtherAssetProtection = false;
-
-  bool contractualProtectionRevGuarantees = false;
-  bool contractualProtectionPerfBond = false;
-  bool contractualProtectionSLA = false;
-  bool riskSharingMechanismPPPs = false;
-  bool riskSharingMechanismHedgeInstruments = false;
-  bool riskSharingMechanismCompletionGuarantees = false;
-  bool eSGSafeguardsSusCerts = false;
-  bool eSGSafeguardsCommEngPlans = false;
-  bool securityMeasuresAccessControl = false;
-  bool securityMeasuresSurveilanceSystems = false;
-  bool securityMeasuresOnSiteSecurityPersonnel = false;
-  bool securityMeasuresPerimeterSecurity = false;
-  bool securityMeasuresCriticalInfraProtections = false;
-  bool undertakingNoLien = false;
-  bool undertakingNotCollateral = false;
-  bool undertakingNoClaims = false;
-  bool undertakingNoForeclosure = false;
-  bool complianceNoViolation = false;
-  bool complianceAllPermits = false;
-  bool outstandingFinancialRespNoDebts = false;
-  bool outstandingFinancialRespNoHiddenLiabilities = false;
-  bool riskManagementFullyInsured = false;
-  bool riskManagementDeclaredValue = false;
-  bool physicalConditionSound = false;
-  bool physicalConditionNoUndisclosedEasements = false;
-  bool physicalConditionNolease = false;
-  bool hasInsurance = false;
+  // Key Entities Involved
+  late String Trustee;
+  late String PayingAgent;
+  late String LegalAdvisor;
+  late String Auditor;
+  late String RegistrarOrCSCSAgent;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -149,143 +115,6 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
-    assetOwnership =
-        data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
-    thirdPartyOwnerType =
-        data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
-    assetName = data['assetName'] ?? "";
-    assetAlreadyExists = data!['assetAlreadyExists'] == 1;
-    assetDescription = data['assetDescription'] ?? "";
-    assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
-    latitude = double.tryParse(data['assetLatitude'].toString()) ?? 0;
-    longitude = double.tryParse(data['assetLongitude'].toString()) ?? 0;
-    nameOfOwner = data['assetOwnerName'] ?? "";
-    addressOfOwner = data['assetOwnerAddress'] ?? "";
-    currentValueOfAsset =
-        double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
-          data['assetOwnerRetainedOrContributedValue'].toString(),
-        ) ??
-        0;
-    assetMiscCost =
-        double.tryParse(data['assetMscCostOutisdeOfValuation'].toString()) ?? 0;
-    valueOfTokenizedAsset =
-        double.tryParse(data['valueOfTokenizedAsset'].toString()) ?? 0;
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
-            data['protectionMethods'].toString().isEmpty
-        ? []
-        : data['protectionMethods'].toString().split(',');
-    insuranceCompanyName = data['insuranceCompanyName'] ?? "";
-    insurancePolicyNumber = data['insurancePolicyNumber'] ?? "";
-    insurancePolicyHolder = data['insurancePolicyHolder'] ?? "";
-    percentageValueOfInsurance =
-        double.tryParse(data['percentageValueOfInsurance'].toString()) ?? 0;
-
-    valueOfAssetController.text = currentValueOfAsset == 0
-        ? ''
-        : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
-    assetOwnerRetainedOrContributedValueController.text =
-        assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
-    percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
-        ? ''
-        : percentageValueOfInsurance.toString();
-
-    independentMonitoringList = data['independentMonitoringList'] ?? "";
-    otherAssetProtection = data['otherAssetProtection'] ?? "";
-    legalAdvisor = data['legalAdvisor'] ?? "";
-    financialAdvisor = data['financialAdvisor'] ?? "";
-
-    contractualProtectionRevGuarantees =
-        data['contractualProtectionRevGuarantees'] == 1;
-    contractualProtectionPerfBond = data['contractualProtectionPerfBond'] == 1;
-    contractualProtectionSLA = data['contractualProtectionSLA'] == 1;
-    riskSharingMechanismPPPs = data['riskSharingMechanismPPPs'] == 1;
-    riskSharingMechanismHedgeInstruments =
-        data['riskSharingMechanismHedgeInstruments'] == 1;
-    riskSharingMechanismCompletionGuarantees =
-        data['riskSharingMechanismCompletionGuarantees'] == 1;
-    eSGSafeguardsSusCerts = data['eSGSafeguardsSusCerts'] == 1;
-    eSGSafeguardsCommEngPlans = data['eSGSafeguardsCommEngPlans'] == 1;
-    securityMeasuresAccessControl = data['securityMeasuresAccessControl'] == 1;
-    securityMeasuresSurveilanceSystems =
-        data['securityMeasuresSurveilanceSystems'] == 1;
-    securityMeasuresOnSiteSecurityPersonnel =
-        data['securityMeasuresOnSiteSecurityPersonnel'] == 1;
-    securityMeasuresPerimeterSecurity =
-        data['securityMeasuresPerimeterSecurity'] == 1;
-    securityMeasuresCriticalInfraProtections =
-        data['securityMeasuresCriticalInfraProtections'] == 1;
-    undertakingNoLien = data['undertakingNoLien'] == 1;
-    undertakingNotCollateral = data['undertakingNotCollateral'] == 1;
-    undertakingNoClaims = data['undertakingNoClaims'] == 1;
-    undertakingNoForeclosure = data['undertakingNoForeclosure'] == 1;
-    complianceNoViolation = data['complianceNoViolation'] == 1;
-    complianceAllPermits = data['complianceAllPermits'] == 1;
-    outstandingFinancialRespNoDebts =
-        data['outstandingFinancialRespNoDebts'] == 1;
-    outstandingFinancialRespNoHiddenLiabilities =
-        data['outstandingFinancialRespNoHiddenLiabilities'] == 1;
-    riskManagementFullyInsured = data['riskManagementFullyInsured'] == 1;
-    riskManagementDeclaredValue = data['riskManagementDeclaredValue'] == 1;
-    physicalConditionSound = data['physicalConditionSound'] == 1;
-    physicalConditionNoUndisclosedEasements =
-        data['physicalConditionNoUndisclosedEasements'] == 1;
-    physicalConditionNolease = data['physicalConditionNolease'] == 1;
-    hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
-    hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
-    hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
-
-    projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
-    projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] ?? "";
-    projectScope = data['projectScope'] ?? "";
-    projectEconomicBenefits = data['projectEconomicBenefits'] ?? "";
-    projectExpectedNoOfJobs = data['projectExpectedNoOfJobs'] ?? 0;
-    projectIntendedSocialBenefits = data['projectIntendedSocialBenefits'] ?? "";
-    projectTechnicalPartners = data['projectTechnicalPartners'] ?? "";
-    projectFinancialPartners = data['projectFinancialPartners'] ?? "";
-
-    estimatedProjectPaybackPeriodsInMonths =
-        data['estimatedProjectPaybackPeriodsInMonths'];
-    keyAssumptionsList = data['keyAssumptionsList'] ?? "";
-    projectIdentifiedLegalRisks = data['projectIdentifiedLegalRisks'] ?? "";
-    projectIdentifiedRegulatoryRisks =
-        data['projectIdentifiedRegulatoryRisks'] ?? "";
-    projectIdentifiedOperationalOrExecutionRisks =
-        data['projectIdentifiedOperationalOrExecutionRisks'] ?? "";
-    projectIdentifiedMarketRisks = data['projectIdentifiedMarketRisks'] ?? "";
-    projectIdentifiedOtherRelevantRisks =
-        data['projectIdentifiedOtherRelevantRisks'] ?? "";
-
-    estimatedProjectIRR =
-        double.tryParse(data['estimatedProjectIRR'].toString()) ?? 0;
-    estimatedProjectROI =
-        double.tryParse(data['estimatedProjectROI'].toString()) ?? 0;
-    estimatedProjectNPV =
-        double.tryParse(data['estimatedProjectNPV'].toString()) ?? 0;
-
-    percentageFromPromoters =
-        ((assetOwnerRetainedOrContributedValue / currentValueOfAsset) * 100);
-    percentageFromPromotersController.text = percentageFromPromoters.isNaN
-        ? '0'
-        : formatNumberShort(percentageFromPromoters);
 
     super.initState();
     getdarkmodepreviousstate();
@@ -362,10 +191,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IssuerName,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IssuerName = value;
                         });
                       },
                       validator: (value) {
@@ -376,7 +205,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IssuerName = value!;
                         });
                       },
                     ),
@@ -407,7 +236,9 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      IssuingAuthority = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -453,10 +284,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RegulatoryApprovalId,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RegulatoryApprovalId = value;
                         });
                       },
                       validator: (value) {
@@ -467,7 +298,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RegulatoryApprovalId = value!;
                         });
                       },
                     ),
@@ -505,10 +336,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LicenseApprovalReferenceNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LicenseApprovalReferenceNumber = value;
                         });
                       },
                       validator: (value) {
@@ -519,7 +350,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LicenseApprovalReferenceNumber = value!;
                         });
                       },
                     ),
@@ -560,10 +391,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ListingStatus,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ListingStatus = value;
                         });
                       },
                       validator: (value) {
@@ -574,7 +405,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ListingStatus = value!;
                         });
                       },
                     ),
@@ -650,10 +481,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Name,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Name = value;
                         });
                       },
                       validator: (value) {
@@ -664,7 +495,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Name = value!;
                         });
                       },
                     ),
@@ -694,7 +525,9 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
                   (value) {
-                    setState(() {});
+                    setState(() {
+                      Type = value.toString();
+                    });
                   },
                   [],
                   null,
@@ -742,10 +575,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ISINOrSerialNumber,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ISINOrSerialNumber = value;
                         });
                       },
                       validator: (value) {
@@ -756,7 +589,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ISINOrSerialNumber = value!;
                         });
                       },
                     ),
@@ -796,10 +629,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TotalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TotalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -810,7 +643,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TotalIssueSize = value!;
                         });
                       },
                     ),
@@ -850,10 +683,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CurrencyOfIssuance,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CurrencyOfIssuance = value;
                         });
                       },
                       validator: (value) {
@@ -864,7 +697,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CurrencyOfIssuance = value!;
                         });
                       },
                     ),
@@ -904,10 +737,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: IssueDate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          IssueDate = value;
                         });
                       },
                       validator: (value) {
@@ -918,7 +751,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          IssueDate = value!;
                         });
                       },
                     ),
@@ -958,10 +791,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: MaturityDate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          MaturityDate = value;
                         });
                       },
                       validator: (value) {
@@ -972,7 +805,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          MaturityDate = value!;
                         });
                       },
                     ),
@@ -1012,10 +845,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Tenor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Tenor = value;
                         });
                       },
                       validator: (value) {
@@ -1026,7 +859,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Tenor = value!;
                         });
                       },
                     ),
@@ -1066,10 +899,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: FaceValuePerUnit,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          FaceValuePerUnit = value;
                         });
                       },
                       validator: (value) {
@@ -1080,7 +913,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          FaceValuePerUnit = value!;
                         });
                       },
                     ),
@@ -1117,10 +950,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: MinimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          MinimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1131,7 +964,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          MinimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -1171,10 +1004,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CouponRateType,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CouponRateType = value;
                         });
                       },
                       validator: (value) {
@@ -1185,7 +1018,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CouponRateType = value!;
                         });
                       },
                     ),
@@ -1225,10 +1058,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CouponRate,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CouponRate = value;
                         });
                       },
                       validator: (value) {
@@ -1239,7 +1072,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CouponRate = value!;
                         });
                       },
                     ),
@@ -1279,10 +1112,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ReferenceIndex,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ReferenceIndex = value;
                         });
                       },
                       validator: (value) {
@@ -1293,7 +1126,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ReferenceIndex = value!;
                         });
                       },
                     ),
@@ -1333,10 +1166,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: SpreadOrMargin,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          SpreadOrMargin = value;
                         });
                       },
                       validator: (value) {
@@ -1347,7 +1180,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          SpreadOrMargin = value!;
                         });
                       },
                     ),
@@ -1387,10 +1220,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ResetFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ResetFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1401,7 +1234,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ResetFrequency = value!;
                         });
                       },
                     ),
@@ -1441,10 +1274,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CouponPaymentFrequency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CouponPaymentFrequency = value;
                         });
                       },
                       validator: (value) {
@@ -1455,7 +1288,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CouponPaymentFrequency = value!;
                         });
                       },
                     ),
@@ -1495,10 +1328,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RedemptionStructure,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RedemptionStructure = value;
                         });
                       },
                       validator: (value) {
@@ -1509,7 +1342,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RedemptionStructure = value!;
                         });
                       },
                     ),
@@ -1549,10 +1382,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: EarlyRedemptionOption,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          EarlyRedemptionOption = value;
                         });
                       },
                       validator: (value) {
@@ -1563,7 +1396,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          EarlyRedemptionOption = value!;
                         });
                       },
                     ),
@@ -1603,10 +1436,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: EarlyRedemptionPenalty,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          EarlyRedemptionPenalty = value;
                         });
                       },
                       validator: (value) {
@@ -1617,7 +1450,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          EarlyRedemptionPenalty = value!;
                         });
                       },
                     ),
@@ -1657,10 +1490,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: TaxTreatment,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          TaxTreatment = value;
                         });
                       },
                       validator: (value) {
@@ -1671,7 +1504,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          TaxTreatment = value!;
                         });
                       },
                     ),
@@ -1711,10 +1544,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: NAVOrMarketValueUpdates,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          NAVOrMarketValueUpdates = value;
                         });
                       },
                       validator: (value) {
@@ -1725,7 +1558,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          NAVOrMarketValueUpdates = value!;
                         });
                       },
                     ),
@@ -1765,10 +1598,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: SummaryOfUseOfProceeds,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          SummaryOfUseOfProceeds = value;
                         });
                       },
                       validator: (value) {
@@ -1779,7 +1612,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          SummaryOfUseOfProceeds = value!;
                         });
                       },
                     ),
@@ -1819,10 +1652,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: ImpactMetrics,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          ImpactMetrics = value;
                         });
                       },
                       validator: (value) {
@@ -1833,7 +1666,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          ImpactMetrics = value!;
                         });
                       },
                     ),
@@ -1908,10 +1741,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRating,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRating = value;
                         });
                       },
                       validator: (value) {
@@ -1922,7 +1755,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRating = value!;
                         });
                       },
                     ),
@@ -1962,10 +1795,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: CreditRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          CreditRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -1976,7 +1809,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          CreditRatingAgency = value!;
                         });
                       },
                     ),
@@ -2016,10 +1849,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LegalBacking,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LegalBacking = value;
                         });
                       },
                       validator: (value) {
@@ -2030,7 +1863,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LegalBacking = value!;
                         });
                       },
                     ),
@@ -2070,10 +1903,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: DefaultHistory,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          DefaultHistory = value;
                         });
                       },
                       validator: (value) {
@@ -2084,7 +1917,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          DefaultHistory = value!;
                         });
                       },
                     ),
@@ -2124,10 +1957,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RiskFactorsSummary,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RiskFactorsSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2138,7 +1971,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RiskFactorsSummary = value!;
                         });
                       },
                     ),
@@ -2213,10 +2046,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Trustee,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Trustee = value;
                         });
                       },
                       validator: (value) {
@@ -2227,7 +2060,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Trustee = value!;
                         });
                       },
                     ),
@@ -2267,10 +2100,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: PayingAgent,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          PayingAgent = value;
                         });
                       },
                       validator: (value) {
@@ -2281,7 +2114,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          PayingAgent = value!;
                         });
                       },
                     ),
@@ -2321,10 +2154,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: LegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          LegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2335,7 +2168,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          LegalAdvisor = value!;
                         });
                       },
                     ),
@@ -2375,10 +2208,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: Auditor,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          Auditor = value;
                         });
                       },
                       validator: (value) {
@@ -2389,7 +2222,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          Auditor = value!;
                         });
                       },
                     ),
@@ -2429,10 +2262,10 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: assetName,
+                      initialValue: RegistrarOrCSCSAgent,
                       onChanged: (value) {
                         setState(() {
-                          assetName = value;
+                          RegistrarOrCSCSAgent = value;
                         });
                       },
                       validator: (value) {
@@ -2443,7 +2276,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          assetName = value!;
+                          RegistrarOrCSCSAgent = value!;
                         });
                       },
                     ),
@@ -2479,128 +2312,7 @@ class _BondAssetInformationView extends State<BondAssetInformationView>
   void submitForm() async {
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credential
-      if (!hasInsurance) {
-        insuranceCompanyName = "";
-        insurancePolicyNumber = "";
-        insurancePolicyHolder = "";
-        percentageValueOfInsurance = 0;
-      }
-
-      if (!hasLegalAdvisor) {
-        legalAdvisor = "";
-      }
-
-      if (!hasFinancialAdvisor) {
-        financialAdvisor = "";
-      }
-
-      if (!hasIndependentMonitoring) {
-        independentMonitoringList = "";
-      }
-
-      if (!hasOtherAssetProtection) {
-        otherAssetProtection = "";
-      }
       var newData = {...data as Map};
-
-      newData['ownershipType'] = assetOwnership;
-      newData['ownershipKind'] = thirdPartyOwnerType;
-      newData['assetName'] = assetName;
-      newData['assetDescription'] = assetDescription;
-      newData['assetPhysicalAddress'] = assetPhysicalAddress;
-      newData['assetLatitude'] = latitude.toString();
-      newData['assetLongitude'] = longitude.toString();
-      newData['assetOwnerName'] = nameOfOwner;
-      newData['assetOwnerAddress'] = addressOfOwner;
-      newData['assetCurrentValue'] = currentValueOfAsset;
-      newData['assetMscCostOutisdeOfValuation'] = assetMiscCost;
-      newData['assetOwnerRetainedOrContributedValue'] =
-          assetOwnerRetainedOrContributedValue;
-      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      newData['protectionMethods'] = assetProtectionInPlace.join(',');
-      newData['insuranceCompanyName'] = insuranceCompanyName;
-      newData['insurancePolicyNumber'] = insurancePolicyNumber;
-      newData['insurancePolicyHolder'] = insurancePolicyHolder;
-      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
-
-      newData['independentMonitoringList'] = independentMonitoringList;
-      newData['otherAssetProtection'] = otherAssetProtection;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['financialAdvisor'] = financialAdvisor;
-
-      newData['contractualProtectionRevGuarantees'] =
-          contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
-      newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
-      newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
-      newData['riskSharingMechanismHedgeInstruments'] =
-          riskSharingMechanismHedgeInstruments ? 1 : 0;
-      newData['riskSharingMechanismCompletionGuarantees'] =
-          riskSharingMechanismCompletionGuarantees ? 1 : 0;
-      newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
-      newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
-      newData['securityMeasuresSurveilanceSystems'] =
-          securityMeasuresSurveilanceSystems ? 1 : 0;
-      newData['securityMeasuresOnSiteSecurityPersonnel'] =
-          securityMeasuresOnSiteSecurityPersonnel ? 1 : 0;
-      newData['securityMeasuresPerimeterSecurity'] =
-          securityMeasuresPerimeterSecurity ? 1 : 0;
-      newData['securityMeasuresCriticalInfraProtections'] =
-          securityMeasuresCriticalInfraProtections ? 1 : 0;
-      newData['undertakingNoLien'] = undertakingNoLien ? 1 : 0;
-      newData['undertakingNotCollateral'] = undertakingNotCollateral ? 1 : 0;
-      newData['undertakingNoClaims'] = undertakingNoClaims ? 1 : 0;
-      newData['undertakingNoForeclosure'] = undertakingNoForeclosure ? 1 : 0;
-      newData['complianceNoViolation'] = complianceNoViolation ? 1 : 0;
-      newData['complianceAllPermits'] = complianceAllPermits ? 1 : 0;
-      newData['outstandingFinancialRespNoDebts'] =
-          outstandingFinancialRespNoDebts ? 1 : 0;
-      newData['outstandingFinancialRespNoHiddenLiabilities'] =
-          outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
-      newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
-      newData['physicalConditionNoUndisclosedEasements'] =
-          physicalConditionNoUndisclosedEasements ? 1 : 0;
-      newData['physicalConditionNolease'] = physicalConditionNolease ? 1 : 0;
-      newData['hasInsurance'] = hasInsurance ? 1 : 0;
-
-      newData['projectStrategicObjectives'] = projectStrategicObjectives;
-      newData['projectDevelopmentTimeline'] = projectDevelopmentTimeline;
-      newData['projectKeyMilestoneAndDates'] = projectKeyMilestoneAndDates;
-      newData['projectScope'] = projectScope;
-      newData['projectEconomicBenefits'] = projectEconomicBenefits;
-      newData['projectExpectedNoOfJobs'] = projectExpectedNoOfJobs;
-      newData['projectIntendedSocialBenefits'] = projectIntendedSocialBenefits;
-      newData['projectTechnicalPartners'] = projectTechnicalPartners;
-      newData['projectFinancialPartners'] = projectFinancialPartners;
-
-      newData['estimatedProjectPaybackPeriodsInMonths'] =
-          estimatedProjectPaybackPeriodsInMonths;
-      newData['keyAssumptionsList'] = keyAssumptionsList;
-      newData['projectIdentifiedLegalRisks'] = projectIdentifiedLegalRisks;
-      newData['projectIdentifiedRegulatoryRisks'] =
-          projectIdentifiedRegulatoryRisks;
-      newData['projectIdentifiedOperationalOrExecutionRisks'] =
-          projectIdentifiedOperationalOrExecutionRisks;
-      newData['projectIdentifiedMarketRisks'] = projectIdentifiedMarketRisks;
-      newData['projectIdentifiedOtherRelevantRisks'] =
-          projectIdentifiedOtherRelevantRisks;
-
-      newData['estimatedProjectIRR'] = estimatedProjectIRR;
-      newData['estimatedProjectROI'] = estimatedProjectROI;
-      newData['estimatedProjectNPV'] = estimatedProjectNPV;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(
