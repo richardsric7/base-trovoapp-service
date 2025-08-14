@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
 	"strconv"
@@ -887,10 +888,12 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			dbTX.Commit()
 			//log message
-			fraction := decimal.NewFromFloat(ta.PricePerToken).Rat()
-			d := int32(fraction.Denom().Int64())
-			n := int32(fraction.Num().Int64())
-			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v completed. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
+			fraction := new(big.Rat).SetFloat64(ta.PricePerToken)
+			den := fraction.Denom()
+			num := fraction.Num()
+			n := num.Int64()
+			d := den.Int64()
+			msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v completed. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ta.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ta.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ta.AssetCode, decimal.NewFromFloat(ta.PricePerToken).StringFixed(7), *ta.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt(n).String(), decimal.NewFromInt(d).String())
 			gc.LogDiscordFailedRequest(msg)
 
 			accessList := wallet.GetPermissionList(gc.DB)

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
+	"math/big"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -3124,10 +3126,27 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 
 	//make market
-	fraction := decimal.NewFromFloat(t.PricePerToken).Rat()
-	d := int32(fraction.Denom().Int64())
-	n := int32(fraction.Num().Int64())
-	xdrPrice := xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)}
+	fraction := new(big.Rat).SetFloat64(t.PricePerToken)
+	den := fraction.Denom()
+	num := fraction.Num()
+	n := num.Int64()
+	d := den.Int64()
+	if !fitsInInt32(den) || !fitsInInt32(num) {
+		//does not fit int32. return error.
+		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Denominator Or Numerator does not fit into Int32. D: %v, N: %v", den.String(), num.String())
+		gc.LogDiscordFailedRequest(msg)
+		err = &tErrors.CustomError{
+			Param:      "pricePerToken",
+			Err:        "error-price-per-token-out-of-range",
+			ErrMessage: "Current price per token cannot be correctly represented on the blockchain. Please consider raising the total number of tokens to be issued.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+
+	xdrInt32N := xdr.Int32(n)
+	xdrInt32D := xdr.Int32(d)
+	xdrPrice := xdr.Price{N: xdrInt32N, D: xdrInt32D}
 	marketOffer := &txnbuild.ManageSellOffer{
 		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
@@ -3148,7 +3167,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 
 	ops = append(ops, marketOffer)
-	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. Fraction: %v. N: %v, D: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrPrice)
+	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. Fraction: %v. N: %v, D: %v. xdrN: %v, xdrD: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt(n).String(), decimal.NewFromInt(d).String(), xdrInt32N, xdrInt32D, xdrPrice)
 	gc.LogDiscordFailedRequest(msg)
 	//check if issuing account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -3414,10 +3433,13 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	dbTX.Commit()
 	//log message
-	fraction := decimal.NewFromFloat(ato.PricePerToken).Rat()
-	d := int32(fraction.Denom().Int64())
-	n := int32(fraction.Num().Int64())
-	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
+	fraction := new(big.Rat).SetFloat64(ato.PricePerToken)
+	den := fraction.Denom()
+	num := fraction.Num()
+	n := num.Int64()
+	d := den.Int64()
+
+	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. Fraction: %v. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, fraction.String(), decimal.NewFromInt(n).String(), decimal.NewFromInt(d).String())
 	gc.LogDiscordFailedRequest(msg)
 	return ato, nil
 
@@ -3692,4 +3714,8 @@ func GetSwapEstimate(sourceAssetCode, sourceAssetIssuer, amount, destinationAsse
 		return "0"
 	}
 	return swappedEstimate
+}
+
+func fitsInInt32(x *big.Int) bool {
+	return x.Cmp(big.NewInt(math.MaxInt32)) <= 0 && x.Cmp(big.NewInt(math.MinInt32)) >= 0
 }
