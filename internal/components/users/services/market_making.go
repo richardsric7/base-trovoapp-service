@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -448,9 +449,12 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		}
 	}
 	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
-	fraction := decimal.RequireFromString(offerRequest.PricePerUnit).Rat()
-	d := int32(fraction.Denom().Int64())
-	n := int32(fraction.Num().Int64())
+	fraction := new(big.Rat).SetFloat64(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
+	den := fraction.Denom()
+	num := fraction.Num()
+
+	d := int32(den.Int64())
+	n := int32(num.Int64())
 	if offerRequest.AssetIssuer == "" {
 		mainAsset = txnbuild.NativeAsset{}
 	} else {
