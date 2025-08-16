@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/big"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -449,12 +449,8 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		}
 	}
 	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
-	fraction := new(big.Rat).SetFloat64(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
-	den := fraction.Denom()
-	num := fraction.Num()
+	n, d := ToFractionInt32(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
 
-	d := int32(den.Int64())
-	n := int32(num.Int64())
 	if offerRequest.AssetIssuer == "" {
 		mainAsset = txnbuild.NativeAsset{}
 	} else {
@@ -941,4 +937,39 @@ func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *
 	}
 	return xdrBase64, transactionSource, nil
 
+}
+
+// ToFractionInt32 approximates a float64 as a fraction with int32 numerator and denominator.
+// It uses a continued fraction algorithm for a good approximation.
+func ToFractionInt32(x float64) (num, den int32) {
+	if x < 0 {
+		return 0, 0 // Handle negative numbers as per requirement
+	}
+
+	const (
+		maxDen = math.MaxInt32
+		maxNum = math.MaxInt32
+	)
+
+	// Initial values for the continued fraction
+	n1, d1 := int64(math.Floor(x)), int64(1)
+	n2, d2 := int64(1), int64(0)
+	x -= math.Floor(x)
+
+	for x != 0 {
+		a := math.Floor(1 / x)
+		n3 := n1*int64(a) + n2
+		d3 := d1*int64(a) + d2
+
+		if d3 > maxDen || n3 > maxNum {
+			break // Stop if numerator or denominator exceeds int32 limits
+		}
+
+		// Update values for the next iteration
+		n2, d2 = n1, d1
+		n1, d1 = n3, d3
+		x = 1/x - a
+	}
+
+	return int32(n1), int32(d1)
 }
