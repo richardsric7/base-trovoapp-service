@@ -2312,7 +2312,14 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	if capEndDate.After(time.Now()) && ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
 
 		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
-		err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase upto %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, decimal.NewFromFloat(ta.CapAmountInFiat-ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)), *ta.AssetCode)}
+		maxPurchase := decimal.NewFromFloat(ta.CapAmountInFiat - ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc))
+		if maxPurchase.IsZero() {
+			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You have exhausted the allowed purchase cap of %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, ta.CapAmountInFiat, *ta.AssetCode)}
+
+		} else {
+
+			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase upto %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, maxPurchase.String(), *ta.AssetCode)}
+		}
 		return
 
 	}
@@ -3126,11 +3133,11 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 
 	//make market
-	n,d := ToFractionInt32(t.PricePerToken)
-	
-	num:= decimal.NewFromInt32(n).BigInt()
-	den:= decimal.NewFromInt32(d).BigInt()
-	
+	n, d := ToFractionInt32(t.PricePerToken)
+
+	num := decimal.NewFromInt32(n).BigInt()
+	den := decimal.NewFromInt32(d).BigInt()
+
 	if !fitsInInt32(den) || !fitsInInt32(num) {
 		//does not fit int32. return error.
 		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Denominator Or Numerator does not fit into Int32. D: %v, N: %v", den.String(), num.String())
@@ -3167,7 +3174,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 
 	ops = append(ops, marketOffer)
-	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. N: %v, D: %v. xdrN: %v, xdrD: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency,  decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrInt32N, xdrInt32D, xdrPrice)
+	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. N: %v, D: %v. xdrN: %v, xdrD: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrInt32N, xdrInt32D, xdrPrice)
 	gc.LogDiscordFailedRequest(msg)
 	//check if issuing account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -3434,12 +3441,9 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	dbTX.Commit()
 	//log message
 	//make market
-	n,d := ToFractionInt32(ato.PricePerToken)
-	
+	n, d := ToFractionInt32(ato.PricePerToken)
 
-	
-
-	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency,  decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
+	msg := fmt.Sprintf("Minting of %v units (selling %v units) of %v @ %v %v submitted. N: %v, D: %v", decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(ato.MaxNumberOfTokenAvailableForSale).StringFixed(7), *ato.AssetCode, decimal.NewFromFloat(ato.PricePerToken).StringFixed(7), *ato.AssetQuoteCurrency, decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String())
 	gc.LogDiscordFailedRequest(msg)
 	return ato, nil
 

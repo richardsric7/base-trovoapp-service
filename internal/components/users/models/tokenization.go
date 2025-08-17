@@ -1046,7 +1046,7 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 		return
 	}
 
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Subscriber_Username = ?", t.ID, subscriber).First(&exp).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, *t.IssuingWalletPublicKey, subscriber).First(&exp).Error
 
 	return
 }
@@ -1058,7 +1058,7 @@ func (t *TokenizedAsset) SumExpressedInterest(gc *sharedconfig.GlobalConfig) (su
 		return
 	}
 
-	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, *t.IssuingWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1069,7 +1069,7 @@ func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) 
 		return
 	}
 
-	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ?", t.ID).Count(&count)
+	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, *t.IssuingWalletPublicKey).Count(&count)
 
 	return
 }
@@ -1080,7 +1080,7 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 		return
 	}
 
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Count(&count)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, *t.IssuingWalletPublicKey).Count(&count)
 
 	return
 }
@@ -1091,7 +1091,7 @@ func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum
 		log.Println("[TokenizedAsset::SumAmountSoldInFiat] Error tokenized asset is nil")
 		return
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ?", t.ID).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, *t.IssuingWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1104,7 +1104,7 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 	}
 	ownerUsername := strings.Split(walletAlias, "_")[0]
 
-	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Wallet_Alias LIKE ?", t.ID, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, *t.IssuingWalletPublicKey, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1116,7 +1116,7 @@ func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscrib
 		return
 	}
 
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Wallet_Public_Key = ?", t.ID, subscriberWalletPublicKey).First(&sub).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, *t.IssuingWalletPublicKey, subscriberWalletPublicKey).First(&sub).Error
 
 	return
 }
