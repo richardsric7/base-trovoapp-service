@@ -407,6 +407,7 @@ type TokenizedAsset struct {
 	PhysicalConditionSound                      int       `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int       `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int       `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	DeepLink                                    *string   `gorm:"null" json:"deepLink"`
 }
 
 type TokenizedAssetJSON struct {
