@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/dynamiclinks"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -232,6 +233,7 @@ type TokenizedAsset struct {
 	ProjectIdentifiedOperationalOrExecutionRisks *string                         `json:"projectIdentifiedOperationalOrExecutionRisks"`
 	ProjectIdentifiedMarketRisks                 *string                         `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          *string                         `json:"projectIdentifiedOtherRelevantRisks"`
+	DeepLink                                     *string                         `gorm:"null" json:"deepLink"`
 }
 
 type TokenizedAssetID string
@@ -560,6 +562,7 @@ type TokenizedAssetJSON struct {
 	QuantityOfTokensSold                         float64                         `json:"quantityOfTokensSold"`
 	QuantityOfTokensSoldInFiat                   float64                         `json:"quantityOfTokensSoldInFiat"`
 	PurchaseCommitments                          float64                         `json:"purchaseCommitments"`
+	DeepLink                                     string                          `json:"deepLink"`
 }
 
 type TokenizedAssetSector struct {
@@ -1786,7 +1789,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	if ne(ti.ProjectIdentifiedOtherRelevantRisks) {
 		t.ProjectIdentifiedOtherRelevantRisks = &ti.ProjectIdentifiedOtherRelevantRisks
 	}
-
+	if t.DeepLink == nil && t.AssetCode != nil && t.IssuingWalletPublicKey != nil {
+		//set deep link
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*t.AssetCode, *t.IssuingWalletPublicKey, gc)
+		if len(p.DynamicLink) > 0 {
+			t.DeepLink = &p.DynamicLink
+		}
+	}
 	return *t
 
 }
@@ -2414,6 +2423,18 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
 	t.PurchaseCommitments = ti.SumExpressedInterest(gc)
+	if ti.DeepLink == nil && ti.AssetCode != nil && ti.IssuingWalletPublicKey != nil {
+		//set deep link
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*ti.AssetCode, *ti.IssuingWalletPublicKey, gc)
+		if len(p.DynamicLink) > 0 {
+			ti.DeepLink = &p.DynamicLink
+			//save the tokenized asset information
+			gc.DB.Save(ti)
+		}
+	}
+	if ti.DeepLink != nil {
+		t.DeepLink = *ti.DeepLink
+	}
 
 	return t
 

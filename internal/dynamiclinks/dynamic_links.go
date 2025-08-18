@@ -65,6 +65,11 @@ type ReferralLinkData struct {
 	QRCode      string `json:"qrCode"`
 }
 
+type TokenizedAssetDeepLinkData struct {
+	DynamicLink string `json:"dynamicLink"`
+	QRCode      string `json:"qrCode"`
+}
+
 // FBDL is model for sending the POST request to the DL proxy
 type FBDL struct {
 	Link   string `json:"link"`
@@ -484,6 +489,49 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GeneratePaymentData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
+		return
+	}
+	p.DynamicLink = dynamicLink
+	p.QRCode = pngDataURI
+	// log.Printf("[GeneratePaymentData] App Data Link:[%+v]\n", p)
+	return p, nil
+}
+
+// GenerateTokenizedAssetDeeplink generates deep link for tokenized asset Data
+func GenerateTokenizedAssetDeeplink(assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) (p TokenizedAssetDeepLinkData, err error) {
+
+	if len(assetIssuer) > 0 && len(assetIssuer) != 56 {
+		err = errors.New("invalid asset issuer")
+		return
+	}
+	if len(assetCode) < 3 || len(assetCode) > 12 {
+		err = errors.New("invalid asset code")
+		return
+	}
+
+	var dynamicLink, pngDataURI string
+	params := url.Values{}
+	params.Add("action", "tokenizedAsset")
+	params.Add("assetCode", assetCode)
+	params.Add("assetIssuer", assetIssuer)
+
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
+	// log.Println("[GeneratePaymentData]link=", link)
+
+	dynamicLink, err = GenerateDynamicLink(link, gc)
+
+	if err != nil {
+		log.Printf("[GenerateTokenizedAssetDeeplink]could not generate dynamic-link for [%v]. error: %v\n", link, err)
+		return
+	}
+	// log.Println("[GenerateLoginData] generated dynamic link=", dynamicLink)
+	if len(dynamicLink) == 0 {
+		log.Println("[GenerateTokenizedAssetDeeplink] unable to generate dynamic link=", dynamicLink)
+		return
+	}
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
+	if err != nil {
+		log.Printf("[GenerateTokenizedAssetDeeplink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
 	}
 	p.DynamicLink = dynamicLink
