@@ -1,7 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
@@ -33,6 +36,8 @@ class _KYCScreenState extends State<KYCScreen> {
   String demoText =
       '''This is a demo process. Your data will not be stored or retained by Dojah and will only be used
         for the purpose of demonstrating this process flow.''';
+  var deniedList = [];
+  bool locationServiceEnabled = false;
 
   @override
   void initState() {
@@ -47,6 +52,7 @@ class _KYCScreenState extends State<KYCScreen> {
 
   Future<void> fetchKycConfigs() async {
     try {
+      locationServiceEnabled = await Geolocator.isLocationServiceEnabled();
       var res = await StoreData().storeGetData(
         'lastKyc${activeLevel + 1}Submitted',
       );
@@ -73,20 +79,20 @@ class _KYCScreenState extends State<KYCScreen> {
 
   // check that the user allows for permission to use their camera
   Future checkPermission() async {
+    deniedList.clear();
     var status = await Permission.camera.request();
-    granted = true;
     if (!status.isGranted) {
-      granted = false;
+      deniedList.add('Camera');
     }
 
     var locationStatus = await Permission.locationWhenInUse.request();
     if (!locationStatus.isGranted) {
-      granted = false;
+      deniedList.add('Location');
     }
 
     var microphoneStatus = await Permission.microphone.request();
     if (!microphoneStatus.isGranted) {
-      granted = false;
+      deniedList.add('Microphone');
     }
 
     setState(() {});
@@ -211,6 +217,125 @@ class _KYCScreenState extends State<KYCScreen> {
                 }
                 if (widgetId != null) break; // stop once widgetId is found
               }
+            }
+
+            if (deniedList.isNotEmpty) {
+              return Scaffold(
+                body: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.do_disturb_alt_outlined,
+                            size: 90,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            'The following permissions are required to carry out this KYC process: ${deniedList.join(', ')}. \n\nPlease tap the button below to allow app permissions.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Geolocator.openAppSettings();
+                              Timer.periodic(Duration(seconds: 1), (timer) {
+                                print('object========>');
+                                checkPermission();
+                                if (deniedList.isEmpty) {
+                                  timer.cancel();
+                                }
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getbluecolor!,
+                              ),
+                              foregroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getwihitecolor,
+                              ),
+                            ),
+                            child: Text(
+                              "Allow Permissions",
+                              style: TextStyle(fontFamily: fontsemibold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            if (!locationServiceEnabled) {
+              return Scaffold(
+                body: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: height,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 90,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            'This KYC process requires your device location to be turned on. \n\nPlease tap the button below to turn on device location.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Geolocator.openLocationSettings();
+                              Timer.periodic(Duration(seconds: 1), (
+                                timer,
+                              ) async {
+                                locationServiceEnabled =
+                                    await Geolocator.isLocationServiceEnabled();
+                                if (locationServiceEnabled) {
+                                  timer.cancel();
+                                }
+                                setState(() {});
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getbluecolor!,
+                              ),
+                              foregroundColor: WidgetStateProperty.all<Color>(
+                                notifier.getwihitecolor,
+                              ),
+                            ),
+                            child: Text(
+                              "Turn on Location",
+                              style: TextStyle(fontFamily: fontsemibold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
             }
 
             if (isAlreadySubmitted) {

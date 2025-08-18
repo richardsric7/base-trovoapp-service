@@ -173,7 +173,7 @@ class _AssetDashboardState extends State<AssetDashboard>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: width / 2.9,
+                  width: width / 2.8,
                   child: Card(
                     shadowColor: Colors.black,
                     shape: RoundedRectangleBorder(

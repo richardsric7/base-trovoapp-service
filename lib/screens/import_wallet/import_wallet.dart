@@ -180,14 +180,14 @@ class _ImportWalletState extends State<ImportWallet> {
                           onSaved: storeUsernameOrEmail,
                           keyboardtype: TextInputType.emailAddress,
                         ),
-                        Row(
-                          children: [
-                            Container(
-                              width: width / 1.2,
-                              child: checkUsePassphrase(),
-                            ),
-                          ],
-                        ),
+                        // Row(
+                        //   children: [
+                        //     Container(
+                        //       width: width / 1.2,
+                        //       child: checkUsePassphrase(),
+                        //     ),
+                        //   ],
+                        // ),
                         if (usePassPhrase) ...[
                           // Pass phrase/Mnemonic
                           passPhraseInput(
