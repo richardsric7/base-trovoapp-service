@@ -9,13 +9,13 @@ export interface ColumnDef<T> {
   render?: (row: T) => ReactNode;
   className?: string;
 }
-interface PaginationProps {
-  hasNextPage: boolean;
-  totalPages: number;
-  totalCount: number;
-  nextPage: number;
-  hasPreviousPage: boolean;
-}
+// interface PaginationProps {
+//   hasNextPage: boolean;
+//   totalPages: number;
+//   totalCount: number;
+//   nextPage: number;
+//   hasPreviousPage: boolean;
+// }
 
 export interface DataTableProps<T> {
   data: T[];
