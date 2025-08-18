@@ -770,10 +770,10 @@ func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig)
 	cacheKey := fmt.Sprintf("bca_%v", string(id))
 
 	client := network.GetBlockchainClient()
-	var accountRequest horizonclient.AccountRequest
+	// var accountRequest horizonclient.AccountRequest
 
 	// account
-	accountRequest = horizonclient.AccountRequest{AccountID: string(id)}
+	accountRequest := horizonclient.AccountRequest{AccountID: string(id)}
 
 	{
 
