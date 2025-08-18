@@ -499,6 +499,7 @@ type TokenizedAssetJSON struct {
 	PhysicalConditionSound                      int       `gorm:"default:0" json:"physicalConditionSound"`
 	PhysicalConditionNolease                    int       `gorm:"default:0" json:"physicalConditionNolease"`
 	PhysicalConditionNoUndisclosedEasements     int       `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	DeepLink                                    string    `gorm:"null" json:"deepLink"`
 }
 
 func (gc *GlobalConfig) GetTokenizedAssetByCode(assetCode string) (t TokenizedAsset) {
@@ -874,6 +875,9 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 	t.PhysicalConditionSound = ti.PhysicalConditionSound
 	t.PhysicalConditionNolease = ti.PhysicalConditionNolease
 	t.PhysicalConditionNoUndisclosedEasements = ti.PhysicalConditionNoUndisclosedEasements
+	if ti.DeepLink != nil {
+		t.DeepLink = *ti.DeepLink
+	}
 	return t
 
 }
