@@ -14,6 +14,7 @@ type Balance struct {
 	NativePrice                  string                       `json:"nativePrice"`
 	CryptoWalletDepositAddresses []CryptoWalletDepositAddress `json:"cryptoWalletDepositAddresses"`
 	ClosedGroup                  string                       `json:"closedGroup"`
+	QuoteCurrency                string                       `json:"quoteCurrency"`
 }
 
 type TradeLiabilties struct {
