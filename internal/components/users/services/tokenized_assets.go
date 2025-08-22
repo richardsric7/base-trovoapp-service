@@ -2455,6 +2455,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		dbTX.Omit(clause.Associations).Save(&taSubscription)
 		dbTX.Commit()
 		subscriberWallet.InvalidateUserCache(gc)
+		subscriber.InvalidateUserWalletCache(gc)
 		return taSubscription, nil
 
 	}
@@ -2505,7 +2506,8 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		}
 
 		dbTX.Commit()
-
+		subscriberWallet.InvalidateUserCache(gc)
+		subscriber.InvalidateUserWalletCache(gc)
 		return taSubscription, nil
 	}
 	log.Println("[SubscribeToTokenizedAsset]UNKNOWN OPTION FOR ACTION")
