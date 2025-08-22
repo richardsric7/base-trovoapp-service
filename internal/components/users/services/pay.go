@@ -168,15 +168,18 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 			}
 		}
 		paymentInfo.TransactionID = txnHash
-		sourceWallet.InvalidateUserCache(gc)
-		signerUser.InvalidateUserCache(gc)
-		signerUser.InvalidateUserWalletCache(gc)
-		if destinationUser != nil {
-			if len(destinationUser.Username) > 0 {
-				destinationUser.InvalidateUserCache(gc)
-				destinationUser.InvalidateUserWalletCache(gc)
+		if err == nil {
+			sourceWallet.InvalidateUserCache(gc)
+			signerUser.InvalidateUserCache(gc)
+			signerUser.InvalidateUserWalletCache(gc)
+			if destinationUser != nil {
+				if len(destinationUser.Username) > 0 {
+					destinationUser.InvalidateUserCache(gc)
+					destinationUser.InvalidateUserWalletCache(gc)
+				}
 			}
 		}
+
 		return paymentInfo, destinationUser, err
 	}
 
