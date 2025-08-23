@@ -170,8 +170,8 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		paymentInfo.TransactionID = txnHash
 		if err == nil {
 			sourceWallet.InvalidateUserCache(gc)
-			signerUser.InvalidateUserCache(gc)
 			signerUser.InvalidateUserWalletCache(gc)
+			signerUser.InvalidateUserCache(gc)
 			if destinationUser != nil {
 				if len(destinationUser.Username) > 0 {
 					destinationUser.InvalidateUserCache(gc)
