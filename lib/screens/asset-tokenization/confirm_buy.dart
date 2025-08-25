@@ -18,6 +18,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:trovo_app/storage/cache.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
@@ -390,6 +391,14 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
             page: SuccessViewPageConfig,
           );
         } else {
+          updateUserInfo(
+            appState.primaryWallet.signer!,
+            appState.secretKeys[0],
+            appState.primaryWallet.publicKey,
+            appState.userInfo!.username,
+            appState,
+            forceRefresh: true,
+          );
           appState.viewData = responseData['data'];
           appState.currentAction = PageAction(
             state: PageState.replace,

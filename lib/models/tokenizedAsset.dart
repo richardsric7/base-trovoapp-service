@@ -155,6 +155,7 @@ class TokenizedAsset {
   int? numberOfExpressedInterests;
   int? numberOfSubscribers;
   double? quantityOfTokensSold;
+  String deepLink;
 
   TokenizedAsset({
     this.id,
@@ -308,6 +309,7 @@ class TokenizedAsset {
     this.numberOfExpressedInterests,
     this.numberOfSubscribers,
     this.quantityOfTokensSold,
+    this.deepLink = '',
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -531,6 +533,7 @@ class TokenizedAsset {
       quantityOfTokensSold: double.tryParse(
         m["quantityOfTokensSold"].toString(),
       ),
+      deepLink: m["deepLink"].toString(),
     );
   }
 

@@ -105,13 +105,10 @@ class _AppState extends State<App> {
 
     // Subscribe to all events (initial link and further)
     appLinks.uriLinkStream.listen((uri) {
-      print('this is the uri =========> $uri');
-      print('this is the path =========> ${uri.path.replaceAll('/', '')}');
-      print('this is the path =========> ${appState.appIsOpen}');
       appState.linkId = uri.path.replaceAll('/', '');
 
       if (appState.appIsOpen) {
-        appState.setPage(page: SplashPageConfig);
+        appState.setPage(page: SplashPageConfig, state: PageState.replaceAll);
       }
     });
     initAppNotification(context, appState);

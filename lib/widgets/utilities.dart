@@ -549,8 +549,8 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   var byteData = await image.toByteData(format: ImageByteFormat.png);
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
-  await Share.shareXFiles(
-    [XFile(fileName)],
+  await ShareParams(
+    files: [XFile(fileName)],
     text: message,
     sharePositionOrigin: boundary.paintBounds,
   );
@@ -896,7 +896,7 @@ Widget tokenizedAssetTile({
                             ),
                           ] else ...[
                             Container(
-                              width: 53,
+                              width: 70,
                               child: Text(
                                 'Express Interest',
                                 style: TextStyle(

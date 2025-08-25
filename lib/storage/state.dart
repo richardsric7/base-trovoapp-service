@@ -737,7 +737,7 @@ class DataProvider with ChangeNotifier {
     Uri initialDynamicLink, {
     String? rel,
     void Function()? onCancel,
-  }) {
+  }) async {
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
       setSplashFinished();
@@ -856,6 +856,67 @@ class DataProvider with ChangeNotifier {
         state: PageState.addAll,
         pages: [LoginPageConfig, CreatePasswordPageConfig],
       );
+    } else if (initialDynamicLink.queryParameters['action'] ==
+        'tokenizedAsset') {
+      try {
+        var assetCode = initialDynamicLink.queryParameters['assetCode'];
+        tokenizedAsset = await fetchTokenizedAsset(assetCode: assetCode!);
+        setSplashFinished();
+
+        currentAction = PageAction(
+          state: PageState.addAll,
+          pages: isLoggedIn
+              ? [BottomHomePageConfig, TokenizedAssetDetailViewPageConfig]
+              : [LoginPageConfig, TokenizedAssetDetailViewPageConfig],
+        );
+        notifyListeners;
+      } catch (e) {
+        setSplashFinished();
+      }
+    }
+  }
+
+  Future<void> fetchTokenizationData() async {
+    var uri = '/v1/tokenization';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: primaryWallet.signer!,
+      secretKey: secretKeys[0], // the primary wallet secret key
+      publicKey: primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      tokenizationData = responseData['data'];
+    }
+  }
+
+  Future<TokenizedAsset> fetchTokenizedAsset({
+    required String assetCode,
+  }) async {
+    try {
+      await Future.wait([
+        if (tokenizationData.isEmpty) fetchTokenizationData(),
+      ]);
+      var uri =
+          '/v1/tokenization/list?onlyWithUserPermission=0&assetCode=$assetCode';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: primaryWallet.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: primaryWallet.signer!,
+      );
+
+      inspect(responseData['data']);
+
+      if (responseData['statusCode'] == 200) {
+        return TokenizedAsset().deserializeJson(
+          responseData['data']['records'][0],
+        );
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
     }
   }
 

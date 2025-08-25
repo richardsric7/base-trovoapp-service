@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
@@ -295,6 +297,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 5,
                 children: [
                   ElevatedButton(
                     onPressed: () {
@@ -363,6 +366,40 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ],
                     ),
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          text:
+                              'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                        ),
+                      );
+                    },
+                    style: ButtonStyle(
+                      // padding: WidgetStateProperty.all(
+                      //   EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                      // ),
+                      overlayColor: WidgetStateProperty.all<Color>(
+                        notifier.getsplashgrey,
+                      ),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Icon(Icons.share),
+                  ),
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 4) ...[
@@ -371,6 +408,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 5,
                 children: [
                   ElevatedButton(
                     onPressed: () {
@@ -466,12 +504,51 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ),
                     ),
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          text:
+                              'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                        ),
+                      );
+                    },
+                    style: ButtonStyle(
+                      // padding: WidgetStateProperty.all(
+                      //   EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                      // ),
+                      overlayColor: WidgetStateProperty.all<Color>(
+                        notifier.getsplashgrey,
+                      ),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        tokenizedAsset.expressedInterest ?? false
+                            ? notifier.getaddsubwalletgrey
+                            : notifier.getwihitecolor,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: tokenizedAsset.expressedInterest ?? false
+                              ? notifier.getaddsubwalletgrey
+                              : notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Icon(Icons.share),
+                  ),
                 ],
               ),
             ] else if (tokenizedAsset.tokenizationStatus == 6) ...[
               SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 5,
                 children: [
                   ElevatedButton(
                     onPressed: () {
@@ -526,10 +603,47 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       ],
                     ),
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          text:
+                              'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                        ),
+                      );
+                    },
+                    style: ButtonStyle(
+                      // padding: WidgetStateProperty.all(
+                      //   EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                      // ),
+                      overlayColor: WidgetStateProperty.all<Color>(
+                        notifier.getsplashgrey,
+                      ),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        tokenizedAsset.expressedInterest ?? false
+                            ? notifier.getaddsubwalletgrey
+                            : notifier.getwihitecolor,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: tokenizedAsset.expressedInterest ?? false
+                              ? notifier.getaddsubwalletgrey
+                              : notifier.getbluewhitecolor,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Icon(Icons.share),
+                  ),
                 ],
               ),
             ],
-            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(

@@ -438,7 +438,9 @@ class _AssetDetailsState extends State<AssetDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
+                        asset!.tokenizedAsset
+                            ? '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), 'USD', appState, getUnFormatted: true)))} NGN'
+                            : '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
