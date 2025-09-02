@@ -1187,6 +1187,14 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		return
 	}
 
+	capEndDate := ato.SalesStart.AddDate(0, 0, ato.CapDurationInDays)
+	if capEndDate.After(ato.SalesEnd) {
+		// cap exceeds
+		log.Printf("[VetTokenizationAssetInfo] Error TID: %v cap end date %v exceeds sales end date: %v\n", ato.ID, capEndDate, ato.SalesEnd)
+		err = &tErrors.CustomError{Param: "salesEnd", Err: "error-invalid-cap-duration", ErrMessage: fmt.Sprintf("Invalid Cap duration. Cap end date %v exceeds sales end date %v", capEndDate, ato.SalesEnd)}
+		return
+	}
+
 	ato.ExcludeSecFee = input.ExcludeSecFee
 	ato.ApprovedAssetCustodianID = input.ApprovedAssetCustodianID
 
@@ -2368,7 +2376,37 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 		return
 	}
+	// get market offer of the asset
+	{
+		offers, e := ta.GetMarketOffers(gc)
+		if e != nil {
+			log.Printf("[SubscribeToTokenizedAsset] error fetching matket offer of tokenized asset [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
 
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
+		if len(offers.Embedded.Records) > 0 {
+			//get the first
+			offer := offers.Embedded.Records[0]
+			//get price
+			remainingBuyingLiability := decimal.RequireFromString(offer.Amount).Div(decimal.RequireFromString(offer.Price)).Truncate(7)
+			//if the subscription amount is greater than the buying liability, then reject action.
+			decPurchaseAmountFiat := decimal.NewFromFloat(input.Amount)
+
+			if decPurchaseAmountFiat.GreaterThan(remainingBuyingLiability) {
+				//not enough liquidity
+				err = &tErrors.CustomError{Param: "amount", Err: "error-low-liquidity", ErrMessage: fmt.Sprintf("Available %v asset is now remaining %v %v. You can only purchase maximum of this amount.", swapInfo.DestinationAssetCode, remainingBuyingLiability.String(), swapInfo.SourceAssetCode)}
+				return
+			}
+
+			if remainingBuyingLiability.IsZero() {
+				//not enough liquidity
+				err = &tErrors.CustomError{Param: "amount", Err: "error-no-liquidity", ErrMessage: fmt.Sprintf("The allocated %v asset has sold out.", swapInfo.DestinationAssetCode)}
+				return
+			}
+
+		}
+	}
 	if len(input.TransactionSignature) == 0 {
 		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, &swapInfo, gc)
 		if e != nil {

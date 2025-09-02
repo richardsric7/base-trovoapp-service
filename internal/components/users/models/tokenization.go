@@ -5,14 +5,19 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 	"trovo-wallet-api/internal/dynamiclinks"
 	"trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/protocols/horizon"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm/clause"
@@ -234,6 +239,268 @@ type TokenizedAsset struct {
 	ProjectIdentifiedMarketRisks                 *string                         `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          *string                         `json:"projectIdentifiedOtherRelevantRisks"`
 	DeepLink                                     *string                         `gorm:"null" json:"deepLink"`
+	IsinOrSerialNumber                           string                          `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	Name                                         string                          `json:"name"`
+	Type                                         string                          `json:"type"`
+	TotalIssueSize                               float64                         `json:"totalIssueSize"`
+	IssueDate                                    time.Time                       `json:"issueDate"`
+	MaturityDate                                 time.Time                       `json:"maturityDate"`
+	FaceValuePerUnit                             float64                         `json:"faceValuePerUnit"`
+	CouponOrInterestRateType                     string                          `json:"couponOrInterestRateType"`
+	CouponOrInterestRate                         float64                         `json:"couponOrInterestRate"`
+	ReferenceIndex                               string                          `json:"referenceIndex"`
+	ExpectedYield                                float64                         `json:"expectedYield"`
+	EarlyRedemptionOptionInvestor                string                          `json:"earlyRedemptionOptionInvestor"`
+	MinimumInvestmentAmount                      float64                         `json:"minimumInvestmentAmount"`
+	TaxTreatmentTokenHolders                     string                          `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders               string                          `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                             string                          `json:"redemptionMethod"`
+	PaymentStructure                             string                          `json:"paymentStructure"`
+	RepaymentMethod                              string                          `json:"repaymentMethod"`
+	PaymentCycle                                 string                          `json:"paymentCycle"`
+	WeightedAverageLife                          float64                         `json:"weightedAverageLife"`
+	UnderlyingAssetPoolSize                      float64                         `json:"underlyingAssetPoolSize"`
+	PoolComposition                              string                          `json:"poolComposition"`
+	CreditEnhancementMethod                      string                          `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                       string                          `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                            string                          `json:"creditRatingIfAny"`
+	IssuerName                                   string                          `json:"issuerName"`
+	IssuerType                                   string                          `json:"issuerType"`
+	IssuerContactPerson                          string                          `json:"issuerContactPerson"`
+	ContactEmail                                 string                          `json:"contactEmail"`
+	ContactPhoneNumber                           string                          `json:"contactPhoneNumber"`
+	BriefCompanyOverview                         string                          `json:"briefCompanyOverview"`
+	MortgageOriginators                          string                          `json:"mortgageOriginators"`
+	Servicer                                     string                          `json:"servicer"`
+	SpecialPurposeVehicle                        string                          `json:"specialPurposeVehicle"`
+	AssetManagerOrAdministrator                  string                          `json:"assetManagerOrAdministrator"`
+	UnderwriterIfAny                             string                          `json:"underwriterIfAny"`
+	CreditRatingAgency                           string                          `json:"creditRatingAgency"`
+	AuditorOrVerifier                            string                          `json:"auditorOrVerifier"`
+	CreditRiskAssessment                         string                          `json:"creditRiskAssessment"`
+	CreditRating                                 string                          `json:"creditRating"`
+	PrepaymentRisk                               string                          `json:"prepaymentRisk"`
+	InterestRateRisk                             string                          `json:"interestRateRisk"`
+	StructuralComplexityRisk                     string                          `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                        string                          `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                              string                          `json:"operationalRisk"`
+	MarketRisk                                   string                          `json:"marketRisk"`
+	EsgRisk                                      string                          `json:"esgRisk"`
+	MitigationMeasures                           string                          `json:"mitigationMeasures"`
+	IssuingAuthority                             string                          `json:"issuingAuthority"`
+	RegulatoryApprovalId                         string                          `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber               string                          `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                                string                          `json:"listingStatus"`
+	ISINOrSerialNumber                           string                          `json:"iSINOrSerialNumber"`
+	CurrencyOfIssuance                           string                          `json:"currencyOfIssuance"`
+	CouponRateType                               string                          `json:"couponRateType"`
+	CouponRate                                   float64                         `json:"couponRate"`
+	SpreadOrMargin                               float64                         `json:"spreadOrMargin"`
+	ResetFrequency                               string                          `json:"resetFrequency"`
+	CouponPaymentFrequency                       string                          `json:"couponPaymentFrequency"`
+	RedemptionStructure                          string                          `json:"redemptionStructure"`
+	EarlyRedemptionOption                        string                          `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                       string                          `json:"earlyRedemptionPenalty"`
+	TaxTreatment                                 string                          `json:"taxTreatment"`
+	NavOrMarketValueUpdates                      string                          `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                                string                          `json:"impactMetrics"`
+	LegalBacking                                 string                          `json:"legalBacking"`
+	DefaultHistory                               string                          `json:"defaultHistory"`
+	RiskFactorsSummary                           string                          `json:"riskFactorsSummary"`
+	PayingAgent                                  string                          `json:"payingAgent"`
+	Auditor                                      string                          `json:"auditor"`
+	RegistrarOrCSCSAgent                         string                          `json:"registrarOrCSCSAgent"`
+	FundName                                     string                          `json:"fundName"`
+	FundType                                     string                          `json:"fundType"`
+	FundStructure                                string                          `json:"fundStructure"`
+	AssetManagementCompanyName                   string                          `json:"assetManagementCompanyName"`
+	FundManagers                                 string                          `json:"fundManagers"`
+	RegulatoryLicenseNumber                      string                          `json:"regulatoryLicenseNumber"`
+	ISINSecFundCode                              string                          `json:"iSINSecFundCode"`
+	FundLaunchDate                               string                          `json:"fundLaunchDate"`
+	TotalExpenseRatio                            float64                         `json:"totalExpenseRatio"`
+	ExitLoadRedemptionFee                        float64                         `json:"exitLoadRedemptionFee"`
+	Tenure                                       int                             `json:"tenure"`
+	InitialNetAssetValue                         float64                         `json:"initialNetAssetValue"`
+	NavUpdateFrequency                           string                          `json:"navUpdateFrequency"`
+	NavCalculationMethod                         string                          `json:"navCalculationMethod"`
+	RedemptionRules                              string                          `json:"redemptionRules"`
+	LockInPeriod                                 string                          `json:"lockInPeriod"`
+	EntryLoad                                    float64                         `json:"entryLoad"`
+	PerformanceFee                               float64                         `json:"performanceFee"`
+	DividendPolicy                               string                          `json:"dividendPolicy"`
+	LiquidityProfile                             string                          `json:"liquidityProfile"`
+	DistributionFrequency                        string                          `json:"distributionFrequency"`
+	DistributionMethod                           string                          `json:"distributionMethod"`
+	BenchmarkComparisonMethod                    string                          `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                          string                          `json:"feeBreakdownSummary"`
+	InvestmentObjective                          string                          `json:"investmentObjective"`
+	EquityStrategy                               string                          `json:"equityStrategy"`
+	MarketCapitalizationFocus                    string                          `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                               string                          `json:"benchmarkIndex"`
+	SectorExposureLimits                         string                          `json:"sectorExposureLimits"`
+	TopHoldings                                  string                          `json:"topHoldings"`
+	GeographicExposure                           string                          `json:"geographicExposure"`
+	RiskProfile                                  string                          `json:"riskProfile"`
+	VolatilityEstimate                           float64                         `json:"volatilityEstimate"`
+	DividendYield                                float64                         `json:"dividendYield"`
+	TrusteeName                                  string                          `json:"trusteeName"`
+	FundAdministrator                            string                          `json:"fundAdministrator"`
+	InvestmentCommitteeMembers                   string                          `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                            string                          `json:"isinOrSecFundCode"`
+	ExitLoadOrRedemptionFee                      float64                         `json:"exitLoadOrRedemptionFee"`
+	FundRiskRating                               string                          `json:"fundRiskRating"`
+	AssetAllocation                              string                          `json:"assetAllocation"`
+	AverageMaturity                              float64                         `json:"averageMaturity"`
+	YieldToMaturity                              float64                         `json:"yieldToMaturity"`
+	CreditRatingProfile                          string                          `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                        string                          `json:"lockInPeriodPortfolio"`
+	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
+	TopEquityHoldings                            string                          `json:"topEquityHoldings"`
+	TargetAllocation                             string                          `json:"targetAllocation"`
+	AllowedAllocationRange                       string                          `json:"allowedAllocationRange"`
+	AssetClassesIncluded                         string                          `json:"assetClassesIncluded"`
+	RebalancingFrequency                         string                          `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite                      string                          `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                        string                          `json:"topEquityHoldingsList"`
+	TopDebtHoldings                              string                          `json:"topDebtHoldings"`
+	CreditRatingDistribution                     string                          `json:"creditRatingDistribution"`
+	AverageMaturityHybrid                        float64                         `json:"averageMaturityHybrid"`
+	YieldToMaturityHybrid                        float64                         `json:"yieldToMaturityHybrid"`
+	TitleOfIssuance                              string                          `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                        string                          `json:"typeOfCommercialPaper"`
+	PricingYield                                 float64                         `json:"pricingYield"`
+	UseOfProceeds                                string                          `json:"useOfProceeds"`
+	Ranking                                      string                          `json:"ranking"`
+	BackingSecurity                              string                          `json:"backingSecurity"`
+	IssuerRegistrationNumber                     string                          `json:"issuerRegistrationNumber"`
+	IncorporationDate                            string                          `json:"incorporationDate"`
+	RcNumber                                     string                          `json:"rcNumber"`
+	TaxIdNumber                                  string                          `json:"taxIdNumber"`
+	OfficeAddress                                string                          `json:"officeAddress"`
+	Rating                                       string                          `json:"rating"`
+	PartiesInvolvedIssuer                        string                          `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger                      string                          `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser                  string                          `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                       string                          `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency                  string                          `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian                     string                          `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                       string                          `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier               string                          `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking                     string                          `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                       string                          `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory                   string                          `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating                     string                          `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary               string                          `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk                     string                          `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk                      string                          `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk                    string                          `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk                   string                          `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                       string                          `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk                  string                          `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures               string                          `json:"securityRiskMitigationMeasures"`
+	CommodityType                                string                          `json:"commodityType"`
+	CommodityDescription                         string                          `json:"commodityDescription"`
+	Quantity                                     int                             `json:"quantity"`
+	QualityGrade                                 string                          `json:"qualityGrade"`
+	IssuerContactInfo                            string                          `json:"issuerContactInfo"`
+	WarehouseName                                string                          `json:"warehouseName"`
+	WarehouseOperatorName                        string                          `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                       string                          `json:"warehouseLicenseNumber"`
+	WarehouseLocation                            string                          `json:"warehouseLocation"`
+	WrNumber                                     string                          `json:"wrNumber"`
+	WrIssueDate                                  string                          `json:"wrIssueDate"`
+	WrExpiryDate                                 string                          `json:"wrExpiryDate"`
+	WrSystemRegistration                         string                          `json:"wrSystemRegistration"`
+	WrRegistrationNumber                         string                          `json:"wrRegistrationNumber"`
+	WrVerifier                                   string                          `json:"wrVerifier"`
+	StorageCondition                             string                          `json:"storageCondition"`
+	WarehouseAccreditationBody                   string                          `json:"warehouseAccreditationBody"`
+	MinimumPurchaseAmount                        float64                         `json:"minimumPurchaseAmount"`
+	AutoRollover                                 string                          `json:"autoRollover"`
+	CurrentBeneficialOwner                       string                          `json:"currentBeneficialOwner"`
+	WrCustodianName                              string                          `json:"wrCustodianName"`
+	OwnershipRightsRepresented                   string                          `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight                 string                          `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                           string                          `json:"lienOrEncumbrances"`
+	AssetValuation                               float64                         `json:"assetValuation"`
+	ValuationDate                                string                          `json:"valuationDate"`
+	ValuationMethodology                         string                          `json:"valuationMethodology"`
+	TokenizationObjective                        string                          `json:"tokenizationObjective"`
+	HoldingPeriod                                int                             `json:"holdingPeriod"`
+	RedemptionMechanism                          string                          `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter                   string                          `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager                  string                          `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor                  string                          `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator                     string                          `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                              string                          `json:"risksMarketRisk"`
+	RisksStorageRisk                             string                          `json:"risksStorageRisk"`
+	RisksTitleRisk                               string                          `json:"risksTitleRisk"`
+	RisksFraudRisk                               string                          `json:"risksFraudRisk"`
+	RisksInsuranceRisk                           string                          `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                         string                          `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                          string                          `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                           string                          `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                        string                          `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk                     string                          `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures                      string                          `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary                string                          `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                       string                          `json:"risksInsuranceProvider"`
+	RisksCoverageValue                           float64                         `json:"risksCoverageValue"`
+	QuanlityStandard                             string                          `json:"quanlityStandard"`
+	IssuerContactInformation                     string                          `json:"issuerContactInformation"`
+	VaultCustodianName                           string                          `json:"vaultCustodianName"`
+	VaultOperator                                string                          `json:"vaultOperator"`
+	VaultLicenseNumber                           string                          `json:"vaultLicenseNumber"`
+	VaultLocation                                string                          `json:"vaultLocation"`
+	Number                                       string                          `json:"number"`
+	IssuerDate                                   string                          `json:"issuerDate"`
+	ExpiryDate                                   string                          `json:"expiryDate"`
+	RegistryRecord                               string                          `json:"registryRecord"`
+	Verifier                                     string                          `json:"verifier"`
+	StorageConditions                            string                          `json:"storageConditions"`
+	VaultAccreditationBody                       string                          `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                         string                          `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                       string                          `json:"ownershipCustodianName"`
+	OwnershipTrustee                             string                          `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances                  string                          `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation                      string                          `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                          string                          `json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                          string                          `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                         string                          `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                           string                          `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                           string                          `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                       string                          `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk                     string                          `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk                      string                          `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                       string                          `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk                    string                          `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk                 string                          `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures                  string                          `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary            string                          `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider                   string                          `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                       string                          `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                         string                          `json:"issuerRegistrationNo"`
+	SectorAndIndustry                            string                          `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                        string                          `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                         string                          `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                             string                          `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                           string                          `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo                     string                          `json:"instrumentAdditionalInfo"`
+	SecurityType                                 string                          `json:"securityType"`
+	CollateralDescription                        string                          `json:"collateralDescription"`
+	CovenantSummary                              string                          `json:"covenantSummary"`
+	CovenantTestingFrequency                     string                          `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                        string                          `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism                    string                          `json:"legalEnforcementMechanism"`
+	Guarantee                                    string                          `json:"guarantee"`
+	RecoveryEstimate                             float64                         `json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo                    string                          `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                                string                          `json:"licenseNumber"`
+	ExitLoadFee                                  float64                         `json:"exitLoadFee"`
+	EntryLoadFee                                 float64                         `json:"entryLoadFee"`
+	PortfolioLockInPeriod                        string                          `json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee                      float64                         `json:"portfolioPerformanceFee"`
 }
 
 type TokenizedAssetID string
@@ -1048,14 +1315,11 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 		err = &errors.ErrorTemporaryServerError{}
 		return
 	}
-
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}(), subscriber).First(&exp).Error
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, issuerWalletPublicKey, subscriber).First(&exp).Error
 
 	return
 }
@@ -1066,14 +1330,11 @@ func (t *TokenizedAsset) SumExpressedInterest(gc *sharedconfig.GlobalConfig) (su
 		log.Println("[TokenizedAsset::SumExpressedInterest] Error tokenized asset is nil")
 		return
 	}
-
-	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}()).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1083,14 +1344,11 @@ func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) 
 		log.Println("[TokenizedAsset::CountExpressedInterests] Error tokenized asset is nil")
 		return
 	}
-
-	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}()).Count(&count)
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Count(&count)
 
 	return
 }
@@ -1100,14 +1358,11 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
 		return
 	}
-
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}()).Count(&count)
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, issuerWalletPublicKey).Count(&count)
 
 	return
 }
@@ -1118,13 +1373,11 @@ func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum
 		log.Println("[TokenizedAsset::SumAmountSoldInFiat] Error tokenized asset is nil")
 		return
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}()).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1136,14 +1389,11 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 		return
 	}
 	ownerUsername := strings.Split(walletAlias, "_")[0]
-
-	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}(), strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletPublicKey, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -1154,14 +1404,11 @@ func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscrib
 		err = &errors.ErrorTemporaryServerError{}
 		return
 	}
-
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, func() string {
-		if t.IssuingWalletPublicKey != nil {
-			return *t.IssuingWalletPublicKey
-		} else {
-			return ""
-		}
-	}(), subscriberWalletPublicKey).First(&sub).Error
+	var issuerWalletPublicKey string
+	if t.IssuingWalletPublicKey != nil {
+		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	}
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, issuerWalletPublicKey, subscriberWalletPublicKey).First(&sub).Error
 
 	return
 }
@@ -2648,3 +2895,39 @@ func nn(s *string) bool {
 // 	}
 // 	return destination == nil
 // }
+
+// GetMarketOffer fetches the offer information using public key
+func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers horizon.OffersPage, err error) {
+	if t.MarketMakingWallet == nil {
+		return
+	}
+	seller := *t.MarketMakingWallet
+	client := network.GetBlockchainClient()
+	// var offerRequest horizonclient.OfferRequest
+
+	//real account
+	offerRequest := horizonclient.OfferRequest{Seller: seller}
+
+	marketOffers, err = client.Offers(offerRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetMarketOffer Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return marketOffers, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return marketOffers, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Printf("[GetMarketOffer] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
+			}
+
+		}
+		return marketOffers, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	return marketOffers, nil
+}

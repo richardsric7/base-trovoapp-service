@@ -652,6 +652,27 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 	if gc.IsValidTokenizedAsset(asset.GetCode()) {
 		//check if it is a tokenized asset
 		// allow trust from issuer to destination wallet
+		//check if it is the asset tokenization profile that owns the wallet
+		// 		walletOwner, _:=wallet.GetWalletOwner(gc.DB,gc)
+		// 		if walletOwner.Username==strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")){
+		// //request if from a tokenization profile give full rights
+		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 			Trustor:       wallet.ID,
+		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		// 			SourceAccount: asset.GetIssuer(),
+		// 		})
+
+		// 		}else{
+		// 			//it is from third party. remove market maker right.
+		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 			Trustor:       wallet.ID,
+		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.trustlin},
+		// 			SourceAccount: asset.GetIssuer(),
+		// 		})
+		// 		}
+
 		ops = append(ops, &txnbuild.SetTrustLineFlags{
 			Trustor:       wallet.ID,
 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},

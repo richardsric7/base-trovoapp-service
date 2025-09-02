@@ -775,6 +775,41 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 	return clientAccount, true, nil
 }
 
+type MarketOfferWallet string
+
+// GetMarketOffer fetches the offer information using public key
+func (u MarketOfferWallet) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers horizon.OffersPage, err error) {
+	seller := string(u)
+	client := network.GetBlockchainClient()
+	// var offerRequest horizonclient.OfferRequest
+
+	//real account
+	offerRequest := horizonclient.OfferRequest{Seller: seller}
+
+	marketOffers, err = client.Offers(offerRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetMarketOffer Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return marketOffers, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return marketOffers, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Printf("[GetMarketOffer] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
+			}
+
+		}
+		return marketOffers, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	return marketOffers, nil
+}
+
 // GetBlockchainAccountDetail fetches the bantu account information using public key
 func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
 	cacheKey := fmt.Sprintf("bca_%v", string(id))
