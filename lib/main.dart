@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/router/page_actions.dart';
@@ -25,12 +27,12 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    // name: await StoreData().storeGetData('walletMode') ?? "Testnet",
-    options: DefaultFirebaseOptions.currentPlatform(
-      await StoreData().storeGetData('walletMode') ?? "Testnet",
-    ),
+  TerminateRestart.instance.initialize();
+  var options = DefaultFirebaseOptions.currentPlatform(
+    await StoreData().storeGetData('walletMode') ?? "Testnet",
   );
+  inspect(options);
+  await Firebase.initializeApp(options: options);
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');

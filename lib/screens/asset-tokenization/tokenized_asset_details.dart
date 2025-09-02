@@ -371,7 +371,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       SharePlus.instance.share(
                         ShareParams(
                           text:
-                              'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                              'Checkout this asset on Trovo App => ${tokenizedAsset.deepLink}',
                         ),
                       );
                     },
@@ -435,9 +435,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       );
                     },
                     style: ButtonStyle(
-                      padding: WidgetStateProperty.all(
-                        EdgeInsets.symmetric(vertical: 10, horizontal: 50),
-                      ),
                       overlayColor: WidgetStateProperty.all<Color>(
                         notifier.getsplashgrey,
                       ),
@@ -509,7 +506,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       SharePlus.instance.share(
                         ShareParams(
                           text:
-                              'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                              'Checkout ${tokenizedAsset.assetName} [${tokenizedAsset.assetCode}] token on Trovo App => ${tokenizedAsset.deepLink}',
                         ),
                       );
                     },
@@ -983,6 +980,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   "",
                               'Address':
                                   tokenizedAsset.assetPhysicalAddress ?? '',
+                              'Map Coordinates':
+                                  "Lat. ${tokenizedAsset.assetLatitude}, Lon. ${tokenizedAsset.assetLongitude}",
                               'Project Strategic Objectives':
                                   tokenizedAsset.projectStrategicObjectives ??
                                   "",
@@ -1004,6 +1003,41 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   tokenizedAsset
                                       .projectIntendedSocialBenefits ??
                                   "",
+                              "On-Site Security Personnel Available":
+                                  tokenizedAsset
+                                          .securityMeasuresOnSiteSecurityPersonnel ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Service Level Agreements Available":
+                                  tokenizedAsset.contractualProtectionSLA ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Surveillance Systems Available":
+                                  tokenizedAsset.contractualProtectionSLA ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Perimeter Security Available":
+                                  tokenizedAsset.contractualProtectionSLA ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Revenue Guarantees Available":
+                                  tokenizedAsset
+                                          .contractualProtectionRevGuarantees ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Critical Infrastructure Protections Available":
+                                  tokenizedAsset
+                                          .securityMeasuresCriticalInfraProtections ==
+                                      true
+                                  ? 'Yes'
+                                  : '',
+                              "Insurance Company Name":
+                                  tokenizedAsset.insuranceCompanyName ?? "",
                               "Technical Partners":
                                   tokenizedAsset.projectTechnicalPartners ?? "",
                               "Financial Partners":

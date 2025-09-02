@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
-import 'package:restart_app/restart_app.dart';
+import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/models/curated_asset.dart';
 import 'package:trovo_app/models/deposit_transaction_model.dart';
 import 'package:trovo_app/models/tokenizedAsset.dart';
@@ -133,9 +133,11 @@ class DataProvider with ChangeNotifier {
         state: PageState.addPage,
         page: SplashPageConfig,
       );
-      Timer(const Duration(seconds: 4), () {
+      Timer(const Duration(seconds: 4), () async {
         StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
-        Restart.restartApp();
+        await TerminateRestart.instance.restartApp(
+          options: const TerminateRestartOptions(terminate: true),
+        );
       });
       notifyListeners();
     } catch (e) {}

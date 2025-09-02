@@ -274,7 +274,7 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
         calculateFiatValue(
           asset.amount.toString(),
           asset.usdPrice.toString(),
-          currency,
+          asset.tokenizedAsset ? 'USD' : currency,
           appState,
         ).replaceAll(',', ''),
       );
@@ -538,6 +538,7 @@ Widget dropdown(
 }
 
 Future<void> share(String message, GlobalKey snapshotAreaKey) async {
+  print('Sharing...');
   final appDir = await syspaths.getTemporaryDirectory();
   String fileName = '${appDir.path}/receipt.png';
 
@@ -549,11 +550,21 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   var byteData = await image.toByteData(format: ImageByteFormat.png);
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
-  await ShareParams(
-    files: [XFile(fileName)],
-    text: message,
-    sharePositionOrigin: boundary.paintBounds,
-  );
+  try {
+    var params = ShareParams(
+      files: [XFile(fileName)],
+      text: message,
+      sharePositionOrigin: boundary.paintBounds,
+    );
+
+    final result = await SharePlus.instance.share(params);
+
+    if (result.status == ShareResultStatus.success) {
+      print('Thank you for sharing the picture!');
+    }
+  } catch (e) {
+    print('dkjfasld $e');
+  }
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {

@@ -1217,7 +1217,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             calculateFiatValue(
               asset.amount.toString(),
               asset.usdPrice.toString(),
-              appState.defaultCurrency,
+              asset.tokenizedAsset ? 'USD' : appState.defaultCurrency,
               appState,
             ).replaceAll(',', ''),
           );
