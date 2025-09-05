@@ -970,7 +970,8 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	subjectUser.HasSecurityQuestions = 1
 	subjectUser.UserWallets = make([]userModels.UserWallet, 0)
 	subjectUser.BuildPrimaryWallet()
-
+	// extract the wallet seperately...
+	subjectUserWallet := subjectUser.UserWallets
 	if subjectUser.HasSecurityQuestions == 0 {
 		err = SaveUserSecurityQuestions(subjectUser, answers, dbtx)
 		if err != nil {
@@ -980,6 +981,15 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	}
 
 	e = dbtx.Omit(clause.Associations).Save(subjectUser).Error
+	// e = dbtx.Save(subjectUser).Error //do not omit save, bcos it needs to save wallet
+	if e != nil {
+		// error saving security questions
+		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)
+		return userInfo, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	e = dbtx.Omit(clause.Associations).Save(&subjectUserWallet).Error
+	// e = dbtx.Save(subjectUser).Error //do not omit save, bcos it needs to save wallet
 	if e != nil {
 		// error saving security questions
 		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)

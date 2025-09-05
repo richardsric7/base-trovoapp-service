@@ -239,268 +239,267 @@ type TokenizedAsset struct {
 	ProjectIdentifiedMarketRisks                 *string                         `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          *string                         `json:"projectIdentifiedOtherRelevantRisks"`
 	DeepLink                                     *string                         `gorm:"null" json:"deepLink"`
-	IsinOrSerialNumber                           string                          `json:"isinOrSerialNumber"` /// begin the mutual fund fields
-	Name                                         string                          `json:"name"`
-	Type                                         string                          `json:"type"`
-	TotalIssueSize                               float64                         `json:"totalIssueSize"`
+	IsinOrSerialNumber                           *string                         `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	InstrumentName                               *string                         `json:"instrumentName"`
+	InstrumentType                               *string                         `json:"instrumentType"`
+	TotalIssueSize                               float64                         `gorm:"default:0" json:"totalIssueSize"`
 	IssueDate                                    time.Time                       `json:"issueDate"`
 	MaturityDate                                 time.Time                       `json:"maturityDate"`
-	FaceValuePerUnit                             float64                         `json:"faceValuePerUnit"`
-	CouponOrInterestRateType                     string                          `json:"couponOrInterestRateType"`
+	FaceValuePerUnit                             float64                         `gorm:"default:0" json:"faceValuePerUnit"`
+	CouponOrInterestRateType                     *string                         `json:"couponOrInterestRateType"`
 	CouponOrInterestRate                         float64                         `json:"couponOrInterestRate"`
-	ReferenceIndex                               string                          `json:"referenceIndex"`
-	ExpectedYield                                float64                         `json:"expectedYield"`
-	EarlyRedemptionOptionInvestor                string                          `json:"earlyRedemptionOptionInvestor"`
+	ReferenceIndex                               *string                         `json:"referenceIndex"`
+	ExpectedYield                                float64                         `gorm:"default:0" json:"expectedYield"`
+	EarlyRedemptionOptionInvestor                *string                         `json:"earlyRedemptionOptionInvestor"`
 	MinimumInvestmentAmount                      float64                         `json:"minimumInvestmentAmount"`
-	TaxTreatmentTokenHolders                     string                          `json:"taxTreatmentTokenHolders"`
-	PaymentStructureToTokenHolders               string                          `json:"paymentStructureToTokenHolders"`
-	RedemptionMethod                             string                          `json:"redemptionMethod"`
-	PaymentStructure                             string                          `json:"paymentStructure"`
-	RepaymentMethod                              string                          `json:"repaymentMethod"`
-	PaymentCycle                                 string                          `json:"paymentCycle"`
+	TaxTreatmentTokenHolders                     *string                         `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders               *string                         `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                             *string                         `json:"redemptionMethod"`
+	PaymentStructure                             *string                         `json:"paymentStructure"`
+	RepaymentMethod                              *string                         `json:"repaymentMethod"`
+	PaymentCycle                                 *string                         `json:"paymentCycle"`
 	WeightedAverageLife                          float64                         `json:"weightedAverageLife"`
 	UnderlyingAssetPoolSize                      float64                         `json:"underlyingAssetPoolSize"`
-	PoolComposition                              string                          `json:"poolComposition"`
-	CreditEnhancementMethod                      string                          `json:"creditEnhancementMethod"`
-	SummaryOfUseOfProceeds                       string                          `json:"summaryOfUseOfProceeds"`
-	CreditRatingIfAny                            string                          `json:"creditRatingIfAny"`
-	IssuerName                                   string                          `json:"issuerName"`
-	IssuerType                                   string                          `json:"issuerType"`
-	IssuerContactPerson                          string                          `json:"issuerContactPerson"`
-	ContactEmail                                 string                          `json:"contactEmail"`
-	ContactPhoneNumber                           string                          `json:"contactPhoneNumber"`
-	BriefCompanyOverview                         string                          `json:"briefCompanyOverview"`
-	MortgageOriginators                          string                          `json:"mortgageOriginators"`
-	Servicer                                     string                          `json:"servicer"`
-	SpecialPurposeVehicle                        string                          `json:"specialPurposeVehicle"`
-	AssetManagerOrAdministrator                  string                          `json:"assetManagerOrAdministrator"`
-	UnderwriterIfAny                             string                          `json:"underwriterIfAny"`
-	CreditRatingAgency                           string                          `json:"creditRatingAgency"`
-	AuditorOrVerifier                            string                          `json:"auditorOrVerifier"`
-	CreditRiskAssessment                         string                          `json:"creditRiskAssessment"`
-	CreditRating                                 string                          `json:"creditRating"`
-	PrepaymentRisk                               string                          `json:"prepaymentRisk"`
-	InterestRateRisk                             string                          `json:"interestRateRisk"`
-	StructuralComplexityRisk                     string                          `json:"structuralComplexityRisk"`
-	LegalOrRegulatoryRisk                        string                          `json:"legalOrRegulatoryRisk"`
-	OperationalRisk                              string                          `json:"operationalRisk"`
-	MarketRisk                                   string                          `json:"marketRisk"`
-	EsgRisk                                      string                          `json:"esgRisk"`
-	MitigationMeasures                           string                          `json:"mitigationMeasures"`
-	IssuingAuthority                             string                          `json:"issuingAuthority"`
-	RegulatoryApprovalId                         string                          `json:"regulatoryApprovalId"`
-	LicenseApprovalReferenceNumber               string                          `json:"licenseApprovalReferenceNumber"`
-	ListingStatus                                string                          `json:"listingStatus"`
-	ISINOrSerialNumber                           string                          `json:"iSINOrSerialNumber"`
-	CurrencyOfIssuance                           string                          `json:"currencyOfIssuance"`
-	CouponRateType                               string                          `json:"couponRateType"`
-	CouponRate                                   float64                         `json:"couponRate"`
-	SpreadOrMargin                               float64                         `json:"spreadOrMargin"`
-	ResetFrequency                               string                          `json:"resetFrequency"`
-	CouponPaymentFrequency                       string                          `json:"couponPaymentFrequency"`
-	RedemptionStructure                          string                          `json:"redemptionStructure"`
-	EarlyRedemptionOption                        string                          `json:"earlyRedemptionOption"`
-	EarlyRedemptionPenalty                       string                          `json:"earlyRedemptionPenalty"`
-	TaxTreatment                                 string                          `json:"taxTreatment"`
-	NavOrMarketValueUpdates                      string                          `json:"navOrMarketValueUpdates"`
-	ImpactMetrics                                string                          `json:"impactMetrics"`
-	LegalBacking                                 string                          `json:"legalBacking"`
-	DefaultHistory                               string                          `json:"defaultHistory"`
-	RiskFactorsSummary                           string                          `json:"riskFactorsSummary"`
-	PayingAgent                                  string                          `json:"payingAgent"`
-	Auditor                                      string                          `json:"auditor"`
-	RegistrarOrCSCSAgent                         string                          `json:"registrarOrCSCSAgent"`
-	FundName                                     string                          `json:"fundName"`
-	FundType                                     string                          `json:"fundType"`
-	FundStructure                                string                          `json:"fundStructure"`
-	AssetManagementCompanyName                   string                          `json:"assetManagementCompanyName"`
-	FundManagers                                 string                          `json:"fundManagers"`
-	RegulatoryLicenseNumber                      string                          `json:"regulatoryLicenseNumber"`
-	ISINSecFundCode                              string                          `json:"iSINSecFundCode"`
-	FundLaunchDate                               string                          `json:"fundLaunchDate"`
-	TotalExpenseRatio                            float64                         `json:"totalExpenseRatio"`
+	PoolComposition                              *string                         `json:"poolComposition"`
+	CreditEnhancementMethod                      *string                         `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                       *string                         `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                            *string                         `json:"creditRatingIfAny"`
+	IssuerName                                   *string                         `json:"issuerName"`
+	IssuerType                                   *string                         `json:"issuerType"`
+	IssuerContactPerson                          *string                         `json:"issuerContactPerson"`
+	ContactEmail                                 *string                         `json:"contactEmail"`
+	ContactPhoneNumber                           *string                         `json:"contactPhoneNumber"`
+	BriefCompanyOverview                         *string                         `json:"briefCompanyOverview"`
+	MortgageOriginators                          *string                         `json:"mortgageOriginators"`
+	Servicer                                     *string                         `json:"servicer"`
+	InstrumentTrustee                            *string                         `json:"instrumentTrustee"`
+	InstrumentCustodians                         *string                         `json:"instrumentCustodian"`
+	InstrumentLegalAdvisor                       *string                         `json:"instrumentLegalAdvisor"`
+	SpecialPurposeVehicle                        *string                         `json:"specialPurposeVehicle"`
+	InstrumentAssetManagerOrAdministrator        *string                         `json:"instrumentAssetManagerOrAdministrator"`
+	UnderwriterIfAny                             *string                         `json:"underwriterIfAny"`
+	InstrumentCreditRatingAgency                 *string                         `json:"instrumentCreditRatingAgency"`
+	AuditorOrVerifier                            *string                         `json:"auditorOrVerifier"`
+	CreditRiskAssessment                         *string                         `json:"creditRiskAssessment"`
+	CreditRating                                 *string                         `json:"creditRating"`
+	PrepaymentRisk                               *string                         `json:"prepaymentRisk"`
+	InterestRateRisk                             *string                         `json:"interestRateRisk"`
+	StructuralComplexityRisk                     *string                         `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                        *string                         `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                              *string                         `json:"operationalRisk"`
+	MarketRisk                                   *string                         `json:"marketRisk"`
+	EsgRisk                                      *string                         `json:"esgRisk"`
+	MitigationMeasures                           *string                         `json:"mitigationMeasures"`
+	IssuingAuthority                             *string                         `json:"issuingAuthority"`
+	RegulatoryApprovalId                         *string                         `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber               *string                         `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                                *string                         `json:"listingStatus"`
+	CurrencyOfIssuance                           *string                         `json:"currencyOfIssuance"`
+	CouponRateType                               *string                         `json:"couponRateType"`
+	CouponRate                                   float64                         `gorm:"default:0" json:"couponRate"`
+	SpreadOrMargin                               float64                         `gorm:"default:0" json:"spreadOrMargin"`
+	ResetFrequency                               *string                         `json:"resetFrequency"`
+	CouponPaymentFrequency                       *string                         `json:"couponPaymentFrequency"`
+	RedemptionStructure                          *string                         `json:"redemptionStructure"`
+	EarlyRedemptionOption                        *string                         `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                       *string                         `json:"earlyRedemptionPenalty"`
+	TaxTreatment                                 *string                         `json:"taxTreatment"`
+	NavOrMarketValueUpdates                      *string                         `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                                *string                         `json:"impactMetrics"`
+	LegalBacking                                 *string                         `json:"legalBacking"`
+	DefaultHistory                               *string                         `json:"defaultHistory"`
+	RiskFactorsSummary                           *string                         `json:"riskFactorsSummary"`
+	PayingAgent                                  *string                         `json:"payingAgent"`
+	Auditor                                      *string                         `json:"auditor"`
+	RegistrarOrCSCSAgent                         *string                         `json:"registrarOrCSCSAgent"`
+	FundStructure                                *string                         `json:"fundStructure"`
+	AssetManagementCompanyName                   *string                         `json:"assetManagementCompanyName"`
+	FundManagers                                 *string                         `json:"fundManagers"`
+	RegulatoryLicenseNumber                      *string                         `json:"regulatoryLicenseNumber"`
+	FundLaunchDate                               *time.Time                      `json:"fundLaunchDate"`
+	TotalExpenseRatio                            float64                         `gorm:"default:0" json:"totalExpenseRatio"`
 	ExitLoadRedemptionFee                        float64                         `json:"exitLoadRedemptionFee"`
-	Tenure                                       int                             `json:"tenure"`
+	Tenure                                       int                             `gorm:"default:0" json:"tenure"`
 	InitialNetAssetValue                         float64                         `json:"initialNetAssetValue"`
-	NavUpdateFrequency                           string                          `json:"navUpdateFrequency"`
-	NavCalculationMethod                         string                          `json:"navCalculationMethod"`
-	RedemptionRules                              string                          `json:"redemptionRules"`
-	LockInPeriod                                 string                          `json:"lockInPeriod"`
-	EntryLoad                                    float64                         `json:"entryLoad"`
-	PerformanceFee                               float64                         `json:"performanceFee"`
-	DividendPolicy                               string                          `json:"dividendPolicy"`
-	LiquidityProfile                             string                          `json:"liquidityProfile"`
-	DistributionFrequency                        string                          `json:"distributionFrequency"`
-	DistributionMethod                           string                          `json:"distributionMethod"`
-	BenchmarkComparisonMethod                    string                          `json:"benchmarkComparisonMethod"`
-	FeeBreakdownSummary                          string                          `json:"feeBreakdownSummary"`
-	InvestmentObjective                          string                          `json:"investmentObjective"`
-	EquityStrategy                               string                          `json:"equityStrategy"`
-	MarketCapitalizationFocus                    string                          `json:"marketCapitalizationFocus"`
-	BenchmarkIndex                               string                          `json:"benchmarkIndex"`
-	SectorExposureLimits                         string                          `json:"sectorExposureLimits"`
-	TopHoldings                                  string                          `json:"topHoldings"`
-	GeographicExposure                           string                          `json:"geographicExposure"`
-	RiskProfile                                  string                          `json:"riskProfile"`
-	VolatilityEstimate                           float64                         `json:"volatilityEstimate"`
-	DividendYield                                float64                         `json:"dividendYield"`
-	TrusteeName                                  string                          `json:"trusteeName"`
-	FundAdministrator                            string                          `json:"fundAdministrator"`
-	InvestmentCommitteeMembers                   string                          `json:"investmentCommitteeMembers"`
-	IsinOrSecFundCode                            string                          `json:"isinOrSecFundCode"`
+	NavUpdateFrequency                           *string                         `json:"navUpdateFrequency"`
+	NavCalculationMethod                         *string                         `json:"navCalculationMethod"`
+	RedemptionRules                              *string                         `json:"redemptionRules"`
+	LockInPeriod                                 *string                         `json:"lockInPeriod"`
+	EntryLoad                                    float64                         `gorm:"default:0" json:"entryLoad"`
+	PerformanceFee                               float64                         `gorm:"default:0" json:"performanceFee"`
+	DividendPolicy                               *string                         `json:"dividendPolicy"`
+	LiquidityProfile                             *string                         `json:"liquidityProfile"`
+	DistributionFrequency                        *string                         `json:"distributionFrequency"`
+	DistributionMethod                           *string                         `json:"distributionMethod"`
+	BenchmarkComparisonMethod                    *string                         `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                          *string                         `json:"feeBreakdownSummary"`
+	InvestmentObjective                          *string                         `json:"investmentObjective"`
+	EquityStrategy                               *string                         `json:"equityStrategy"`
+	MarketCapitalizationFocus                    *string                         `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                               *string                         `json:"benchmarkIndex"`
+	SectorExposureLimits                         *string                         `json:"sectorExposureLimits"`
+	TopHoldings                                  *string                         `json:"topHoldings"`
+	GeographicExposure                           *string                         `json:"geographicExposure"`
+	RiskProfile                                  *string                         `json:"riskProfile"`
+	VolatilityEstimate                           float64                         `gorm:"default:0" json:"volatilityEstimate"`
+	DividendYield                                float64                         `gorm:"default:0" json:"dividendYield"`
+	TrusteeName                                  *string                         `json:"trusteeName"`
+	FundAdministrator                            *string                         `json:"fundAdministrator"`
+	InvestmentCommitteeMembers                   *string                         `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                            *string                         `json:"isinOrSecFundCode"`
 	ExitLoadOrRedemptionFee                      float64                         `json:"exitLoadOrRedemptionFee"`
-	FundRiskRating                               string                          `json:"fundRiskRating"`
-	AssetAllocation                              string                          `json:"assetAllocation"`
-	AverageMaturity                              float64                         `json:"averageMaturity"`
-	YieldToMaturity                              float64                         `json:"yieldToMaturity"`
-	CreditRatingProfile                          string                          `json:"creditRatingProfile"`
-	LockInPeriodPortfolio                        string                          `json:"lockInPeriodPortfolio"`
+	FundRiskRating                               *string                         `json:"fundRiskRating"`
+	AssetAllocation                              *string                         `json:"assetAllocation"`
+	AverageMaturity                              float64                         `gorm:"default:0" json:"averageMaturity"`
+	YieldToMaturity                              float64                         `gorm:"default:0" json:"yieldToMaturity"`
+	CreditRatingProfile                          *string                         `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                        *string                         `json:"lockInPeriodPortfolio"`
 	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
-	TopEquityHoldings                            string                          `json:"topEquityHoldings"`
-	TargetAllocation                             string                          `json:"targetAllocation"`
-	AllowedAllocationRange                       string                          `json:"allowedAllocationRange"`
-	AssetClassesIncluded                         string                          `json:"assetClassesIncluded"`
-	RebalancingFrequency                         string                          `json:"rebalancingFrequency"`
-	BenchmarkIndexComposite                      string                          `json:"benchmarkIndexComposite"`
-	TopEquityHoldingsList                        string                          `json:"topEquityHoldingsList"`
-	TopDebtHoldings                              string                          `json:"topDebtHoldings"`
-	CreditRatingDistribution                     string                          `json:"creditRatingDistribution"`
+	TopEquityHoldings                            *string                         `json:"topEquityHoldings"`
+	TargetAllocation                             *string                         `json:"targetAllocation"`
+	AllowedAllocationRange                       *string                         `json:"allowedAllocationRange"`
+	AssetClassesIncluded                         *string                         `json:"assetClassesIncluded"`
+	RebalancingFrequency                         *string                         `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite                      *string                         `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                        *string                         `json:"topEquityHoldingsList"`
+	TopDebtHoldings                              *string                         `json:"topDebtHoldings"`
+	CreditRatingDistribution                     *string                         `json:"creditRatingDistribution"`
 	AverageMaturityHybrid                        float64                         `json:"averageMaturityHybrid"`
 	YieldToMaturityHybrid                        float64                         `json:"yieldToMaturityHybrid"`
-	TitleOfIssuance                              string                          `json:"titleOfIssuance"`
-	TypeOfCommercialPaper                        string                          `json:"typeOfCommercialPaper"`
-	PricingYield                                 float64                         `json:"pricingYield"`
-	UseOfProceeds                                string                          `json:"useOfProceeds"`
-	Ranking                                      string                          `json:"ranking"`
-	BackingSecurity                              string                          `json:"backingSecurity"`
-	IssuerRegistrationNumber                     string                          `json:"issuerRegistrationNumber"`
-	IncorporationDate                            string                          `json:"incorporationDate"`
-	RcNumber                                     string                          `json:"rcNumber"`
-	TaxIdNumber                                  string                          `json:"taxIdNumber"`
-	OfficeAddress                                string                          `json:"officeAddress"`
-	Rating                                       string                          `json:"rating"`
-	PartiesInvolvedIssuer                        string                          `json:"partiesInvolvedIssuer"`
-	PartiesInvolvedArranger                      string                          `json:"partiesInvolvedArranger"`
-	PartiesInvolvedLegalAdviser                  string                          `json:"partiesInvolvedLegalAdviser"`
-	PartiesInvolvedAuditor                       string                          `json:"partiesInvolvedAuditor"`
-	PartiesInvolvedRatingAgency                  string                          `json:"partiesInvolvedRatingAgency"`
-	PartiesInvolvedCustodian                     string                          `json:"partiesInvolvedCustodian"`
-	PartiesInvolvedTrustee                       string                          `json:"partiesInvolvedTrustee"`
-	PartiesInvolvedAuditorVerifier               string                          `json:"partiesInvolvedAuditorVerifier"`
-	SecurityRiskLegalBacking                     string                          `json:"securityRiskLegalBacking"`
-	SecurityRiskCollateral                       string                          `json:"securityRiskCollateral"`
-	SecurityRiskDefaultHistory                   string                          `json:"securityRiskDefaultHistory"`
-	SecurityRiskCreditRating                     string                          `json:"securityRiskCreditRating"`
-	SecurityRiskRiskFactorsSummary               string                          `json:"securityRiskRiskFactorsSummary"`
-	SecurityRiskBusinessRisk                     string                          `json:"securityRiskBusinessRisk"`
-	SecurityRiskDefaultRisk                      string                          `json:"securityRiskDefaultRisk"`
-	SecurityRiskLiquidityRisk                    string                          `json:"securityRiskLiquidityRisk"`
-	SecurityRiskRegulatoryRisk                   string                          `json:"securityRiskRegulatoryRisk"`
-	SecurityRiskMarketRisk                       string                          `json:"securityRiskMarketRisk"`
-	SecurityRiskOperationalRisk                  string                          `json:"securityRiskOperationalRisk"`
-	SecurityRiskMitigationMeasures               string                          `json:"securityRiskMitigationMeasures"`
-	CommodityType                                string                          `json:"commodityType"`
-	CommodityDescription                         string                          `json:"commodityDescription"`
-	Quantity                                     int                             `json:"quantity"`
-	QualityGrade                                 string                          `json:"qualityGrade"`
-	IssuerContactInfo                            string                          `json:"issuerContactInfo"`
-	WarehouseName                                string                          `json:"warehouseName"`
-	WarehouseOperatorName                        string                          `json:"warehouseOperatorName"`
-	WarehouseLicenseNumber                       string                          `json:"warehouseLicenseNumber"`
-	WarehouseLocation                            string                          `json:"warehouseLocation"`
-	WrNumber                                     string                          `json:"wrNumber"`
-	WrIssueDate                                  string                          `json:"wrIssueDate"`
-	WrExpiryDate                                 string                          `json:"wrExpiryDate"`
-	WrSystemRegistration                         string                          `json:"wrSystemRegistration"`
-	WrRegistrationNumber                         string                          `json:"wrRegistrationNumber"`
-	WrVerifier                                   string                          `json:"wrVerifier"`
-	StorageCondition                             string                          `json:"storageCondition"`
-	WarehouseAccreditationBody                   string                          `json:"warehouseAccreditationBody"`
+	TitleOfIssuance                              *string                         `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                        *string                         `json:"typeOfCommercialPaper"`
+	PricingYield                                 float64                         `gorm:"default:0" json:"pricingYield"`
+	UseOfProceeds                                *string                         `json:"useOfProceeds"`
+	Ranking                                      *string                         `json:"ranking"`
+	BackingSecurity                              *string                         `json:"backingSecurity"`
+	IssuerRegistrationNumber                     *string                         `json:"issuerRegistrationNumber"`
+	IncorporationDate                            *time.Time                      `json:"incorporationDate"`
+	RcNumber                                     *string                         `json:"rcNumber"`
+	TaxIdNumber                                  *string                         `json:"taxIdNumber"`
+	OfficeAddress                                *string                         `json:"officeAddress"`
+	Rating                                       *string                         `json:"rating"`
+	PartiesInvolvedIssuer                        *string                         `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger                      *string                         `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser                  *string                         `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                       *string                         `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency                  *string                         `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian                     *string                         `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                       *string                         `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier               *string                         `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking                     *string                         `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                       *string                         `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory                   *string                         `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating                     *string                         `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary               *string                         `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk                     *string                         `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk                      *string                         `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk                    *string                         `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk                   *string                         `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                       *string                         `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk                  *string                         `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures               *string                         `json:"securityRiskMitigationMeasures"`
+	CommodityType                                *string                         `json:"commodityType"`
+	CommodityDescription                         *string                         `json:"commodityDescription"`
+	Quantity                                     int                             `gorm:"default:0" json:"quantity"`
+	QualityGrade                                 *string                         `json:"qualityGrade"`
+	IssuerContactInfo                            *string                         `json:"issuerContactInfo"`
+	WarehouseName                                *string                         `json:"warehouseName"`
+	WarehouseOperatorName                        *string                         `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                       *string                         `json:"warehouseLicenseNumber"`
+	WarehouseLocation                            *string                         `json:"warehouseLocation"`
+	WrNumber                                     *string                         `json:"wrNumber"`
+	WrIssueDate                                  *time.Time                      `json:"wrIssueDate"`
+	WrExpiryDate                                 *time.Time                      `json:"wrExpiryDate"`
+	WrSystemRegistration                         *string                         `json:"wrSystemRegistration"`
+	WrRegistrationNumber                         *string                         `json:"wrRegistrationNumber"`
+	WrVerifier                                   *string                         `json:"wrVerifier"`
+	StorageCondition                             *string                         `json:"storageCondition"`
+	WarehouseAccreditationBody                   *string                         `json:"warehouseAccreditationBody"`
 	MinimumPurchaseAmount                        float64                         `json:"minimumPurchaseAmount"`
-	AutoRollover                                 string                          `json:"autoRollover"`
-	CurrentBeneficialOwner                       string                          `json:"currentBeneficialOwner"`
-	WrCustodianName                              string                          `json:"wrCustodianName"`
-	OwnershipRightsRepresented                   string                          `json:"ownershipRightsRepresented"`
-	TrusteeOrThirdPartyOversight                 string                          `json:"trusteeOrThirdPartyOversight"`
-	LienOrEncumbrances                           string                          `json:"lienOrEncumbrances"`
-	AssetValuation                               float64                         `json:"assetValuation"`
-	ValuationDate                                string                          `json:"valuationDate"`
-	ValuationMethodology                         string                          `json:"valuationMethodology"`
-	TokenizationObjective                        string                          `json:"tokenizationObjective"`
-	HoldingPeriod                                int                             `json:"holdingPeriod"`
-	RedemptionMechanism                          string                          `json:"redemptionMechanism"`
-	PartiesInvolvedUnderwriter                   string                          `json:"partiesInvolvedUnderwriter"`
-	PartiesInvolvedAssetManager                  string                          `json:"partiesInvolvedAssetManager"`
-	PartiesInvolvedLegalAdvisor                  string                          `json:"partiesInvolvedLegalAdvisor"`
-	PartiesInvolvedRegulator                     string                          `json:"partiesInvolvedRegulator"`
-	RisksMarketRisk                              string                          `json:"risksMarketRisk"`
-	RisksStorageRisk                             string                          `json:"risksStorageRisk"`
-	RisksTitleRisk                               string                          `json:"risksTitleRisk"`
-	RisksFraudRisk                               string                          `json:"risksFraudRisk"`
-	RisksInsuranceRisk                           string                          `json:"risksInsuranceRisk"`
-	RisksOperationalRisk                         string                          `json:"risksOperationalRisk"`
-	RisksRegulatoryRisk                          string                          `json:"risksRegulatoryRisk"`
-	RisksLiquidityRisk                           string                          `json:"risksLiquidityRisk"`
-	RisksForceMajeureRisk                        string                          `json:"risksForceMajeureRisk"`
-	RisksEarlyRedemptionRisk                     string                          `json:"risksEarlyRedemptionRisk"`
-	RisksMitigationMeasures                      string                          `json:"risksMitigationMeasures"`
-	RisksInsuranceCoverageSummary                string                          `json:"risksInsuranceCoverageSummary"`
-	RisksInsuranceProvider                       string                          `json:"risksInsuranceProvider"`
+	AutoRollover                                 *string                         `json:"autoRollover"`
+	CurrentBeneficialOwner                       *string                         `json:"currentBeneficialOwner"`
+	WrCustodianName                              *string                         `json:"wrCustodianName"`
+	OwnershipRightsRepresented                   *string                         `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight                 *string                         `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                           *string                         `json:"lienOrEncumbrances"`
+	AssetValuation                               float64                         `gorm:"default:0" json:"assetValuation"`
+	ValuationDate                                *time.Time                      `json:"valuationDate"`
+	ValuationMethodology                         *string                         `json:"valuationMethodology"`
+	TokenizationObjective                        *string                         `json:"tokenizationObjective"`
+	HoldingPeriod                                int                             `gorm:"default:0" json:"holdingPeriod"`
+	RedemptionMechanism                          *string                         `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter                   *string                         `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager                  *string                         `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor                  *string                         `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator                     *string                         `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                              *string                         `json:"risksMarketRisk"`
+	RisksStorageRisk                             *string                         `json:"risksStorageRisk"`
+	RisksTitleRisk                               *string                         `json:"risksTitleRisk"`
+	RisksFraudRisk                               *string                         `json:"risksFraudRisk"`
+	RisksInsuranceRisk                           *string                         `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                         *string                         `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                          *string                         `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                           *string                         `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                        *string                         `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk                     *string                         `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures                      *string                         `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary                *string                         `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                       *string                         `json:"risksInsuranceProvider"`
 	RisksCoverageValue                           float64                         `json:"risksCoverageValue"`
-	QuanlityStandard                             string                          `json:"quanlityStandard"`
-	IssuerContactInformation                     string                          `json:"issuerContactInformation"`
-	VaultCustodianName                           string                          `json:"vaultCustodianName"`
-	VaultOperator                                string                          `json:"vaultOperator"`
-	VaultLicenseNumber                           string                          `json:"vaultLicenseNumber"`
-	VaultLocation                                string                          `json:"vaultLocation"`
-	Number                                       string                          `json:"number"`
-	IssuerDate                                   string                          `json:"issuerDate"`
-	ExpiryDate                                   string                          `json:"expiryDate"`
-	RegistryRecord                               string                          `json:"registryRecord"`
-	Verifier                                     string                          `json:"verifier"`
-	StorageConditions                            string                          `json:"storageConditions"`
-	VaultAccreditationBody                       string                          `json:"vaultAccreditationBody"`
-	OwnershipLegalHolder                         string                          `json:"ownershipLegalHolder"`
-	OwnershipCustodianName                       string                          `json:"ownershipCustodianName"`
-	OwnershipTrustee                             string                          `json:"ownershipTrustee"`
-	OwnershipLienOrEncumbrances                  string                          `json:"ownershipLienOrEncumbrances"`
-	ValuationAssetValuation                      string                          `json:"valuationAssetValuation"`
-	HoldingLockinPeriod                          string                          `json:"holdingLockinPeriod"`
-	InsuranceMarketRisk                          string                          `json:"insuranceMarketRisk"`
-	InsuranceStorageRisk                         string                          `json:"insuranceStorageRisk"`
-	InsuranceTitleRisk                           string                          `json:"insuranceTitleRisk"`
-	InsuranceFraudRisk                           string                          `json:"insuranceFraudRisk"`
-	InsuranceInsuranceRisk                       string                          `json:"insuranceInsuranceRisk"`
-	InsuranceOperationalRisk                     string                          `json:"insuranceOperationalRisk"`
-	InsuranceRegulatoryRisk                      string                          `json:"insuranceRegulatoryRisk"`
-	InsuranceLiquidityRisk                       string                          `json:"insuranceLiquidityRisk"`
-	InsuranceForceMajeureRisk                    string                          `json:"insuranceForceMajeureRisk"`
-	InsuranceEarlyRedemptionRisk                 string                          `json:"insuranceEarlyRedemptionRisk"`
-	InsuranceMitigationMeasures                  string                          `json:"insuranceMitigationMeasures"`
-	InsuranceInsuranceCoverageSummary            string                          `json:"insuranceInsuranceCoverageSummary"`
-	InsuranceInsuranceProvider                   string                          `json:"insuranceInsuranceProvider"`
-	InsuranceCoverageValue                       string                          `json:"insuranceCoverageValue"`
-	IssuerRegistrationNo                         string                          `json:"issuerRegistrationNo"`
-	SectorAndIndustry                            string                          `json:"sectorAndIndustry"`
-	LicenseOrPermitNumber                        string                          `json:"licenseOrPermitNumber"`
-	IssuerAdditionalInfo                         string                          `json:"issuerAdditionalInfo"`
-	IsinSerialNumber                             string                          `json:"isinSerialNumber"`
-	EsgOrImpactMetrics                           string                          `json:"esgOrImpactMetrics"`
-	InstrumentAdditionalInfo                     string                          `json:"instrumentAdditionalInfo"`
-	SecurityType                                 string                          `json:"securityType"`
-	CollateralDescription                        string                          `json:"collateralDescription"`
-	CovenantSummary                              string                          `json:"covenantSummary"`
-	CovenantTestingFrequency                     string                          `json:"covenantTestingFrequency"`
-	EventOfDefaultClauses                        string                          `json:"eventOfDefaultClauses"`
-	LegalEnforcementMechanism                    string                          `json:"legalEnforcementMechanism"`
-	Guarantee                                    string                          `json:"guarantee"`
-	RecoveryEstimate                             float64                         `json:"recoveryEstimate"`
-	RiskProfileAdditionalInfo                    string                          `json:"riskProfileAdditionalInfo"`
-	LicenseNumber                                string                          `json:"licenseNumber"`
-	ExitLoadFee                                  float64                         `json:"exitLoadFee"`
-	EntryLoadFee                                 float64                         `json:"entryLoadFee"`
-	PortfolioLockInPeriod                        string                          `json:"portfolioLockInPeriod"`
-	PortfolioPerformanceFee                      float64                         `json:"portfolioPerformanceFee"`
+	QuanlityStandard                             *string                         `json:"quanlityStandard"`
+	IssuerContactInformation                     *string                         `json:"issuerContactInformation"`
+	VaultCustodianName                           *string                         `json:"vaultCustodianName"`
+	VaultOperator                                *string                         `json:"vaultOperator"`
+	VaultLicenseNumber                           *string                         `json:"vaultLicenseNumber"`
+	VaultLocation                                *string                         `json:"vaultLocation"`
+	Number                                       *string                         `json:"number"`
+	IssuerDate                                   *time.Time                      `json:"issuerDate"`
+	ExpiryDate                                   *time.Time                      `json:"expiryDate"`
+	RegistryRecord                               *string                         `json:"registryRecord"`
+	Verifier                                     *string                         `json:"verifier"`
+	StorageConditions                            *string                         `json:"storageConditions"`
+	VaultAccreditationBody                       *string                         `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                         *string                         `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                       *string                         `json:"ownershipCustodianName"`
+	OwnershipTrustee                             *string                         `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances                  *string                         `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation                      *string                         `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                          *string                         `json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                          *string                         `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                         *string                         `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                           *string                         `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                           *string                         `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                       *string                         `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk                     *string                         `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk                      *string                         `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                       *string                         `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk                    *string                         `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk                 *string                         `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures                  *string                         `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary            *string                         `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider                   *string                         `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                       *string                         `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                         *string                         `json:"issuerRegistrationNo"`
+	SectorAndIndustry                            *string                         `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                        *string                         `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                         *string                         `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                             *string                         `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                           *string                         `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo                     *string                         `json:"instrumentAdditionalInfo"`
+	SecurityType                                 *string                         `json:"securityType"`
+	CollateralDescription                        *string                         `json:"collateralDescription"`
+	CovenantSummary                              *string                         `json:"covenantSummary"`
+	CovenantTestingFrequency                     *string                         `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                        *string                         `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism                    *string                         `json:"legalEnforcementMechanism"`
+	Guarantee                                    *string                         `json:"guarantee"`
+	RecoveryEstimate                             float64                         `gorm:"default:0" json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo                    *string                         `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                                *string                         `json:"licenseNumber"`
+	ExitLoadFee                                  float64                         `gorm:"default:0" json:"exitLoadFee"`
+	EntryLoadFee                                 float64                         `gorm:"default:0" json:"entryLoadFee"`
+	PortfolioLockInPeriod                        *string                         `json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee                      float64                         `gorm:"default:0" json:"portfolioPerformanceFee"`
 }
 
 type TokenizedAssetID string
@@ -620,6 +619,268 @@ type TokenizedAssetJSONInput struct {
 	ProjectIdentifiedOperationalOrExecutionRisks string    `json:"projectIdentifiedOperationalOrExecutionRisks"`
 	ProjectIdentifiedMarketRisks                 string    `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          string    `json:"projectIdentifiedOtherRelevantRisks"`
+	//////
+	IsinOrSerialNumber                    string    `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	InstrumentName                        string    `json:"instrumentName"`
+	InstrumentType                        string    `json:"instrumentType"`
+	TotalIssueSize                        float64   `json:"totalIssueSize"`
+	IssueDate                             time.Time `json:"issueDate"`
+	MaturityDate                          time.Time `json:"maturityDate"`
+	FaceValuePerUnit                      float64   `json:"faceValuePerUnit"`
+	CouponOrInterestRateType              string    `json:"couponOrInterestRateType"`
+	CouponOrInterestRate                  float64   `json:"couponOrInterestRate"`
+	ReferenceIndex                        string    `json:"referenceIndex"`
+	ExpectedYield                         float64   `json:"expectedYield"`
+	EarlyRedemptionOptionInvestor         string    `json:"earlyRedemptionOptionInvestor"`
+	MinimumInvestmentAmount               float64   `json:"minimumInvestmentAmount"`
+	TaxTreatmentTokenHolders              string    `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders        string    `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                      string    `json:"redemptionMethod"`
+	PaymentStructure                      string    `json:"paymentStructure"`
+	RepaymentMethod                       string    `json:"repaymentMethod"`
+	PaymentCycle                          string    `json:"paymentCycle"`
+	WeightedAverageLife                   float64   `json:"weightedAverageLife"`
+	UnderlyingAssetPoolSize               float64   `json:"underlyingAssetPoolSize"`
+	PoolComposition                       string    `json:"poolComposition"`
+	CreditEnhancementMethod               string    `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                string    `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                     string    `json:"creditRatingIfAny"`
+	IssuerName                            string    `json:"issuerName"`
+	IssuerType                            string    `json:"issuerType"`
+	IssuerContactPerson                   string    `json:"issuerContactPerson"`
+	ContactEmail                          string    `json:"contactEmail"`
+	ContactPhoneNumber                    string    `json:"contactPhoneNumber"`
+	BriefCompanyOverview                  string    `json:"briefCompanyOverview"`
+	MortgageOriginators                   string    `json:"mortgageOriginators"`
+	Servicer                              string    `json:"servicer"`
+	InstrumentTrustee                     string    `json:"instrumentTrustee"`
+	InstrumentCustodians                  string    `json:"instrumentCustodian"`
+	InstrumentLegalAdvisor                string    `json:"instrumentLegalAdvisor"`
+	SpecialPurposeVehicle                 string    `json:"specialPurposeVehicle"`
+	InstrumentAssetManagerOrAdministrator string    `json:"instrumentAssetManagerOrAdministrator"`
+	UnderwriterIfAny                      string    `json:"underwriterIfAny"`
+	InstrumentCreditRatingAgency          string    `json:"instrumentCreditRatingAgency"`
+	AuditorOrVerifier                     string    `json:"auditorOrVerifier"`
+	CreditRiskAssessment                  string    `json:"creditRiskAssessment"`
+	CreditRating                          string    `json:"creditRating"`
+	PrepaymentRisk                        string    `json:"prepaymentRisk"`
+	InterestRateRisk                      string    `json:"interestRateRisk"`
+	StructuralComplexityRisk              string    `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                 string    `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                       string    `json:"operationalRisk"`
+	MarketRisk                            string    `json:"marketRisk"`
+	EsgRisk                               string    `json:"esgRisk"`
+	MitigationMeasures                    string    `json:"mitigationMeasures"`
+	IssuingAuthority                      string    `json:"issuingAuthority"`
+	RegulatoryApprovalId                  string    `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber        string    `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                         string    `json:"listingStatus"`
+	CurrencyOfIssuance                    string    `json:"currencyOfIssuance"`
+	CouponRateType                        string    `json:"couponRateType"`
+	CouponRate                            float64   `json:"couponRate"`
+	SpreadOrMargin                        float64   `json:"spreadOrMargin"`
+	ResetFrequency                        string    `json:"resetFrequency"`
+	CouponPaymentFrequency                string    `json:"couponPaymentFrequency"`
+	RedemptionStructure                   string    `json:"redemptionStructure"`
+	EarlyRedemptionOption                 string    `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                string    `json:"earlyRedemptionPenalty"`
+	TaxTreatment                          string    `json:"taxTreatment"`
+	NavOrMarketValueUpdates               string    `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                         string    `json:"impactMetrics"`
+	LegalBacking                          string    `json:"legalBacking"`
+	DefaultHistory                        string    `json:"defaultHistory"`
+	RiskFactorsSummary                    string    `json:"riskFactorsSummary"`
+	PayingAgent                           string    `json:"payingAgent"`
+	Auditor                               string    `json:"auditor"`
+	RegistrarOrCSCSAgent                  string    `json:"registrarOrCSCSAgent"`
+	FundStructure                         string    `json:"fundStructure"`
+	AssetManagementCompanyName            string    `json:"assetManagementCompanyName"`
+	FundManagers                          string    `json:"fundManagers"`
+	RegulatoryLicenseNumber               string    `json:"regulatoryLicenseNumber"`
+	FundLaunchDate                        time.Time `json:"fundLaunchDate"`
+	TotalExpenseRatio                     float64   `json:"totalExpenseRatio"`
+	ExitLoadRedemptionFee                 float64   `json:"exitLoadRedemptionFee"`
+	Tenure                                int       `json:"tenure"`
+	InitialNetAssetValue                  float64   `json:"initialNetAssetValue"`
+	NavUpdateFrequency                    string    `json:"navUpdateFrequency"`
+	NavCalculationMethod                  string    `json:"navCalculationMethod"`
+	RedemptionRules                       string    `json:"redemptionRules"`
+	LockInPeriod                          string    `json:"lockInPeriod"`
+	EntryLoad                             float64   `json:"entryLoad"`
+	PerformanceFee                        float64   `json:"performanceFee"`
+	DividendPolicy                        string    `json:"dividendPolicy"`
+	LiquidityProfile                      string    `json:"liquidityProfile"`
+	DistributionFrequency                 string    `json:"distributionFrequency"`
+	DistributionMethod                    string    `json:"distributionMethod"`
+	BenchmarkComparisonMethod             string    `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                   string    `json:"feeBreakdownSummary"`
+	InvestmentObjective                   string    `json:"investmentObjective"`
+	EquityStrategy                        string    `json:"equityStrategy"`
+	MarketCapitalizationFocus             string    `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                        string    `json:"benchmarkIndex"`
+	SectorExposureLimits                  string    `json:"sectorExposureLimits"`
+	TopHoldings                           string    `json:"topHoldings"`
+	GeographicExposure                    string    `json:"geographicExposure"`
+	RiskProfile                           string    `json:"riskProfile"`
+	VolatilityEstimate                    float64   `json:"volatilityEstimate"`
+	DividendYield                         float64   `json:"dividendYield"`
+	TrusteeName                           string    `json:"trusteeName"`
+	FundAdministrator                     string    `json:"fundAdministrator"`
+	InvestmentCommitteeMembers            string    `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                     string    `json:"isinOrSecFundCode"`
+	ExitLoadOrRedemptionFee               float64   `json:"exitLoadOrRedemptionFee"`
+	FundRiskRating                        string    `json:"fundRiskRating"`
+	AssetAllocation                       string    `json:"assetAllocation"`
+	AverageMaturity                       float64   `json:"averageMaturity"`
+	YieldToMaturity                       float64   `json:"yieldToMaturity"`
+	CreditRatingProfile                   string    `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                 string    `json:"lockInPeriodPortfolio"`
+	PerformanceFeeIfAny                   float64   `json:"performanceFeeIfAny"`
+	TopEquityHoldings                     string    `json:"topEquityHoldings"`
+	TargetAllocation                      string    `json:"targetAllocation"`
+	AllowedAllocationRange                string    `json:"allowedAllocationRange"`
+	AssetClassesIncluded                  string    `json:"assetClassesIncluded"`
+	RebalancingFrequency                  string    `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite               string    `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                 string    `json:"topEquityHoldingsList"`
+	TopDebtHoldings                       string    `json:"topDebtHoldings"`
+	CreditRatingDistribution              string    `json:"creditRatingDistribution"`
+	AverageMaturityHybrid                 float64   `json:"averageMaturityHybrid"`
+	YieldToMaturityHybrid                 float64   `json:"yieldToMaturityHybrid"`
+	TitleOfIssuance                       string    `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                 string    `json:"typeOfCommercialPaper"`
+	PricingYield                          float64   `json:"pricingYield"`
+	UseOfProceeds                         string    `json:"useOfProceeds"`
+	Ranking                               string    `json:"ranking"`
+	BackingSecurity                       string    `json:"backingSecurity"`
+	IssuerRegistrationNumber              string    `json:"issuerRegistrationNumber"`
+	IncorporationDate                     time.Time `json:"incorporationDate"`
+	RcNumber                              string    `json:"rcNumber"`
+	TaxIdNumber                           string    `json:"taxIdNumber"`
+	OfficeAddress                         string    `json:"officeAddress"`
+	Rating                                string    `json:"rating"`
+	PartiesInvolvedIssuer                 string    `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger               string    `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser           string    `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                string    `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency           string    `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian              string    `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                string    `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier        string    `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking              string    `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                string    `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory            string    `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating              string    `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary        string    `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk              string    `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk               string    `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk             string    `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk            string    `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                string    `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk           string    `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures        string    `json:"securityRiskMitigationMeasures"`
+	CommodityType                         string    `json:"commodityType"`
+	CommodityDescription                  string    `json:"commodityDescription"`
+	Quantity                              int       `json:"quantity"`
+	QualityGrade                          string    `json:"qualityGrade"`
+	IssuerContactInfo                     string    `json:"issuerContactInfo"`
+	WarehouseName                         string    `json:"warehouseName"`
+	WarehouseOperatorName                 string    `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                string    `json:"warehouseLicenseNumber"`
+	WarehouseLocation                     string    `json:"warehouseLocation"`
+	WrNumber                              string    `json:"wrNumber"`
+	WrIssueDate                           time.Time `json:"wrIssueDate"`
+	WrExpiryDate                          time.Time `json:"wrExpiryDate"`
+	WrSystemRegistration                  string    `json:"wrSystemRegistration"`
+	WrRegistrationNumber                  string    `json:"wrRegistrationNumber"`
+	WrVerifier                            string    `json:"wrVerifier"`
+	StorageCondition                      string    `json:"storageCondition"`
+	WarehouseAccreditationBody            string    `json:"warehouseAccreditationBody"`
+	MinimumPurchaseAmount                 float64   `json:"minimumPurchaseAmount"`
+	AutoRollover                          string    `json:"autoRollover"`
+	CurrentBeneficialOwner                string    `json:"currentBeneficialOwner"`
+	WrCustodianName                       string    `json:"wrCustodianName"`
+	OwnershipRightsRepresented            string    `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight          string    `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                    string    `json:"lienOrEncumbrances"`
+	AssetValuation                        float64   `json:"assetValuation"`
+	ValuationDate                         time.Time `json:"valuationDate"`
+	ValuationMethodology                  string    `json:"valuationMethodology"`
+	TokenizationObjective                 string    `json:"tokenizationObjective"`
+	HoldingPeriod                         int       `json:"holdingPeriod"`
+	RedemptionMechanism                   string    `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter            string    `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager           string    `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor           string    `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator              string    `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                       string    `json:"risksMarketRisk"`
+	RisksStorageRisk                      string    `json:"risksStorageRisk"`
+	RisksTitleRisk                        string    `json:"risksTitleRisk"`
+	RisksFraudRisk                        string    `json:"risksFraudRisk"`
+	RisksInsuranceRisk                    string    `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                  string    `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                   string    `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                    string    `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                 string    `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk              string    `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures               string    `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary         string    `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                string    `json:"risksInsuranceProvider"`
+	RisksCoverageValue                    float64   `json:"risksCoverageValue"`
+	QuanlityStandard                      string    `json:"quanlityStandard"`
+	IssuerContactInformation              string    `json:"issuerContactInformation"`
+	VaultCustodianName                    string    `json:"vaultCustodianName"`
+	VaultOperator                         string    `json:"vaultOperator"`
+	VaultLicenseNumber                    string    `json:"vaultLicenseNumber"`
+	VaultLocation                         string    `json:"vaultLocation"`
+	Number                                string    `json:"number"`
+	IssuerDate                            time.Time `json:"issuerDate"`
+	ExpiryDate                            time.Time `json:"expiryDate"`
+	RegistryRecord                        string    `json:"registryRecord"`
+	Verifier                              string    `json:"verifier"`
+	StorageConditions                     string    `json:"storageConditions"`
+	VaultAccreditationBody                string    `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                  string    `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                string    `json:"ownershipCustodianName"`
+	OwnershipTrustee                      string    `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances           string    `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation               string    `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                   string    `json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                   string    `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                  string    `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                    string    `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                    string    `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                string    `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk              string    `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk               string    `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                string    `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk             string    `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk          string    `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures           string    `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary     string    `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider            string    `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                string    `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                  string    `json:"issuerRegistrationNo"`
+	SectorAndIndustry                     string    `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                 string    `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                  string    `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                      string    `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                    string    `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo              string    `json:"instrumentAdditionalInfo"`
+	SecurityType                          string    `json:"securityType"`
+	CollateralDescription                 string    `json:"collateralDescription"`
+	CovenantSummary                       string    `json:"covenantSummary"`
+	CovenantTestingFrequency              string    `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                 string    `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism             string    `json:"legalEnforcementMechanism"`
+	Guarantee                             string    `json:"guarantee"`
+	RecoveryEstimate                      float64   `json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo             string    `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                         string    `json:"licenseNumber"`
+	ExitLoadFee                           float64   `json:"exitLoadFee"`
+	EntryLoadFee                          float64   `json:"entryLoadFee"`
+	PortfolioLockInPeriod                 string    `json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee               float64   `json:"portfolioPerformanceFee"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -719,10 +980,10 @@ type TokenizedAssetJSON struct {
 	FeeInAsset                                   float64                         `gorm:"default:0" json:"feeInAsset"`
 	FeeInAssetPercent                            float64                         `gorm:"default:0" json:"feeInAssetPercent"`
 	FeeInFiat                                    float64                         `gorm:"default:0" json:"feeInFiat"`
-	NumberOfTokenToBeSold                        float64                         `json:"numberOfTokenToBeSold"`
-	TotalTokenHeldByManager                      float64                         `json:"totalTokenHeldByManager"`
+	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
+	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string                          `json:"walletToHoldAssetsNotForSale"`
-	PricePerToken                                float64                         `json:"pricePerToken"`
+	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
 	CapOnPurchase                                int                             `gorm:"default:0" json:"capOnPurchase"`
@@ -830,6 +1091,267 @@ type TokenizedAssetJSON struct {
 	QuantityOfTokensSoldInFiat                   float64                         `json:"quantityOfTokensSoldInFiat"`
 	PurchaseCommitments                          float64                         `json:"purchaseCommitments"`
 	DeepLink                                     string                          `json:"deepLink"`
+	IsinOrSerialNumber                           string                          `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	InstrumentName                               string                          `json:"instrumentName"`
+	InstrumentType                               string                          `json:"instrumentType"`
+	TotalIssueSize                               float64                         `json:"totalIssueSize"`
+	IssueDate                                    time.Time                       `json:"issueDate"`
+	MaturityDate                                 time.Time                       `json:"maturityDate"`
+	FaceValuePerUnit                             float64                         `json:"faceValuePerUnit"`
+	CouponOrInterestRateType                     string                          `json:"couponOrInterestRateType"`
+	CouponOrInterestRate                         float64                         `json:"couponOrInterestRate"`
+	ReferenceIndex                               string                          `json:"referenceIndex"`
+	ExpectedYield                                float64                         `json:"expectedYield"`
+	EarlyRedemptionOptionInvestor                string                          `json:"earlyRedemptionOptionInvestor"`
+	MinimumInvestmentAmount                      float64                         `json:"minimumInvestmentAmount"`
+	TaxTreatmentTokenHolders                     string                          `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders               string                          `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                             string                          `json:"redemptionMethod"`
+	PaymentStructure                             string                          `json:"paymentStructure"`
+	RepaymentMethod                              string                          `json:"repaymentMethod"`
+	PaymentCycle                                 string                          `json:"paymentCycle"`
+	WeightedAverageLife                          float64                         `json:"weightedAverageLife"`
+	UnderlyingAssetPoolSize                      float64                         `json:"underlyingAssetPoolSize"`
+	PoolComposition                              string                          `json:"poolComposition"`
+	CreditEnhancementMethod                      string                          `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                       string                          `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                            string                          `json:"creditRatingIfAny"`
+	IssuerName                                   string                          `json:"issuerName"`
+	IssuerType                                   string                          `json:"issuerType"`
+	IssuerContactPerson                          string                          `json:"issuerContactPerson"`
+	ContactEmail                                 string                          `json:"contactEmail"`
+	ContactPhoneNumber                           string                          `json:"contactPhoneNumber"`
+	BriefCompanyOverview                         string                          `json:"briefCompanyOverview"`
+	MortgageOriginators                          string                          `json:"mortgageOriginators"`
+	Servicer                                     string                          `json:"servicer"`
+	InstrumentTrustee                            string                          `json:"instrumentTrustee"`
+	InstrumentCustodians                         string                          `json:"instrumentCustodian"`
+	InstrumentLegalAdvisor                       string                          `json:"instrumentLegalAdvisor"`
+	SpecialPurposeVehicle                        string                          `json:"specialPurposeVehicle"`
+	InstrumentAssetManagerOrAdministrator        string                          `json:"instrumentAssetManagerOrAdministrator"`
+	UnderwriterIfAny                             string                          `json:"underwriterIfAny"`
+	InstrumentCreditRatingAgency                 string                          `json:"instrumentCreditRatingAgency"`
+	AuditorOrVerifier                            string                          `json:"auditorOrVerifier"`
+	CreditRiskAssessment                         string                          `json:"creditRiskAssessment"`
+	CreditRating                                 string                          `json:"creditRating"`
+	PrepaymentRisk                               string                          `json:"prepaymentRisk"`
+	InterestRateRisk                             string                          `json:"interestRateRisk"`
+	StructuralComplexityRisk                     string                          `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                        string                          `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                              string                          `json:"operationalRisk"`
+	MarketRisk                                   string                          `json:"marketRisk"`
+	EsgRisk                                      string                          `json:"esgRisk"`
+	MitigationMeasures                           string                          `json:"mitigationMeasures"`
+	IssuingAuthority                             string                          `json:"issuingAuthority"`
+	RegulatoryApprovalId                         string                          `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber               string                          `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                                string                          `json:"listingStatus"`
+	CurrencyOfIssuance                           string                          `json:"currencyOfIssuance"`
+	CouponRateType                               string                          `json:"couponRateType"`
+	CouponRate                                   float64                         `json:"couponRate"`
+	SpreadOrMargin                               float64                         `json:"spreadOrMargin"`
+	ResetFrequency                               string                          `json:"resetFrequency"`
+	CouponPaymentFrequency                       string                          `json:"couponPaymentFrequency"`
+	RedemptionStructure                          string                          `json:"redemptionStructure"`
+	EarlyRedemptionOption                        string                          `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                       string                          `json:"earlyRedemptionPenalty"`
+	TaxTreatment                                 string                          `json:"taxTreatment"`
+	NavOrMarketValueUpdates                      string                          `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                                string                          `json:"impactMetrics"`
+	LegalBacking                                 string                          `json:"legalBacking"`
+	DefaultHistory                               string                          `json:"defaultHistory"`
+	RiskFactorsSummary                           string                          `json:"riskFactorsSummary"`
+	PayingAgent                                  string                          `json:"payingAgent"`
+	Auditor                                      string                          `json:"auditor"`
+	RegistrarOrCSCSAgent                         string                          `json:"registrarOrCSCSAgent"`
+	FundStructure                                string                          `json:"fundStructure"`
+	AssetManagementCompanyName                   string                          `json:"assetManagementCompanyName"`
+	FundManagers                                 string                          `json:"fundManagers"`
+	RegulatoryLicenseNumber                      string                          `json:"regulatoryLicenseNumber"`
+	FundLaunchDate                               time.Time                       `json:"fundLaunchDate"`
+	TotalExpenseRatio                            float64                         `json:"totalExpenseRatio"`
+	ExitLoadRedemptionFee                        float64                         `json:"exitLoadRedemptionFee"`
+	Tenure                                       int                             `json:"tenure"`
+	InitialNetAssetValue                         float64                         `json:"initialNetAssetValue"`
+	NavUpdateFrequency                           string                          `json:"navUpdateFrequency"`
+	NavCalculationMethod                         string                          `json:"navCalculationMethod"`
+	RedemptionRules                              string                          `json:"redemptionRules"`
+	LockInPeriod                                 string                          `json:"lockInPeriod"`
+	EntryLoad                                    float64                         `json:"entryLoad"`
+	PerformanceFee                               float64                         `json:"performanceFee"`
+	DividendPolicy                               string                          `json:"dividendPolicy"`
+	LiquidityProfile                             string                          `json:"liquidityProfile"`
+	DistributionFrequency                        string                          `json:"distributionFrequency"`
+	DistributionMethod                           string                          `json:"distributionMethod"`
+	BenchmarkComparisonMethod                    string                          `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                          string                          `json:"feeBreakdownSummary"`
+	InvestmentObjective                          string                          `json:"investmentObjective"`
+	EquityStrategy                               string                          `json:"equityStrategy"`
+	MarketCapitalizationFocus                    string                          `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                               string                          `json:"benchmarkIndex"`
+	SectorExposureLimits                         string                          `json:"sectorExposureLimits"`
+	TopHoldings                                  string                          `json:"topHoldings"`
+	GeographicExposure                           string                          `json:"geographicExposure"`
+	RiskProfile                                  string                          `json:"riskProfile"`
+	VolatilityEstimate                           float64                         `json:"volatilityEstimate"`
+	DividendYield                                float64                         `json:"dividendYield"`
+	TrusteeName                                  string                          `json:"trusteeName"`
+	FundAdministrator                            string                          `json:"fundAdministrator"`
+	InvestmentCommitteeMembers                   string                          `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                            string                          `json:"isinOrSecFundCode"`
+	ExitLoadOrRedemptionFee                      float64                         `json:"exitLoadOrRedemptionFee"`
+	FundRiskRating                               string                          `json:"fundRiskRating"`
+	AssetAllocation                              string                          `json:"assetAllocation"`
+	AverageMaturity                              float64                         `json:"averageMaturity"`
+	YieldToMaturity                              float64                         `json:"yieldToMaturity"`
+	CreditRatingProfile                          string                          `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                        string                          `json:"lockInPeriodPortfolio"`
+	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
+	TopEquityHoldings                            string                          `json:"topEquityHoldings"`
+	TargetAllocation                             string                          `json:"targetAllocation"`
+	AllowedAllocationRange                       string                          `json:"allowedAllocationRange"`
+	AssetClassesIncluded                         string                          `json:"assetClassesIncluded"`
+	RebalancingFrequency                         string                          `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite                      string                          `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                        string                          `json:"topEquityHoldingsList"`
+	TopDebtHoldings                              string                          `json:"topDebtHoldings"`
+	CreditRatingDistribution                     string                          `json:"creditRatingDistribution"`
+	AverageMaturityHybrid                        float64                         `json:"averageMaturityHybrid"`
+	YieldToMaturityHybrid                        float64                         `json:"yieldToMaturityHybrid"`
+	TitleOfIssuance                              string                          `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                        string                          `json:"typeOfCommercialPaper"`
+	PricingYield                                 float64                         `json:"pricingYield"`
+	UseOfProceeds                                string                          `json:"useOfProceeds"`
+	Ranking                                      string                          `json:"ranking"`
+	BackingSecurity                              string                          `json:"backingSecurity"`
+	IssuerRegistrationNumber                     string                          `json:"issuerRegistrationNumber"`
+	IncorporationDate                            time.Time                       `json:"incorporationDate"`
+	RcNumber                                     string                          `json:"rcNumber"`
+	TaxIdNumber                                  string                          `json:"taxIdNumber"`
+	OfficeAddress                                string                          `json:"officeAddress"`
+	Rating                                       string                          `json:"rating"`
+	PartiesInvolvedIssuer                        string                          `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger                      string                          `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser                  string                          `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                       string                          `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency                  string                          `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian                     string                          `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                       string                          `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier               string                          `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking                     string                          `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                       string                          `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory                   string                          `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating                     string                          `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary               string                          `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk                     string                          `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk                      string                          `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk                    string                          `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk                   string                          `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                       string                          `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk                  string                          `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures               string                          `json:"securityRiskMitigationMeasures"`
+	CommodityType                                string                          `json:"commodityType"`
+	CommodityDescription                         string                          `json:"commodityDescription"`
+	Quantity                                     int                             `json:"quantity"`
+	QualityGrade                                 string                          `json:"qualityGrade"`
+	IssuerContactInfo                            string                          `json:"issuerContactInfo"`
+	WarehouseName                                string                          `json:"warehouseName"`
+	WarehouseOperatorName                        string                          `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                       string                          `json:"warehouseLicenseNumber"`
+	WarehouseLocation                            string                          `json:"warehouseLocation"`
+	WrNumber                                     string                          `json:"wrNumber"`
+	WrIssueDate                                  time.Time                       `json:"wrIssueDate"`
+	WrExpiryDate                                 time.Time                       `json:"wrExpiryDate"`
+	WrSystemRegistration                         string                          `json:"wrSystemRegistration"`
+	WrRegistrationNumber                         string                          `json:"wrRegistrationNumber"`
+	WrVerifier                                   string                          `json:"wrVerifier"`
+	StorageCondition                             string                          `json:"storageCondition"`
+	WarehouseAccreditationBody                   string                          `json:"warehouseAccreditationBody"`
+	MinimumPurchaseAmount                        float64                         `json:"minimumPurchaseAmount"`
+	AutoRollover                                 string                          `json:"autoRollover"`
+	CurrentBeneficialOwner                       string                          `json:"currentBeneficialOwner"`
+	WrCustodianName                              string                          `json:"wrCustodianName"`
+	OwnershipRightsRepresented                   string                          `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight                 string                          `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                           string                          `json:"lienOrEncumbrances"`
+	AssetValuation                               float64                         `json:"assetValuation"`
+	ValuationDate                                time.Time                       `json:"valuationDate"`
+	ValuationMethodology                         string                          `json:"valuationMethodology"`
+	TokenizationObjective                        string                          `json:"tokenizationObjective"`
+	HoldingPeriod                                int                             `json:"holdingPeriod"`
+	RedemptionMechanism                          string                          `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter                   string                          `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager                  string                          `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor                  string                          `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator                     string                          `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                              string                          `json:"risksMarketRisk"`
+	RisksStorageRisk                             string                          `json:"risksStorageRisk"`
+	RisksTitleRisk                               string                          `json:"risksTitleRisk"`
+	RisksFraudRisk                               string                          `json:"risksFraudRisk"`
+	RisksInsuranceRisk                           string                          `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                         string                          `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                          string                          `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                           string                          `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                        string                          `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk                     string                          `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures                      string                          `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary                string                          `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                       string                          `json:"risksInsuranceProvider"`
+	RisksCoverageValue                           float64                         `json:"risksCoverageValue"`
+	QuanlityStandard                             string                          `json:"quanlityStandard"`
+	IssuerContactInformation                     string                          `json:"issuerContactInformation"`
+	VaultCustodianName                           string                          `json:"vaultCustodianName"`
+	VaultOperator                                string                          `json:"vaultOperator"`
+	VaultLicenseNumber                           string                          `json:"vaultLicenseNumber"`
+	VaultLocation                                string                          `json:"vaultLocation"`
+	Number                                       string                          `json:"number"`
+	IssuerDate                                   time.Time                       `json:"issuerDate"`
+	ExpiryDate                                   time.Time                       `json:"expiryDate"`
+	RegistryRecord                               string                          `json:"registryRecord"`
+	Verifier                                     string                          `json:"verifier"`
+	StorageConditions                            string                          `json:"storageConditions"`
+	VaultAccreditationBody                       string                          `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                         string                          `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                       string                          `json:"ownershipCustodianName"`
+	OwnershipTrustee                             string                          `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances                  string                          `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation                      string                          `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                          string                          `json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                          string                          `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                         string                          `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                           string                          `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                           string                          `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                       string                          `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk                     string                          `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk                      string                          `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                       string                          `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk                    string                          `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk                 string                          `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures                  string                          `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary            string                          `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider                   string                          `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                       string                          `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                         string                          `json:"issuerRegistrationNo"`
+	SectorAndIndustry                            string                          `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                        string                          `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                         string                          `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                             string                          `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                           string                          `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo                     string                          `json:"instrumentAdditionalInfo"`
+	SecurityType                                 string                          `json:"securityType"`
+	CollateralDescription                        string                          `json:"collateralDescription"`
+	CovenantSummary                              string                          `json:"covenantSummary"`
+	CovenantTestingFrequency                     string                          `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                        string                          `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism                    string                          `json:"legalEnforcementMechanism"`
+	Guarantee                                    string                          `json:"guarantee"`
+	RecoveryEstimate                             float64                         `json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo                    string                          `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                                string                          `json:"licenseNumber"`
+	ExitLoadFee                                  float64                         `json:"exitLoadFee"`
+	EntryLoadFee                                 float64                         `json:"entryLoadFee"`
+	PortfolioLockInPeriod                        string                          `json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee                      float64                         `json:"portfolioPerformanceFee"`
 }
 
 type TokenizedAssetSector struct {
@@ -2043,6 +2565,1371 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 			t.DeepLink = &p.DynamicLink
 		}
 	}
+
+	t.TotalIssueSize = ti.TotalIssueSize
+	t.IssueDate = ti.IssueDate
+	t.MaturityDate = ti.MaturityDate
+	t.FaceValuePerUnit = ti.FaceValuePerUnit
+	t.CouponOrInterestRate = ti.CouponOrInterestRate
+	t.ExpectedYield = ti.ExpectedYield
+	t.MinimumInvestmentAmount = ti.MinimumInvestmentAmount
+	t.WeightedAverageLife = ti.WeightedAverageLife
+	t.UnderlyingAssetPoolSize = ti.UnderlyingAssetPoolSize
+	t.CouponRate = ti.CouponRate
+	t.SpreadOrMargin = ti.SpreadOrMargin
+	t.TotalExpenseRatio = ti.TotalExpenseRatio
+	t.ExitLoadRedemptionFee = ti.ExitLoadRedemptionFee
+	t.Tenure = ti.Tenure
+	t.InitialNetAssetValue = ti.InitialNetAssetValue
+	t.EntryLoad = ti.EntryLoad
+	t.PerformanceFee = ti.PerformanceFee
+	t.VolatilityEstimate = ti.VolatilityEstimate
+	t.DividendYield = ti.DividendYield
+	t.ExitLoadOrRedemptionFee = ti.ExitLoadOrRedemptionFee
+	t.AverageMaturity = ti.AverageMaturity
+	t.YieldToMaturity = ti.YieldToMaturity
+	t.PerformanceFeeIfAny = ti.PerformanceFeeIfAny
+	t.AverageMaturityHybrid = ti.AverageMaturityHybrid
+	t.YieldToMaturityHybrid = ti.YieldToMaturityHybrid
+	t.PricingYield = ti.PricingYield
+	/////
+	t.Quantity = ti.Quantity
+	t.MinimumPurchaseAmount = ti.MinimumPurchaseAmount
+	t.AssetValuation = ti.AssetValuation
+	t.HoldingPeriod = ti.HoldingPeriod
+	t.RisksCoverageValue = ti.RisksCoverageValue
+	t.RecoveryEstimate = ti.RecoveryEstimate
+	t.ExitLoadFee = ti.ExitLoadFee
+	t.EntryLoadFee = ti.EntryLoadFee
+	t.PortfolioPerformanceFee = ti.PortfolioPerformanceFee
+	//////////
+
+	if len(ti.IsinOrSerialNumber) > 0 {
+		t.IsinOrSerialNumber = &ti.IsinOrSerialNumber
+	} else {
+		t.IsinOrSerialNumber = nil
+	}
+
+	if len(ti.InstrumentName) > 0 {
+		t.InstrumentName = &ti.InstrumentName
+	} else {
+		t.InstrumentName = nil
+	}
+
+	if len(ti.InstrumentType) > 0 {
+		t.InstrumentType = &ti.InstrumentType
+	} else {
+		t.InstrumentType = nil
+	}
+
+	if len(ti.CouponOrInterestRateType) > 0 {
+		t.CouponOrInterestRateType = &ti.CouponOrInterestRateType
+	} else {
+		t.CouponOrInterestRateType = nil
+	}
+
+	if len(ti.ReferenceIndex) > 0 {
+		t.ReferenceIndex = &ti.ReferenceIndex
+	} else {
+		t.ReferenceIndex = nil
+	}
+
+	if len(ti.EarlyRedemptionOptionInvestor) > 0 {
+		t.EarlyRedemptionOptionInvestor = &ti.EarlyRedemptionOptionInvestor
+	} else {
+		t.EarlyRedemptionOptionInvestor = nil
+	}
+
+	if len(ti.TaxTreatmentTokenHolders) > 0 {
+		t.TaxTreatmentTokenHolders = &ti.TaxTreatmentTokenHolders
+	} else {
+		t.TaxTreatmentTokenHolders = nil
+	}
+
+	if len(ti.PaymentStructureToTokenHolders) > 0 {
+		t.PaymentStructureToTokenHolders = &ti.PaymentStructureToTokenHolders
+	} else {
+		t.PaymentStructureToTokenHolders = nil
+	}
+
+	if len(ti.RedemptionMethod) > 0 {
+		t.RedemptionMethod = &ti.RedemptionMethod
+	} else {
+		t.RedemptionMethod = nil
+	}
+
+	if len(ti.PaymentStructure) > 0 {
+		t.PaymentStructure = &ti.PaymentStructure
+	} else {
+		t.PaymentStructure = nil
+	}
+
+	if len(ti.RepaymentMethod) > 0 {
+		t.RepaymentMethod = &ti.RepaymentMethod
+	} else {
+		t.RepaymentMethod = nil
+	}
+
+	if len(ti.PoolComposition) > 0 {
+		t.PoolComposition = &ti.PoolComposition
+	} else {
+		t.PoolComposition = nil
+	}
+
+	if len(ti.CreditEnhancementMethod) > 0 {
+		t.CreditEnhancementMethod = &ti.CreditEnhancementMethod
+	} else {
+		t.CreditEnhancementMethod = nil
+	}
+
+	if len(ti.SummaryOfUseOfProceeds) > 0 {
+		t.SummaryOfUseOfProceeds = &ti.SummaryOfUseOfProceeds
+	} else {
+		t.SummaryOfUseOfProceeds = nil
+	}
+
+	if len(ti.CreditRatingIfAny) > 0 {
+		t.CreditRatingIfAny = &ti.CreditRatingIfAny
+	} else {
+		t.CreditRatingIfAny = nil
+	}
+
+	if len(ti.IssuerName) > 0 {
+		t.IssuerName = &ti.IssuerName
+	} else {
+		t.IssuerName = nil
+	}
+
+	if len(ti.IssuerType) > 0 {
+		t.IssuerType = &ti.IssuerType
+	} else {
+		t.IssuerType = nil
+	}
+
+	if len(ti.IssuerContactPerson) > 0 {
+		t.IssuerContactPerson = &ti.IssuerContactPerson
+	} else {
+		t.IssuerContactPerson = nil
+	}
+
+	if len(ti.ContactEmail) > 0 {
+		t.ContactEmail = &ti.ContactEmail
+	} else {
+		t.ContactEmail = nil
+	}
+
+	if len(ti.ContactPhoneNumber) > 0 {
+		t.ContactPhoneNumber = &ti.ContactPhoneNumber
+	} else {
+		t.ContactPhoneNumber = nil
+	}
+
+	if len(ti.BriefCompanyOverview) > 0 {
+		t.BriefCompanyOverview = &ti.BriefCompanyOverview
+	} else {
+		t.BriefCompanyOverview = nil
+	}
+
+	if len(ti.MortgageOriginators) > 0 {
+		t.MortgageOriginators = &ti.MortgageOriginators
+	} else {
+		t.MortgageOriginators = nil
+	}
+
+	if len(ti.Servicer) > 0 {
+		t.Servicer = &ti.Servicer
+	} else {
+		t.Servicer = nil
+	}
+
+	if len(ti.InstrumentTrustee) > 0 {
+		t.InstrumentTrustee = &ti.InstrumentTrustee
+	} else {
+		t.InstrumentTrustee = nil
+	}
+
+	if len(ti.InstrumentCustodians) > 0 {
+		t.InstrumentCustodians = &ti.InstrumentCustodians
+	} else {
+		t.InstrumentCustodians = nil
+	}
+
+	if len(ti.InstrumentLegalAdvisor) > 0 {
+		t.InstrumentLegalAdvisor = &ti.InstrumentLegalAdvisor
+	} else {
+		t.InstrumentLegalAdvisor = nil
+	}
+
+	if len(ti.SpecialPurposeVehicle) > 0 {
+		t.SpecialPurposeVehicle = &ti.SpecialPurposeVehicle
+	} else {
+		t.SpecialPurposeVehicle = nil
+	}
+
+	if len(ti.InstrumentAssetManagerOrAdministrator) > 0 {
+		t.InstrumentAssetManagerOrAdministrator = &ti.InstrumentAssetManagerOrAdministrator
+	} else {
+		t.InstrumentAssetManagerOrAdministrator = nil
+	}
+
+	if len(ti.UnderwriterIfAny) > 0 {
+		t.UnderwriterIfAny = &ti.UnderwriterIfAny
+	} else {
+		t.UnderwriterIfAny = nil
+	}
+
+	if len(ti.InstrumentCreditRatingAgency) > 0 {
+		t.InstrumentCreditRatingAgency = &ti.InstrumentCreditRatingAgency
+	} else {
+		t.InstrumentCreditRatingAgency = nil
+	}
+
+	if len(ti.AuditorOrVerifier) > 0 {
+		t.AuditorOrVerifier = &ti.AuditorOrVerifier
+	} else {
+		t.AuditorOrVerifier = nil
+	}
+
+	if len(ti.CreditRiskAssessment) > 0 {
+		t.CreditRiskAssessment = &ti.CreditRiskAssessment
+	} else {
+		t.CreditRiskAssessment = nil
+	}
+
+	if len(ti.CreditRating) > 0 {
+		t.CreditRating = &ti.CreditRating
+	} else {
+		t.CreditRating = nil
+	}
+
+	if len(ti.PrepaymentRisk) > 0 {
+		t.PrepaymentRisk = &ti.PrepaymentRisk
+	} else {
+		t.PrepaymentRisk = nil
+	}
+
+	if len(ti.InterestRateRisk) > 0 {
+		t.InterestRateRisk = &ti.InterestRateRisk
+	} else {
+		t.InterestRateRisk = nil
+	}
+
+	if len(ti.StructuralComplexityRisk) > 0 {
+		t.StructuralComplexityRisk = &ti.StructuralComplexityRisk
+	} else {
+		t.StructuralComplexityRisk = nil
+	}
+
+	if len(ti.LegalOrRegulatoryRisk) > 0 {
+		t.LegalOrRegulatoryRisk = &ti.LegalOrRegulatoryRisk
+	} else {
+		t.LegalOrRegulatoryRisk = nil
+	}
+
+	if len(ti.OperationalRisk) > 0 {
+		t.OperationalRisk = &ti.OperationalRisk
+	} else {
+		t.OperationalRisk = nil
+	}
+
+	if len(ti.MarketRisk) > 0 {
+		t.MarketRisk = &ti.MarketRisk
+	} else {
+		t.MarketRisk = nil
+	}
+
+	if len(ti.EsgRisk) > 0 {
+		t.EsgRisk = &ti.EsgRisk
+	} else {
+		t.EsgRisk = nil
+	}
+
+	if len(ti.MitigationMeasures) > 0 {
+		t.MitigationMeasures = &ti.MitigationMeasures
+	} else {
+		t.MitigationMeasures = nil
+	}
+
+	if len(ti.IssuingAuthority) > 0 {
+		t.IssuingAuthority = &ti.IssuingAuthority
+	} else {
+		t.IssuingAuthority = nil
+	}
+
+	if len(ti.RegulatoryApprovalId) > 0 {
+		t.RegulatoryApprovalId = &ti.RegulatoryApprovalId
+	} else {
+		t.RegulatoryApprovalId = nil
+	}
+
+	if len(ti.LicenseApprovalReferenceNumber) > 0 {
+		t.LicenseApprovalReferenceNumber = &ti.LicenseApprovalReferenceNumber
+	} else {
+		t.LicenseApprovalReferenceNumber = nil
+	}
+
+	if len(ti.ListingStatus) > 0 {
+		t.ListingStatus = &ti.ListingStatus
+	} else {
+		t.ListingStatus = nil
+	}
+
+	if len(ti.CurrencyOfIssuance) > 0 {
+		t.CurrencyOfIssuance = &ti.CurrencyOfIssuance
+	} else {
+		t.CurrencyOfIssuance = nil
+	}
+
+	if len(ti.CouponRateType) > 0 {
+		t.CouponRateType = &ti.CouponRateType
+	} else {
+		t.CouponRateType = nil
+	}
+
+	if len(ti.ResetFrequency) > 0 {
+		t.ResetFrequency = &ti.ResetFrequency
+	} else {
+		t.ResetFrequency = nil
+	}
+
+	if len(ti.CouponPaymentFrequency) > 0 {
+		t.CouponPaymentFrequency = &ti.CouponPaymentFrequency
+	} else {
+		t.CouponPaymentFrequency = nil
+	}
+
+	if len(ti.RedemptionStructure) > 0 {
+		t.RedemptionStructure = &ti.RedemptionStructure
+	} else {
+		t.RedemptionStructure = nil
+	}
+
+	if len(ti.EarlyRedemptionOption) > 0 {
+		t.EarlyRedemptionOption = &ti.EarlyRedemptionOption
+	} else {
+		t.EarlyRedemptionOption = nil
+	}
+
+	if len(ti.EarlyRedemptionPenalty) > 0 {
+		t.EarlyRedemptionPenalty = &ti.EarlyRedemptionPenalty
+	} else {
+		t.EarlyRedemptionPenalty = nil
+	}
+
+	if len(ti.TaxTreatment) > 0 {
+		t.TaxTreatment = &ti.TaxTreatment
+	} else {
+		t.TaxTreatment = nil
+	}
+
+	if len(ti.NavOrMarketValueUpdates) > 0 {
+		t.NavOrMarketValueUpdates = &ti.NavOrMarketValueUpdates
+	} else {
+		t.NavOrMarketValueUpdates = nil
+	}
+
+	if len(ti.ImpactMetrics) > 0 {
+		t.ImpactMetrics = &ti.ImpactMetrics
+	} else {
+		t.ImpactMetrics = nil
+	}
+
+	if len(ti.LegalBacking) > 0 {
+		t.LegalBacking = &ti.LegalBacking
+	} else {
+		t.LegalBacking = nil
+	}
+
+	if len(ti.DefaultHistory) > 0 {
+		t.DefaultHistory = &ti.DefaultHistory
+	} else {
+		t.DefaultHistory = nil
+	}
+
+	if len(ti.RiskFactorsSummary) > 0 {
+		t.RiskFactorsSummary = &ti.RiskFactorsSummary
+	} else {
+		t.RiskFactorsSummary = nil
+	}
+
+	if len(ti.PayingAgent) > 0 {
+		t.PayingAgent = &ti.PayingAgent
+	} else {
+		t.PayingAgent = nil
+	}
+
+	if len(ti.Auditor) > 0 {
+		t.Auditor = &ti.Auditor
+	} else {
+		t.Auditor = nil
+	}
+
+	if len(ti.RegistrarOrCSCSAgent) > 0 {
+		t.RegistrarOrCSCSAgent = &ti.RegistrarOrCSCSAgent
+	} else {
+		t.RegistrarOrCSCSAgent = nil
+	}
+
+	if len(ti.FundStructure) > 0 {
+		t.FundStructure = &ti.FundStructure
+	} else {
+		t.FundStructure = nil
+	}
+
+	if len(ti.AssetManagementCompanyName) > 0 {
+		t.AssetManagementCompanyName = &ti.AssetManagementCompanyName
+	} else {
+		t.AssetManagementCompanyName = nil
+	}
+
+	if len(ti.FundManagers) > 0 {
+		t.FundManagers = &ti.FundManagers
+	} else {
+		t.FundManagers = nil
+	}
+
+	if len(ti.RegulatoryLicenseNumber) > 0 {
+		t.RegulatoryLicenseNumber = &ti.RegulatoryLicenseNumber
+	} else {
+		t.RegulatoryLicenseNumber = nil
+	}
+
+	t.FundLaunchDate = &ti.FundLaunchDate
+
+	if len(ti.NavUpdateFrequency) > 0 {
+		t.NavUpdateFrequency = &ti.NavUpdateFrequency
+	} else {
+		t.NavUpdateFrequency = nil
+	}
+
+	if len(ti.NavCalculationMethod) > 0 {
+		t.NavCalculationMethod = &ti.NavCalculationMethod
+	} else {
+		t.NavCalculationMethod = nil
+	}
+
+	if len(ti.RedemptionRules) > 0 {
+		t.RedemptionRules = &ti.RedemptionRules
+	} else {
+		t.RedemptionRules = nil
+	}
+
+	if len(ti.LockInPeriod) > 0 {
+		t.LockInPeriod = &ti.LockInPeriod
+	} else {
+		t.LockInPeriod = nil
+	}
+
+	if len(ti.DividendPolicy) > 0 {
+		t.DividendPolicy = &ti.DividendPolicy
+	} else {
+		t.DividendPolicy = nil
+	}
+
+	if len(ti.LiquidityProfile) > 0 {
+		t.LiquidityProfile = &ti.LiquidityProfile
+	} else {
+		t.LiquidityProfile = nil
+	}
+
+	if len(ti.DistributionFrequency) > 0 {
+		t.DistributionFrequency = &ti.DistributionFrequency
+	} else {
+		t.DistributionFrequency = nil
+	}
+
+	if len(ti.DistributionMethod) > 0 {
+		t.DistributionMethod = &ti.DistributionMethod
+	} else {
+		t.DistributionMethod = nil
+	}
+
+	if len(ti.BenchmarkComparisonMethod) > 0 {
+		t.BenchmarkComparisonMethod = &ti.BenchmarkComparisonMethod
+	} else {
+		t.BenchmarkComparisonMethod = nil
+	}
+
+	if len(ti.FeeBreakdownSummary) > 0 {
+		t.FeeBreakdownSummary = &ti.FeeBreakdownSummary
+	} else {
+		t.FeeBreakdownSummary = nil
+	}
+
+	if len(ti.InvestmentObjective) > 0 {
+		t.InvestmentObjective = &ti.InvestmentObjective
+	} else {
+		t.InvestmentObjective = nil
+	}
+
+	if len(ti.EquityStrategy) > 0 {
+		t.EquityStrategy = &ti.EquityStrategy
+	} else {
+		t.EquityStrategy = nil
+	}
+
+	if len(ti.MarketCapitalizationFocus) > 0 {
+		t.MarketCapitalizationFocus = &ti.MarketCapitalizationFocus
+	} else {
+		t.MarketCapitalizationFocus = nil
+	}
+
+	if len(ti.BenchmarkIndex) > 0 {
+		t.BenchmarkIndex = &ti.BenchmarkIndex
+	} else {
+		t.BenchmarkIndex = nil
+	}
+
+	if len(ti.SectorExposureLimits) > 0 {
+		t.SectorExposureLimits = &ti.SectorExposureLimits
+	} else {
+		t.SectorExposureLimits = nil
+	}
+
+	if len(ti.TopHoldings) > 0 {
+		t.TopHoldings = &ti.TopHoldings
+	} else {
+		t.TopHoldings = nil
+	}
+
+	if len(ti.GeographicExposure) > 0 {
+		t.GeographicExposure = &ti.GeographicExposure
+	} else {
+		t.GeographicExposure = nil
+	}
+
+	if len(ti.RiskProfile) > 0 {
+		t.RiskProfile = &ti.RiskProfile
+	} else {
+		t.RiskProfile = nil
+	}
+
+	if len(ti.TrusteeName) > 0 {
+		t.TrusteeName = &ti.TrusteeName
+	} else {
+		t.TrusteeName = nil
+	}
+
+	if len(ti.FundAdministrator) > 0 {
+		t.FundAdministrator = &ti.FundAdministrator
+	} else {
+		t.FundAdministrator = nil
+	}
+
+	if len(ti.InvestmentCommitteeMembers) > 0 {
+		t.InvestmentCommitteeMembers = &ti.InvestmentCommitteeMembers
+	} else {
+		t.InvestmentCommitteeMembers = nil
+	}
+
+	if len(ti.IsinOrSecFundCode) > 0 {
+		t.IsinOrSecFundCode = &ti.IsinOrSecFundCode
+	} else {
+		t.IsinOrSecFundCode = nil
+	}
+
+	if len(ti.FundRiskRating) > 0 {
+		t.FundRiskRating = &ti.FundRiskRating
+	} else {
+		t.FundRiskRating = nil
+	}
+
+	if len(ti.AssetAllocation) > 0 {
+		t.AssetAllocation = &ti.AssetAllocation
+	} else {
+		t.AssetAllocation = nil
+	}
+
+	if len(ti.CreditRatingProfile) > 0 {
+		t.CreditRatingProfile = &ti.CreditRatingProfile
+	} else {
+		t.CreditRatingProfile = nil
+	}
+
+	if len(ti.LockInPeriodPortfolio) > 0 {
+		t.LockInPeriodPortfolio = &ti.LockInPeriodPortfolio
+	} else {
+		t.LockInPeriodPortfolio = nil
+	}
+
+	if len(ti.TopEquityHoldings) > 0 {
+		t.TopEquityHoldings = &ti.TopEquityHoldings
+	} else {
+		t.TopEquityHoldings = nil
+	}
+
+	if len(ti.TargetAllocation) > 0 {
+		t.TargetAllocation = &ti.TargetAllocation
+	} else {
+		t.TargetAllocation = nil
+	}
+
+	if len(ti.AllowedAllocationRange) > 0 {
+		t.AllowedAllocationRange = &ti.AllowedAllocationRange
+	} else {
+		t.AllowedAllocationRange = nil
+	}
+
+	if len(ti.AssetClassesIncluded) > 0 {
+		t.AssetClassesIncluded = &ti.AssetClassesIncluded
+	} else {
+		t.AssetClassesIncluded = nil
+	}
+
+	if len(ti.RebalancingFrequency) > 0 {
+		t.RebalancingFrequency = &ti.RebalancingFrequency
+	} else {
+		t.RebalancingFrequency = nil
+	}
+
+	if len(ti.BenchmarkIndexComposite) > 0 {
+		t.BenchmarkIndexComposite = &ti.BenchmarkIndexComposite
+	} else {
+		t.BenchmarkIndexComposite = nil
+	}
+
+	if len(ti.TopEquityHoldingsList) > 0 {
+		t.TopEquityHoldingsList = &ti.TopEquityHoldingsList
+	} else {
+		t.TopEquityHoldingsList = nil
+	}
+
+	if len(ti.TopDebtHoldings) > 0 {
+		t.TopDebtHoldings = &ti.TopDebtHoldings
+	} else {
+		t.TopDebtHoldings = nil
+	}
+
+	if len(ti.CreditRatingDistribution) > 0 {
+		t.CreditRatingDistribution = &ti.CreditRatingDistribution
+	} else {
+		t.CreditRatingDistribution = nil
+	}
+
+	if len(ti.TitleOfIssuance) > 0 {
+		t.TitleOfIssuance = &ti.TitleOfIssuance
+	} else {
+		t.TitleOfIssuance = nil
+	}
+
+	if len(ti.TypeOfCommercialPaper) > 0 {
+		t.TypeOfCommercialPaper = &ti.TypeOfCommercialPaper
+	} else {
+		t.TypeOfCommercialPaper = nil
+	}
+
+	if len(ti.UseOfProceeds) > 0 {
+		t.UseOfProceeds = &ti.UseOfProceeds
+	} else {
+		t.UseOfProceeds = nil
+	}
+
+	if len(ti.Ranking) > 0 {
+		t.Ranking = &ti.Ranking
+	} else {
+		t.Ranking = nil
+	}
+
+	if len(ti.BackingSecurity) > 0 {
+		t.BackingSecurity = &ti.BackingSecurity
+	} else {
+		t.BackingSecurity = nil
+	}
+
+	if len(ti.IssuerRegistrationNumber) > 0 {
+		t.IssuerRegistrationNumber = &ti.IssuerRegistrationNumber
+	} else {
+		t.IssuerRegistrationNumber = nil
+	}
+
+	t.IncorporationDate = &ti.IncorporationDate
+
+	if len(ti.RcNumber) > 0 {
+		t.RcNumber = &ti.RcNumber
+	} else {
+		t.RcNumber = nil
+	}
+
+	if len(ti.TaxIdNumber) > 0 {
+		t.TaxIdNumber = &ti.TaxIdNumber
+	} else {
+		t.TaxIdNumber = nil
+	}
+
+	if len(ti.OfficeAddress) > 0 {
+		t.OfficeAddress = &ti.OfficeAddress
+	} else {
+		t.OfficeAddress = nil
+	}
+
+	if len(ti.Rating) > 0 {
+		t.Rating = &ti.Rating
+	} else {
+		t.Rating = nil
+	}
+
+	////////
+
+	if len(ti.PartiesInvolvedIssuer) > 0 {
+		t.PartiesInvolvedIssuer = &ti.PartiesInvolvedIssuer
+	} else {
+		t.PartiesInvolvedIssuer = nil
+	}
+
+	if len(ti.PartiesInvolvedArranger) > 0 {
+		t.PartiesInvolvedArranger = &ti.PartiesInvolvedArranger
+	} else {
+		t.PartiesInvolvedArranger = nil
+	}
+
+	if len(ti.PartiesInvolvedLegalAdviser) > 0 {
+		t.PartiesInvolvedLegalAdviser = &ti.PartiesInvolvedLegalAdviser
+	} else {
+		t.PartiesInvolvedLegalAdviser = nil
+	}
+
+	if len(ti.PartiesInvolvedAuditor) > 0 {
+		t.PartiesInvolvedAuditor = &ti.PartiesInvolvedAuditor
+	} else {
+		t.PartiesInvolvedAuditor = nil
+	}
+
+	if len(ti.PartiesInvolvedRatingAgency) > 0 {
+		t.PartiesInvolvedRatingAgency = &ti.PartiesInvolvedRatingAgency
+	} else {
+		t.PartiesInvolvedRatingAgency = nil
+	}
+
+	if len(ti.PartiesInvolvedCustodian) > 0 {
+		t.PartiesInvolvedCustodian = &ti.PartiesInvolvedCustodian
+	} else {
+		t.PartiesInvolvedCustodian = nil
+	}
+
+	if len(ti.PartiesInvolvedTrustee) > 0 {
+		t.PartiesInvolvedTrustee = &ti.PartiesInvolvedTrustee
+	} else {
+		t.PartiesInvolvedTrustee = nil
+	}
+
+	if len(ti.PartiesInvolvedAuditorVerifier) > 0 {
+		t.PartiesInvolvedAuditorVerifier = &ti.PartiesInvolvedAuditorVerifier
+	} else {
+		t.PartiesInvolvedAuditorVerifier = nil
+	}
+
+	if len(ti.SecurityRiskLegalBacking) > 0 {
+		t.SecurityRiskLegalBacking = &ti.SecurityRiskLegalBacking
+	} else {
+		t.SecurityRiskLegalBacking = nil
+	}
+
+	if len(ti.SecurityRiskCollateral) > 0 {
+		t.SecurityRiskCollateral = &ti.SecurityRiskCollateral
+	} else {
+		t.SecurityRiskCollateral = nil
+	}
+
+	if len(ti.SecurityRiskDefaultHistory) > 0 {
+		t.SecurityRiskDefaultHistory = &ti.SecurityRiskDefaultHistory
+	} else {
+		t.SecurityRiskDefaultHistory = nil
+	}
+
+	if len(ti.SecurityRiskCreditRating) > 0 {
+		t.SecurityRiskCreditRating = &ti.SecurityRiskCreditRating
+	} else {
+		t.SecurityRiskCreditRating = nil
+	}
+
+	if len(ti.SecurityRiskRiskFactorsSummary) > 0 {
+		t.SecurityRiskRiskFactorsSummary = &ti.SecurityRiskRiskFactorsSummary
+	} else {
+		t.SecurityRiskRiskFactorsSummary = nil
+	}
+
+	if len(ti.SecurityRiskBusinessRisk) > 0 {
+		t.SecurityRiskBusinessRisk = &ti.SecurityRiskBusinessRisk
+	} else {
+		t.SecurityRiskBusinessRisk = nil
+	}
+
+	if len(ti.SecurityRiskDefaultRisk) > 0 {
+		t.SecurityRiskDefaultRisk = &ti.SecurityRiskDefaultRisk
+	} else {
+		t.SecurityRiskDefaultRisk = nil
+	}
+
+	if len(ti.SecurityRiskLiquidityRisk) > 0 {
+		t.SecurityRiskLiquidityRisk = &ti.SecurityRiskLiquidityRisk
+	} else {
+		t.SecurityRiskLiquidityRisk = nil
+	}
+
+	if len(ti.SecurityRiskRegulatoryRisk) > 0 {
+		t.SecurityRiskRegulatoryRisk = &ti.SecurityRiskRegulatoryRisk
+	} else {
+		t.SecurityRiskRegulatoryRisk = nil
+	}
+
+	if len(ti.SecurityRiskMarketRisk) > 0 {
+		t.SecurityRiskMarketRisk = &ti.SecurityRiskMarketRisk
+	} else {
+		t.SecurityRiskMarketRisk = nil
+	}
+
+	if len(ti.SecurityRiskOperationalRisk) > 0 {
+		t.SecurityRiskOperationalRisk = &ti.SecurityRiskOperationalRisk
+	} else {
+		t.SecurityRiskOperationalRisk = nil
+	}
+
+	if len(ti.SecurityRiskMitigationMeasures) > 0 {
+		t.SecurityRiskMitigationMeasures = &ti.SecurityRiskMitigationMeasures
+	} else {
+		t.SecurityRiskMitigationMeasures = nil
+	}
+
+	if len(ti.CommodityType) > 0 {
+		t.CommodityType = &ti.CommodityType
+	} else {
+		t.CommodityType = nil
+	}
+
+	if len(ti.CommodityDescription) > 0 {
+		t.CommodityDescription = &ti.CommodityDescription
+	} else {
+		t.CommodityDescription = nil
+	}
+
+	if len(ti.QualityGrade) > 0 {
+		t.QualityGrade = &ti.QualityGrade
+	} else {
+		t.QualityGrade = nil
+	}
+
+	if len(ti.IssuerContactInfo) > 0 {
+		t.IssuerContactInfo = &ti.IssuerContactInfo
+	} else {
+		t.IssuerContactInfo = nil
+	}
+
+	if len(ti.WarehouseName) > 0 {
+		t.WarehouseName = &ti.WarehouseName
+	} else {
+		t.WarehouseName = nil
+	}
+
+	if len(ti.WarehouseOperatorName) > 0 {
+		t.WarehouseOperatorName = &ti.WarehouseOperatorName
+	} else {
+		t.WarehouseOperatorName = nil
+	}
+
+	if len(ti.WarehouseLicenseNumber) > 0 {
+		t.WarehouseLicenseNumber = &ti.WarehouseLicenseNumber
+	} else {
+		t.WarehouseLicenseNumber = nil
+	}
+
+	if len(ti.WarehouseLocation) > 0 {
+		t.WarehouseLocation = &ti.WarehouseLocation
+	} else {
+		t.WarehouseLocation = nil
+	}
+
+	if len(ti.WrNumber) > 0 {
+		t.WrNumber = &ti.WrNumber
+	} else {
+		t.WrNumber = nil
+	}
+
+	t.WrIssueDate = &ti.WrIssueDate
+
+	t.WrExpiryDate = &ti.WrExpiryDate
+
+	if len(ti.WrSystemRegistration) > 0 {
+		t.WrSystemRegistration = &ti.WrSystemRegistration
+	} else {
+		t.WrSystemRegistration = nil
+	}
+
+	if len(ti.WrRegistrationNumber) > 0 {
+		t.WrRegistrationNumber = &ti.WrRegistrationNumber
+	} else {
+		t.WrRegistrationNumber = nil
+	}
+
+	if len(ti.WrVerifier) > 0 {
+		t.WrVerifier = &ti.WrVerifier
+	} else {
+		t.WrVerifier = nil
+	}
+
+	if len(ti.StorageCondition) > 0 {
+		t.StorageCondition = &ti.StorageCondition
+	} else {
+		t.StorageCondition = nil
+	}
+
+	if len(ti.WarehouseAccreditationBody) > 0 {
+		t.WarehouseAccreditationBody = &ti.WarehouseAccreditationBody
+	} else {
+		t.WarehouseAccreditationBody = nil
+	}
+
+	if len(ti.AutoRollover) > 0 {
+		t.AutoRollover = &ti.AutoRollover
+	} else {
+		t.AutoRollover = nil
+	}
+
+	if len(ti.CurrentBeneficialOwner) > 0 {
+		t.CurrentBeneficialOwner = &ti.CurrentBeneficialOwner
+	} else {
+		t.CurrentBeneficialOwner = nil
+	}
+
+	if len(ti.WrCustodianName) > 0 {
+		t.WrCustodianName = &ti.WrCustodianName
+	} else {
+		t.WrCustodianName = nil
+	}
+
+	if len(ti.OwnershipRightsRepresented) > 0 {
+		t.OwnershipRightsRepresented = &ti.OwnershipRightsRepresented
+	} else {
+		t.OwnershipRightsRepresented = nil
+	}
+
+	if len(ti.TrusteeOrThirdPartyOversight) > 0 {
+		t.TrusteeOrThirdPartyOversight = &ti.TrusteeOrThirdPartyOversight
+	} else {
+		t.TrusteeOrThirdPartyOversight = nil
+	}
+
+	if len(ti.LienOrEncumbrances) > 0 {
+		t.LienOrEncumbrances = &ti.LienOrEncumbrances
+	} else {
+		t.LienOrEncumbrances = nil
+	}
+
+	t.ValuationDate = &ti.ValuationDate
+
+	if len(ti.ValuationMethodology) > 0 {
+		t.ValuationMethodology = &ti.ValuationMethodology
+	} else {
+		t.ValuationMethodology = nil
+	}
+
+	if len(ti.TokenizationObjective) > 0 {
+		t.TokenizationObjective = &ti.TokenizationObjective
+	} else {
+		t.TokenizationObjective = nil
+	}
+
+	if len(ti.RedemptionMechanism) > 0 {
+		t.RedemptionMechanism = &ti.RedemptionMechanism
+	} else {
+		t.RedemptionMechanism = nil
+	}
+
+	if len(ti.PartiesInvolvedUnderwriter) > 0 {
+		t.PartiesInvolvedUnderwriter = &ti.PartiesInvolvedUnderwriter
+	} else {
+		t.PartiesInvolvedUnderwriter = nil
+	}
+
+	if len(ti.PartiesInvolvedAssetManager) > 0 {
+		t.PartiesInvolvedAssetManager = &ti.PartiesInvolvedAssetManager
+	} else {
+		t.PartiesInvolvedAssetManager = nil
+	}
+
+	if len(ti.PartiesInvolvedLegalAdvisor) > 0 {
+		t.PartiesInvolvedLegalAdvisor = &ti.PartiesInvolvedLegalAdvisor
+	} else {
+		t.PartiesInvolvedLegalAdvisor = nil
+	}
+
+	if len(ti.PartiesInvolvedRegulator) > 0 {
+		t.PartiesInvolvedRegulator = &ti.PartiesInvolvedRegulator
+	} else {
+		t.PartiesInvolvedRegulator = nil
+	}
+
+	if len(ti.RisksMarketRisk) > 0 {
+		t.RisksMarketRisk = &ti.RisksMarketRisk
+	} else {
+		t.RisksMarketRisk = nil
+	}
+
+	if len(ti.RisksStorageRisk) > 0 {
+		t.RisksStorageRisk = &ti.RisksStorageRisk
+	} else {
+		t.RisksStorageRisk = nil
+	}
+
+	if len(ti.RisksTitleRisk) > 0 {
+		t.RisksTitleRisk = &ti.RisksTitleRisk
+	} else {
+		t.RisksTitleRisk = nil
+	}
+
+	if len(ti.RisksFraudRisk) > 0 {
+		t.RisksFraudRisk = &ti.RisksFraudRisk
+	} else {
+		t.RisksFraudRisk = nil
+	}
+
+	if len(ti.RisksInsuranceRisk) > 0 {
+		t.RisksInsuranceRisk = &ti.RisksInsuranceRisk
+	} else {
+		t.RisksInsuranceRisk = nil
+	}
+
+	if len(ti.RisksOperationalRisk) > 0 {
+		t.RisksOperationalRisk = &ti.RisksOperationalRisk
+	} else {
+		t.RisksOperationalRisk = nil
+	}
+
+	if len(ti.RisksRegulatoryRisk) > 0 {
+		t.RisksRegulatoryRisk = &ti.RisksRegulatoryRisk
+	} else {
+		t.RisksRegulatoryRisk = nil
+	}
+
+	if len(ti.RisksLiquidityRisk) > 0 {
+		t.RisksLiquidityRisk = &ti.RisksLiquidityRisk
+	} else {
+		t.RisksLiquidityRisk = nil
+	}
+
+	if len(ti.RisksForceMajeureRisk) > 0 {
+		t.RisksForceMajeureRisk = &ti.RisksForceMajeureRisk
+	} else {
+		t.RisksForceMajeureRisk = nil
+	}
+
+	if len(ti.RisksEarlyRedemptionRisk) > 0 {
+		t.RisksEarlyRedemptionRisk = &ti.RisksEarlyRedemptionRisk
+	} else {
+		t.RisksEarlyRedemptionRisk = nil
+	}
+
+	if len(ti.RisksMitigationMeasures) > 0 {
+		t.RisksMitigationMeasures = &ti.RisksMitigationMeasures
+	} else {
+		t.RisksMitigationMeasures = nil
+	}
+
+	if len(ti.RisksInsuranceCoverageSummary) > 0 {
+		t.RisksInsuranceCoverageSummary = &ti.RisksInsuranceCoverageSummary
+	} else {
+		t.RisksInsuranceCoverageSummary = nil
+	}
+
+	if len(ti.RisksInsuranceProvider) > 0 {
+		t.RisksInsuranceProvider = &ti.RisksInsuranceProvider
+	} else {
+		t.RisksInsuranceProvider = nil
+	}
+
+	if len(ti.QuanlityStandard) > 0 {
+		t.QuanlityStandard = &ti.QuanlityStandard
+	} else {
+		t.QuanlityStandard = nil
+	}
+
+	if len(ti.IssuerContactInformation) > 0 {
+		t.IssuerContactInformation = &ti.IssuerContactInformation
+	} else {
+		t.IssuerContactInformation = nil
+	}
+
+	if len(ti.VaultCustodianName) > 0 {
+		t.VaultCustodianName = &ti.VaultCustodianName
+	} else {
+		t.VaultCustodianName = nil
+	}
+
+	if len(ti.VaultOperator) > 0 {
+		t.VaultOperator = &ti.VaultOperator
+	} else {
+		t.VaultOperator = nil
+	}
+
+	if len(ti.VaultLicenseNumber) > 0 {
+		t.VaultLicenseNumber = &ti.VaultLicenseNumber
+	} else {
+		t.VaultLicenseNumber = nil
+	}
+
+	if len(ti.VaultLocation) > 0 {
+		t.VaultLocation = &ti.VaultLocation
+	} else {
+		t.VaultLocation = nil
+	}
+
+	if len(ti.Number) > 0 {
+		t.Number = &ti.Number
+	} else {
+		t.Number = nil
+	}
+
+	t.IssuerDate = &ti.IssuerDate
+
+	t.ExpiryDate = &ti.ExpiryDate
+
+	if len(ti.RegistryRecord) > 0 {
+		t.RegistryRecord = &ti.RegistryRecord
+	} else {
+		t.RegistryRecord = nil
+	}
+
+	if len(ti.Verifier) > 0 {
+		t.Verifier = &ti.Verifier
+	} else {
+		t.Verifier = nil
+	}
+
+	if len(ti.StorageConditions) > 0 {
+		t.StorageConditions = &ti.StorageConditions
+	} else {
+		t.StorageConditions = nil
+	}
+
+	if len(ti.VaultAccreditationBody) > 0 {
+		t.VaultAccreditationBody = &ti.VaultAccreditationBody
+	} else {
+		t.VaultAccreditationBody = nil
+	}
+
+	if len(ti.OwnershipLegalHolder) > 0 {
+		t.OwnershipLegalHolder = &ti.OwnershipLegalHolder
+	} else {
+		t.OwnershipLegalHolder = nil
+	}
+
+	if len(ti.OwnershipCustodianName) > 0 {
+		t.OwnershipCustodianName = &ti.OwnershipCustodianName
+	} else {
+		t.OwnershipCustodianName = nil
+	}
+
+	if len(ti.OwnershipTrustee) > 0 {
+		t.OwnershipTrustee = &ti.OwnershipTrustee
+	} else {
+		t.OwnershipTrustee = nil
+	}
+
+	if len(ti.OwnershipLienOrEncumbrances) > 0 {
+		t.OwnershipLienOrEncumbrances = &ti.OwnershipLienOrEncumbrances
+	} else {
+		t.OwnershipLienOrEncumbrances = nil
+	}
+
+	if len(ti.ValuationAssetValuation) > 0 {
+		t.ValuationAssetValuation = &ti.ValuationAssetValuation
+	} else {
+		t.ValuationAssetValuation = nil
+	}
+
+	if len(ti.HoldingLockinPeriod) > 0 {
+		t.HoldingLockinPeriod = &ti.HoldingLockinPeriod
+	} else {
+		t.HoldingLockinPeriod = nil
+	}
+
+	if len(ti.InsuranceMarketRisk) > 0 {
+		t.InsuranceMarketRisk = &ti.InsuranceMarketRisk
+	} else {
+		t.InsuranceMarketRisk = nil
+	}
+
+	if len(ti.InsuranceStorageRisk) > 0 {
+		t.InsuranceStorageRisk = &ti.InsuranceStorageRisk
+	} else {
+		t.InsuranceStorageRisk = nil
+	}
+
+	if len(ti.InsuranceTitleRisk) > 0 {
+		t.InsuranceTitleRisk = &ti.InsuranceTitleRisk
+	} else {
+		t.InsuranceTitleRisk = nil
+	}
+
+	if len(ti.InsuranceFraudRisk) > 0 {
+		t.InsuranceFraudRisk = &ti.InsuranceFraudRisk
+	} else {
+		t.InsuranceFraudRisk = nil
+	}
+
+	if len(ti.InsuranceInsuranceRisk) > 0 {
+		t.InsuranceInsuranceRisk = &ti.InsuranceInsuranceRisk
+	} else {
+		t.InsuranceInsuranceRisk = nil
+	}
+
+	if len(ti.InsuranceOperationalRisk) > 0 {
+		t.InsuranceOperationalRisk = &ti.InsuranceOperationalRisk
+	} else {
+		t.InsuranceOperationalRisk = nil
+	}
+
+	if len(ti.InsuranceRegulatoryRisk) > 0 {
+		t.InsuranceRegulatoryRisk = &ti.InsuranceRegulatoryRisk
+	} else {
+		t.InsuranceRegulatoryRisk = nil
+	}
+
+	if len(ti.InsuranceLiquidityRisk) > 0 {
+		t.InsuranceLiquidityRisk = &ti.InsuranceLiquidityRisk
+	} else {
+		t.InsuranceLiquidityRisk = nil
+	}
+
+	if len(ti.InsuranceForceMajeureRisk) > 0 {
+		t.InsuranceForceMajeureRisk = &ti.InsuranceForceMajeureRisk
+	} else {
+		t.InsuranceForceMajeureRisk = nil
+	}
+
+	if len(ti.InsuranceEarlyRedemptionRisk) > 0 {
+		t.InsuranceEarlyRedemptionRisk = &ti.InsuranceEarlyRedemptionRisk
+	} else {
+		t.InsuranceEarlyRedemptionRisk = nil
+	}
+
+	if len(ti.InsuranceMitigationMeasures) > 0 {
+		t.InsuranceMitigationMeasures = &ti.InsuranceMitigationMeasures
+	} else {
+		t.InsuranceMitigationMeasures = nil
+	}
+
+	if len(ti.InsuranceInsuranceCoverageSummary) > 0 {
+		t.InsuranceInsuranceCoverageSummary = &ti.InsuranceInsuranceCoverageSummary
+	} else {
+		t.InsuranceInsuranceCoverageSummary = nil
+	}
+
+	if len(ti.InsuranceInsuranceProvider) > 0 {
+		t.InsuranceInsuranceProvider = &ti.InsuranceInsuranceProvider
+	} else {
+		t.InsuranceInsuranceProvider = nil
+	}
+
+	if len(ti.InsuranceCoverageValue) > 0 {
+		t.InsuranceCoverageValue = &ti.InsuranceCoverageValue
+	} else {
+		t.InsuranceCoverageValue = nil
+	}
+
+	if len(ti.IssuerRegistrationNo) > 0 {
+		t.IssuerRegistrationNo = &ti.IssuerRegistrationNo
+	} else {
+		t.IssuerRegistrationNo = nil
+	}
+
+	if len(ti.SectorAndIndustry) > 0 {
+		t.SectorAndIndustry = &ti.SectorAndIndustry
+	} else {
+		t.SectorAndIndustry = nil
+	}
+
+	if len(ti.LicenseOrPermitNumber) > 0 {
+		t.LicenseOrPermitNumber = &ti.LicenseOrPermitNumber
+	} else {
+		t.LicenseOrPermitNumber = nil
+	}
+
+	if len(ti.IssuerAdditionalInfo) > 0 {
+		t.IssuerAdditionalInfo = &ti.IssuerAdditionalInfo
+	} else {
+		t.IssuerAdditionalInfo = nil
+	}
+
+	if len(ti.IsinSerialNumber) > 0 {
+		t.IsinSerialNumber = &ti.IsinSerialNumber
+	} else {
+		t.IsinSerialNumber = nil
+	}
+
+	if len(ti.EsgOrImpactMetrics) > 0 {
+		t.EsgOrImpactMetrics = &ti.EsgOrImpactMetrics
+	} else {
+		t.EsgOrImpactMetrics = nil
+	}
+
+	if len(ti.InstrumentAdditionalInfo) > 0 {
+		t.InstrumentAdditionalInfo = &ti.InstrumentAdditionalInfo
+	} else {
+		t.InstrumentAdditionalInfo = nil
+	}
+
+	if len(ti.SecurityType) > 0 {
+		t.SecurityType = &ti.SecurityType
+	} else {
+		t.SecurityType = nil
+	}
+
+	if len(ti.CollateralDescription) > 0 {
+		t.CollateralDescription = &ti.CollateralDescription
+	} else {
+		t.CollateralDescription = nil
+	}
+
+	if len(ti.CovenantSummary) > 0 {
+		t.CovenantSummary = &ti.CovenantSummary
+	} else {
+		t.CovenantSummary = nil
+	}
+
+	if len(ti.CovenantTestingFrequency) > 0 {
+		t.CovenantTestingFrequency = &ti.CovenantTestingFrequency
+	} else {
+		t.CovenantTestingFrequency = nil
+	}
+
+	if len(ti.EventOfDefaultClauses) > 0 {
+		t.EventOfDefaultClauses = &ti.EventOfDefaultClauses
+	} else {
+		t.EventOfDefaultClauses = nil
+	}
+
+	if len(ti.LegalEnforcementMechanism) > 0 {
+		t.LegalEnforcementMechanism = &ti.LegalEnforcementMechanism
+	} else {
+		t.LegalEnforcementMechanism = nil
+	}
+
+	if len(ti.Guarantee) > 0 {
+		t.Guarantee = &ti.Guarantee
+	} else {
+		t.Guarantee = nil
+	}
+
+	if len(ti.RiskProfileAdditionalInfo) > 0 {
+		t.RiskProfileAdditionalInfo = &ti.RiskProfileAdditionalInfo
+	} else {
+		t.RiskProfileAdditionalInfo = nil
+	}
+
+	if len(ti.LicenseNumber) > 0 {
+		t.LicenseNumber = &ti.LicenseNumber
+	} else {
+		t.LicenseNumber = nil
+	}
+
+	if len(ti.PortfolioLockInPeriod) > 0 {
+		t.PortfolioLockInPeriod = &ti.PortfolioLockInPeriod
+	} else {
+		t.PortfolioLockInPeriod = nil
+	}
+
+	//////////
+
 	return *t
 
 }
@@ -2682,6 +4569,729 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.DeepLink != nil {
 		t.DeepLink = *ti.DeepLink
 	}
+
+	t.TotalIssueSize = ti.TotalIssueSize
+	t.FaceValuePerUnit = ti.FaceValuePerUnit
+	t.CouponOrInterestRate = ti.CouponOrInterestRate
+	t.ExpectedYield = ti.ExpectedYield
+	t.MinimumInvestmentAmount = ti.MinimumInvestmentAmount
+	t.WeightedAverageLife = ti.WeightedAverageLife
+	t.UnderlyingAssetPoolSize = ti.UnderlyingAssetPoolSize
+	t.CouponRate = ti.CouponRate
+	t.SpreadOrMargin = ti.SpreadOrMargin
+	t.TotalExpenseRatio = ti.TotalExpenseRatio
+	t.ExitLoadRedemptionFee = ti.ExitLoadRedemptionFee
+	t.Tenure = ti.Tenure
+	t.InitialNetAssetValue = ti.InitialNetAssetValue
+	t.EntryLoad = ti.EntryLoad
+	t.PerformanceFee = ti.PerformanceFee
+	t.VolatilityEstimate = ti.VolatilityEstimate
+	t.DividendYield = ti.DividendYield
+	t.ExitLoadOrRedemptionFee = ti.ExitLoadOrRedemptionFee
+	t.AverageMaturity = ti.AverageMaturity
+	t.YieldToMaturity = ti.YieldToMaturity
+	t.PerformanceFeeIfAny = ti.PerformanceFeeIfAny
+	t.AverageMaturityHybrid = ti.AverageMaturityHybrid
+	t.YieldToMaturityHybrid = ti.YieldToMaturityHybrid
+	t.PricingYield = ti.PricingYield
+	t.Quantity = ti.Quantity
+	t.MinimumPurchaseAmount = ti.MinimumPurchaseAmount
+	t.AssetValuation = ti.AssetValuation
+	t.HoldingPeriod = ti.HoldingPeriod
+	t.RisksCoverageValue = ti.RisksCoverageValue
+	t.RecoveryEstimate = ti.RecoveryEstimate
+	t.ExitLoadFee = ti.ExitLoadFee
+	t.EntryLoadFee = ti.EntryLoadFee
+	t.PortfolioPerformanceFee = ti.PortfolioPerformanceFee
+
+	//////
+	if ti.IsinOrSerialNumber != nil {
+		t.IsinOrSerialNumber = *ti.IsinOrSerialNumber
+	}
+	if ti.InstrumentName != nil {
+		t.InstrumentName = *ti.InstrumentName
+	}
+	if ti.InstrumentType != nil {
+		t.InstrumentType = *ti.InstrumentType
+	}
+	if ti.CouponOrInterestRateType != nil {
+		t.CouponOrInterestRateType = *ti.CouponOrInterestRateType
+	}
+	if ti.ReferenceIndex != nil {
+		t.ReferenceIndex = *ti.ReferenceIndex
+	}
+	if ti.EarlyRedemptionOptionInvestor != nil {
+		t.EarlyRedemptionOptionInvestor = *ti.EarlyRedemptionOptionInvestor
+	}
+	if ti.TaxTreatmentTokenHolders != nil {
+		t.TaxTreatmentTokenHolders = *ti.TaxTreatmentTokenHolders
+	}
+	if ti.PaymentStructureToTokenHolders != nil {
+		t.PaymentStructureToTokenHolders = *ti.PaymentStructureToTokenHolders
+	}
+	if ti.RedemptionMethod != nil {
+		t.RedemptionMethod = *ti.RedemptionMethod
+	}
+	if ti.PaymentStructure != nil {
+		t.PaymentStructure = *ti.PaymentStructure
+	}
+	if ti.RepaymentMethod != nil {
+		t.RepaymentMethod = *ti.RepaymentMethod
+	}
+	if ti.PaymentCycle != nil {
+		t.PaymentCycle = *ti.PaymentCycle
+	}
+	if ti.PoolComposition != nil {
+		t.PoolComposition = *ti.PoolComposition
+	}
+	if ti.CreditEnhancementMethod != nil {
+		t.CreditEnhancementMethod = *ti.CreditEnhancementMethod
+	}
+	if ti.SummaryOfUseOfProceeds != nil {
+		t.SummaryOfUseOfProceeds = *ti.SummaryOfUseOfProceeds
+	}
+	if ti.CreditRatingIfAny != nil {
+		t.CreditRatingIfAny = *ti.CreditRatingIfAny
+	}
+	if ti.IssuerName != nil {
+		t.IssuerName = *ti.IssuerName
+	}
+	if ti.IssuerType != nil {
+		t.IssuerType = *ti.IssuerType
+	}
+	if ti.IssuerContactPerson != nil {
+		t.IssuerContactPerson = *ti.IssuerContactPerson
+	}
+	if ti.ContactEmail != nil {
+		t.ContactEmail = *ti.ContactEmail
+	}
+	if ti.ContactPhoneNumber != nil {
+		t.ContactPhoneNumber = *ti.ContactPhoneNumber
+	}
+	if ti.BriefCompanyOverview != nil {
+		t.BriefCompanyOverview = *ti.BriefCompanyOverview
+	}
+	if ti.MortgageOriginators != nil {
+		t.MortgageOriginators = *ti.MortgageOriginators
+	}
+	if ti.Servicer != nil {
+		t.Servicer = *ti.Servicer
+	}
+	if ti.InstrumentTrustee != nil {
+		t.InstrumentTrustee = *ti.InstrumentTrustee
+	}
+	if ti.InstrumentCustodians != nil {
+		t.InstrumentCustodians = *ti.InstrumentCustodians
+	}
+	if ti.InstrumentLegalAdvisor != nil {
+		t.InstrumentLegalAdvisor = *ti.InstrumentLegalAdvisor
+	}
+	if ti.SpecialPurposeVehicle != nil {
+		t.SpecialPurposeVehicle = *ti.SpecialPurposeVehicle
+	}
+	if ti.InstrumentAssetManagerOrAdministrator != nil {
+		t.InstrumentAssetManagerOrAdministrator = *ti.InstrumentAssetManagerOrAdministrator
+	}
+	if ti.UnderwriterIfAny != nil {
+		t.UnderwriterIfAny = *ti.UnderwriterIfAny
+	}
+	if ti.InstrumentCreditRatingAgency != nil {
+		t.InstrumentCreditRatingAgency = *ti.InstrumentCreditRatingAgency
+	}
+	if ti.AuditorOrVerifier != nil {
+		t.AuditorOrVerifier = *ti.AuditorOrVerifier
+	}
+	if ti.CreditRiskAssessment != nil {
+		t.CreditRiskAssessment = *ti.CreditRiskAssessment
+	}
+	if ti.CreditRating != nil {
+		t.CreditRating = *ti.CreditRating
+	}
+	if ti.PrepaymentRisk != nil {
+		t.PrepaymentRisk = *ti.PrepaymentRisk
+	}
+	if ti.InterestRateRisk != nil {
+		t.InterestRateRisk = *ti.InterestRateRisk
+	}
+	if ti.StructuralComplexityRisk != nil {
+		t.StructuralComplexityRisk = *ti.StructuralComplexityRisk
+	}
+	if ti.LegalOrRegulatoryRisk != nil {
+		t.LegalOrRegulatoryRisk = *ti.LegalOrRegulatoryRisk
+	}
+	if ti.OperationalRisk != nil {
+		t.OperationalRisk = *ti.OperationalRisk
+	}
+	if ti.MarketRisk != nil {
+		t.MarketRisk = *ti.MarketRisk
+	}
+	if ti.EsgRisk != nil {
+		t.EsgRisk = *ti.EsgRisk
+	}
+	if ti.MitigationMeasures != nil {
+		t.MitigationMeasures = *ti.MitigationMeasures
+	}
+	if ti.IssuingAuthority != nil {
+		t.IssuingAuthority = *ti.IssuingAuthority
+	}
+	if ti.RegulatoryApprovalId != nil {
+		t.RegulatoryApprovalId = *ti.RegulatoryApprovalId
+	}
+	if ti.LicenseApprovalReferenceNumber != nil {
+		t.LicenseApprovalReferenceNumber = *ti.LicenseApprovalReferenceNumber
+	}
+	if ti.ListingStatus != nil {
+		t.ListingStatus = *ti.ListingStatus
+	}
+	if ti.CurrencyOfIssuance != nil {
+		t.CurrencyOfIssuance = *ti.CurrencyOfIssuance
+	}
+	if ti.CouponRateType != nil {
+		t.CouponRateType = *ti.CouponRateType
+	}
+	if ti.ResetFrequency != nil {
+		t.ResetFrequency = *ti.ResetFrequency
+	}
+	if ti.CouponPaymentFrequency != nil {
+		t.CouponPaymentFrequency = *ti.CouponPaymentFrequency
+	}
+	if ti.RedemptionStructure != nil {
+		t.RedemptionStructure = *ti.RedemptionStructure
+	}
+	if ti.EarlyRedemptionOption != nil {
+		t.EarlyRedemptionOption = *ti.EarlyRedemptionOption
+	}
+	if ti.EarlyRedemptionPenalty != nil {
+		t.EarlyRedemptionPenalty = *ti.EarlyRedemptionPenalty
+	}
+	if ti.TaxTreatment != nil {
+		t.TaxTreatment = *ti.TaxTreatment
+	}
+	if ti.NavOrMarketValueUpdates != nil {
+		t.NavOrMarketValueUpdates = *ti.NavOrMarketValueUpdates
+	}
+	if ti.ImpactMetrics != nil {
+		t.ImpactMetrics = *ti.ImpactMetrics
+	}
+	if ti.LegalBacking != nil {
+		t.LegalBacking = *ti.LegalBacking
+	}
+	if ti.DefaultHistory != nil {
+		t.DefaultHistory = *ti.DefaultHistory
+	}
+	if ti.RiskFactorsSummary != nil {
+		t.RiskFactorsSummary = *ti.RiskFactorsSummary
+	}
+	if ti.PayingAgent != nil {
+		t.PayingAgent = *ti.PayingAgent
+	}
+	if ti.Auditor != nil {
+		t.Auditor = *ti.Auditor
+	}
+	if ti.RegistrarOrCSCSAgent != nil {
+		t.RegistrarOrCSCSAgent = *ti.RegistrarOrCSCSAgent
+	}
+	if ti.FundStructure != nil {
+		t.FundStructure = *ti.FundStructure
+	}
+	if ti.AssetManagementCompanyName != nil {
+		t.AssetManagementCompanyName = *ti.AssetManagementCompanyName
+	}
+	if ti.FundManagers != nil {
+		t.FundManagers = *ti.FundManagers
+	}
+	if ti.RegulatoryLicenseNumber != nil {
+		t.RegulatoryLicenseNumber = *ti.RegulatoryLicenseNumber
+	}
+	if ti.FundLaunchDate != nil {
+		t.FundLaunchDate = *ti.FundLaunchDate
+	}
+	if ti.NavUpdateFrequency != nil {
+		t.NavUpdateFrequency = *ti.NavUpdateFrequency
+	}
+	if ti.NavCalculationMethod != nil {
+		t.NavCalculationMethod = *ti.NavCalculationMethod
+	}
+	if ti.RedemptionRules != nil {
+		t.RedemptionRules = *ti.RedemptionRules
+	}
+	if ti.LockInPeriod != nil {
+		t.LockInPeriod = *ti.LockInPeriod
+	}
+	if ti.DividendPolicy != nil {
+		t.DividendPolicy = *ti.DividendPolicy
+	}
+	if ti.LiquidityProfile != nil {
+		t.LiquidityProfile = *ti.LiquidityProfile
+	}
+	if ti.DistributionFrequency != nil {
+		t.DistributionFrequency = *ti.DistributionFrequency
+	}
+	if ti.DistributionMethod != nil {
+		t.DistributionMethod = *ti.DistributionMethod
+	}
+	if ti.BenchmarkComparisonMethod != nil {
+		t.BenchmarkComparisonMethod = *ti.BenchmarkComparisonMethod
+	}
+	if ti.FeeBreakdownSummary != nil {
+		t.FeeBreakdownSummary = *ti.FeeBreakdownSummary
+	}
+	if ti.InvestmentObjective != nil {
+		t.InvestmentObjective = *ti.InvestmentObjective
+	}
+	if ti.EquityStrategy != nil {
+		t.EquityStrategy = *ti.EquityStrategy
+	}
+	if ti.MarketCapitalizationFocus != nil {
+		t.MarketCapitalizationFocus = *ti.MarketCapitalizationFocus
+	}
+	if ti.BenchmarkIndex != nil {
+		t.BenchmarkIndex = *ti.BenchmarkIndex
+	}
+	if ti.SectorExposureLimits != nil {
+		t.SectorExposureLimits = *ti.SectorExposureLimits
+	}
+	if ti.TopHoldings != nil {
+		t.TopHoldings = *ti.TopHoldings
+	}
+	if ti.GeographicExposure != nil {
+		t.GeographicExposure = *ti.GeographicExposure
+	}
+	if ti.RiskProfile != nil {
+		t.RiskProfile = *ti.RiskProfile
+	}
+	if ti.TrusteeName != nil {
+		t.TrusteeName = *ti.TrusteeName
+	}
+	if ti.FundAdministrator != nil {
+		t.FundAdministrator = *ti.FundAdministrator
+	}
+	if ti.InvestmentCommitteeMembers != nil {
+		t.InvestmentCommitteeMembers = *ti.InvestmentCommitteeMembers
+	}
+	if ti.IsinOrSecFundCode != nil {
+		t.IsinOrSecFundCode = *ti.IsinOrSecFundCode
+	}
+	if ti.FundRiskRating != nil {
+		t.FundRiskRating = *ti.FundRiskRating
+	}
+	if ti.AssetAllocation != nil {
+		t.AssetAllocation = *ti.AssetAllocation
+	}
+	if ti.CreditRatingProfile != nil {
+		t.CreditRatingProfile = *ti.CreditRatingProfile
+	}
+	if ti.LockInPeriodPortfolio != nil {
+		t.LockInPeriodPortfolio = *ti.LockInPeriodPortfolio
+	}
+	if ti.TopEquityHoldings != nil {
+		t.TopEquityHoldings = *ti.TopEquityHoldings
+	}
+	if ti.TargetAllocation != nil {
+		t.TargetAllocation = *ti.TargetAllocation
+	}
+	if ti.AllowedAllocationRange != nil {
+		t.AllowedAllocationRange = *ti.AllowedAllocationRange
+	}
+	if ti.AssetClassesIncluded != nil {
+		t.AssetClassesIncluded = *ti.AssetClassesIncluded
+	}
+	if ti.RebalancingFrequency != nil {
+		t.RebalancingFrequency = *ti.RebalancingFrequency
+	}
+	if ti.BenchmarkIndexComposite != nil {
+		t.BenchmarkIndexComposite = *ti.BenchmarkIndexComposite
+	}
+	if ti.TopEquityHoldingsList != nil {
+		t.TopEquityHoldingsList = *ti.TopEquityHoldingsList
+	}
+	if ti.TopDebtHoldings != nil {
+		t.TopDebtHoldings = *ti.TopDebtHoldings
+	}
+	if ti.CreditRatingDistribution != nil {
+		t.CreditRatingDistribution = *ti.CreditRatingDistribution
+	}
+	if ti.TitleOfIssuance != nil {
+		t.TitleOfIssuance = *ti.TitleOfIssuance
+	}
+	if ti.TypeOfCommercialPaper != nil {
+		t.TypeOfCommercialPaper = *ti.TypeOfCommercialPaper
+	}
+	if ti.UseOfProceeds != nil {
+		t.UseOfProceeds = *ti.UseOfProceeds
+	}
+	if ti.Ranking != nil {
+		t.Ranking = *ti.Ranking
+	}
+	if ti.BackingSecurity != nil {
+		t.BackingSecurity = *ti.BackingSecurity
+	}
+	if ti.IssuerRegistrationNumber != nil {
+		t.IssuerRegistrationNumber = *ti.IssuerRegistrationNumber
+	}
+	if ti.IncorporationDate != nil {
+		t.IncorporationDate = *ti.IncorporationDate
+	}
+	if ti.RcNumber != nil {
+		t.RcNumber = *ti.RcNumber
+	}
+	if ti.TaxIdNumber != nil {
+		t.TaxIdNumber = *ti.TaxIdNumber
+	}
+	if ti.OfficeAddress != nil {
+		t.OfficeAddress = *ti.OfficeAddress
+	}
+	if ti.Rating != nil {
+		t.Rating = *ti.Rating
+	}
+
+	/////
+
+	if ti.PartiesInvolvedIssuer != nil {
+		t.PartiesInvolvedIssuer = *ti.PartiesInvolvedIssuer
+	}
+	if ti.PartiesInvolvedArranger != nil {
+		t.PartiesInvolvedArranger = *ti.PartiesInvolvedArranger
+	}
+	if ti.PartiesInvolvedLegalAdviser != nil {
+		t.PartiesInvolvedLegalAdviser = *ti.PartiesInvolvedLegalAdviser
+	}
+	if ti.PartiesInvolvedAuditor != nil {
+		t.PartiesInvolvedAuditor = *ti.PartiesInvolvedAuditor
+	}
+	if ti.PartiesInvolvedRatingAgency != nil {
+		t.PartiesInvolvedRatingAgency = *ti.PartiesInvolvedRatingAgency
+	}
+	if ti.PartiesInvolvedCustodian != nil {
+		t.PartiesInvolvedCustodian = *ti.PartiesInvolvedCustodian
+	}
+	if ti.PartiesInvolvedTrustee != nil {
+		t.PartiesInvolvedTrustee = *ti.PartiesInvolvedTrustee
+	}
+	if ti.PartiesInvolvedAuditorVerifier != nil {
+		t.PartiesInvolvedAuditorVerifier = *ti.PartiesInvolvedAuditorVerifier
+	}
+	if ti.SecurityRiskLegalBacking != nil {
+		t.SecurityRiskLegalBacking = *ti.SecurityRiskLegalBacking
+	}
+	if ti.SecurityRiskCollateral != nil {
+		t.SecurityRiskCollateral = *ti.SecurityRiskCollateral
+	}
+	if ti.SecurityRiskDefaultHistory != nil {
+		t.SecurityRiskDefaultHistory = *ti.SecurityRiskDefaultHistory
+	}
+	if ti.SecurityRiskCreditRating != nil {
+		t.SecurityRiskCreditRating = *ti.SecurityRiskCreditRating
+	}
+	if ti.SecurityRiskRiskFactorsSummary != nil {
+		t.SecurityRiskRiskFactorsSummary = *ti.SecurityRiskRiskFactorsSummary
+	}
+	if ti.SecurityRiskBusinessRisk != nil {
+		t.SecurityRiskBusinessRisk = *ti.SecurityRiskBusinessRisk
+	}
+	if ti.SecurityRiskDefaultRisk != nil {
+		t.SecurityRiskDefaultRisk = *ti.SecurityRiskDefaultRisk
+	}
+	if ti.SecurityRiskLiquidityRisk != nil {
+		t.SecurityRiskLiquidityRisk = *ti.SecurityRiskLiquidityRisk
+	}
+	if ti.SecurityRiskRegulatoryRisk != nil {
+		t.SecurityRiskRegulatoryRisk = *ti.SecurityRiskRegulatoryRisk
+	}
+	if ti.SecurityRiskMarketRisk != nil {
+		t.SecurityRiskMarketRisk = *ti.SecurityRiskMarketRisk
+	}
+	if ti.SecurityRiskOperationalRisk != nil {
+		t.SecurityRiskOperationalRisk = *ti.SecurityRiskOperationalRisk
+	}
+	if ti.SecurityRiskMitigationMeasures != nil {
+		t.SecurityRiskMitigationMeasures = *ti.SecurityRiskMitigationMeasures
+	}
+	if ti.CommodityType != nil {
+		t.CommodityType = *ti.CommodityType
+	}
+	if ti.CommodityDescription != nil {
+		t.CommodityDescription = *ti.CommodityDescription
+	}
+	if ti.QualityGrade != nil {
+		t.QualityGrade = *ti.QualityGrade
+	}
+	if ti.IssuerContactInfo != nil {
+		t.IssuerContactInfo = *ti.IssuerContactInfo
+	}
+	if ti.WarehouseName != nil {
+		t.WarehouseName = *ti.WarehouseName
+	}
+	if ti.WarehouseOperatorName != nil {
+		t.WarehouseOperatorName = *ti.WarehouseOperatorName
+	}
+	if ti.WarehouseLicenseNumber != nil {
+		t.WarehouseLicenseNumber = *ti.WarehouseLicenseNumber
+	}
+	if ti.WarehouseLocation != nil {
+		t.WarehouseLocation = *ti.WarehouseLocation
+	}
+	if ti.WrNumber != nil {
+		t.WrNumber = *ti.WrNumber
+	}
+	if ti.WrIssueDate != nil {
+		t.WrIssueDate = *ti.WrIssueDate
+	}
+	if ti.WrExpiryDate != nil {
+		t.WrExpiryDate = *ti.WrExpiryDate
+	}
+	if ti.WrSystemRegistration != nil {
+		t.WrSystemRegistration = *ti.WrSystemRegistration
+	}
+	if ti.WrRegistrationNumber != nil {
+		t.WrRegistrationNumber = *ti.WrRegistrationNumber
+	}
+	if ti.WrVerifier != nil {
+		t.WrVerifier = *ti.WrVerifier
+	}
+	if ti.StorageCondition != nil {
+		t.StorageCondition = *ti.StorageCondition
+	}
+	if ti.WarehouseAccreditationBody != nil {
+		t.WarehouseAccreditationBody = *ti.WarehouseAccreditationBody
+	}
+	if ti.AutoRollover != nil {
+		t.AutoRollover = *ti.AutoRollover
+	}
+	if ti.CurrentBeneficialOwner != nil {
+		t.CurrentBeneficialOwner = *ti.CurrentBeneficialOwner
+	}
+	if ti.WrCustodianName != nil {
+		t.WrCustodianName = *ti.WrCustodianName
+	}
+	if ti.OwnershipRightsRepresented != nil {
+		t.OwnershipRightsRepresented = *ti.OwnershipRightsRepresented
+	}
+	if ti.TrusteeOrThirdPartyOversight != nil {
+		t.TrusteeOrThirdPartyOversight = *ti.TrusteeOrThirdPartyOversight
+	}
+	if ti.LienOrEncumbrances != nil {
+		t.LienOrEncumbrances = *ti.LienOrEncumbrances
+	}
+	if ti.ValuationDate != nil {
+		t.ValuationDate = *ti.ValuationDate
+	}
+	if ti.ValuationMethodology != nil {
+		t.ValuationMethodology = *ti.ValuationMethodology
+	}
+	if ti.TokenizationObjective != nil {
+		t.TokenizationObjective = *ti.TokenizationObjective
+	}
+	if ti.RedemptionMechanism != nil {
+		t.RedemptionMechanism = *ti.RedemptionMechanism
+	}
+	if ti.PartiesInvolvedUnderwriter != nil {
+		t.PartiesInvolvedUnderwriter = *ti.PartiesInvolvedUnderwriter
+	}
+	if ti.PartiesInvolvedAssetManager != nil {
+		t.PartiesInvolvedAssetManager = *ti.PartiesInvolvedAssetManager
+	}
+	if ti.PartiesInvolvedLegalAdvisor != nil {
+		t.PartiesInvolvedLegalAdvisor = *ti.PartiesInvolvedLegalAdvisor
+	}
+	if ti.PartiesInvolvedRegulator != nil {
+		t.PartiesInvolvedRegulator = *ti.PartiesInvolvedRegulator
+	}
+	if ti.RisksMarketRisk != nil {
+		t.RisksMarketRisk = *ti.RisksMarketRisk
+	}
+	if ti.RisksStorageRisk != nil {
+		t.RisksStorageRisk = *ti.RisksStorageRisk
+	}
+	if ti.RisksTitleRisk != nil {
+		t.RisksTitleRisk = *ti.RisksTitleRisk
+	}
+	if ti.RisksFraudRisk != nil {
+		t.RisksFraudRisk = *ti.RisksFraudRisk
+	}
+	if ti.RisksInsuranceRisk != nil {
+		t.RisksInsuranceRisk = *ti.RisksInsuranceRisk
+	}
+	if ti.RisksOperationalRisk != nil {
+		t.RisksOperationalRisk = *ti.RisksOperationalRisk
+	}
+	if ti.RisksRegulatoryRisk != nil {
+		t.RisksRegulatoryRisk = *ti.RisksRegulatoryRisk
+	}
+	if ti.RisksLiquidityRisk != nil {
+		t.RisksLiquidityRisk = *ti.RisksLiquidityRisk
+	}
+	if ti.RisksForceMajeureRisk != nil {
+		t.RisksForceMajeureRisk = *ti.RisksForceMajeureRisk
+	}
+	if ti.RisksEarlyRedemptionRisk != nil {
+		t.RisksEarlyRedemptionRisk = *ti.RisksEarlyRedemptionRisk
+	}
+	if ti.RisksMitigationMeasures != nil {
+		t.RisksMitigationMeasures = *ti.RisksMitigationMeasures
+	}
+	if ti.RisksInsuranceCoverageSummary != nil {
+		t.RisksInsuranceCoverageSummary = *ti.RisksInsuranceCoverageSummary
+	}
+	if ti.RisksInsuranceProvider != nil {
+		t.RisksInsuranceProvider = *ti.RisksInsuranceProvider
+	}
+	if ti.QuanlityStandard != nil {
+		t.QuanlityStandard = *ti.QuanlityStandard
+	}
+	if ti.IssuerContactInformation != nil {
+		t.IssuerContactInformation = *ti.IssuerContactInformation
+	}
+	if ti.VaultCustodianName != nil {
+		t.VaultCustodianName = *ti.VaultCustodianName
+	}
+	if ti.VaultOperator != nil {
+		t.VaultOperator = *ti.VaultOperator
+	}
+	if ti.VaultLicenseNumber != nil {
+		t.VaultLicenseNumber = *ti.VaultLicenseNumber
+	}
+	if ti.VaultLocation != nil {
+		t.VaultLocation = *ti.VaultLocation
+	}
+	if ti.Number != nil {
+		t.Number = *ti.Number
+	}
+	if ti.IssuerDate != nil {
+		t.IssuerDate = *ti.IssuerDate
+	}
+	if ti.ExpiryDate != nil {
+		t.ExpiryDate = *ti.ExpiryDate
+	}
+	if ti.RegistryRecord != nil {
+		t.RegistryRecord = *ti.RegistryRecord
+	}
+	if ti.Verifier != nil {
+		t.Verifier = *ti.Verifier
+	}
+	if ti.StorageConditions != nil {
+		t.StorageConditions = *ti.StorageConditions
+	}
+	if ti.VaultAccreditationBody != nil {
+		t.VaultAccreditationBody = *ti.VaultAccreditationBody
+	}
+	if ti.OwnershipLegalHolder != nil {
+		t.OwnershipLegalHolder = *ti.OwnershipLegalHolder
+	}
+	if ti.OwnershipCustodianName != nil {
+		t.OwnershipCustodianName = *ti.OwnershipCustodianName
+	}
+	if ti.OwnershipTrustee != nil {
+		t.OwnershipTrustee = *ti.OwnershipTrustee
+	}
+	if ti.OwnershipLienOrEncumbrances != nil {
+		t.OwnershipLienOrEncumbrances = *ti.OwnershipLienOrEncumbrances
+	}
+	if ti.ValuationAssetValuation != nil {
+		t.ValuationAssetValuation = *ti.ValuationAssetValuation
+	}
+	if ti.HoldingLockinPeriod != nil {
+		t.HoldingLockinPeriod = *ti.HoldingLockinPeriod
+	}
+	if ti.InsuranceMarketRisk != nil {
+		t.InsuranceMarketRisk = *ti.InsuranceMarketRisk
+	}
+	if ti.InsuranceStorageRisk != nil {
+		t.InsuranceStorageRisk = *ti.InsuranceStorageRisk
+	}
+	if ti.InsuranceTitleRisk != nil {
+		t.InsuranceTitleRisk = *ti.InsuranceTitleRisk
+	}
+	if ti.InsuranceFraudRisk != nil {
+		t.InsuranceFraudRisk = *ti.InsuranceFraudRisk
+	}
+	if ti.InsuranceInsuranceRisk != nil {
+		t.InsuranceInsuranceRisk = *ti.InsuranceInsuranceRisk
+	}
+	if ti.InsuranceOperationalRisk != nil {
+		t.InsuranceOperationalRisk = *ti.InsuranceOperationalRisk
+	}
+	if ti.InsuranceRegulatoryRisk != nil {
+		t.InsuranceRegulatoryRisk = *ti.InsuranceRegulatoryRisk
+	}
+	if ti.InsuranceLiquidityRisk != nil {
+		t.InsuranceLiquidityRisk = *ti.InsuranceLiquidityRisk
+	}
+	if ti.InsuranceForceMajeureRisk != nil {
+		t.InsuranceForceMajeureRisk = *ti.InsuranceForceMajeureRisk
+	}
+	if ti.InsuranceEarlyRedemptionRisk != nil {
+		t.InsuranceEarlyRedemptionRisk = *ti.InsuranceEarlyRedemptionRisk
+	}
+	if ti.InsuranceMitigationMeasures != nil {
+		t.InsuranceMitigationMeasures = *ti.InsuranceMitigationMeasures
+	}
+	if ti.InsuranceInsuranceCoverageSummary != nil {
+		t.InsuranceInsuranceCoverageSummary = *ti.InsuranceInsuranceCoverageSummary
+	}
+	if ti.InsuranceInsuranceProvider != nil {
+		t.InsuranceInsuranceProvider = *ti.InsuranceInsuranceProvider
+	}
+	if ti.InsuranceCoverageValue != nil {
+		t.InsuranceCoverageValue = *ti.InsuranceCoverageValue
+	}
+	if ti.IssuerRegistrationNo != nil {
+		t.IssuerRegistrationNo = *ti.IssuerRegistrationNo
+	}
+	if ti.SectorAndIndustry != nil {
+		t.SectorAndIndustry = *ti.SectorAndIndustry
+	}
+	if ti.LicenseOrPermitNumber != nil {
+		t.LicenseOrPermitNumber = *ti.LicenseOrPermitNumber
+	}
+	if ti.IssuerAdditionalInfo != nil {
+		t.IssuerAdditionalInfo = *ti.IssuerAdditionalInfo
+	}
+	if ti.IsinSerialNumber != nil {
+		t.IsinSerialNumber = *ti.IsinSerialNumber
+	}
+	if ti.EsgOrImpactMetrics != nil {
+		t.EsgOrImpactMetrics = *ti.EsgOrImpactMetrics
+	}
+	if ti.InstrumentAdditionalInfo != nil {
+		t.InstrumentAdditionalInfo = *ti.InstrumentAdditionalInfo
+	}
+	if ti.SecurityType != nil {
+		t.SecurityType = *ti.SecurityType
+	}
+	if ti.CollateralDescription != nil {
+		t.CollateralDescription = *ti.CollateralDescription
+	}
+	if ti.CovenantSummary != nil {
+		t.CovenantSummary = *ti.CovenantSummary
+	}
+	if ti.CovenantTestingFrequency != nil {
+		t.CovenantTestingFrequency = *ti.CovenantTestingFrequency
+	}
+	if ti.EventOfDefaultClauses != nil {
+		t.EventOfDefaultClauses = *ti.EventOfDefaultClauses
+	}
+	if ti.LegalEnforcementMechanism != nil {
+		t.LegalEnforcementMechanism = *ti.LegalEnforcementMechanism
+	}
+	if ti.Guarantee != nil {
+		t.Guarantee = *ti.Guarantee
+	}
+	if ti.RiskProfileAdditionalInfo != nil {
+		t.RiskProfileAdditionalInfo = *ti.RiskProfileAdditionalInfo
+	}
+	if ti.LicenseNumber != nil {
+		t.LicenseNumber = *ti.LicenseNumber
+	}
+	if ti.PortfolioLockInPeriod != nil {
+		t.PortfolioLockInPeriod = *ti.PortfolioLockInPeriod
+	}
+
+	//////
+
+	t.IssueDate = ti.IssueDate
+
+	t.MaturityDate = ti.MaturityDate
 
 	return t
 
