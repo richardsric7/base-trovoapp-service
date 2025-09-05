@@ -1884,7 +1884,7 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 	if t.IssuingWalletPublicKey != nil {
 		issuerWalletPublicKey = *t.IssuingWalletPublicKey
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, issuerWalletPublicKey).Count(&count)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Count(&count)
 
 	return
 }
@@ -1899,7 +1899,7 @@ func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum
 	if t.IssuingWalletPublicKey != nil {
 		issuerWalletPublicKey = *t.IssuingWalletPublicKey
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
