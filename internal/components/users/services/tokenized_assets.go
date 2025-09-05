@@ -2389,7 +2389,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 			//get the first
 			offer := offers.Embedded.Records[0]
 			//get price
-			remainingBuyingLiability := decimal.RequireFromString(offer.Amount).Div(decimal.RequireFromString(offer.Price)).Truncate(7)
+			remainingBuyingLiability := decimal.RequireFromString(offer.Amount).Mul(decimal.RequireFromString(offer.Price)).Truncate(7)
 			//if the subscription amount is greater than the buying liability, then reject action.
 			decPurchaseAmountFiat := decimal.NewFromFloat(input.Amount)
 
