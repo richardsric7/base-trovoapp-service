@@ -2395,7 +2395,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 			if decPurchaseAmountFiat.GreaterThan(remainingBuyingLiability) {
 				//not enough liquidity
-				err = &tErrors.CustomError{Param: "amount", Err: "error-low-liquidity", ErrMessage: fmt.Sprintf("Available %v asset is now remaining %v %v. You can only purchase maximum of this amount.", swapInfo.DestinationAssetCode, remainingBuyingLiability.String(), swapInfo.SourceAssetCode)}
+				err = &tErrors.CustomError{Param: "amount", Err: "error-low-liquidity", ErrMessage: fmt.Sprintf("Remaining %v token can be purchased with a maximum of %v %v. Please adjust your purchase amount.", swapInfo.DestinationAssetCode, remainingBuyingLiability.String(), swapInfo.SourceAssetCode)}
 				return
 			}
 
