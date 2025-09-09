@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/models/curated_asset.dart';
@@ -716,22 +715,6 @@ class DataProvider with ChangeNotifier {
       }
     }
     notifyListeners();
-  }
-
-  void initFirebaseListener(BuildContext context) {
-    FirebaseDynamicLinks.instance.onLink
-        .listen((dynamicLinkData) async {
-          try {
-            await StoreData().storeInsertData(
-              'initialDynamicLink',
-              dynamicLinkData.link.toString(),
-            );
-            processDeepLink(context, dynamicLinkData.link);
-          } catch (e) {}
-        })
-        .onError((error) {
-          // Handle errors
-        });
   }
 
   void processDeepLink(

@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';

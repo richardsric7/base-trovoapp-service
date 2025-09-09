@@ -155,6 +155,7 @@ class TokenizedAsset {
   int? numberOfExpressedInterests;
   int? numberOfSubscribers;
   double? quantityOfTokensSold;
+  double? quantityOfTokensSoldInFiat;
   String deepLink;
 
   TokenizedAsset({
@@ -309,6 +310,7 @@ class TokenizedAsset {
     this.numberOfExpressedInterests,
     this.numberOfSubscribers,
     this.quantityOfTokensSold,
+    this.quantityOfTokensSoldInFiat,
     this.deepLink = '',
   });
 
@@ -532,6 +534,9 @@ class TokenizedAsset {
       numberOfSubscribers: int.tryParse(m["numberOfSubscribers"].toString()),
       quantityOfTokensSold: double.tryParse(
         m["quantityOfTokensSold"].toString(),
+      ),
+      quantityOfTokensSoldInFiat: double.tryParse(
+        m["quantityOfTokensSoldInFiat"].toString(),
       ),
       deepLink: m["deepLink"].toString(),
     );

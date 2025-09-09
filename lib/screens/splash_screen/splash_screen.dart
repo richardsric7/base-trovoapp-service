@@ -117,8 +117,6 @@ class _SplashScreenState extends State<SplashScreen>
           await StoreData().storeGetData('defaultLanguage') ?? 'en';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);
 
-      if (!appState.appIsOpen) appState.initFirebaseListener(context);
-
       if (appState.isFirstTime) {
         Timer.periodic(Duration(milliseconds: 200), (timer) {
           if (timerIsDone) {

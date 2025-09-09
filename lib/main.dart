@@ -16,7 +16,6 @@ import 'package:trovo_app/router/back_dispatcher.dart';
 import 'package:trovo_app/router/route_parser.dart';
 import 'package:trovo_app/router/router_delegate.dart';
 import 'package:trovo_app/router/ui_pages.dart';
-import 'package:trovo_app/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_app/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'custom_bloc_observer/notifire_clor.dart';
@@ -37,13 +36,13 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
-  if (dynamicLink != null) {
-    await StoreData().storeInsertData(
-      'initialDynamicLink',
-      dynamicLink.link.toString(),
-    );
-  }
+  // var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
+  // if (dynamicLink != null) {
+  //   await StoreData().storeInsertData(
+  //     'initialDynamicLink',
+  //     dynamicLink.link.toString(),
+  //   );
+  // }
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 

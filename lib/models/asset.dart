@@ -30,7 +30,6 @@ class Asset {
   });
 
   Asset deserializeJson(Map<String, dynamic> m) {
-    print('============> tokenized asset $m');
     return Asset(
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],

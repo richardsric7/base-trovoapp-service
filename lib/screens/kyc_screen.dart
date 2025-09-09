@@ -591,8 +591,8 @@ class _KYCScreenState extends State<KYCScreen> {
       context,
       text:
           'Your KYC procedure has been recorded successfully. Please wait for a few minutes for your information to be confirmed. Please refresh at intervals by pulling down on the home screen.',
-      onTap: () {
-        // Navigator.of(context).pop();
+      onTap: () async {
+        await appState.refreshData();
       },
     );
   }

@@ -863,9 +863,7 @@ Widget tokenizedAssetTile({
                           notifier.getsplashgrey,
                         ),
                         backgroundColor: WidgetStateProperty.all<Color>(
-                          asset.expressedInterest ?? false
-                              ? notifier.getbluewhitecolor
-                              : notifier.getwihitecolor,
+                          notifier.getwihitecolor,
                         ),
                         side: WidgetStateProperty.all(
                           BorderSide(
@@ -884,47 +882,43 @@ Widget tokenizedAssetTile({
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           if (asset.expressedInterest ?? false) ...[
-                            Container(
-                              width: 70,
-                              child: Text(
-                                'Interest Expressed',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  overflow: TextOverflow.visible,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ),
+                            // Container(
+                            //   width: 70,
+                            //   child: Text(
+                            //     'Interest Expressed',
+                            //     style: TextStyle(
+                            //       fontFamily: fontsemibold,
+                            //       fontSize: 12,
+                            //       overflow: TextOverflow.visible,
+                            //       color: asset.expressedInterest ?? false
+                            //           ? notifier.getwihitecolor
+                            //           : notifier.getbluewhitecolor,
+                            //     ),
+                            //   ),
+                            // ),
                             Icon(
-                              Icons.check_circle_rounded,
-                              size: 20,
-                              color: asset.expressedInterest ?? false
-                                  ? notifier.getwihitecolor
-                                  : notifier.getbluewhitecolor,
+                              Icons.check_circle,
+                              size: 25,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ] else ...[
-                            Container(
-                              width: 70,
-                              child: Text(
-                                'Express Interest',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ),
+                            // Container(
+                            //   width: 70,
+                            //   child: Text(
+                            //     'Express Interest',
+                            //     style: TextStyle(
+                            //       fontFamily: fontsemibold,
+                            //       fontSize: 12,
+                            //       color: asset.expressedInterest ?? false
+                            //           ? notifier.getwihitecolor
+                            //           : notifier.getbluewhitecolor,
+                            //     ),
+                            //   ),
+                            // ),
                             Icon(
-                              Icons.add_circle_rounded,
-                              size: 20,
-                              color: asset.expressedInterest ?? false
-                                  ? notifier.getwihitecolor
-                                  : notifier.getbluewhitecolor,
+                              Icons.add_circle_outline,
+                              size: 25,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ],
                         ],
