@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+import 'dart:io';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -219,7 +221,7 @@ class _KYCScreenState extends State<KYCScreen> {
               }
             }
 
-            if (deniedList.isNotEmpty) {
+            if (!Platform.isIOS && deniedList.isNotEmpty) {
               return Scaffold(
                 body: SafeArea(
                   child: Padding(
@@ -305,7 +307,13 @@ class _KYCScreenState extends State<KYCScreen> {
                           SizedBox(height: 10),
                           ElevatedButton(
                             onPressed: () async {
-                              await Geolocator.openLocationSettings();
+                              if (Platform.isIOS) {
+                                AppSettings.openAppSettings(
+                                  type: AppSettingsType.location,
+                                );
+                              } else {
+                                await Geolocator.openLocationSettings();
+                              }
                               Timer.periodic(Duration(seconds: 1), (
                                 timer,
                               ) async {
