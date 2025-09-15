@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -834,6 +836,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
+    inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
       appState.tokenizationData = responseData['data'];
 

@@ -442,7 +442,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   ),
                 ),
               ),
-              if (isVetted) ...[
+              if (isVetted && tokenizedAsset.feeInAsset! > 0) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(

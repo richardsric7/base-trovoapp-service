@@ -721,7 +721,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               amount.toString().isNotEmpty
                   ? "≈ ${formatNumber(amount)} ${getAssetCode(sourceAsset!.assetCode)}"
                   : "≈ 0.0000 ${getAssetCode(sourceAsset!.assetCode)}",
-              textScaleFactor: 1.0,
+              textScaler: TextScaler.linear(1.0),
               style: TextStyle(
                 color: notifier.getdarkgrey,
                 fontWeight: FontWeight.w400,
@@ -735,7 +735,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               replacement: Container(),
               child: Text(
                 "${formatNumber(sourceAsset!.amount!)} ${getAssetCode(sourceAsset!.assetCode)}",
-                textScaleFactor: 1.0,
+                textScaler: TextScaler.linear(1.0),
                 textAlign: TextAlign.right,
                 style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0),
               ),

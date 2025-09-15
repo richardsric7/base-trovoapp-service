@@ -13,6 +13,7 @@ class Asset {
   Map? inTrade;
   List<CryptoWalletDepositAddress>? cryptoWalletDepositAddresses;
   int? assetClassId;
+  bool tokenizedAsset;
 
   Asset({
     this.assetCode,
@@ -25,20 +26,23 @@ class Asset {
     this.nativePrice,
     this.cryptoWalletDepositAddresses,
     this.assetClassId,
+    this.tokenizedAsset = false,
   });
 
   Asset deserializeJson(Map<String, dynamic> m) {
     return Asset(
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
+      tokenizedAsset: m["tokenizedAsset"] == 1,
       amount: double.parse(m["amount"]),
       qrCode: m["qrCode"],
       imageUrl: m["imageUrl"],
       usdPrice: double.parse(m["usdPrice"]),
       inTrade: m["inTrade"],
       nativePrice: double.parse(m["nativePrice"]),
-      cryptoWalletDepositAddresses:
-          deserializeDepositAddresses(m['cryptoWalletDepositAddresses']),
+      cryptoWalletDepositAddresses: deserializeDepositAddresses(
+        m['cryptoWalletDepositAddresses'],
+      ),
     );
   }
 

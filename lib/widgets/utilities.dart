@@ -274,7 +274,7 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
         calculateFiatValue(
           asset.amount.toString(),
           asset.usdPrice.toString(),
-          currency,
+          asset.tokenizedAsset ? 'USD' : currency,
           appState,
         ).replaceAll(',', ''),
       );
@@ -538,6 +538,7 @@ Widget dropdown(
 }
 
 Future<void> share(String message, GlobalKey snapshotAreaKey) async {
+  print('Sharing...');
   final appDir = await syspaths.getTemporaryDirectory();
   String fileName = '${appDir.path}/receipt.png';
 
@@ -549,11 +550,21 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   var byteData = await image.toByteData(format: ImageByteFormat.png);
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
-  await Share.shareXFiles(
-    [XFile(fileName)],
-    text: message,
-    sharePositionOrigin: boundary.paintBounds,
-  );
+  try {
+    var params = ShareParams(
+      files: [XFile(fileName)],
+      text: message,
+      sharePositionOrigin: boundary.paintBounds,
+    );
+
+    final result = await SharePlus.instance.share(params);
+
+    if (result.status == ShareResultStatus.success) {
+      print('Thank you for sharing the picture!');
+    }
+  } catch (e) {
+    print('dkjfasld $e');
+  }
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
@@ -852,9 +863,7 @@ Widget tokenizedAssetTile({
                           notifier.getsplashgrey,
                         ),
                         backgroundColor: WidgetStateProperty.all<Color>(
-                          asset.expressedInterest ?? false
-                              ? notifier.getbluewhitecolor
-                              : notifier.getwihitecolor,
+                          notifier.getwihitecolor,
                         ),
                         side: WidgetStateProperty.all(
                           BorderSide(
@@ -873,47 +882,43 @@ Widget tokenizedAssetTile({
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           if (asset.expressedInterest ?? false) ...[
-                            Container(
-                              width: 70,
-                              child: Text(
-                                'Interest Expressed',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  overflow: TextOverflow.visible,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ),
+                            // Container(
+                            //   width: 70,
+                            //   child: Text(
+                            //     'Interest Expressed',
+                            //     style: TextStyle(
+                            //       fontFamily: fontsemibold,
+                            //       fontSize: 12,
+                            //       overflow: TextOverflow.visible,
+                            //       color: asset.expressedInterest ?? false
+                            //           ? notifier.getwihitecolor
+                            //           : notifier.getbluewhitecolor,
+                            //     ),
+                            //   ),
+                            // ),
                             Icon(
-                              Icons.check_circle_rounded,
-                              size: 20,
-                              color: asset.expressedInterest ?? false
-                                  ? notifier.getwihitecolor
-                                  : notifier.getbluewhitecolor,
+                              Icons.check_circle,
+                              size: 25,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ] else ...[
-                            Container(
-                              width: 53,
-                              child: Text(
-                                'Express Interest',
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                  fontSize: 12,
-                                  color: asset.expressedInterest ?? false
-                                      ? notifier.getwihitecolor
-                                      : notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ),
+                            // Container(
+                            //   width: 70,
+                            //   child: Text(
+                            //     'Express Interest',
+                            //     style: TextStyle(
+                            //       fontFamily: fontsemibold,
+                            //       fontSize: 12,
+                            //       color: asset.expressedInterest ?? false
+                            //           ? notifier.getwihitecolor
+                            //           : notifier.getbluewhitecolor,
+                            //     ),
+                            //   ),
+                            // ),
                             Icon(
-                              Icons.add_circle_rounded,
-                              size: 20,
-                              color: asset.expressedInterest ?? false
-                                  ? notifier.getwihitecolor
-                                  : notifier.getbluewhitecolor,
+                              Icons.add_circle_outline,
+                              size: 25,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ],
                         ],

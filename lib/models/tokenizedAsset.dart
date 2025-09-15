@@ -52,6 +52,7 @@ class TokenizedAsset {
   String? assetLogo;
   bool? expressedInterest;
   double? expressedInterestAmount;
+  double? purchaseCommitments;
   bool? isSubscribed;
   double? subscriptionAmount;
   String? exemptedCountries;
@@ -154,6 +155,8 @@ class TokenizedAsset {
   int? numberOfExpressedInterests;
   int? numberOfSubscribers;
   double? quantityOfTokensSold;
+  double? quantityOfTokensSoldInFiat;
+  String deepLink;
 
   TokenizedAsset({
     this.id,
@@ -225,6 +228,7 @@ class TokenizedAsset {
     this.subscriptionAmount,
     this.expressedInterest,
     this.expressedInterestAmount,
+    this.purchaseCommitments,
     this.proofOfPaymentDocuments,
     this.agreeTransferTitleToCustodian,
     this.contractualProtectionRevGuarantees,
@@ -306,6 +310,8 @@ class TokenizedAsset {
     this.numberOfExpressedInterests,
     this.numberOfSubscribers,
     this.quantityOfTokensSold,
+    this.quantityOfTokensSoldInFiat,
+    this.deepLink = '',
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -375,6 +381,7 @@ class TokenizedAsset {
       exemptedCountries: m["exemptedCountries"],
       hasAdditionalKYCRequirements: m["hasAdditionalKYCRequirements"],
       proceedPayoutCurrency: m["proceedPayoutCurrency"],
+      purchaseCommitments: double.parse(m["purchaseCommitments"].toString()),
       additionalKYCRequirements: m["additionalKYCRequirements"],
       investorAccreditationRequired: m["investorAccreditationRequired"],
       lastUpdatedBy: m["lastUpdatedBy"],
@@ -528,6 +535,10 @@ class TokenizedAsset {
       quantityOfTokensSold: double.tryParse(
         m["quantityOfTokensSold"].toString(),
       ),
+      quantityOfTokensSoldInFiat: double.tryParse(
+        m["quantityOfTokensSoldInFiat"].toString(),
+      ),
+      deepLink: m["deepLink"].toString(),
     );
   }
 

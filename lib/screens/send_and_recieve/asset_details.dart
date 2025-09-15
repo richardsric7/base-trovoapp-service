@@ -239,7 +239,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   totalBalance:
                       '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
                   fiatBalance:
-                      '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                      '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), asset!.tokenizedAsset ? 'USD' : appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                   initialHiddenState: appState.hideBalances,
                 ),
               ),
@@ -438,7 +438,9 @@ class _AssetDetailsState extends State<AssetDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
+                        asset!.tokenizedAsset
+                            ? '1 ${getAssetCode(asset?.assetCode!)} = ${truncateToDecimalPlaces(double.parse(getFiatRate(asset!.usdPrice.toString(), 'USD', appState, getUnFormatted: true)))} NGN'
+                            : '1 ${getAssetCode(asset?.assetCode!)} = ${truncateToDecimalPlaces(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w500,

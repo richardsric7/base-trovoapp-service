@@ -1217,7 +1217,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             calculateFiatValue(
               asset.amount.toString(),
               asset.usdPrice.toString(),
-              appState.defaultCurrency,
+              asset.tokenizedAsset ? 'USD' : appState.defaultCurrency,
               appState,
             ).replaceAll(',', ''),
           );
@@ -1254,26 +1254,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> fetchTokenizationData() async {
-    var uri = '/v1/tokenization';
-
-    Map responseData = await makeGetRequest(
-      uri: Uri.encodeFull(uri),
-      signer: appState.primaryWallet.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
-    );
-    if (responseData['statusCode'] == 200) {
-      appState.tokenizationData = responseData['data'];
-    }
-  }
-
   Future<List<TokenizedAsset>> fetchTokenizationList({
     required int status,
   }) async {
     try {
       Future.wait([
-        if (appState.tokenizationData.isEmpty) fetchTokenizationData(),
+        if (appState.tokenizationData.isEmpty) appState.fetchTokenizationData(),
         if (appState.expressedInterests.isEmpty) fetchExpressedInterests(),
         if (appState.expressedInterests.isEmpty) fetchSubscriptions(),
       ]);

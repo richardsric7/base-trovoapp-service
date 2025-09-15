@@ -1,13 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
-import 'package:trovo_app/widgets/loader.dart';
-import 'package:trovo_app/widgets/popups.dart';
 
 class QrScanner extends StatefulWidget {
   const QrScanner({Key? key}) : super(key: key);
@@ -20,7 +19,6 @@ bool expanded = false;
 
 class _QrScannerState extends State<QrScanner> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  // QRViewController? controller;
   DataProvider? appState;
   bool flashLightStatus = false;
 
@@ -52,6 +50,7 @@ class _QrScannerState extends State<QrScanner> {
   }
 
   void _handleBarcode(BarcodeCapture scanResult) {
+    print('fkasldjfklasd, fasjldfas $scanResult');
     if (mounted) {
       _handleScanResult(scanResult.barcodes.first.rawValue);
     }
@@ -151,7 +150,10 @@ class _QrScannerState extends State<QrScanner> {
 
     if (rawValue != null) {
       scanResult = rawValue;
-      runDynamicLinks(Uri.parse(scanResult ?? ''));
+      var uri = Uri.parse(scanResult ?? '');
+      if (uri.host == 'links.trovo.app') {
+        processShortlink(uri.path.replaceAll('/', ''));
+      }
     } else {
       Tooltip(
         message: 'Does that look like a QR Code file to you?',
@@ -161,42 +163,25 @@ class _QrScannerState extends State<QrScanner> {
     setState(() {});
   }
 
-  void runDynamicLinks(uri) async {
-    try {
-      showLoader(context);
-      final PendingDynamicLinkData? data = await FirebaseDynamicLinks.instance
-          .getDynamicLink(uri);
+  Future<void> processShortlink(String linkId) async {
+    var uri = '/v1/shortlinks/$linkId';
 
-      if (data != null) {
-        final Uri deepLink = data.link;
-        appState!.processDeepLink(
-          context,
-          deepLink,
-          rel: 'qrScanner',
-          onCancel: () => setState(() {
-            scanResult = null;
-          }),
-        );
-        hideLoader(context);
-      } else {
-        popup(
-          context,
-          title: 'Error!',
-          message:
-              'Something went wrong. We could not process the following link [$uri]; Could be caused by bad network or a bad qrcode image.',
-          onClose: () {
-            setState(() {
-              scanResult = null;
-            });
-          },
-        );
-        hideLoader(context);
-      }
-    } catch (e) {
-      hideLoader(context);
-      setState(() {
-        scanResult = null;
-      });
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState!.primaryWallet.signer!,
+      secretKey: appState!.secretKeys[0], // the primary wallet secret key
+      publicKey: appState!.primaryWallet.signer!,
+    );
+    inspect(responseData);
+    if (responseData['statusCode'] == 200) {
+      appState!.processDeepLink(
+        context,
+        Uri.parse(responseData['data'].toString()),
+        rel: 'qrScanner',
+        onCancel: () => setState(() {
+          scanResult = null;
+        }),
+      );
     }
   }
 

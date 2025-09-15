@@ -3537,6 +3537,90 @@ void showChooseWalletPopup(
     return walletsList;
   }
 
+  if (walletDropdownItems(false).isEmpty) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          scrollable: true,
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          content: Container(
+            decoration: BoxDecoration(
+              color: notifier.getwihitecolor,
+              borderRadius: BorderRadius.all(Radius.circular(23)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      'You currently do not have the $assetCode token on any of your wallets.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 18,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: height / 50),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      onCancel();
+                    },
+                    // dismiss dialog,
+                    style: ButtonStyle(
+                      fixedSize: WidgetStateProperty.all(
+                        Size(width / 1.5, height / 20),
+                      ),
+                      overlayColor: WidgetStateProperty.all<Color>(
+                        notifier.getsplashgrey,
+                      ),
+                      elevation: WidgetStateProperty.all<double>(0),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor!,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: notifier.getgrey,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "close".tr(),
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: height / 50),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    return;
+  }
+
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -5049,50 +5133,70 @@ showSwitchEnvironmentPopup(
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "appwillrestart".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: 15,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                        onProceed();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: WidgetStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: WidgetStateProperty.all<Color>(
-                          notifier.getbluecolor,
-                        ),
-                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                  if (toEnvironment == 'Mainnet') ...[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "Mainnet is out of service at the moment. We will let you know as soon as Mainnet goes live.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
                           ),
                         ),
                       ),
-                      child: Text(
-                        "switchto".tr(args: [toEnvironment]),
-                        style: TextStyle(
-                          color: wihitecolor,
-                          fontFamily: fontbody,
+                    ),
+                  ] else ...[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "appwillrestart".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    SizedBox(height: height / 50),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onProceed();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: WidgetStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getbluecolor,
+                          ),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                        ),
+                        child: Text(
+                          "switchto".tr(args: [toEnvironment]),
+                          style: TextStyle(
+                            color: wihitecolor,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: OutlinedButton(

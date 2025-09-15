@@ -268,7 +268,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
             amount.toString().isNotEmpty
                 ? "≈ ${formatNumber(amount)} ${getAssetCode(asset.assetCode)}"
                 : "≈ 0.0000 ${getAssetCode(asset.assetCode)}",
-            textScaleFactor: 1.0,
+            textScaler: TextScaler.linear(1.0),
             style: TextStyle(
               color: notifier.getdarkgrey,
               fontWeight: FontWeight.w400,
@@ -282,7 +282,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
             replacement: Container(),
             child: Text(
               "${formatNumber(asset.amount!)} ${getAssetCode(asset.assetCode)}",
-              textScaleFactor: 1.0,
+              textScaler: TextScaler.linear(1.0),
               textAlign: TextAlign.right,
               style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
             ),

@@ -910,7 +910,9 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      "${getFiatRate(asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                      asset.tokenizedAsset
+                          ? asset.usdPrice.toString()
+                          : "${getFiatRate(asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                       style: TextStyle(
                         fontSize: 9,
                         fontFamily: fontbody,
@@ -941,7 +943,9 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                 child: Text(
                   getBalance(
-                    '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                    asset.tokenizedAsset
+                        ? '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), 'USD', appState)} NGN'
+                        : '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                     indexOfWallet,
                   ),
                   style: TextStyle(

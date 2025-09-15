@@ -44,6 +44,9 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    var activationAmount = double.parse(
+      viewData['activationAmount'].toString(),
+    );
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -141,7 +144,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                           children: [
                             SizedBox(height: height / 50),
                             Text(
-                              'NGN ${getFiatValue(double.parse(viewData['activationAmount'].toString()))}',
+                              'NGN ${getFiatValue(activationAmount == 0 ? 1000 : activationAmount)}',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

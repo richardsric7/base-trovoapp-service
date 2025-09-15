@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer';
+import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/router/page_actions.dart';
@@ -13,7 +16,6 @@ import 'package:trovo_app/router/back_dispatcher.dart';
 import 'package:trovo_app/router/route_parser.dart';
 import 'package:trovo_app/router/router_delegate.dart';
 import 'package:trovo_app/router/ui_pages.dart';
-import 'package:trovo_app/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_app/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'custom_bloc_observer/notifire_clor.dart';
@@ -24,23 +26,23 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    // name: await StoreData().storeGetData('walletMode') ?? "Testnet",
-    options: DefaultFirebaseOptions.currentPlatform(
-      await StoreData().storeGetData('walletMode') ?? "Testnet",
-    ),
+  TerminateRestart.instance.initialize();
+  var options = DefaultFirebaseOptions.currentPlatform(
+    await StoreData().storeGetData('walletMode') ?? "Testnet",
   );
+  inspect(options);
+  await Firebase.initializeApp(options: options);
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
-  if (dynamicLink != null) {
-    await StoreData().storeInsertData(
-      'initialDynamicLink',
-      dynamicLink.link.toString(),
-    );
-  }
+  // var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
+  // if (dynamicLink != null) {
+  //   await StoreData().storeInsertData(
+  //     'initialDynamicLink',
+  //     dynamicLink.link.toString(),
+  //   );
+  // }
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -100,6 +102,16 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+    final appLinks = AppLinks(); // AppLinks is singleton
+
+    // Subscribe to all events (initial link and further)
+    appLinks.uriLinkStream.listen((uri) {
+      appState.linkId = uri.path.replaceAll('/', '');
+
+      if (appState.appIsOpen) {
+        appState.setPage(page: SplashPageConfig, state: PageState.replaceAll);
+      }
+    });
     initAppNotification(context, appState);
   }
 
