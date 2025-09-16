@@ -500,6 +500,9 @@ type TokenizedAsset struct {
 	EntryLoadFee                                 float64                         `gorm:"default:0" json:"entryLoadFee"`
 	PortfolioLockInPeriod                        *string                         `json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee                      float64                         `gorm:"default:0" json:"portfolioPerformanceFee"`
+	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
+	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
+	DebtPercentage                               float64                         `gorm:"default:0" json:"debtPercentage"`
 }
 
 type TokenizedAssetID string
@@ -881,6 +884,9 @@ type TokenizedAssetJSONInput struct {
 	EntryLoadFee                          float64   `json:"entryLoadFee"`
 	PortfolioLockInPeriod                 string    `json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee               float64   `json:"portfolioPerformanceFee"`
+	FundingStructure                      int       `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
+	EquityPercentage                      float64   `gorm:"default:0" json:"equityPercentage"`
+	DebtPercentage                        float64   `gorm:"default:0" json:"debtPercentage"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1352,6 +1358,9 @@ type TokenizedAssetJSON struct {
 	EntryLoadFee                                 float64                         `json:"entryLoadFee"`
 	PortfolioLockInPeriod                        string                          `json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee                      float64                         `json:"portfolioPerformanceFee"`
+	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
+	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
+	DebtPercentage                               float64                         `gorm:"default:0" json:"debtPercentage"`
 }
 
 type TokenizedAssetSector struct {
@@ -3927,7 +3936,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	} else {
 		t.PortfolioLockInPeriod = nil
 	}
-
+	t.FundingStructure = ti.FundingStructure
+	t.EquityPercentage = ti.EquityPercentage
+	t.DebtPercentage = ti.DebtPercentage
 	//////////
 
 	return *t
@@ -5292,6 +5303,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.IssueDate = ti.IssueDate
 
 	t.MaturityDate = ti.MaturityDate
+	t.FundingStructure = ti.FundingStructure
+	t.EquityPercentage = ti.EquityPercentage
+	t.DebtPercentage = ti.DebtPercentage
 
 	return t
 
