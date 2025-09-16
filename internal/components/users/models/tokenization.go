@@ -503,6 +503,25 @@ type TokenizedAsset struct {
 	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
 	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
 	DebtPercentage                               float64                         `gorm:"default:0" json:"debtPercentage"`
+	DebtInstrumentType                           *string                         `json:"debtInstrumentType"`
+	PrincipalPaymentMethod                       *string                         `json:"principalPaymentMethod"`
+	DebtInstrumentRepaymentSource                *string                         `json:"debtInstrumentRepaymentSource"`
+	DebtInstrumentGuaranteesOrEnhancements       *string                         `json:"debtInstrumentGuaranteesOrEnhancements"`
+	DebtInstrumentDefaultAndRecoveryTerms        *string                         `json:"debtInstrumentDefaultAndRecoveryTerms"`
+	DebtInstrumentRepaymentFrequency             *string                         `json:"debtInstrumentRepaymentFrequency"`
+	InterestRepaymentFrequency                   *string                         `json:"interestRepaymentFrequency"`
+	DcsrDetails                                  *string                         `json:"dcsrDetails"`
+	SinkingFundStructure                         *string                         `json:"sinkingFundStructure"`
+	CovenantMonitoringAgent                      *string                         `json:"covenantMonitoringAgent"`
+	RightOfRecourse                              *string                         `json:"rightOfRecourse"`
+	DebtInstrumentInterestRate                   float64                         `gorm:"default:0" json:"debtInstrumentInterestRate"`
+	DcsrRatio                                    float64                         `gorm:"default:0" json:"dcsrRatio"`
+	LtvRatio                                     float64                         `gorm:"default:0" json:"ltvRatio"`
+	InterestCoverageRatio                        float64                         `gorm:"default:0" json:"interestCoverageRatio"`
+	MaximumLeverageRatio                         float64                         `gorm:"default:0" json:"maximumLeverageRatio"`
+	GracePeriod                                  int                             `gorm:"default:0" json:"gracePeriod"`
+	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
+	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
 }
 
 type TokenizedAssetID string
@@ -623,270 +642,289 @@ type TokenizedAssetJSONInput struct {
 	ProjectIdentifiedMarketRisks                 string    `json:"projectIdentifiedMarketRisks"`
 	ProjectIdentifiedOtherRelevantRisks          string    `json:"projectIdentifiedOtherRelevantRisks"`
 	//////
-	IsinOrSerialNumber                    string    `json:"isinOrSerialNumber"` /// begin the mutual fund fields
-	InstrumentName                        string    `json:"instrumentName"`
-	InstrumentType                        string    `json:"instrumentType"`
-	TotalIssueSize                        float64   `json:"totalIssueSize"`
-	IssueDate                             time.Time `json:"issueDate"`
-	MaturityDate                          time.Time `json:"maturityDate"`
-	FaceValuePerUnit                      float64   `json:"faceValuePerUnit"`
-	CouponOrInterestRateType              string    `json:"couponOrInterestRateType"`
-	CouponOrInterestRate                  float64   `json:"couponOrInterestRate"`
-	ReferenceIndex                        string    `json:"referenceIndex"`
-	ExpectedYield                         float64   `json:"expectedYield"`
-	EarlyRedemptionOptionInvestor         string    `json:"earlyRedemptionOptionInvestor"`
-	MinimumInvestmentAmount               float64   `json:"minimumInvestmentAmount"`
-	TaxTreatmentTokenHolders              string    `json:"taxTreatmentTokenHolders"`
-	PaymentStructureToTokenHolders        string    `json:"paymentStructureToTokenHolders"`
-	RedemptionMethod                      string    `json:"redemptionMethod"`
-	PaymentStructure                      string    `json:"paymentStructure"`
-	RepaymentMethod                       string    `json:"repaymentMethod"`
-	PaymentCycle                          string    `json:"paymentCycle"`
-	WeightedAverageLife                   float64   `json:"weightedAverageLife"`
-	UnderlyingAssetPoolSize               float64   `json:"underlyingAssetPoolSize"`
-	PoolComposition                       string    `json:"poolComposition"`
-	CreditEnhancementMethod               string    `json:"creditEnhancementMethod"`
-	SummaryOfUseOfProceeds                string    `json:"summaryOfUseOfProceeds"`
-	CreditRatingIfAny                     string    `json:"creditRatingIfAny"`
-	IssuerName                            string    `json:"issuerName"`
-	IssuerType                            string    `json:"issuerType"`
-	IssuerContactPerson                   string    `json:"issuerContactPerson"`
-	ContactEmail                          string    `json:"contactEmail"`
-	ContactPhoneNumber                    string    `json:"contactPhoneNumber"`
-	BriefCompanyOverview                  string    `json:"briefCompanyOverview"`
-	MortgageOriginators                   string    `json:"mortgageOriginators"`
-	Servicer                              string    `json:"servicer"`
-	InstrumentTrustee                     string    `json:"instrumentTrustee"`
-	InstrumentCustodians                  string    `json:"instrumentCustodian"`
-	InstrumentLegalAdvisor                string    `json:"instrumentLegalAdvisor"`
-	SpecialPurposeVehicle                 string    `json:"specialPurposeVehicle"`
-	InstrumentAssetManagerOrAdministrator string    `json:"instrumentAssetManagerOrAdministrator"`
-	UnderwriterIfAny                      string    `json:"underwriterIfAny"`
-	InstrumentCreditRatingAgency          string    `json:"instrumentCreditRatingAgency"`
-	AuditorOrVerifier                     string    `json:"auditorOrVerifier"`
-	CreditRiskAssessment                  string    `json:"creditRiskAssessment"`
-	CreditRating                          string    `json:"creditRating"`
-	PrepaymentRisk                        string    `json:"prepaymentRisk"`
-	InterestRateRisk                      string    `json:"interestRateRisk"`
-	StructuralComplexityRisk              string    `json:"structuralComplexityRisk"`
-	LegalOrRegulatoryRisk                 string    `json:"legalOrRegulatoryRisk"`
-	OperationalRisk                       string    `json:"operationalRisk"`
-	MarketRisk                            string    `json:"marketRisk"`
-	EsgRisk                               string    `json:"esgRisk"`
-	MitigationMeasures                    string    `json:"mitigationMeasures"`
-	IssuingAuthority                      string    `json:"issuingAuthority"`
-	RegulatoryApprovalId                  string    `json:"regulatoryApprovalId"`
-	LicenseApprovalReferenceNumber        string    `json:"licenseApprovalReferenceNumber"`
-	ListingStatus                         string    `json:"listingStatus"`
-	CurrencyOfIssuance                    string    `json:"currencyOfIssuance"`
-	CouponRateType                        string    `json:"couponRateType"`
-	CouponRate                            float64   `json:"couponRate"`
-	SpreadOrMargin                        float64   `json:"spreadOrMargin"`
-	ResetFrequency                        string    `json:"resetFrequency"`
-	CouponPaymentFrequency                string    `json:"couponPaymentFrequency"`
-	RedemptionStructure                   string    `json:"redemptionStructure"`
-	EarlyRedemptionOption                 string    `json:"earlyRedemptionOption"`
-	EarlyRedemptionPenalty                string    `json:"earlyRedemptionPenalty"`
-	TaxTreatment                          string    `json:"taxTreatment"`
-	NavOrMarketValueUpdates               string    `json:"navOrMarketValueUpdates"`
-	ImpactMetrics                         string    `json:"impactMetrics"`
-	LegalBacking                          string    `json:"legalBacking"`
-	DefaultHistory                        string    `json:"defaultHistory"`
-	RiskFactorsSummary                    string    `json:"riskFactorsSummary"`
-	PayingAgent                           string    `json:"payingAgent"`
-	Auditor                               string    `json:"auditor"`
-	RegistrarOrCSCSAgent                  string    `json:"registrarOrCSCSAgent"`
-	FundStructure                         string    `json:"fundStructure"`
-	AssetManagementCompanyName            string    `json:"assetManagementCompanyName"`
-	FundManagers                          string    `json:"fundManagers"`
-	RegulatoryLicenseNumber               string    `json:"regulatoryLicenseNumber"`
-	FundLaunchDate                        time.Time `json:"fundLaunchDate"`
-	TotalExpenseRatio                     float64   `json:"totalExpenseRatio"`
-	ExitLoadRedemptionFee                 float64   `json:"exitLoadRedemptionFee"`
-	Tenure                                int       `json:"tenure"`
-	InitialNetAssetValue                  float64   `json:"initialNetAssetValue"`
-	NavUpdateFrequency                    string    `json:"navUpdateFrequency"`
-	NavCalculationMethod                  string    `json:"navCalculationMethod"`
-	RedemptionRules                       string    `json:"redemptionRules"`
-	LockInPeriod                          string    `json:"lockInPeriod"`
-	EntryLoad                             float64   `json:"entryLoad"`
-	PerformanceFee                        float64   `json:"performanceFee"`
-	DividendPolicy                        string    `json:"dividendPolicy"`
-	LiquidityProfile                      string    `json:"liquidityProfile"`
-	DistributionFrequency                 string    `json:"distributionFrequency"`
-	DistributionMethod                    string    `json:"distributionMethod"`
-	BenchmarkComparisonMethod             string    `json:"benchmarkComparisonMethod"`
-	FeeBreakdownSummary                   string    `json:"feeBreakdownSummary"`
-	InvestmentObjective                   string    `json:"investmentObjective"`
-	EquityStrategy                        string    `json:"equityStrategy"`
-	MarketCapitalizationFocus             string    `json:"marketCapitalizationFocus"`
-	BenchmarkIndex                        string    `json:"benchmarkIndex"`
-	SectorExposureLimits                  string    `json:"sectorExposureLimits"`
-	TopHoldings                           string    `json:"topHoldings"`
-	GeographicExposure                    string    `json:"geographicExposure"`
-	RiskProfile                           string    `json:"riskProfile"`
-	VolatilityEstimate                    float64   `json:"volatilityEstimate"`
-	DividendYield                         float64   `json:"dividendYield"`
-	TrusteeName                           string    `json:"trusteeName"`
-	FundAdministrator                     string    `json:"fundAdministrator"`
-	InvestmentCommitteeMembers            string    `json:"investmentCommitteeMembers"`
-	IsinOrSecFundCode                     string    `json:"isinOrSecFundCode"`
-	ExitLoadOrRedemptionFee               float64   `json:"exitLoadOrRedemptionFee"`
-	FundRiskRating                        string    `json:"fundRiskRating"`
-	AssetAllocation                       string    `json:"assetAllocation"`
-	AverageMaturity                       float64   `json:"averageMaturity"`
-	YieldToMaturity                       float64   `json:"yieldToMaturity"`
-	CreditRatingProfile                   string    `json:"creditRatingProfile"`
-	LockInPeriodPortfolio                 string    `json:"lockInPeriodPortfolio"`
-	PerformanceFeeIfAny                   float64   `json:"performanceFeeIfAny"`
-	TopEquityHoldings                     string    `json:"topEquityHoldings"`
-	TargetAllocation                      string    `json:"targetAllocation"`
-	AllowedAllocationRange                string    `json:"allowedAllocationRange"`
-	AssetClassesIncluded                  string    `json:"assetClassesIncluded"`
-	RebalancingFrequency                  string    `json:"rebalancingFrequency"`
-	BenchmarkIndexComposite               string    `json:"benchmarkIndexComposite"`
-	TopEquityHoldingsList                 string    `json:"topEquityHoldingsList"`
-	TopDebtHoldings                       string    `json:"topDebtHoldings"`
-	CreditRatingDistribution              string    `json:"creditRatingDistribution"`
-	AverageMaturityHybrid                 float64   `json:"averageMaturityHybrid"`
-	YieldToMaturityHybrid                 float64   `json:"yieldToMaturityHybrid"`
-	TitleOfIssuance                       string    `json:"titleOfIssuance"`
-	TypeOfCommercialPaper                 string    `json:"typeOfCommercialPaper"`
-	PricingYield                          float64   `json:"pricingYield"`
-	UseOfProceeds                         string    `json:"useOfProceeds"`
-	Ranking                               string    `json:"ranking"`
-	BackingSecurity                       string    `json:"backingSecurity"`
-	IssuerRegistrationNumber              string    `json:"issuerRegistrationNumber"`
-	IncorporationDate                     time.Time `json:"incorporationDate"`
-	RcNumber                              string    `json:"rcNumber"`
-	TaxIdNumber                           string    `json:"taxIdNumber"`
-	OfficeAddress                         string    `json:"officeAddress"`
-	Rating                                string    `json:"rating"`
-	PartiesInvolvedIssuer                 string    `json:"partiesInvolvedIssuer"`
-	PartiesInvolvedArranger               string    `json:"partiesInvolvedArranger"`
-	PartiesInvolvedLegalAdviser           string    `json:"partiesInvolvedLegalAdviser"`
-	PartiesInvolvedAuditor                string    `json:"partiesInvolvedAuditor"`
-	PartiesInvolvedRatingAgency           string    `json:"partiesInvolvedRatingAgency"`
-	PartiesInvolvedCustodian              string    `json:"partiesInvolvedCustodian"`
-	PartiesInvolvedTrustee                string    `json:"partiesInvolvedTrustee"`
-	PartiesInvolvedAuditorVerifier        string    `json:"partiesInvolvedAuditorVerifier"`
-	SecurityRiskLegalBacking              string    `json:"securityRiskLegalBacking"`
-	SecurityRiskCollateral                string    `json:"securityRiskCollateral"`
-	SecurityRiskDefaultHistory            string    `json:"securityRiskDefaultHistory"`
-	SecurityRiskCreditRating              string    `json:"securityRiskCreditRating"`
-	SecurityRiskRiskFactorsSummary        string    `json:"securityRiskRiskFactorsSummary"`
-	SecurityRiskBusinessRisk              string    `json:"securityRiskBusinessRisk"`
-	SecurityRiskDefaultRisk               string    `json:"securityRiskDefaultRisk"`
-	SecurityRiskLiquidityRisk             string    `json:"securityRiskLiquidityRisk"`
-	SecurityRiskRegulatoryRisk            string    `json:"securityRiskRegulatoryRisk"`
-	SecurityRiskMarketRisk                string    `json:"securityRiskMarketRisk"`
-	SecurityRiskOperationalRisk           string    `json:"securityRiskOperationalRisk"`
-	SecurityRiskMitigationMeasures        string    `json:"securityRiskMitigationMeasures"`
-	CommodityType                         string    `json:"commodityType"`
-	CommodityDescription                  string    `json:"commodityDescription"`
-	Quantity                              int       `json:"quantity"`
-	QualityGrade                          string    `json:"qualityGrade"`
-	IssuerContactInfo                     string    `json:"issuerContactInfo"`
-	WarehouseName                         string    `json:"warehouseName"`
-	WarehouseOperatorName                 string    `json:"warehouseOperatorName"`
-	WarehouseLicenseNumber                string    `json:"warehouseLicenseNumber"`
-	WarehouseLocation                     string    `json:"warehouseLocation"`
-	WrNumber                              string    `json:"wrNumber"`
-	WrIssueDate                           time.Time `json:"wrIssueDate"`
-	WrExpiryDate                          time.Time `json:"wrExpiryDate"`
-	WrSystemRegistration                  string    `json:"wrSystemRegistration"`
-	WrRegistrationNumber                  string    `json:"wrRegistrationNumber"`
-	WrVerifier                            string    `json:"wrVerifier"`
-	StorageCondition                      string    `json:"storageCondition"`
-	WarehouseAccreditationBody            string    `json:"warehouseAccreditationBody"`
-	MinimumPurchaseAmount                 float64   `json:"minimumPurchaseAmount"`
-	AutoRollover                          string    `json:"autoRollover"`
-	CurrentBeneficialOwner                string    `json:"currentBeneficialOwner"`
-	WrCustodianName                       string    `json:"wrCustodianName"`
-	OwnershipRightsRepresented            string    `json:"ownershipRightsRepresented"`
-	TrusteeOrThirdPartyOversight          string    `json:"trusteeOrThirdPartyOversight"`
-	LienOrEncumbrances                    string    `json:"lienOrEncumbrances"`
-	AssetValuation                        float64   `json:"assetValuation"`
-	ValuationDate                         time.Time `json:"valuationDate"`
-	ValuationMethodology                  string    `json:"valuationMethodology"`
-	TokenizationObjective                 string    `json:"tokenizationObjective"`
-	HoldingPeriod                         int       `json:"holdingPeriod"`
-	RedemptionMechanism                   string    `json:"redemptionMechanism"`
-	PartiesInvolvedUnderwriter            string    `json:"partiesInvolvedUnderwriter"`
-	PartiesInvolvedAssetManager           string    `json:"partiesInvolvedAssetManager"`
-	PartiesInvolvedLegalAdvisor           string    `json:"partiesInvolvedLegalAdvisor"`
-	PartiesInvolvedRegulator              string    `json:"partiesInvolvedRegulator"`
-	RisksMarketRisk                       string    `json:"risksMarketRisk"`
-	RisksStorageRisk                      string    `json:"risksStorageRisk"`
-	RisksTitleRisk                        string    `json:"risksTitleRisk"`
-	RisksFraudRisk                        string    `json:"risksFraudRisk"`
-	RisksInsuranceRisk                    string    `json:"risksInsuranceRisk"`
-	RisksOperationalRisk                  string    `json:"risksOperationalRisk"`
-	RisksRegulatoryRisk                   string    `json:"risksRegulatoryRisk"`
-	RisksLiquidityRisk                    string    `json:"risksLiquidityRisk"`
-	RisksForceMajeureRisk                 string    `json:"risksForceMajeureRisk"`
-	RisksEarlyRedemptionRisk              string    `json:"risksEarlyRedemptionRisk"`
-	RisksMitigationMeasures               string    `json:"risksMitigationMeasures"`
-	RisksInsuranceCoverageSummary         string    `json:"risksInsuranceCoverageSummary"`
-	RisksInsuranceProvider                string    `json:"risksInsuranceProvider"`
-	RisksCoverageValue                    float64   `json:"risksCoverageValue"`
-	QuanlityStandard                      string    `json:"quanlityStandard"`
-	IssuerContactInformation              string    `json:"issuerContactInformation"`
-	VaultCustodianName                    string    `json:"vaultCustodianName"`
-	VaultOperator                         string    `json:"vaultOperator"`
-	VaultLicenseNumber                    string    `json:"vaultLicenseNumber"`
-	VaultLocation                         string    `json:"vaultLocation"`
-	Number                                string    `json:"number"`
-	IssuerDate                            time.Time `json:"issuerDate"`
-	ExpiryDate                            time.Time `json:"expiryDate"`
-	RegistryRecord                        string    `json:"registryRecord"`
-	Verifier                              string    `json:"verifier"`
-	StorageConditions                     string    `json:"storageConditions"`
-	VaultAccreditationBody                string    `json:"vaultAccreditationBody"`
-	OwnershipLegalHolder                  string    `json:"ownershipLegalHolder"`
-	OwnershipCustodianName                string    `json:"ownershipCustodianName"`
-	OwnershipTrustee                      string    `json:"ownershipTrustee"`
-	OwnershipLienOrEncumbrances           string    `json:"ownershipLienOrEncumbrances"`
-	ValuationAssetValuation               string    `json:"valuationAssetValuation"`
-	HoldingLockinPeriod                   string    `json:"holdingLockinPeriod"`
-	InsuranceMarketRisk                   string    `json:"insuranceMarketRisk"`
-	InsuranceStorageRisk                  string    `json:"insuranceStorageRisk"`
-	InsuranceTitleRisk                    string    `json:"insuranceTitleRisk"`
-	InsuranceFraudRisk                    string    `json:"insuranceFraudRisk"`
-	InsuranceInsuranceRisk                string    `json:"insuranceInsuranceRisk"`
-	InsuranceOperationalRisk              string    `json:"insuranceOperationalRisk"`
-	InsuranceRegulatoryRisk               string    `json:"insuranceRegulatoryRisk"`
-	InsuranceLiquidityRisk                string    `json:"insuranceLiquidityRisk"`
-	InsuranceForceMajeureRisk             string    `json:"insuranceForceMajeureRisk"`
-	InsuranceEarlyRedemptionRisk          string    `json:"insuranceEarlyRedemptionRisk"`
-	InsuranceMitigationMeasures           string    `json:"insuranceMitigationMeasures"`
-	InsuranceInsuranceCoverageSummary     string    `json:"insuranceInsuranceCoverageSummary"`
-	InsuranceInsuranceProvider            string    `json:"insuranceInsuranceProvider"`
-	InsuranceCoverageValue                string    `json:"insuranceCoverageValue"`
-	IssuerRegistrationNo                  string    `json:"issuerRegistrationNo"`
-	SectorAndIndustry                     string    `json:"sectorAndIndustry"`
-	LicenseOrPermitNumber                 string    `json:"licenseOrPermitNumber"`
-	IssuerAdditionalInfo                  string    `json:"issuerAdditionalInfo"`
-	IsinSerialNumber                      string    `json:"isinSerialNumber"`
-	EsgOrImpactMetrics                    string    `json:"esgOrImpactMetrics"`
-	InstrumentAdditionalInfo              string    `json:"instrumentAdditionalInfo"`
-	SecurityType                          string    `json:"securityType"`
-	CollateralDescription                 string    `json:"collateralDescription"`
-	CovenantSummary                       string    `json:"covenantSummary"`
-	CovenantTestingFrequency              string    `json:"covenantTestingFrequency"`
-	EventOfDefaultClauses                 string    `json:"eventOfDefaultClauses"`
-	LegalEnforcementMechanism             string    `json:"legalEnforcementMechanism"`
-	Guarantee                             string    `json:"guarantee"`
-	RecoveryEstimate                      float64   `json:"recoveryEstimate"`
-	RiskProfileAdditionalInfo             string    `json:"riskProfileAdditionalInfo"`
-	LicenseNumber                         string    `json:"licenseNumber"`
-	ExitLoadFee                           float64   `json:"exitLoadFee"`
-	EntryLoadFee                          float64   `json:"entryLoadFee"`
-	PortfolioLockInPeriod                 string    `json:"portfolioLockInPeriod"`
-	PortfolioPerformanceFee               float64   `json:"portfolioPerformanceFee"`
-	FundingStructure                      int       `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
-	EquityPercentage                      float64   `gorm:"default:0" json:"equityPercentage"`
-	DebtPercentage                        float64   `gorm:"default:0" json:"debtPercentage"`
+	IsinOrSerialNumber                     string    `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	InstrumentName                         string    `json:"instrumentName"`
+	InstrumentType                         string    `json:"instrumentType"`
+	TotalIssueSize                         float64   `json:"totalIssueSize"`
+	IssueDate                              time.Time `json:"issueDate"`
+	MaturityDate                           time.Time `json:"maturityDate"`
+	FaceValuePerUnit                       float64   `json:"faceValuePerUnit"`
+	CouponOrInterestRateType               string    `json:"couponOrInterestRateType"`
+	CouponOrInterestRate                   float64   `json:"couponOrInterestRate"`
+	ReferenceIndex                         string    `json:"referenceIndex"`
+	ExpectedYield                          float64   `json:"expectedYield"`
+	EarlyRedemptionOptionInvestor          string    `json:"earlyRedemptionOptionInvestor"`
+	MinimumInvestmentAmount                float64   `json:"minimumInvestmentAmount"`
+	TaxTreatmentTokenHolders               string    `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders         string    `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                       string    `json:"redemptionMethod"`
+	PaymentStructure                       string    `json:"paymentStructure"`
+	RepaymentMethod                        string    `json:"repaymentMethod"`
+	PaymentCycle                           string    `json:"paymentCycle"`
+	WeightedAverageLife                    float64   `json:"weightedAverageLife"`
+	UnderlyingAssetPoolSize                float64   `json:"underlyingAssetPoolSize"`
+	PoolComposition                        string    `json:"poolComposition"`
+	CreditEnhancementMethod                string    `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                 string    `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                      string    `json:"creditRatingIfAny"`
+	IssuerName                             string    `json:"issuerName"`
+	IssuerType                             string    `json:"issuerType"`
+	IssuerContactPerson                    string    `json:"issuerContactPerson"`
+	ContactEmail                           string    `json:"contactEmail"`
+	ContactPhoneNumber                     string    `json:"contactPhoneNumber"`
+	BriefCompanyOverview                   string    `json:"briefCompanyOverview"`
+	MortgageOriginators                    string    `json:"mortgageOriginators"`
+	Servicer                               string    `json:"servicer"`
+	InstrumentTrustee                      string    `json:"instrumentTrustee"`
+	InstrumentCustodians                   string    `json:"instrumentCustodian"`
+	InstrumentLegalAdvisor                 string    `json:"instrumentLegalAdvisor"`
+	SpecialPurposeVehicle                  string    `json:"specialPurposeVehicle"`
+	InstrumentAssetManagerOrAdministrator  string    `json:"instrumentAssetManagerOrAdministrator"`
+	UnderwriterIfAny                       string    `json:"underwriterIfAny"`
+	InstrumentCreditRatingAgency           string    `json:"instrumentCreditRatingAgency"`
+	AuditorOrVerifier                      string    `json:"auditorOrVerifier"`
+	CreditRiskAssessment                   string    `json:"creditRiskAssessment"`
+	CreditRating                           string    `json:"creditRating"`
+	PrepaymentRisk                         string    `json:"prepaymentRisk"`
+	InterestRateRisk                       string    `json:"interestRateRisk"`
+	StructuralComplexityRisk               string    `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                  string    `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                        string    `json:"operationalRisk"`
+	MarketRisk                             string    `json:"marketRisk"`
+	EsgRisk                                string    `json:"esgRisk"`
+	MitigationMeasures                     string    `json:"mitigationMeasures"`
+	IssuingAuthority                       string    `json:"issuingAuthority"`
+	RegulatoryApprovalId                   string    `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber         string    `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                          string    `json:"listingStatus"`
+	CurrencyOfIssuance                     string    `json:"currencyOfIssuance"`
+	CouponRateType                         string    `json:"couponRateType"`
+	CouponRate                             float64   `json:"couponRate"`
+	SpreadOrMargin                         float64   `json:"spreadOrMargin"`
+	ResetFrequency                         string    `json:"resetFrequency"`
+	CouponPaymentFrequency                 string    `json:"couponPaymentFrequency"`
+	RedemptionStructure                    string    `json:"redemptionStructure"`
+	EarlyRedemptionOption                  string    `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                 string    `json:"earlyRedemptionPenalty"`
+	TaxTreatment                           string    `json:"taxTreatment"`
+	NavOrMarketValueUpdates                string    `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                          string    `json:"impactMetrics"`
+	LegalBacking                           string    `json:"legalBacking"`
+	DefaultHistory                         string    `json:"defaultHistory"`
+	RiskFactorsSummary                     string    `json:"riskFactorsSummary"`
+	PayingAgent                            string    `json:"payingAgent"`
+	Auditor                                string    `json:"auditor"`
+	RegistrarOrCSCSAgent                   string    `json:"registrarOrCSCSAgent"`
+	FundStructure                          string    `json:"fundStructure"`
+	AssetManagementCompanyName             string    `json:"assetManagementCompanyName"`
+	FundManagers                           string    `json:"fundManagers"`
+	RegulatoryLicenseNumber                string    `json:"regulatoryLicenseNumber"`
+	FundLaunchDate                         time.Time `json:"fundLaunchDate"`
+	TotalExpenseRatio                      float64   `json:"totalExpenseRatio"`
+	ExitLoadRedemptionFee                  float64   `json:"exitLoadRedemptionFee"`
+	Tenure                                 int       `json:"tenure"`
+	InitialNetAssetValue                   float64   `json:"initialNetAssetValue"`
+	NavUpdateFrequency                     string    `json:"navUpdateFrequency"`
+	NavCalculationMethod                   string    `json:"navCalculationMethod"`
+	RedemptionRules                        string    `json:"redemptionRules"`
+	LockInPeriod                           string    `json:"lockInPeriod"`
+	EntryLoad                              float64   `json:"entryLoad"`
+	PerformanceFee                         float64   `json:"performanceFee"`
+	DividendPolicy                         string    `json:"dividendPolicy"`
+	LiquidityProfile                       string    `json:"liquidityProfile"`
+	DistributionFrequency                  string    `json:"distributionFrequency"`
+	DistributionMethod                     string    `json:"distributionMethod"`
+	BenchmarkComparisonMethod              string    `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                    string    `json:"feeBreakdownSummary"`
+	InvestmentObjective                    string    `json:"investmentObjective"`
+	EquityStrategy                         string    `json:"equityStrategy"`
+	MarketCapitalizationFocus              string    `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                         string    `json:"benchmarkIndex"`
+	SectorExposureLimits                   string    `json:"sectorExposureLimits"`
+	TopHoldings                            string    `json:"topHoldings"`
+	GeographicExposure                     string    `json:"geographicExposure"`
+	RiskProfile                            string    `json:"riskProfile"`
+	VolatilityEstimate                     float64   `json:"volatilityEstimate"`
+	DividendYield                          float64   `json:"dividendYield"`
+	TrusteeName                            string    `json:"trusteeName"`
+	FundAdministrator                      string    `json:"fundAdministrator"`
+	InvestmentCommitteeMembers             string    `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                      string    `json:"isinOrSecFundCode"`
+	ExitLoadOrRedemptionFee                float64   `json:"exitLoadOrRedemptionFee"`
+	FundRiskRating                         string    `json:"fundRiskRating"`
+	AssetAllocation                        string    `json:"assetAllocation"`
+	AverageMaturity                        float64   `json:"averageMaturity"`
+	YieldToMaturity                        float64   `json:"yieldToMaturity"`
+	CreditRatingProfile                    string    `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                  string    `json:"lockInPeriodPortfolio"`
+	PerformanceFeeIfAny                    float64   `json:"performanceFeeIfAny"`
+	TopEquityHoldings                      string    `json:"topEquityHoldings"`
+	TargetAllocation                       string    `json:"targetAllocation"`
+	AllowedAllocationRange                 string    `json:"allowedAllocationRange"`
+	AssetClassesIncluded                   string    `json:"assetClassesIncluded"`
+	RebalancingFrequency                   string    `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite                string    `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                  string    `json:"topEquityHoldingsList"`
+	TopDebtHoldings                        string    `json:"topDebtHoldings"`
+	CreditRatingDistribution               string    `json:"creditRatingDistribution"`
+	AverageMaturityHybrid                  float64   `json:"averageMaturityHybrid"`
+	YieldToMaturityHybrid                  float64   `json:"yieldToMaturityHybrid"`
+	TitleOfIssuance                        string    `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                  string    `json:"typeOfCommercialPaper"`
+	PricingYield                           float64   `json:"pricingYield"`
+	UseOfProceeds                          string    `json:"useOfProceeds"`
+	Ranking                                string    `json:"ranking"`
+	BackingSecurity                        string    `json:"backingSecurity"`
+	IssuerRegistrationNumber               string    `json:"issuerRegistrationNumber"`
+	IncorporationDate                      time.Time `json:"incorporationDate"`
+	RcNumber                               string    `json:"rcNumber"`
+	TaxIdNumber                            string    `json:"taxIdNumber"`
+	OfficeAddress                          string    `json:"officeAddress"`
+	Rating                                 string    `json:"rating"`
+	PartiesInvolvedIssuer                  string    `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger                string    `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser            string    `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                 string    `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency            string    `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian               string    `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                 string    `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier         string    `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking               string    `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                 string    `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory             string    `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating               string    `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary         string    `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk               string    `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk                string    `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk              string    `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk             string    `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                 string    `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk            string    `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures         string    `json:"securityRiskMitigationMeasures"`
+	CommodityType                          string    `json:"commodityType"`
+	CommodityDescription                   string    `json:"commodityDescription"`
+	Quantity                               int       `json:"quantity"`
+	QualityGrade                           string    `json:"qualityGrade"`
+	IssuerContactInfo                      string    `json:"issuerContactInfo"`
+	WarehouseName                          string    `json:"warehouseName"`
+	WarehouseOperatorName                  string    `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                 string    `json:"warehouseLicenseNumber"`
+	WarehouseLocation                      string    `json:"warehouseLocation"`
+	WrNumber                               string    `json:"wrNumber"`
+	WrIssueDate                            time.Time `json:"wrIssueDate"`
+	WrExpiryDate                           time.Time `json:"wrExpiryDate"`
+	WrSystemRegistration                   string    `json:"wrSystemRegistration"`
+	WrRegistrationNumber                   string    `json:"wrRegistrationNumber"`
+	WrVerifier                             string    `json:"wrVerifier"`
+	StorageCondition                       string    `json:"storageCondition"`
+	WarehouseAccreditationBody             string    `json:"warehouseAccreditationBody"`
+	MinimumPurchaseAmount                  float64   `json:"minimumPurchaseAmount"`
+	AutoRollover                           string    `json:"autoRollover"`
+	CurrentBeneficialOwner                 string    `json:"currentBeneficialOwner"`
+	WrCustodianName                        string    `json:"wrCustodianName"`
+	OwnershipRightsRepresented             string    `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight           string    `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                     string    `json:"lienOrEncumbrances"`
+	AssetValuation                         float64   `json:"assetValuation"`
+	ValuationDate                          time.Time `json:"valuationDate"`
+	ValuationMethodology                   string    `json:"valuationMethodology"`
+	TokenizationObjective                  string    `json:"tokenizationObjective"`
+	HoldingPeriod                          int       `json:"holdingPeriod"`
+	RedemptionMechanism                    string    `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter             string    `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager            string    `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor            string    `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator               string    `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                        string    `json:"risksMarketRisk"`
+	RisksStorageRisk                       string    `json:"risksStorageRisk"`
+	RisksTitleRisk                         string    `json:"risksTitleRisk"`
+	RisksFraudRisk                         string    `json:"risksFraudRisk"`
+	RisksInsuranceRisk                     string    `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                   string    `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                    string    `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                     string    `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                  string    `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk               string    `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures                string    `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary          string    `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                 string    `json:"risksInsuranceProvider"`
+	RisksCoverageValue                     float64   `json:"risksCoverageValue"`
+	QuanlityStandard                       string    `json:"quanlityStandard"`
+	IssuerContactInformation               string    `json:"issuerContactInformation"`
+	VaultCustodianName                     string    `json:"vaultCustodianName"`
+	VaultOperator                          string    `json:"vaultOperator"`
+	VaultLicenseNumber                     string    `json:"vaultLicenseNumber"`
+	VaultLocation                          string    `json:"vaultLocation"`
+	Number                                 string    `json:"number"`
+	IssuerDate                             time.Time `json:"issuerDate"`
+	ExpiryDate                             time.Time `json:"expiryDate"`
+	RegistryRecord                         string    `json:"registryRecord"`
+	Verifier                               string    `json:"verifier"`
+	StorageConditions                      string    `json:"storageConditions"`
+	VaultAccreditationBody                 string    `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                   string    `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                 string    `json:"ownershipCustodianName"`
+	OwnershipTrustee                       string    `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances            string    `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation                string    `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                    string    `json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                    string    `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                   string    `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                     string    `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                     string    `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                 string    `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk               string    `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk                string    `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                 string    `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk              string    `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk           string    `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures            string    `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary      string    `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider             string    `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                 string    `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                   string    `json:"issuerRegistrationNo"`
+	SectorAndIndustry                      string    `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                  string    `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                   string    `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                       string    `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                     string    `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo               string    `json:"instrumentAdditionalInfo"`
+	SecurityType                           string    `json:"securityType"`
+	CollateralDescription                  string    `json:"collateralDescription"`
+	CovenantSummary                        string    `json:"covenantSummary"`
+	CovenantTestingFrequency               string    `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                  string    `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism              string    `json:"legalEnforcementMechanism"`
+	Guarantee                              string    `json:"guarantee"`
+	RecoveryEstimate                       float64   `json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo              string    `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                          string    `json:"licenseNumber"`
+	ExitLoadFee                            float64   `json:"exitLoadFee"`
+	EntryLoadFee                           float64   `json:"entryLoadFee"`
+	PortfolioLockInPeriod                  string    `json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee                float64   `json:"portfolioPerformanceFee"`
+	FundingStructure                       int       `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
+	EquityPercentage                       float64   `gorm:"default:0" json:"equityPercentage"`
+	DebtPercentage                         float64   `gorm:"default:0" json:"debtPercentage"`
+	DebtInstrumentType                     string    `json:"debtInstrumentType"`
+	PrincipalPaymentMethod                 string    `json:"principalPaymentMethod"`
+	DebtInstrumentRepaymentSource          string    `json:"debtInstrumentRepaymentSource"`
+	DebtInstrumentGuaranteesOrEnhancements string    `json:"debtInstrumentGuaranteesOrEnhancements"`
+	DebtInstrumentDefaultAndRecoveryTerms  string    `json:"debtInstrumentDefaultAndRecoveryTerms"`
+	DebtInstrumentRepaymentFrequency       string    `json:"debtInstrumentRepaymentFrequency"`
+	InterestRepaymentFrequency             string    `json:"interestRepaymentFrequency"`
+	DcsrDetails                            string    `json:"dcsrDetails"`
+	SinkingFundStructure                   string    `json:"sinkingFundStructure"`
+	CovenantMonitoringAgent                string    `json:"covenantMonitoringAgent"`
+	RightOfRecourse                        string    `json:"rightOfRecourse"`
+	DebtInstrumentInterestRate             float64   `gorm:"default:0" json:"debtInstrumentInterestRate"`
+	DcsrRatio                              float64   `gorm:"default:0" json:"dcsrRatio"`
+	LtvRatio                               float64   `gorm:"default:0" json:"ltvRatio"`
+	InterestCoverageRatio                  float64   `gorm:"default:0" json:"interestCoverageRatio"`
+	MaximumLeverageRatio                   float64   `gorm:"default:0" json:"maximumLeverageRatio"`
+	GracePeriod                            int       `gorm:"default:0" json:"gracePeriod"`
+	TrusteeAppointed                       int       `gorm:"default:0" json:"trusteeAppointed"`
+	ReserveFundInPlace                     int       `gorm:"default:0" json:"reserveFundInPlace"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1361,6 +1399,25 @@ type TokenizedAssetJSON struct {
 	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
 	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
 	DebtPercentage                               float64                         `gorm:"default:0" json:"debtPercentage"`
+	DebtInstrumentType                           string                          `json:"debtInstrumentType"`
+	PrincipalPaymentMethod                       string                          `json:"principalPaymentMethod"`
+	DebtInstrumentRepaymentSource                string                          `json:"debtInstrumentRepaymentSource"`
+	DebtInstrumentGuaranteesOrEnhancements       string                          `json:"debtInstrumentGuaranteesOrEnhancements"`
+	DebtInstrumentDefaultAndRecoveryTerms        string                          `json:"debtInstrumentDefaultAndRecoveryTerms"`
+	DebtInstrumentRepaymentFrequency             string                          `json:"debtInstrumentRepaymentFrequency"`
+	InterestRepaymentFrequency                   string                          `json:"interestRepaymentFrequency"`
+	DcsrDetails                                  string                          `json:"dcsrDetails"`
+	SinkingFundStructure                         string                          `json:"sinkingFundStructure"`
+	CovenantMonitoringAgent                      string                          `json:"covenantMonitoringAgent"`
+	RightOfRecourse                              string                          `json:"rightOfRecourse"`
+	DebtInstrumentInterestRate                   float64                         `gorm:"default:0" json:"debtInstrumentInterestRate"`
+	DcsrRatio                                    float64                         `gorm:"default:0" json:"dcsrRatio"`
+	LtvRatio                                     float64                         `gorm:"default:0" json:"ltvRatio"`
+	InterestCoverageRatio                        float64                         `gorm:"default:0" json:"interestCoverageRatio"`
+	MaximumLeverageRatio                         float64                         `gorm:"default:0" json:"maximumLeverageRatio"`
+	GracePeriod                                  int                             `gorm:"default:0" json:"gracePeriod"`
+	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
+	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
 }
 
 type TokenizedAssetSector struct {
@@ -3939,6 +3996,81 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.FundingStructure = ti.FundingStructure
 	t.EquityPercentage = ti.EquityPercentage
 	t.DebtPercentage = ti.DebtPercentage
+	if len(ti.DebtInstrumentType) > 0 {
+		t.DebtInstrumentType = &ti.DebtInstrumentType
+	} else {
+		t.DebtInstrumentType = nil
+	}
+
+	if len(ti.PrincipalPaymentMethod) > 0 {
+		t.PrincipalPaymentMethod = &ti.PrincipalPaymentMethod
+	} else {
+		t.PrincipalPaymentMethod = nil
+	}
+
+	if len(ti.DebtInstrumentRepaymentSource) > 0 {
+		t.DebtInstrumentRepaymentSource = &ti.DebtInstrumentRepaymentSource
+	} else {
+		t.DebtInstrumentRepaymentSource = nil
+	}
+
+	if len(ti.DebtInstrumentGuaranteesOrEnhancements) > 0 {
+		t.DebtInstrumentGuaranteesOrEnhancements = &ti.DebtInstrumentGuaranteesOrEnhancements
+	} else {
+		t.DebtInstrumentGuaranteesOrEnhancements = nil
+	}
+
+	if len(ti.DebtInstrumentDefaultAndRecoveryTerms) > 0 {
+		t.DebtInstrumentDefaultAndRecoveryTerms = &ti.DebtInstrumentDefaultAndRecoveryTerms
+	} else {
+		t.DebtInstrumentDefaultAndRecoveryTerms = nil
+	}
+
+	if len(ti.DebtInstrumentRepaymentFrequency) > 0 {
+		t.DebtInstrumentRepaymentFrequency = &ti.DebtInstrumentRepaymentFrequency
+	} else {
+		t.DebtInstrumentRepaymentFrequency = nil
+	}
+
+	if len(ti.InterestRepaymentFrequency) > 0 {
+		t.InterestRepaymentFrequency = &ti.InterestRepaymentFrequency
+	} else {
+		t.InterestRepaymentFrequency = nil
+	}
+
+	if len(ti.DcsrDetails) > 0 {
+		t.DcsrDetails = &ti.DcsrDetails
+	} else {
+		t.DcsrDetails = nil
+	}
+
+	if len(ti.SinkingFundStructure) > 0 {
+		t.SinkingFundStructure = &ti.SinkingFundStructure
+	} else {
+		t.SinkingFundStructure = nil
+	}
+
+	if len(ti.CovenantMonitoringAgent) > 0 {
+		t.CovenantMonitoringAgent = &ti.CovenantMonitoringAgent
+	} else {
+		t.CovenantMonitoringAgent = nil
+	}
+
+	if len(ti.RightOfRecourse) > 0 {
+		t.RightOfRecourse = &ti.RightOfRecourse
+	} else {
+		t.RightOfRecourse = nil
+	}
+
+	t.DebtInstrumentInterestRate = ti.DebtInstrumentInterestRate
+	t.DcsrRatio = ti.DcsrRatio
+	t.LtvRatio = ti.LtvRatio
+	t.InterestCoverageRatio = ti.InterestCoverageRatio
+	t.MaximumLeverageRatio = ti.MaximumLeverageRatio
+	t.GracePeriod = ti.GracePeriod
+	t.TrusteeAppointed = ti.TrusteeAppointed
+	t.ReserveFundInPlace = ti.ReserveFundInPlace
+
 	//////////
 
 	return *t
@@ -5306,6 +5438,49 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.FundingStructure = ti.FundingStructure
 	t.EquityPercentage = ti.EquityPercentage
 	t.DebtPercentage = ti.DebtPercentage
+
+	if ti.DebtInstrumentType != nil {
+		t.DebtInstrumentType = *ti.DebtInstrumentType
+	}
+	if ti.PrincipalPaymentMethod != nil {
+		t.PrincipalPaymentMethod = *ti.PrincipalPaymentMethod
+	}
+	if ti.DebtInstrumentRepaymentSource != nil {
+		t.DebtInstrumentRepaymentSource = *ti.DebtInstrumentRepaymentSource
+	}
+	if ti.DebtInstrumentGuaranteesOrEnhancements != nil {
+		t.DebtInstrumentGuaranteesOrEnhancements = *ti.DebtInstrumentGuaranteesOrEnhancements
+	}
+	if ti.DebtInstrumentDefaultAndRecoveryTerms != nil {
+		t.DebtInstrumentDefaultAndRecoveryTerms = *ti.DebtInstrumentDefaultAndRecoveryTerms
+	}
+	if ti.DebtInstrumentRepaymentFrequency != nil {
+		t.DebtInstrumentRepaymentFrequency = *ti.DebtInstrumentRepaymentFrequency
+	}
+	if ti.InterestRepaymentFrequency != nil {
+		t.InterestRepaymentFrequency = *ti.InterestRepaymentFrequency
+	}
+	if ti.DcsrDetails != nil {
+		t.DcsrDetails = *ti.DcsrDetails
+	}
+	if ti.SinkingFundStructure != nil {
+		t.SinkingFundStructure = *ti.SinkingFundStructure
+	}
+	if ti.CovenantMonitoringAgent != nil {
+		t.CovenantMonitoringAgent = *ti.CovenantMonitoringAgent
+	}
+	if ti.RightOfRecourse != nil {
+		t.RightOfRecourse = *ti.RightOfRecourse
+	}
+
+	t.DebtInstrumentInterestRate = ti.DebtInstrumentInterestRate
+	t.DcsrRatio = ti.DcsrRatio
+	t.LtvRatio = ti.LtvRatio
+	t.InterestCoverageRatio = ti.InterestCoverageRatio
+	t.MaximumLeverageRatio = ti.MaximumLeverageRatio
+	t.GracePeriod = ti.GracePeriod
+	t.TrusteeAppointed = ti.TrusteeAppointed
+	t.ReserveFundInPlace = ti.ReserveFundInPlace
 
 	return t
 
