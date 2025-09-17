@@ -522,6 +522,7 @@ type TokenizedAsset struct {
 	GracePeriod                                  int                             `gorm:"default:0" json:"gracePeriod"`
 	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
+	SecurityOrCollateralOffered                  *string                         `json:"securityOrCollateralOffered"`
 }
 
 type TokenizedAssetID string
@@ -925,6 +926,7 @@ type TokenizedAssetJSONInput struct {
 	GracePeriod                            int       `gorm:"default:0" json:"gracePeriod"`
 	TrusteeAppointed                       int       `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                     int       `gorm:"default:0" json:"reserveFundInPlace"`
+	SecurityOrCollateralOffered            string    `json:"securityOrCollateralOffered"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1418,6 +1420,7 @@ type TokenizedAssetJSON struct {
 	GracePeriod                                  int                             `gorm:"default:0" json:"gracePeriod"`
 	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
+	SecurityOrCollateralOffered                  string                          `json:"securityOrCollateralOffered"`
 }
 
 type TokenizedAssetSector struct {
@@ -4061,7 +4064,6 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	} else {
 		t.RightOfRecourse = nil
 	}
-
 	t.DebtInstrumentInterestRate = ti.DebtInstrumentInterestRate
 	t.DcsrRatio = ti.DcsrRatio
 	t.LtvRatio = ti.LtvRatio
@@ -4070,6 +4072,12 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.GracePeriod = ti.GracePeriod
 	t.TrusteeAppointed = ti.TrusteeAppointed
 	t.ReserveFundInPlace = ti.ReserveFundInPlace
+
+	if len(ti.SecurityOrCollateralOffered) > 0 {
+		t.SecurityOrCollateralOffered = &ti.SecurityOrCollateralOffered
+	} else {
+		t.SecurityOrCollateralOffered = nil
+	}
 
 	//////////
 
@@ -5472,7 +5480,6 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.RightOfRecourse != nil {
 		t.RightOfRecourse = *ti.RightOfRecourse
 	}
-
 	t.DebtInstrumentInterestRate = ti.DebtInstrumentInterestRate
 	t.DcsrRatio = ti.DcsrRatio
 	t.LtvRatio = ti.LtvRatio
@@ -5481,6 +5488,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.GracePeriod = ti.GracePeriod
 	t.TrusteeAppointed = ti.TrusteeAppointed
 	t.ReserveFundInPlace = ti.ReserveFundInPlace
+
+	if ti.SecurityOrCollateralOffered != nil {
+		t.SecurityOrCollateralOffered = *ti.SecurityOrCollateralOffered
+	}
 
 	return t
 
