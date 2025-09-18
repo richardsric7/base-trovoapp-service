@@ -35,65 +35,65 @@ class _CommoditySKRAssetInformationView
   bool formHasError = false;
   late dynamic data = {};
 
-  late String AssetType;
-  late String AssetDescription;
-  late String Quantity;
-  late String QuanlityStandard;
-  late String IssuerName;
-  late String IssuerType;
-  late String IssuerContactInformation;
-  late String VaultCustodianName;
-  late String VaultOperator;
-  late String VaultLicenseNumber;
-  late String VaultLocation;
-  late String Number;
-  late DateTime? IssuerDate;
-  late DateTime? ExpiryDate;
-  late String RegistryRecord;
-  late String Verifier;
-  late String StorageConditions;
-  late String VaultAccreditationBody;
-  late String MinimumPurchaseAmount;
-  late DateTime? MaturityDate;
-  late String AutoRollover;
-  late String OwnershipLegalHolder;
-  late String OwnershipCustodianName;
-  late String OwnershipRightsRepresented;
-  late String OwnershipTrustee;
-  late String OwnershipLienOrEncumbrances;
-  late String ValuationAssetValuation;
-  late DateTime? ValuationDate;
-  late String ValuationMethodology;
-  late String TokenizationObjective;
-  late String HoldingLockinPeriod;
-  late String RedemptionMechanism;
-  late String PartiesInvolvedTrustee;
-  late String PartiesInvolvedUnderwriter;
-  late String PartiesInvolvedAssetManager;
-  late String PartiesInvolvedLegalAdvisor;
-  late String PartiesInvolvedAuditor;
-  late String PartiesInvolvedRegulator;
-  late String InsuranceMarketRisk;
-  late String InsuranceStorageRisk;
-  late String InsuranceTitleRisk;
-  late String InsuranceFraudRisk;
-  late String InsuranceInsuranceRisk;
-  late String InsuranceOperationalRisk;
-  late String InsuranceRegulatoryRisk;
-  late String InsuranceLiquidityRisk;
-  late String InsuranceForceMajeureRisk;
-  late String InsuranceEarlyRedemptionRisk;
-  late String InsuranceMitigationMeasures;
-  late String InsuranceInsuranceCoverageSummary;
-  late String InsuranceInsuranceProvider;
-  late String InsuranceCoverageValue;
+  late DateTime? maturityDate;
+  late DateTime? valuationDate;
+  late DateTime? issueDate;
+  late DateTime? expiryDate;
+  late String assetType;
+  late String assetDescription;
+  late String quantity;
+  late String quanlityStandard;
+  late String issuerName;
+  late String issuerType;
+  late String issuerContactInformation;
+  late String vaultCustodianName;
+  late String vaultOperator;
+  late String vaultLicenseNumber;
+  late String vaultLocation;
+  late String number;
+  late String registryRecord;
+  late String verifier;
+  late String storageConditions;
+  late String vaultAccreditationBody;
+  late String minimumPurchaseAmount;
+  late String autoRollover;
+  late String ownershipLegalHolder;
+  late String ownershipCustodianName;
+  late String ownershipRightsRepresented;
+  late String ownershipTrustee;
+  late String ownershipLienOrEncumbrances;
+  late String valuationAssetValuation;
+  late String valuationMethodology;
+  late String tokenizationObjective;
+  late String holdingLockinPeriod;
+  late String redemptionMechanism;
+  late String partiesInvolvedTrustee;
+  late String partiesInvolvedUnderwriter;
+  late String partiesInvolvedAssetManager;
+  late String partiesInvolvedLegalAdvisor;
+  late String partiesInvolvedAuditor;
+  late String partiesInvolvedRegulator;
+  late String insuranceMarketRisk;
+  late String insuranceStorageRisk;
+  late String insuranceTitleRisk;
+  late String insuranceFraudRisk;
+  late String insuranceInsuranceRisk;
+  late String insuranceOperationalRisk;
+  late String insuranceRegulatoryRisk;
+  late String insuranceLiquidityRisk;
+  late String insuranceForceMajeureRisk;
+  late String insuranceEarlyRedemptionRisk;
+  late String insuranceMitigationMeasures;
+  late String insuranceInsuranceCoverageSummary;
+  late String insuranceInsuranceProvider;
+  late String insuranceCoverageValue;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
   final percentageFromPromotersController = TextEditingController();
   final assetOwnerRetainedOrContributedValueController =
       TextEditingController();
-  final percentValueOfInsuranceController = TextEditingController();
+  final percentValueOfinsuranceController = TextEditingController();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -124,6 +124,79 @@ class _CommoditySKRAssetInformationView
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
     inspect(data);
+
+    var parsedmaturityDate = DateTime.parse(data['maturityDate']);
+    maturityDate = parsedmaturityDate.year == DateTime(0001).year
+        ? null
+        : parsedmaturityDate;
+    var parsedValuationDate = DateTime.parse(data['valuationDate']);
+    valuationDate = parsedValuationDate.year == DateTime(0001).year
+        ? null
+        : parsedValuationDate;
+
+    var parsedIssueDate = DateTime.parse(data['issuerDate']);
+    issueDate = parsedIssueDate.year == DateTime(0001).year
+        ? null
+        : parsedIssueDate;
+    var parsedExpiryDate = DateTime.parse(data['expiryDate']);
+    expiryDate = parsedExpiryDate.year == DateTime(0001).year
+        ? null
+        : parsedExpiryDate;
+
+    assetType = data['assetType'].toString();
+    assetDescription = data['assetDescription'].toString();
+    quantity = data['quantity'].toString();
+    quanlityStandard = data['quanlityStandard'].toString();
+    issuerName = data['issuerName'].toString();
+    issuerType = data['issuerType'].toString();
+    issuerContactInformation = data['issuerContactInformation'].toString();
+    vaultCustodianName = data['vaultCustodianName'].toString();
+    vaultOperator = data['vaultOperator'].toString();
+    vaultLicenseNumber = data['vaultLicenseNumber'].toString();
+    vaultLocation = data['vaultLocation'].toString();
+    number = data['number'].toString();
+    registryRecord = data['registryRecord'].toString();
+    verifier = data['verifier'].toString();
+    storageConditions = data['storageConditions'].toString();
+    vaultAccreditationBody = data['vaultAccreditationBody'].toString();
+    minimumPurchaseAmount = data['minimumPurchaseAmount'].toString();
+    autoRollover = data['autoRollover'].toString();
+    ownershipLegalHolder = data['ownershipLegalHolder'].toString();
+    ownershipCustodianName = data['ownershipCustodianName'].toString();
+    ownershipRightsRepresented = data['ownershipRightsRepresented'].toString();
+    ownershipTrustee = data['ownershipTrustee'].toString();
+    ownershipLienOrEncumbrances = data['ownershipLienOrEncumbrances']
+        .toString();
+    valuationAssetValuation = data['valuationAssetValuation'].toString();
+    valuationMethodology = data['valuationMethodology'].toString();
+    tokenizationObjective = data['tokenizationObjective'].toString();
+    holdingLockinPeriod = data['holdingLockinPeriod'].toString();
+    redemptionMechanism = data['redemptionMechanism'].toString();
+    partiesInvolvedTrustee = data['partiesInvolvedTrustee'].toString();
+    partiesInvolvedUnderwriter = data['partiesInvolvedUnderwriter'].toString();
+    partiesInvolvedAssetManager = data['partiesInvolvedAssetManager']
+        .toString();
+    partiesInvolvedLegalAdvisor = data['partiesInvolvedLegalAdvisor']
+        .toString();
+    partiesInvolvedAuditor = data['partiesInvolvedAuditor'].toString();
+    partiesInvolvedRegulator = data['partiesInvolvedRegulator'].toString();
+    insuranceMarketRisk = data['insuranceMarketRisk'].toString();
+    insuranceStorageRisk = data['insuranceStorageRisk'].toString();
+    insuranceTitleRisk = data['insuranceTitleRisk'].toString();
+    insuranceFraudRisk = data['insuranceFraudRisk'].toString();
+    insuranceInsuranceRisk = data['insuranceInsuranceRisk'].toString();
+    insuranceOperationalRisk = data['insuranceOperationalRisk'].toString();
+    insuranceRegulatoryRisk = data['insuranceRegulatoryRisk'].toString();
+    insuranceLiquidityRisk = data['insuranceLiquidityRisk'].toString();
+    insuranceForceMajeureRisk = data['insuranceForceMajeureRisk'].toString();
+    insuranceEarlyRedemptionRisk = data['insuranceEarlyRedemptionRisk']
+        .toString();
+    insuranceMitigationMeasures = data['insuranceMitigationMeasures']
+        .toString();
+    insuranceInsuranceCoverageSummary =
+        data['insuranceInsuranceCoverageSummary'].toString();
+    insuranceInsuranceProvider = data['insuranceInsuranceProvider'].toString();
+    insuranceCoverageValue = data['insuranceCoverageValue'].toString();
 
     super.initState();
     getdarkmodepreviousstate();
@@ -203,10 +276,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: AssetType,
+                      initialValue: assetType,
                       onChanged: (value) {
                         setState(() {
-                          AssetType = value;
+                          assetType = value;
                         });
                       },
                       validator: (value) {
@@ -217,7 +290,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          AssetType = value!;
+                          assetType = value!;
                         });
                       },
                     ),
@@ -255,7 +328,7 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: AssetDescription,
+                      initialValue: assetDescription,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -264,7 +337,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          AssetDescription = value!;
+                          assetDescription = value!;
                         });
                       },
                       minLines: 3,
@@ -304,10 +377,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Quantity,
+                      initialValue: quantity,
                       onChanged: (value) {
                         setState(() {
-                          Quantity = value;
+                          quantity = value;
                         });
                       },
                       validator: (value) {
@@ -318,7 +391,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          Quantity = value!;
+                          quantity = value!;
                         });
                       },
                     ),
@@ -346,7 +419,7 @@ class _CommoditySKRAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      QuanlityStandard = value.toString();
+                      quanlityStandard = value.toString();
                     });
                   },
                   [],
@@ -396,10 +469,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: IssuerName,
+                      initialValue: issuerName,
                       onChanged: (value) {
                         setState(() {
-                          IssuerName = value;
+                          issuerName = value;
                         });
                       },
                       validator: (value) {
@@ -410,7 +483,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          IssuerName = value!;
+                          issuerName = value!;
                         });
                       },
                     ),
@@ -441,7 +514,7 @@ class _CommoditySKRAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      IssuerType = value.toString();
+                      issuerType = value.toString();
                     });
                   },
                   [],
@@ -491,10 +564,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: IssuerContactInformation,
+                      initialValue: issuerContactInformation,
                       onChanged: (value) {
                         setState(() {
-                          IssuerContactInformation = value;
+                          issuerContactInformation = value;
                         });
                       },
                       validator: (value) {
@@ -505,7 +578,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          IssuerContactInformation = value!;
+                          issuerContactInformation = value!;
                         });
                       },
                     ),
@@ -545,10 +618,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: VaultCustodianName,
+                      initialValue: vaultCustodianName,
                       onChanged: (value) {
                         setState(() {
-                          VaultCustodianName = value;
+                          vaultCustodianName = value;
                         });
                       },
                       validator: (value) {
@@ -559,7 +632,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          VaultCustodianName = value!;
+                          vaultCustodianName = value!;
                         });
                       },
                     ),
@@ -599,10 +672,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: VaultOperator,
+                      initialValue: vaultOperator,
                       onChanged: (value) {
                         setState(() {
-                          VaultOperator = value;
+                          vaultOperator = value;
                         });
                       },
                       validator: (value) {
@@ -613,7 +686,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          VaultOperator = value!;
+                          vaultOperator = value!;
                         });
                       },
                     ),
@@ -653,10 +726,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: VaultLicenseNumber,
+                      initialValue: vaultLicenseNumber,
                       onChanged: (value) {
                         setState(() {
-                          VaultLicenseNumber = value;
+                          vaultLicenseNumber = value;
                         });
                       },
                       validator: (value) {
@@ -667,7 +740,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          VaultLicenseNumber = value!;
+                          vaultLicenseNumber = value!;
                         });
                       },
                     ),
@@ -707,10 +780,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: VaultLocation,
+                      initialValue: vaultLocation,
                       onChanged: (value) {
                         setState(() {
-                          VaultLocation = value;
+                          vaultLocation = value;
                         });
                       },
                       validator: (value) {
@@ -721,7 +794,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          VaultLocation = value!;
+                          vaultLocation = value!;
                         });
                       },
                     ),
@@ -761,10 +834,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Number,
+                      initialValue: number,
                       onChanged: (value) {
                         setState(() {
-                          Number = value;
+                          number = value;
                         });
                       },
                       validator: (value) {
@@ -775,7 +848,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          Number = value!;
+                          number = value!;
                         });
                       },
                     ),
@@ -820,7 +893,7 @@ class _CommoditySKRAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        IssuerDate = value;
+                        issueDate = value;
                       }),
                     },
                   );
@@ -865,7 +938,7 @@ class _CommoditySKRAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        ExpiryDate = value;
+                        expiryDate = value;
                       }),
                     },
                   );
@@ -905,10 +978,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: RegistryRecord,
+                      initialValue: registryRecord,
                       onChanged: (value) {
                         setState(() {
-                          RegistryRecord = value;
+                          registryRecord = value;
                         });
                       },
                       validator: (value) {
@@ -919,7 +992,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          RegistryRecord = value!;
+                          registryRecord = value!;
                         });
                       },
                     ),
@@ -959,10 +1032,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Verifier,
+                      initialValue: verifier,
                       onChanged: (value) {
                         setState(() {
-                          Verifier = value;
+                          verifier = value;
                         });
                       },
                       validator: (value) {
@@ -973,7 +1046,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          Verifier = value!;
+                          verifier = value!;
                         });
                       },
                     ),
@@ -1013,10 +1086,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: StorageConditions,
+                      initialValue: storageConditions,
                       onChanged: (value) {
                         setState(() {
-                          StorageConditions = value;
+                          storageConditions = value;
                         });
                       },
                       validator: (value) {
@@ -1027,7 +1100,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          StorageConditions = value!;
+                          storageConditions = value!;
                         });
                       },
                     ),
@@ -1067,10 +1140,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: VaultAccreditationBody,
+                      initialValue: vaultAccreditationBody,
                       onChanged: (value) {
                         setState(() {
-                          VaultAccreditationBody = value;
+                          vaultAccreditationBody = value;
                         });
                       },
                       validator: (value) {
@@ -1081,7 +1154,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          VaultAccreditationBody = value!;
+                          vaultAccreditationBody = value!;
                         });
                       },
                     ),
@@ -1121,10 +1194,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: MinimumPurchaseAmount,
+                      initialValue: minimumPurchaseAmount,
                       onChanged: (value) {
                         setState(() {
-                          MinimumPurchaseAmount = value;
+                          minimumPurchaseAmount = value;
                         });
                       },
                       validator: (value) {
@@ -1135,7 +1208,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          MinimumPurchaseAmount = value!;
+                          minimumPurchaseAmount = value!;
                         });
                       },
                     ),
@@ -1180,7 +1253,7 @@ class _CommoditySKRAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        MaturityDate = value;
+                        maturityDate = value;
                       }),
                     },
                   );
@@ -1211,7 +1284,7 @@ class _CommoditySKRAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      AutoRollover = value.toString();
+                      autoRollover = value.toString();
                     });
                   },
                   [],
@@ -1296,10 +1369,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: OwnershipLegalHolder,
+                      initialValue: ownershipLegalHolder,
                       onChanged: (value) {
                         setState(() {
-                          OwnershipLegalHolder = value;
+                          ownershipLegalHolder = value;
                         });
                       },
                       validator: (value) {
@@ -1310,7 +1383,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          OwnershipLegalHolder = value!;
+                          ownershipLegalHolder = value!;
                         });
                       },
                     ),
@@ -1350,10 +1423,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: OwnershipCustodianName,
+                      initialValue: ownershipCustodianName,
                       onChanged: (value) {
                         setState(() {
-                          OwnershipCustodianName = value;
+                          ownershipCustodianName = value;
                         });
                       },
                       validator: (value) {
@@ -1364,7 +1437,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          OwnershipCustodianName = value!;
+                          ownershipCustodianName = value!;
                         });
                       },
                     ),
@@ -1404,10 +1477,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: OwnershipRightsRepresented,
+                      initialValue: ownershipRightsRepresented,
                       onChanged: (value) {
                         setState(() {
-                          OwnershipRightsRepresented = value;
+                          ownershipRightsRepresented = value;
                         });
                       },
                       validator: (value) {
@@ -1418,7 +1491,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          OwnershipRightsRepresented = value!;
+                          ownershipRightsRepresented = value!;
                         });
                       },
                     ),
@@ -1458,10 +1531,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: OwnershipTrustee,
+                      initialValue: ownershipTrustee,
                       onChanged: (value) {
                         setState(() {
-                          OwnershipTrustee = value;
+                          ownershipTrustee = value;
                         });
                       },
                       validator: (value) {
@@ -1472,7 +1545,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          OwnershipTrustee = value!;
+                          ownershipTrustee = value!;
                         });
                       },
                     ),
@@ -1512,10 +1585,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: OwnershipLienOrEncumbrances,
+                      initialValue: ownershipLienOrEncumbrances,
                       onChanged: (value) {
                         setState(() {
-                          OwnershipLienOrEncumbrances = value;
+                          ownershipLienOrEncumbrances = value;
                         });
                       },
                       validator: (value) {
@@ -1526,7 +1599,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          OwnershipLienOrEncumbrances = value!;
+                          ownershipLienOrEncumbrances = value!;
                         });
                       },
                     ),
@@ -1602,10 +1675,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ValuationAssetValuation,
+                      initialValue: valuationAssetValuation,
                       onChanged: (value) {
                         setState(() {
-                          ValuationAssetValuation = value;
+                          valuationAssetValuation = value;
                         });
                       },
                       validator: (value) {
@@ -1616,7 +1689,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          ValuationAssetValuation = value!;
+                          valuationAssetValuation = value!;
                         });
                       },
                     ),
@@ -1661,7 +1734,7 @@ class _CommoditySKRAssetInformationView
                   ).then(
                     (value) => {
                       setState(() {
-                        ValuationDate = value;
+                        valuationDate = value;
                       }),
                     },
                   );
@@ -1701,10 +1774,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ValuationMethodology,
+                      initialValue: valuationMethodology,
                       onChanged: (value) {
                         setState(() {
-                          ValuationMethodology = value;
+                          valuationMethodology = value;
                         });
                       },
                       validator: (value) {
@@ -1715,7 +1788,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          ValuationMethodology = value!;
+                          valuationMethodology = value!;
                         });
                       },
                     ),
@@ -1752,10 +1825,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: TokenizationObjective,
+                      initialValue: tokenizationObjective,
                       onChanged: (value) {
                         setState(() {
-                          TokenizationObjective = value;
+                          tokenizationObjective = value;
                         });
                       },
                       validator: (value) {
@@ -1766,7 +1839,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          TokenizationObjective = value!;
+                          tokenizationObjective = value!;
                         });
                       },
                     ),
@@ -1806,10 +1879,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: HoldingLockinPeriod,
+                      initialValue: holdingLockinPeriod,
                       onChanged: (value) {
                         setState(() {
-                          HoldingLockinPeriod = value;
+                          holdingLockinPeriod = value;
                         });
                       },
                       validator: (value) {
@@ -1820,7 +1893,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          HoldingLockinPeriod = value!;
+                          holdingLockinPeriod = value!;
                         });
                       },
                     ),
@@ -1851,7 +1924,7 @@ class _CommoditySKRAssetInformationView
                 child: dropdown(
                   (value) {
                     setState(() {
-                      RedemptionMechanism = value.toString();
+                      redemptionMechanism = value.toString();
                     });
                   },
                   [],
@@ -1936,10 +2009,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedTrustee,
+                      initialValue: partiesInvolvedTrustee,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedTrustee = value;
+                          partiesInvolvedTrustee = value;
                         });
                       },
                       validator: (value) {
@@ -1950,7 +2023,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedTrustee = value!;
+                          partiesInvolvedTrustee = value!;
                         });
                       },
                     ),
@@ -1990,10 +2063,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedUnderwriter,
+                      initialValue: partiesInvolvedUnderwriter,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedUnderwriter = value;
+                          partiesInvolvedUnderwriter = value;
                         });
                       },
                       validator: (value) {
@@ -2004,7 +2077,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedUnderwriter = value!;
+                          partiesInvolvedUnderwriter = value!;
                         });
                       },
                     ),
@@ -2044,10 +2117,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedAssetManager,
+                      initialValue: partiesInvolvedAssetManager,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedAssetManager = value;
+                          partiesInvolvedAssetManager = value;
                         });
                       },
                       validator: (value) {
@@ -2058,7 +2131,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedAssetManager = value!;
+                          partiesInvolvedAssetManager = value!;
                         });
                       },
                     ),
@@ -2098,10 +2171,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedLegalAdvisor,
+                      initialValue: partiesInvolvedLegalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedLegalAdvisor = value;
+                          partiesInvolvedLegalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2112,7 +2185,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedLegalAdvisor = value!;
+                          partiesInvolvedLegalAdvisor = value!;
                         });
                       },
                     ),
@@ -2152,10 +2225,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedAuditor,
+                      initialValue: partiesInvolvedAuditor,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedAuditor = value;
+                          partiesInvolvedAuditor = value;
                         });
                       },
                       validator: (value) {
@@ -2166,7 +2239,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedAuditor = value!;
+                          partiesInvolvedAuditor = value!;
                         });
                       },
                     ),
@@ -2206,10 +2279,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: PartiesInvolvedRegulator,
+                      initialValue: partiesInvolvedRegulator,
                       onChanged: (value) {
                         setState(() {
-                          PartiesInvolvedRegulator = value;
+                          partiesInvolvedRegulator = value;
                         });
                       },
                       validator: (value) {
@@ -2220,7 +2293,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          PartiesInvolvedRegulator = value!;
+                          partiesInvolvedRegulator = value!;
                         });
                       },
                     ),
@@ -2296,10 +2369,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceMarketRisk,
+                      initialValue: insuranceMarketRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceMarketRisk = value;
+                          insuranceMarketRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2310,7 +2383,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceMarketRisk = value!;
+                          insuranceMarketRisk = value!;
                         });
                       },
                     ),
@@ -2350,10 +2423,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceStorageRisk,
+                      initialValue: insuranceStorageRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceStorageRisk = value;
+                          insuranceStorageRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2364,7 +2437,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceStorageRisk = value!;
+                          insuranceStorageRisk = value!;
                         });
                       },
                     ),
@@ -2404,10 +2477,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceTitleRisk,
+                      initialValue: insuranceTitleRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceTitleRisk = value;
+                          insuranceTitleRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2418,7 +2491,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceTitleRisk = value!;
+                          insuranceTitleRisk = value!;
                         });
                       },
                     ),
@@ -2458,10 +2531,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceFraudRisk,
+                      initialValue: insuranceFraudRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceFraudRisk = value;
+                          insuranceFraudRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2472,7 +2545,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceFraudRisk = value!;
+                          insuranceFraudRisk = value!;
                         });
                       },
                     ),
@@ -2486,7 +2559,7 @@ class _CommoditySKRAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Insurance Risk",
+                        "insurance Risk",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2512,10 +2585,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceInsuranceRisk,
+                      initialValue: insuranceInsuranceRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceInsuranceRisk = value;
+                          insuranceInsuranceRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2526,7 +2599,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceInsuranceRisk = value!;
+                          insuranceInsuranceRisk = value!;
                         });
                       },
                     ),
@@ -2566,10 +2639,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceOperationalRisk,
+                      initialValue: insuranceOperationalRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceOperationalRisk = value;
+                          insuranceOperationalRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2580,7 +2653,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceOperationalRisk = value!;
+                          insuranceOperationalRisk = value!;
                         });
                       },
                     ),
@@ -2620,10 +2693,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceRegulatoryRisk,
+                      initialValue: insuranceRegulatoryRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceRegulatoryRisk = value;
+                          insuranceRegulatoryRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2634,7 +2707,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceRegulatoryRisk = value!;
+                          insuranceRegulatoryRisk = value!;
                         });
                       },
                     ),
@@ -2674,10 +2747,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceLiquidityRisk,
+                      initialValue: insuranceLiquidityRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceLiquidityRisk = value;
+                          insuranceLiquidityRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2688,7 +2761,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceLiquidityRisk = value!;
+                          insuranceLiquidityRisk = value!;
                         });
                       },
                     ),
@@ -2728,10 +2801,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceForceMajeureRisk,
+                      initialValue: insuranceForceMajeureRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceForceMajeureRisk = value;
+                          insuranceForceMajeureRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2742,7 +2815,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceForceMajeureRisk = value!;
+                          insuranceForceMajeureRisk = value!;
                         });
                       },
                     ),
@@ -2782,10 +2855,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceEarlyRedemptionRisk,
+                      initialValue: insuranceEarlyRedemptionRisk,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceEarlyRedemptionRisk = value;
+                          insuranceEarlyRedemptionRisk = value;
                         });
                       },
                       validator: (value) {
@@ -2796,7 +2869,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceEarlyRedemptionRisk = value!;
+                          insuranceEarlyRedemptionRisk = value!;
                         });
                       },
                     ),
@@ -2836,10 +2909,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceMitigationMeasures,
+                      initialValue: insuranceMitigationMeasures,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceMitigationMeasures = value;
+                          insuranceMitigationMeasures = value;
                         });
                       },
                       validator: (value) {
@@ -2850,7 +2923,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceMitigationMeasures = value!;
+                          insuranceMitigationMeasures = value!;
                         });
                       },
                     ),
@@ -2864,7 +2937,7 @@ class _CommoditySKRAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Insurance Coverage Summary",
+                        "insurance Coverage Summary",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2890,10 +2963,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceInsuranceCoverageSummary,
+                      initialValue: insuranceInsuranceCoverageSummary,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceInsuranceCoverageSummary = value;
+                          insuranceInsuranceCoverageSummary = value;
                         });
                       },
                       validator: (value) {
@@ -2904,7 +2977,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceInsuranceCoverageSummary = value!;
+                          insuranceInsuranceCoverageSummary = value!;
                         });
                       },
                     ),
@@ -2918,7 +2991,7 @@ class _CommoditySKRAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Insurance Provider",
+                        "insurance Provider",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -2944,10 +3017,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceInsuranceProvider,
+                      initialValue: insuranceInsuranceProvider,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceInsuranceProvider = value;
+                          insuranceInsuranceProvider = value;
                         });
                       },
                       validator: (value) {
@@ -2958,7 +3031,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceInsuranceProvider = value!;
+                          insuranceInsuranceProvider = value!;
                         });
                       },
                     ),
@@ -2998,10 +3071,10 @@ class _CommoditySKRAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: InsuranceCoverageValue,
+                      initialValue: insuranceCoverageValue,
                       onChanged: (value) {
                         setState(() {
-                          InsuranceCoverageValue = value;
+                          insuranceCoverageValue = value;
                         });
                       },
                       validator: (value) {
@@ -3012,7 +3085,7 @@ class _CommoditySKRAssetInformationView
                       },
                       onSaved: (value) {
                         setState(() {
-                          InsuranceCoverageValue = value!;
+                          insuranceCoverageValue = value!;
                         });
                       },
                     ),
@@ -3050,7 +3123,67 @@ class _CommoditySKRAssetInformationView
       showLoader(context);
       var newData = {...data as Map};
 
-      // newData['ownershipType'] = assetOwnership;
+      newData['issuerDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(issueDate!.toUtc());
+      newData['expiryDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(expiryDate!.toUtc());
+      newData['maturityDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(maturityDate!.toUtc());
+      newData['valuationDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(valuationDate!.toUtc());
+      newData['assetType'] = assetType;
+      newData['assetDescription'] = assetDescription;
+      newData['quantity'] = quantity;
+      newData['quanlityStandard'] = quanlityStandard;
+      newData['issuerName'] = issuerName;
+      newData['issuerType'] = issuerType;
+      newData['issuerContactInformation'] = issuerContactInformation;
+      newData['vaultCustodianName'] = vaultCustodianName;
+      newData['vaultOperator'] = vaultOperator;
+      newData['vaultLicenseNumber'] = vaultLicenseNumber;
+      newData['vaultLocation'] = vaultLocation;
+      newData['number'] = number;
+      newData['registryRecord'] = registryRecord;
+      newData['verifier'] = verifier;
+      newData['storageConditions'] = storageConditions;
+      newData['vaultAccreditationBody'] = vaultAccreditationBody;
+      newData['minimumPurchaseAmount'] = minimumPurchaseAmount;
+      newData['autoRollover'] = autoRollover;
+      newData['ownershipLegalHolder'] = ownershipLegalHolder;
+      newData['ownershipCustodianName'] = ownershipCustodianName;
+      newData['ownershipRightsRepresented'] = ownershipRightsRepresented;
+      newData['ownershipTrustee'] = ownershipTrustee;
+      newData['ownershipLienOrEncumbrances'] = ownershipLienOrEncumbrances;
+      newData['valuationAssetValuation'] = valuationAssetValuation;
+      newData['valuationMethodology'] = valuationMethodology;
+      newData['tokenizationObjective'] = tokenizationObjective;
+      newData['holdingLockinPeriod'] = holdingLockinPeriod;
+      newData['redemptionMechanism'] = redemptionMechanism;
+      newData['partiesInvolvedTrustee'] = partiesInvolvedTrustee;
+      newData['partiesInvolvedUnderwriter'] = partiesInvolvedUnderwriter;
+      newData['partiesInvolvedAssetManager'] = partiesInvolvedAssetManager;
+      newData['partiesInvolvedLegalAdvisor'] = partiesInvolvedLegalAdvisor;
+      newData['partiesInvolvedAuditor'] = partiesInvolvedAuditor;
+      newData['partiesInvolvedRegulator'] = partiesInvolvedRegulator;
+      newData['insuranceMarketRisk'] = insuranceMarketRisk;
+      newData['insuranceStorageRisk'] = insuranceStorageRisk;
+      newData['insuranceTitleRisk'] = insuranceTitleRisk;
+      newData['insuranceFraudRisk'] = insuranceFraudRisk;
+      newData['insuranceInsuranceRisk'] = insuranceInsuranceRisk;
+      newData['insuranceOperationalRisk'] = insuranceOperationalRisk;
+      newData['insuranceRegulatoryRisk'] = insuranceRegulatoryRisk;
+      newData['insuranceLiquidityRisk'] = insuranceLiquidityRisk;
+      newData['insuranceForceMajeureRisk'] = insuranceForceMajeureRisk;
+      newData['insuranceEarlyRedemptionRisk'] = insuranceEarlyRedemptionRisk;
+      newData['insuranceMitigationMeasures'] = insuranceMitigationMeasures;
+      newData['insuranceInsuranceCoverageSummary'] =
+          insuranceInsuranceCoverageSummary;
+      newData['insuranceInsuranceProvider'] = insuranceInsuranceProvider;
+      newData['insuranceCoverageValue'] = insuranceCoverageValue;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(

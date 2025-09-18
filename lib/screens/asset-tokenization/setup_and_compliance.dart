@@ -40,6 +40,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
+  double equityPercentage = 0;
+  double debtPercentage = 0;
   bool assetExisting = false;
   int fundingStructure = 0;
   String proceedPayoutCurrency = '';
@@ -81,6 +83,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetTypeId = data!["assetType"];
       assetExisting = data!['assetAlreadyExists'] == 1;
       offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
+      fundingStructure = data['fundingStructure'] ?? 0;
+      equityPercentage =
+          double.tryParse(data['equityPercentage'].toString()) ?? 0;
+      debtPercentage = double.tryParse(data['debtPercentage'].toString()) ?? 0;
       secApprovalId = data!["secApprovalIdNumber"];
       hasSecApproval = data!["secApproval"] == 1;
       selectedCountry = data!["assetCountryLocation"];
@@ -88,6 +94,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetManager = data!["assetManagerId"].toString();
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
+
+      equityPercentageController.text = equityPercentage.toString();
+      debtPercentageController.text = debtPercentage.toString();
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
       for (
@@ -620,104 +629,123 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'What is the equity percentage (%)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+              if (fundingStructure == 0 || fundingStructure == 2) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'What is the equity percentage (%)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "How much (%)",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      width / 1.12,
-                      onChanged: (value) {},
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {},
-                      autoFormatNumber: true,
-                      isFiat: true,
-                      controller: equityPercentageController,
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "How much (%)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            equityPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            equityPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        autoFormatNumber: true,
+                        isFiat: true,
+                        controller: equityPercentageController,
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'What is the debt percentage (%)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                  ],
+                ),
+              ],
+              if (fundingStructure == 1 || fundingStructure == 2) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'What is the debt percentage (%)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "How much (%)",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      width / 1.12,
-                      onChanged: (value) {},
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {},
-                      autoFormatNumber: true,
-                      isFiat: true,
-                      controller: debtPercentageController,
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "How much (%)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            debtPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            debtPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        autoFormatNumber: true,
+                        isFiat: true,
+                        controller: debtPercentageController,
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
-            SizedBox(height: height / 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -780,7 +808,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   child: TextButton(
                     onPressed: showCountryListPopup,
                     style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0),
+                      elevation: WidgetStateProperty.all<double>(0),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1137,6 +1165,13 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data["assetCountryLocation"] = selectedCountry;
       data['proceedPayoutCurrency'] = proceedPayoutCurrency;
       data['assetQuoteCurrency'] = assetQuoteCurrency;
+      data['fundingStructure'] = fundingStructure;
+      data['equityPercentage'] = equityPercentage;
+      data['debtPercentage'] = debtPercentage;
+
+      print('equ = $equityPercentage ==> debt = $debtPercentage');
+
+      inspect(data);
 
       String requestBody = jsonEncode(data);
 

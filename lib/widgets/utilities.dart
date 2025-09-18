@@ -1243,6 +1243,16 @@ extension StringCasing on String {
   String capitalizeEachWord() {
     return split(' ').map((word) => word.capitalizeFirstLetter()).join(' ');
   }
+
+  String? nullIfEmpty() {
+    return isEmpty ? null : this;
+  }
+}
+
+extension DoubleFormat on double {
+  String toCleanString() {
+    return this == toInt() ? toInt().toString() : toString();
+  }
 }
 
 fetchKycConfig(DataProvider appState) async {

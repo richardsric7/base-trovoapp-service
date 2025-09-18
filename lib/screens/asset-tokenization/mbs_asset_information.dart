@@ -33,62 +33,58 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
   bool formHasError = false;
   late dynamic data = {};
 
-  late String IsinOrSerialNumber;
-  late String Name;
-  late String Type;
-  double? TotalIssueSize;
-  DateTime? IssueDate;
-  DateTime? MaturityDate;
-  int? Tenor;
-  double? FaceValuePerUnit;
-  late String CouponOrInterestRateType;
-  double? CouponOrInterestRate;
-  late String ReferenceIndex;
-  double? ExpectedYield;
-  late String EarlyRedemptionOptionInvestor;
-  double? MinimumInvestmentAmount;
-  late String TaxTreatmentTokenHolders;
-  late String PaymentStructureToTokenHolders;
-  late String RedemptionMethod;
-  late String PaymentStructure;
-  late String RepaymentMethod;
-  late String PaymentCycle;
-  double? WeightedAverageLife;
-  double? UnderlyingAssetPoolSize;
-  late String PoolComposition;
-  late String CreditEnhancementMethod;
-  late String SummaryOfUseOfProceeds;
-  late String CreditRatingIfAny;
-  late String IssuerName;
-  late String IssuerType;
-  late String IssuerContactPerson;
-  late String ContactEmail;
-  late String ContactPhoneNumber;
-  late String BriefCompanyOverview;
-
-  // Parties Involved
-  late String MortgageOriginators;
-  late String Servicer;
-  late String SpecialPurposeVehicle;
-  late String Trustee;
-  late String Custodian;
-  late String AssetManagerOrAdministrator;
-  late String LegalAdvisor;
-  late String UnderwriterIfAny;
-  late String CreditRatingAgency;
-  late String AuditorOrVerifier;
-
-  // Risk Profile
-  late String CreditRiskAssessment;
-  late String CreditRating;
-  late String PrepaymentRisk;
-  late String InterestRateRisk;
-  late String StructuralComplexityRisk;
-  late String LegalOrRegulatoryRisk;
-  late String OperationalRisk;
-  late String MarketRisk;
-  late String EsgRisk;
-  late String MitigationMeasures;
+  DateTime? issueDate;
+  DateTime? maturityDate;
+  double? weightedAverageLife;
+  double? underlyingAssetPoolSize;
+  double? totalIssueSize;
+  double? faceValuePerUnit;
+  double? couponOrInterestRate;
+  double? expectedYield;
+  double? minimumInvestmentAmount;
+  int? tenure;
+  late String isinOrSerialNumber;
+  late String assetName;
+  late String assetType;
+  late String couponOrInterestRateType;
+  late String referenceIndex;
+  late String earlyRedemptionOptionInvestor;
+  late String taxTreatmentTokenHolders;
+  late String paymentStructureToTokenHolders;
+  late String redemptionMethod;
+  late String paymentStructure;
+  late String repaymentMethod;
+  late String paymentCycle;
+  late String poolComposition;
+  late String creditEnhancementMethod;
+  late String summaryOfUseOfProceeds;
+  late String creditRatingIfAny;
+  late String issuerName;
+  late String issuerType;
+  late String issuerContactPerson;
+  late String contactEmail;
+  late String contactPhoneNumber;
+  late String briefCompanyOverview;
+  late String mortgageOriginators;
+  late String servicer;
+  late String specialPurposeVehicle;
+  late String trustee;
+  late String custodian;
+  late String assetManagerOrAdministrator;
+  late String legalAdvisor;
+  late String underwriterIfAny;
+  late String creditRatingAgency;
+  late String auditorOrVerifier;
+  late String creditRiskAssessment;
+  late String creditRating;
+  late String prepaymentRisk;
+  late String interestRateRisk;
+  late String structuralComplexityRisk;
+  late String legalOrRegulatoryRisk;
+  late String operationalRisk;
+  late String marketRisk;
+  late String esgRisk;
+  late String mitigationMeasures;
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -128,6 +124,73 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
     inspect(data);
     super.initState();
     getdarkmodepreviousstate();
+
+    var parsedIssueDate = DateTime.parse(data['issueDate']);
+    issueDate = parsedIssueDate.year == DateTime(0001).year
+        ? null
+        : parsedIssueDate;
+
+    var parsedMaturityDate = DateTime.parse(data['maturityDate']);
+    maturityDate = parsedMaturityDate.year == DateTime(0001).year
+        ? null
+        : parsedMaturityDate;
+
+    weightedAverageLife = double.parse(data['weightedAverageLife'].toString());
+    underlyingAssetPoolSize = double.parse(
+      data['underlyingAssetPoolSize'].toString(),
+    );
+    totalIssueSize = double.parse(data['totalIssueSize'].toString());
+    faceValuePerUnit = double.parse(data['faceValuePerUnit'].toString());
+    couponOrInterestRate = double.parse(
+      data['couponOrInterestRate'].toString(),
+    );
+    expectedYield = double.parse(data['expectedYield'].toString());
+    minimumInvestmentAmount = double.parse(
+      data['minimumInvestmentAmount'].toString(),
+    );
+    tenure = int.parse(data['tenure'].toString());
+    isinOrSerialNumber = data['isinOrSerialNumber'];
+    assetName = data['assetName'];
+    assetType = data['assetType'];
+    couponOrInterestRateType = data['couponOrInterestRateType'];
+    referenceIndex = data['referenceIndex'];
+    earlyRedemptionOptionInvestor = data['earlyRedemptionOptionInvestor'];
+    taxTreatmentTokenHolders = data['taxTreatmentTokenHolders'];
+    paymentStructureToTokenHolders = data['paymentStructureToTokenHolders'];
+    redemptionMethod = data['redemptionMethod'];
+    paymentStructure = data['paymentStructure'];
+    repaymentMethod = data['repaymentMethod'];
+    paymentCycle = data['paymentCycle'];
+    poolComposition = data['poolComposition'];
+    creditEnhancementMethod = data['creditEnhancementMethod'];
+    summaryOfUseOfProceeds = data['summaryOfUseOfProceeds'];
+    creditRatingIfAny = data['creditRatingIfAny'];
+    issuerName = data['issuerName'];
+    issuerType = data['issuerType'];
+    issuerContactPerson = data['issuerContactPerson'];
+    contactEmail = data['contactEmail'];
+    contactPhoneNumber = data['contactPhoneNumber'];
+    briefCompanyOverview = data['briefCompanyOverview'];
+    mortgageOriginators = data['mortgageOriginators'];
+    servicer = data['servicer'];
+    specialPurposeVehicle = data['specialPurposeVehicle'];
+    trustee = data['trustee'];
+    custodian = data['custodian'];
+    assetManagerOrAdministrator = data['assetManagerOrAdministrator'];
+    legalAdvisor = data['legalAdvisor'];
+    underwriterIfAny = data['underwriterIfAny'];
+    creditRatingAgency = data['creditRatingAgency'];
+    auditorOrVerifier = data['auditorOrVerifier'];
+    creditRiskAssessment = data['creditRiskAssessment'];
+    creditRating = data['creditRating'];
+    prepaymentRisk = data['prepaymentRisk'];
+    interestRateRisk = data['interestRateRisk'];
+    structuralComplexityRisk = data['structuralComplexityRisk'];
+    legalOrRegulatoryRisk = data['legalOrRegulatoryRisk'];
+    operationalRisk = data['operationalRisk'];
+    marketRisk = data['marketRisk'];
+    esgRisk = data['esgRisk'];
+    mitigationMeasures = data['mitigationMeasures'];
   }
 
   @override
@@ -204,10 +267,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: IsinOrSerialNumber,
+                      initialValue: isinOrSerialNumber,
                       onChanged: (value) {
                         setState(() {
-                          IsinOrSerialNumber = value;
+                          isinOrSerialNumber = value;
                         });
                       },
                       validator: (value) {
@@ -218,7 +281,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          IsinOrSerialNumber = value!;
+                          isinOrSerialNumber = value!;
                         });
                       },
                     ),
@@ -258,10 +321,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Name,
+                      initialValue: assetName,
                       onChanged: (value) {
                         setState(() {
-                          Name = value;
+                          assetName = value;
                         });
                       },
                       validator: (value) {
@@ -272,7 +335,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          Name = value!;
+                          assetName = value!;
                         });
                       },
                     ),
@@ -303,7 +366,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      Type = value.toString();
+                      assetType = value.toString();
                     });
                   },
                   [],
@@ -350,10 +413,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: TotalIssueSize,
+                      initialValue: totalIssueSize,
                       onChanged: (value) {
                         setState(() {
-                          TotalIssueSize = value;
+                          totalIssueSize = value;
                         });
                       },
                       validator: (value) {
@@ -364,7 +427,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          TotalIssueSize = value!;
+                          totalIssueSize = value!;
                         });
                       },
                     ),
@@ -406,7 +469,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                   ).then(
                     (value) => {
                       setState(() {
-                        IssueDate = value;
+                        issueDate = value;
                       }),
                     },
                   );
@@ -451,7 +514,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                   ).then(
                     (value) => {
                       setState(() {
-                        MaturityDate = value;
+                        maturityDate = value;
                       }),
                     },
                   );
@@ -465,7 +528,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Tenor",
+                        "tenure",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -491,10 +554,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Tenor,
+                      initialValue: tenure,
                       onChanged: (value) {
                         setState(() {
-                          Tenor = value;
+                          tenure = value;
                         });
                       },
                       validator: (value) {
@@ -505,7 +568,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          Tenor = value!;
+                          tenure = value!;
                         });
                       },
                     ),
@@ -545,10 +608,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: FaceValuePerUnit,
+                      initialValue: faceValuePerUnit,
                       onChanged: (value) {
                         setState(() {
-                          FaceValuePerUnit = value;
+                          faceValuePerUnit = value;
                         });
                       },
                       validator: (value) {
@@ -559,7 +622,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          FaceValuePerUnit = value!;
+                          faceValuePerUnit = value!;
                         });
                       },
                     ),
@@ -590,7 +653,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      CouponOrInterestRateType = value.toString();
+                      couponOrInterestRateType = value.toString();
                     });
                   },
                   [],
@@ -640,10 +703,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: CouponOrInterestRate,
+                      initialValue: couponOrInterestRate,
                       onChanged: (value) {
                         setState(() {
-                          CouponOrInterestRate = value;
+                          couponOrInterestRate = value;
                         });
                       },
                       validator: (value) {
@@ -654,7 +717,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          CouponOrInterestRate = value!;
+                          couponOrInterestRate = value!;
                         });
                       },
                     ),
@@ -694,10 +757,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ReferenceIndex,
+                      initialValue: referenceIndex,
                       onChanged: (value) {
                         setState(() {
-                          ReferenceIndex = value;
+                          referenceIndex = value;
                         });
                       },
                       validator: (value) {
@@ -708,7 +771,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          ReferenceIndex = value!;
+                          referenceIndex = value!;
                         });
                       },
                     ),
@@ -748,10 +811,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ExpectedYield,
+                      initialValue: expectedYield,
                       onChanged: (value) {
                         setState(() {
-                          ExpectedYield = value;
+                          expectedYield = value;
                         });
                       },
                       validator: (value) {
@@ -762,7 +825,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          ExpectedYield = value!;
+                          expectedYield = value!;
                         });
                       },
                     ),
@@ -802,10 +865,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: EarlyRedemptionOptionInvestor,
+                      initialValue: earlyRedemptionOptionInvestor,
                       onChanged: (value) {
                         setState(() {
-                          EarlyRedemptionOptionInvestor = value;
+                          earlyRedemptionOptionInvestor = value;
                         });
                       },
                       validator: (value) {
@@ -816,7 +879,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          EarlyRedemptionOptionInvestor = value!;
+                          earlyRedemptionOptionInvestor = value!;
                         });
                       },
                     ),
@@ -856,10 +919,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: MinimumInvestmentAmount,
+                      initialValue: minimumInvestmentAmount,
                       onChanged: (value) {
                         setState(() {
-                          MinimumInvestmentAmount = value;
+                          minimumInvestmentAmount = value;
                         });
                       },
                       validator: (value) {
@@ -870,7 +933,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          MinimumInvestmentAmount = value!;
+                          minimumInvestmentAmount = value!;
                         });
                       },
                     ),
@@ -908,7 +971,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: TaxTreatmentTokenHolders,
+                      initialValue: taxTreatmentTokenHolders,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -917,7 +980,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          TaxTreatmentTokenHolders = value!;
+                          taxTreatmentTokenHolders = value!;
                         });
                       },
                       minLines: 3,
@@ -952,7 +1015,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      PaymentStructureToTokenHolders = value.toString();
+                      paymentStructureToTokenHolders = value.toString();
                     });
                   },
                   [],
@@ -1000,7 +1063,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: RedemptionMethod,
+                      initialValue: redemptionMethod,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1009,7 +1072,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          RedemptionMethod = value!;
+                          redemptionMethod = value!;
                         });
                       },
                       minLines: 3,
@@ -1044,7 +1107,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      PaymentStructure = value.toString();
+                      paymentStructure = value.toString();
                     });
                   },
                   [],
@@ -1085,7 +1148,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      RepaymentMethod = value.toString();
+                      repaymentMethod = value.toString();
                     });
                   },
                   [],
@@ -1126,7 +1189,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      PaymentCycle = value.toString();
+                      paymentCycle = value.toString();
                     });
                   },
                   [],
@@ -1176,10 +1239,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: WeightedAverageLife,
+                      initialValue: weightedAverageLife,
                       onChanged: (value) {
                         setState(() {
-                          WeightedAverageLife = value;
+                          weightedAverageLife = value;
                         });
                       },
                       validator: (value) {
@@ -1190,7 +1253,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          WeightedAverageLife = value!;
+                          weightedAverageLife = value!;
                         });
                       },
                     ),
@@ -1230,10 +1293,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: UnderlyingAssetPoolSize,
+                      initialValue: underlyingAssetPoolSize,
                       onChanged: (value) {
                         setState(() {
-                          UnderlyingAssetPoolSize = value;
+                          underlyingAssetPoolSize = value;
                         });
                       },
                       validator: (value) {
@@ -1244,7 +1307,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          UnderlyingAssetPoolSize = value!;
+                          underlyingAssetPoolSize = value!;
                         });
                       },
                     ),
@@ -1282,7 +1345,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: PoolComposition,
+                      initialValue: poolComposition,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1291,7 +1354,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          PoolComposition = value!;
+                          poolComposition = value!;
                         });
                       },
                       minLines: 3,
@@ -1326,7 +1389,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      CreditEnhancementMethod = value.toString();
+                      creditEnhancementMethod = value.toString();
                     });
                   },
                   [],
@@ -1374,7 +1437,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: SummaryOfUseOfProceeds,
+                      initialValue: summaryOfUseOfProceeds,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1383,7 +1446,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          SummaryOfUseOfProceeds = value!;
+                          summaryOfUseOfProceeds = value!;
                         });
                       },
                       minLines: 3,
@@ -1427,10 +1490,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: CreditRatingIfAny,
+                      initialValue: creditRatingIfAny,
                       onChanged: (value) {
                         setState(() {
-                          CreditRatingIfAny = value;
+                          creditRatingIfAny = value;
                         });
                       },
                       validator: (value) {
@@ -1441,7 +1504,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          CreditRatingIfAny = value!;
+                          creditRatingIfAny = value!;
                         });
                       },
                     ),
@@ -1481,10 +1544,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: IssuerName,
+                      initialValue: issuerName,
                       onChanged: (value) {
                         setState(() {
-                          IssuerName = value;
+                          issuerName = value;
                         });
                       },
                       validator: (value) {
@@ -1495,7 +1558,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          IssuerName = value!;
+                          issuerName = value!;
                         });
                       },
                     ),
@@ -1526,7 +1589,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      IssuerType = value.toString();
+                      issuerType = value.toString();
                     });
                   },
                   [],
@@ -1576,10 +1639,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: IssuerContactPerson,
+                      initialValue: issuerContactPerson,
                       onChanged: (value) {
                         setState(() {
-                          IssuerContactPerson = value;
+                          issuerContactPerson = value;
                         });
                       },
                       validator: (value) {
@@ -1590,7 +1653,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          IssuerContactPerson = value!;
+                          issuerContactPerson = value!;
                         });
                       },
                     ),
@@ -1630,10 +1693,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ContactEmail,
+                      initialValue: contactEmail,
                       onChanged: (value) {
                         setState(() {
-                          ContactEmail = value;
+                          contactEmail = value;
                         });
                       },
                       validator: (value) {
@@ -1644,7 +1707,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          ContactEmail = value!;
+                          contactEmail = value!;
                         });
                       },
                     ),
@@ -1684,10 +1747,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: ContactPhoneNumber,
+                      initialValue: contactPhoneNumber,
                       onChanged: (value) {
                         setState(() {
-                          ContactPhoneNumber = value;
+                          contactPhoneNumber = value;
                         });
                       },
                       validator: (value) {
@@ -1698,7 +1761,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          ContactPhoneNumber = value!;
+                          contactPhoneNumber = value!;
                         });
                       },
                     ),
@@ -1738,10 +1801,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: BriefCompanyOverview,
+                      initialValue: briefCompanyOverview,
                       onChanged: (value) {
                         setState(() {
-                          BriefCompanyOverview = value;
+                          briefCompanyOverview = value;
                         });
                       },
                       validator: (value) {
@@ -1752,7 +1815,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          BriefCompanyOverview = value!;
+                          briefCompanyOverview = value!;
                         });
                       },
                     ),
@@ -1826,7 +1889,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: MortgageOriginators,
+                      initialValue: mortgageOriginators,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1835,7 +1898,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          MortgageOriginators = value!;
+                          mortgageOriginators = value!;
                         });
                       },
                       minLines: 3,
@@ -1878,10 +1941,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Servicer,
+                      initialValue: servicer,
                       onChanged: (value) {
                         setState(() {
-                          Servicer = value;
+                          servicer = value;
                         });
                       },
                       validator: (value) {
@@ -1892,7 +1955,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          Servicer = value!;
+                          servicer = value!;
                         });
                       },
                     ),
@@ -1932,10 +1995,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: SpecialPurposeVehicle,
+                      initialValue: specialPurposeVehicle,
                       onChanged: (value) {
                         setState(() {
-                          SpecialPurposeVehicle = value;
+                          specialPurposeVehicle = value;
                         });
                       },
                       validator: (value) {
@@ -1946,7 +2009,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          SpecialPurposeVehicle = value!;
+                          specialPurposeVehicle = value!;
                         });
                       },
                     ),
@@ -1960,7 +2023,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "Trustee",
+                        "trustee",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -1986,10 +2049,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Trustee,
+                      initialValue: trustee,
                       onChanged: (value) {
                         setState(() {
-                          Trustee = value;
+                          trustee = value;
                         });
                       },
                       validator: (value) {
@@ -2000,7 +2063,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          Trustee = value!;
+                          trustee = value!;
                         });
                       },
                     ),
@@ -2040,10 +2103,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: Custodian,
+                      initialValue: custodian,
                       onChanged: (value) {
                         setState(() {
-                          Custodian = value;
+                          custodian = value;
                         });
                       },
                       validator: (value) {
@@ -2054,7 +2117,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          Custodian = value!;
+                          custodian = value!;
                         });
                       },
                     ),
@@ -2094,10 +2157,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: AssetManagerOrAdministrator,
+                      initialValue: assetManagerOrAdministrator,
                       onChanged: (value) {
                         setState(() {
-                          AssetManagerOrAdministrator = value;
+                          assetManagerOrAdministrator = value;
                         });
                       },
                       validator: (value) {
@@ -2108,7 +2171,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          AssetManagerOrAdministrator = value!;
+                          assetManagerOrAdministrator = value!;
                         });
                       },
                     ),
@@ -2148,10 +2211,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: LegalAdvisor,
+                      initialValue: legalAdvisor,
                       onChanged: (value) {
                         setState(() {
-                          LegalAdvisor = value;
+                          legalAdvisor = value;
                         });
                       },
                       validator: (value) {
@@ -2162,7 +2225,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          LegalAdvisor = value!;
+                          legalAdvisor = value!;
                         });
                       },
                     ),
@@ -2202,10 +2265,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: UnderwriterIfAny,
+                      initialValue: underwriterIfAny,
                       onChanged: (value) {
                         setState(() {
-                          UnderwriterIfAny = value;
+                          underwriterIfAny = value;
                         });
                       },
                       validator: (value) {
@@ -2216,7 +2279,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          UnderwriterIfAny = value!;
+                          underwriterIfAny = value!;
                         });
                       },
                     ),
@@ -2256,10 +2319,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: CreditRatingAgency,
+                      initialValue: creditRatingAgency,
                       onChanged: (value) {
                         setState(() {
-                          CreditRatingAgency = value;
+                          creditRatingAgency = value;
                         });
                       },
                       validator: (value) {
@@ -2270,7 +2333,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          CreditRatingAgency = value!;
+                          creditRatingAgency = value!;
                         });
                       },
                     ),
@@ -2310,10 +2373,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: AuditorOrVerifier,
+                      initialValue: auditorOrVerifier,
                       onChanged: (value) {
                         setState(() {
-                          AuditorOrVerifier = value;
+                          auditorOrVerifier = value;
                         });
                       },
                       validator: (value) {
@@ -2324,7 +2387,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          AuditorOrVerifier = value!;
+                          auditorOrVerifier = value!;
                         });
                       },
                     ),
@@ -2398,7 +2461,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: CreditRiskAssessment,
+                      initialValue: creditRiskAssessment,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2407,7 +2470,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          CreditRiskAssessment = value!;
+                          creditRiskAssessment = value!;
                         });
                       },
                       minLines: 3,
@@ -2450,10 +2513,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: CreditRating,
+                      initialValue: creditRating,
                       onChanged: (value) {
                         setState(() {
-                          CreditRating = value;
+                          creditRating = value;
                         });
                       },
                       validator: (value) {
@@ -2464,7 +2527,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          CreditRating = value!;
+                          creditRating = value!;
                         });
                       },
                     ),
@@ -2502,7 +2565,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: PrepaymentRisk,
+                      initialValue: prepaymentRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2511,7 +2574,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          PrepaymentRisk = value!;
+                          prepaymentRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2552,7 +2615,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: InterestRateRisk,
+                      initialValue: interestRateRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2561,7 +2624,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          InterestRateRisk = value!;
+                          interestRateRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2602,7 +2665,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: StructuralComplexityRisk,
+                      initialValue: structuralComplexityRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2611,7 +2674,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          StructuralComplexityRisk = value!;
+                          structuralComplexityRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2652,7 +2715,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: LegalOrRegulatoryRisk,
+                      initialValue: legalOrRegulatoryRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2661,7 +2724,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          LegalOrRegulatoryRisk = value!;
+                          legalOrRegulatoryRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2702,7 +2765,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: OperationalRisk,
+                      initialValue: operationalRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2711,7 +2774,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          OperationalRisk = value!;
+                          operationalRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2752,7 +2815,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: MarketRisk,
+                      initialValue: marketRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2761,7 +2824,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          MarketRisk = value!;
+                          marketRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2802,7 +2865,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: EsgRisk,
+                      initialValue: esgRisk,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -2811,7 +2874,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          EsgRisk = value!;
+                          esgRisk = value!;
                         });
                       },
                       minLines: 3,
@@ -2854,10 +2917,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: MitigationMeasures,
+                      initialValue: mitigationMeasures,
                       onChanged: (value) {
                         setState(() {
-                          MitigationMeasures = value;
+                          mitigationMeasures = value;
                         });
                       },
                       validator: (value) {
@@ -2868,7 +2931,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
                       },
                       onSaved: (value) {
                         setState(() {
-                          MitigationMeasures = value!;
+                          mitigationMeasures = value!;
                         });
                       },
                     ),
@@ -2905,6 +2968,64 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
     try {
       showLoader(context);
       var newData = {...data as Map};
+
+      newData['issueDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(issueDate!.toUtc());
+      newData['maturityDate'] = DateFormat(
+        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
+      ).format(maturityDate!.toUtc());
+      newData['weightedAverageLife'] = weightedAverageLife;
+      newData['underlyingAssetPoolSize'] = underlyingAssetPoolSize;
+      newData['totalIssueSize'] = totalIssueSize;
+      newData['faceValuePerUnit'] = faceValuePerUnit;
+      newData['couponOrInterestRate'] = couponOrInterestRate;
+      newData['expectedYield'] = expectedYield;
+      newData['minimumInvestmentAmount'] = minimumInvestmentAmount;
+      newData['tenure'] = tenure;
+      newData['isinOrSerialNumber'] = isinOrSerialNumber;
+      newData['assetName'] = assetName;
+      newData['assetType'] = assetType;
+      newData['couponOrInterestRateType'] = couponOrInterestRateType;
+      newData['referenceIndex'] = referenceIndex;
+      newData['earlyRedemptionOptionInvestor'] = earlyRedemptionOptionInvestor;
+      newData['taxTreatmentTokenHolders'] = taxTreatmentTokenHolders;
+      newData['paymentStructureToTokenHolders'] =
+          paymentStructureToTokenHolders;
+      newData['redemptionMethod'] = redemptionMethod;
+      newData['paymentStructure'] = paymentStructure;
+      newData['repaymentMethod'] = repaymentMethod;
+      newData['paymentCycle'] = paymentCycle;
+      newData['poolComposition'] = poolComposition;
+      newData['creditEnhancementMethod'] = creditEnhancementMethod;
+      newData['summaryOfUseOfProceeds'] = summaryOfUseOfProceeds;
+      newData['creditRatingIfAny'] = creditRatingIfAny;
+      newData['issuerName'] = issuerName;
+      newData['issuerType'] = issuerType;
+      newData['issuerContactPerson'] = issuerContactPerson;
+      newData['contactEmail'] = contactEmail;
+      newData['contactPhoneNumber'] = contactPhoneNumber;
+      newData['briefCompanyOverview'] = briefCompanyOverview;
+      newData['mortgageOriginators'] = mortgageOriginators;
+      newData['servicer'] = servicer;
+      newData['specialPurposeVehicle'] = specialPurposeVehicle;
+      newData['trustee'] = trustee;
+      newData['custodian'] = custodian;
+      newData['assetManagerOrAdministrator'] = assetManagerOrAdministrator;
+      newData['legalAdvisor'] = legalAdvisor;
+      newData['underwriterIfAny'] = underwriterIfAny;
+      newData['creditRatingAgency'] = creditRatingAgency;
+      newData['auditorOrVerifier'] = auditorOrVerifier;
+      newData['creditRiskAssessment'] = creditRiskAssessment;
+      newData['creditRating'] = creditRating;
+      newData['prepaymentRisk'] = prepaymentRisk;
+      newData['interestRateRisk'] = interestRateRisk;
+      newData['structuralComplexityRisk'] = structuralComplexityRisk;
+      newData['legalOrRegulatoryRisk'] = legalOrRegulatoryRisk;
+      newData['operationalRisk'] = operationalRisk;
+      newData['marketRisk'] = marketRisk;
+      newData['esgRisk'] = esgRisk;
+      newData['mitigationMeasures'] = mitigationMeasures;
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(
