@@ -1169,10 +1169,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data['equityPercentage'] = equityPercentage;
       data['debtPercentage'] = debtPercentage;
 
-      print('equ = $equityPercentage ==> debt = $debtPercentage');
-
-      inspect(data);
-
       String requestBody = jsonEncode(data);
 
       Map responseData = await makePostRequest(

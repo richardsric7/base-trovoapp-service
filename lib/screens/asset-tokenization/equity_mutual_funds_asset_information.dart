@@ -48,10 +48,11 @@ class _EquityMutualFundsAssetInformationView
   late int tenure;
   late List<String> topHoldings;
   late List<String> investmentCommitteeMembers;
+  late List<String> fundManagers;
 
   late String assetName;
   late String assetType;
-  late String fundStructure;
+  late String? fundStructure;
   late String assetManagementCompanyName;
   late String regulatoryLicenseNumber;
   late String isinOrSecFundCode;
@@ -66,8 +67,8 @@ class _EquityMutualFundsAssetInformationView
   late String benchmarkComparisonMethod;
   late String feeBreakdownSummary;
   late String investmentObjective;
-  late String equityStrategy;
-  late String marketCapitalizationFocus;
+  late String? equityStrategy;
+  late String? marketCapitalizationFocus;
   late String benchmarkIndex;
   late String sectorExposureLimits;
   late String geographicExposure; // % allocation by region
@@ -96,18 +97,49 @@ class _EquityMutualFundsAssetInformationView
     }
   }
 
-  List<DropdownMenuItem<String>> get getAssetProtectionOptions {
-    List<DropdownMenuItem<String>> assetProtectionOptions = [];
-    var data = appState.tokenizationData['assetProtectionOptions'];
+  List<DropdownMenuItem<String>> get getFundStructureOptions {
+    List<DropdownMenuItem<String>> options = [];
+    var data = ['Open-ended', 'Close-ended', 'Interval Fund'];
     for (var i = 0; i < data.length; i++) {
-      assetProtectionOptions.add(
+      options.add(
         DropdownMenuItem(
-          child: Text(data![i]['id'], overflow: TextOverflow.ellipsis),
-          value: data![i]['id'],
+          child: Text(data[i], overflow: TextOverflow.ellipsis),
+          value: data[i],
         ),
       );
     }
-    return assetProtectionOptions;
+
+    return options;
+  }
+
+  List<DropdownMenuItem<String>> get getEquityStrategyOptions {
+    List<DropdownMenuItem<String>> options = [];
+    var data = ['Value', 'Growth', 'Income', 'Thematic', 'Index'];
+    for (var i = 0; i < data.length; i++) {
+      options.add(
+        DropdownMenuItem(
+          child: Text(data[i], overflow: TextOverflow.ellipsis),
+          value: data[i],
+        ),
+      );
+    }
+
+    return options;
+  }
+
+  List<DropdownMenuItem<String>> get getMarketCapitalizationFocusOptions {
+    List<DropdownMenuItem<String>> options = [];
+    var data = ['Large-cap', 'Mid-cap', 'Small-cap', 'Mixed'];
+    for (var i = 0; i < data.length; i++) {
+      options.add(
+        DropdownMenuItem(
+          child: Text(data[i], overflow: TextOverflow.ellipsis),
+          value: data[i],
+        ),
+      );
+    }
+
+    return options;
   }
 
   @override
@@ -137,13 +169,16 @@ class _EquityMutualFundsAssetInformationView
     topHoldings = data['topHoldings'].toString().isEmpty
         ? []
         : data['topHoldings'].toString().split(',');
+    fundManagers = data['fundManagers'].toString().isEmpty
+        ? []
+        : data['fundManagers'].toString().split(',');
     investmentCommitteeMembers =
         data['investmentCommitteeMembers'].toString().isEmpty
         ? []
         : data['investmentCommitteeMembers'].toString().split(',');
     assetName = data['assetName'].toString();
     assetType = data['assetType'].toString();
-    fundStructure = data['fundStructure'].toString();
+    fundStructure = data['fundStructure'].toString().nullIfEmpty();
     assetManagementCompanyName = data['assetManagementCompanyName'].toString();
     regulatoryLicenseNumber = data['regulatoryLicenseNumber'].toString();
     isinOrSecFundCode = data['isinOrSecFundCode'].toString();
@@ -158,8 +193,10 @@ class _EquityMutualFundsAssetInformationView
     benchmarkComparisonMethod = data['benchmarkComparisonMethod'].toString();
     feeBreakdownSummary = data['feeBreakdownSummary'].toString();
     investmentObjective = data['investmentObjective'].toString();
-    equityStrategy = data['equityStrategy'].toString();
-    marketCapitalizationFocus = data['marketCapitalizationFocus'].toString();
+    equityStrategy = data['equityStrategy'].toString().nullIfEmpty();
+    marketCapitalizationFocus = data['marketCapitalizationFocus']
+        .toString()
+        .nullIfEmpty();
     benchmarkIndex = data['benchmarkIndex'].toString();
     sectorExposureLimits = data['sectorExposureLimits'].toString();
     geographicExposure = data['geographicExposure'].toString();
@@ -213,7 +250,7 @@ class _EquityMutualFundsAssetInformationView
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
                       "Fund Name",
                       style: TextStyle(
@@ -229,7 +266,7 @@ class _EquityMutualFundsAssetInformationView
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: CustomTextFormField.textField(
                       "Enter fund name",
                       notifier.getbluecolor,
@@ -261,11 +298,10 @@ class _EquityMutualFundsAssetInformationView
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
                       "Fund Type",
                       style: TextStyle(
@@ -281,7 +317,7 @@ class _EquityMutualFundsAssetInformationView
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: CustomTextFormField.textField(
                       "Enter fund type",
                       notifier.getbluecolor,
@@ -313,7 +349,6 @@ class _EquityMutualFundsAssetInformationView
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Container(
@@ -338,15 +373,15 @@ class _EquityMutualFundsAssetInformationView
                       fundStructure = value.toString();
                     });
                   },
-                  [],
-                  null,
+                  getFundStructureOptions,
+                  fundStructure,
                   'Select type',
                   context,
                   null,
                   validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "pleaseselectassetsector".tr();
-                    // }
+                    if (fundStructure == null) {
+                      return "Please choose an option";
+                    }
                     return null;
                   },
                 ),
@@ -373,7 +408,7 @@ class _EquityMutualFundsAssetInformationView
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: CustomTextFormField.textField(
-                      "Enter fund type",
+                      "Enter value",
                       notifier.getbluecolor,
                       null,
                       notifier.getgrey,
@@ -403,7 +438,6 @@ class _EquityMutualFundsAssetInformationView
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Row(
@@ -421,7 +455,15 @@ class _EquityMutualFundsAssetInformationView
                       ),
                     ),
                     TextButton(
-                      onPressed: addMilestone,
+                      onPressed: () {
+                        addMilestone(
+                          label: 'Add Fund Manager',
+                          placeholder: 'Enter fund manager name',
+                          onDone: (value) {
+                            fundManagers.add(value);
+                          },
+                        );
+                      },
                       style: ButtonStyle(
                         padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -433,13 +475,13 @@ class _EquityMutualFundsAssetInformationView
                 ),
               ),
               SizedBox(height: height / 70),
-              if (true) ...[
+              if (fundManagers.isEmpty) ...[
                 Row(
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        'Add name and profiles',
+                        'At least 1 fund manager',
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontbody,
@@ -450,80 +492,17 @@ class _EquityMutualFundsAssetInformationView
                   ],
                 ),
               ],
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(10),
-                        ),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Land acquisition",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  style: ButtonStyle(
-                                    padding: WidgetStatePropertyAll(
-                                      EdgeInsets.all(7),
-                                    ),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    minimumSize: WidgetStatePropertyAll(
-                                      Size.zero,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    CupertinoIcons.trash,
-                                    size: 15,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "January, 2025",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              for (var item in fundManagers) ...[
+                SizedBox(height: height / 70),
+                listItem(
+                  item: item,
+                  onDelete: (item) {
+                    setState(() {
+                      fundManagers.removeWhere((i) => i == item);
+                    });
+                  },
+                ),
+              ],
               SizedBox(height: height / 50),
               Row(
                 children: [
@@ -653,10 +632,9 @@ class _EquityMutualFundsAssetInformationView
               ),
               SizedBox(height: height / 70),
               ButtonOutlined(
-                // fundLaunchDate != null
-                //     ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
-                //     : "ends".tr(),
-                "Select launch date",
+                fundLaunchDate != null
+                    ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
+                    : "Select launch date",
                 notifier.getwihitecolor,
                 notifier.getgrey,
                 borderColor: notifier.getgrey,
@@ -677,6 +655,7 @@ class _EquityMutualFundsAssetInformationView
                   );
                 },
               ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
                   Padding(
@@ -710,7 +689,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: totalExpenseRatio,
+                      initialValue: totalExpenseRatio.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           totalExpenseRatio = value;
@@ -831,7 +810,7 @@ class _EquityMutualFundsAssetInformationView
                     child: SizedBox(
                       width: 300,
                       child: Text(
-                        "tenure (Fund duration (e.g. 3 years))",
+                        "Tenure (Fund duration (e.g. 3 years))",
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: fontsemibold,
@@ -857,7 +836,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: tenure,
+                      initialValue: tenure == 0 ? null : tenure.toString(),
                       onChanged: (value) {
                         setState(() {
                           tenure = value;
@@ -911,7 +890,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: initialNetAssetValue,
+                      initialValue: initialNetAssetValue.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           initialNetAssetValue = value;
@@ -1073,7 +1052,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: minimumInvestmentAmount,
+                      initialValue: minimumInvestmentAmount.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           minimumInvestmentAmount = value;
@@ -1235,7 +1214,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: entryLoad,
+                      initialValue: entryLoad.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           entryLoad = value;
@@ -1289,7 +1268,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: performanceFee,
+                      initialValue: performanceFee.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           performanceFee = value;
@@ -1747,15 +1726,15 @@ class _EquityMutualFundsAssetInformationView
                       equityStrategy = value.toString();
                     });
                   },
-                  [],
-                  null,
+                  getEquityStrategyOptions,
+                  equityStrategy,
                   'Select type',
                   context,
                   null,
                   validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "pleaseselectassetsector".tr();
-                    // }
+                    if (equityStrategy == null) {
+                      return "pleaseselectassetsector".tr();
+                    }
                     return null;
                   },
                 ),
@@ -1788,15 +1767,15 @@ class _EquityMutualFundsAssetInformationView
                       marketCapitalizationFocus = value.toString();
                     });
                   },
-                  [],
-                  null,
+                  getMarketCapitalizationFocusOptions,
+                  marketCapitalizationFocus,
                   'Select type',
                   context,
                   null,
                   validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "pleaseselectassetsector".tr();
-                    // }
+                    if (marketCapitalizationFocus == null) {
+                      return "pleaseselectassetsector".tr();
+                    }
                     return null;
                   },
                 ),
@@ -1929,37 +1908,34 @@ class _EquityMutualFundsAssetInformationView
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: multilineInput(
-                      'Enter value',
-                      notifier.getbluecolor,
-                      notifier.getgrey,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      100.sp,
-                      width / 1.12,
-                      initialValue: topHoldings,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          topHoldings = value!;
-                        });
-                      },
-                      minLines: 3,
-                      maxLines: null,
-                      keyboardtype: TextInputType.multiline,
+              if (topHoldings.isEmpty) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'Atleast 5 milestones',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
+              for (var item in topHoldings) ...[
+                SizedBox(height: height / 70),
+                listItem(
+                  item: item,
+                  onDelete: (item) {
+                    setState(() {
+                      topHoldings.removeWhere((i) => i == item);
+                    });
+                  },
+                ),
+              ],
               Row(
                 children: [
                   Padding(
@@ -2097,7 +2073,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: volatilityEstimate,
+                      initialValue: volatilityEstimate.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           volatilityEstimate = value;
@@ -2151,7 +2127,7 @@ class _EquityMutualFundsAssetInformationView
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: dividendYield,
+                      initialValue: dividendYield.toCleanString(),
                       onChanged: (value) {
                         setState(() {
                           dividendYield = value;
@@ -2550,41 +2526,92 @@ class _EquityMutualFundsAssetInformationView
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: investmentCommitteeMembers,
-                      onChanged: (value) {
-                        setState(() {
-                          investmentCommitteeMembers = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          investmentCommitteeMembers = value!;
-                        });
-                      },
+              if (topHoldings.isEmpty) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'Atleast 5 milestones',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: Colors.red,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
+              for (var item in investmentCommitteeMembers) ...[
+                SizedBox(height: height / 70),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        width: width / 1.12,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                          color: notifier.getaddsubwalletgrey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        investmentCommitteeMembers.removeWhere(
+                                          (i) => i == item,
+                                        );
+                                      });
+                                    },
+                                    style: ButtonStyle(
+                                      padding: WidgetStatePropertyAll(
+                                        EdgeInsets.all(7),
+                                      ),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      minimumSize: WidgetStatePropertyAll(
+                                        Size.zero,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      CupertinoIcons.trash,
+                                      size: 15,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(height: height / 30),
               Button(
                 "saveandcontinuee".tr(),
@@ -2809,7 +2836,12 @@ class _EquityMutualFundsAssetInformationView
     );
   }
 
-  void addMilestone() {
+  void addMilestone({
+    required String label,
+    required String placeholder,
+    required void Function(String val) onDone,
+  }) {
+    String val = '';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -2836,7 +2868,7 @@ class _EquityMutualFundsAssetInformationView
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Add Milestone",
+                          label,
                           overflow: TextOverflow.visible,
                           style: TextStyle(
                             fontSize: 18,
@@ -2861,24 +2893,8 @@ class _EquityMutualFundsAssetInformationView
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "Milestone",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height / 70),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: CustomTextFormField.textField(
-                          "Enter milestone",
+                          placeholder,
                           notifier.getbluecolor,
                           null,
                           notifier.getgrey,
@@ -2887,71 +2903,92 @@ class _EquityMutualFundsAssetInformationView
                           notifier.getgrey,
                           70.sp,
                           width / 1.12,
-                          // initialValue: assetPhysicalAddress,
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
                             }
                             return null;
                           },
-                          onSaved: (value) {
-                            setState(() {});
+                          onChanged: (value) {
+                            val = value;
                           },
                         ),
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          "Select Date",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  SizedBox(height: 40),
+                  Button(
+                    "Done",
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onDone(val);
+                    },
                   ),
-                  SizedBox(height: height / 70),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: CustomTextFormField.textField(
-                          "",
-                          notifier.getbluecolor,
-                          null,
-                          notifier.getgrey,
-                          null,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          width / 1.12,
-                          // initialValue: assetPhysicalAddress,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return "fieldcannotbeempty".tr();
-                            }
-                            return null;
-                          },
-                          onSaved: (value) {
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 60),
                 ],
               ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget listItem({
+    required String item,
+    required void Function(String item) onDelete,
+  }) {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            width: width / 1.12,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              color: notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          onDelete(item);
+                        },
+                        style: ButtonStyle(
+                          padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          minimumSize: WidgetStatePropertyAll(Size.zero),
+                        ),
+                        child: Icon(
+                          CupertinoIcons.trash,
+                          size: 15,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

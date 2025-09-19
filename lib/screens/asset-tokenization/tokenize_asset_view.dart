@@ -182,9 +182,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
 
   PageConfiguration getFormPage() {
     inspect(appState.viewData);
-    if (appState.viewData!['assetAlreadyExists'] == 1) {
-      return AssetInformationViewPageConfig;
-    }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1123') {
       return EquityMutualFundsAssetInformationViewPageConfig;
@@ -217,6 +214,10 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1121') {
       return CommercialPapersAssetInformationViewPageConfig;
       // return MBSAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetAlreadyExists'] == 1) {
+      return AssetInformationViewPageConfig;
     }
 
     return UpcomingAssetInformationViewPageConfig;
