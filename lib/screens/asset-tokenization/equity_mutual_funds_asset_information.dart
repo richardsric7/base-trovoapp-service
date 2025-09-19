@@ -36,49 +36,7 @@ class _EquityMutualFundsAssetInformationView
   bool formHasError = false;
   late dynamic data = {};
 
-  DateTime? fundLaunchDate;
-  late double totalExpenseRatio;
-  late double exitLoadRedemptionFee;
-  late double initialNetAssetValue;
-  late double entryLoad;
-  late double performanceFee;
-  late double minimumInvestmentAmount;
-  late double volatilityEstimate;
-  late double dividendYield;
-  late int tenure;
-  late List<String> topHoldings;
-  late List<String> investmentCommitteeMembers;
-  late List<String> fundManagers;
-
-  late String assetName;
-  late String assetType;
-  late String? fundStructure;
-  late String assetManagementCompanyName;
-  late String regulatoryLicenseNumber;
-  late String isinOrSecFundCode;
-  late String navUpdateFrequency;
-  late String navCalculationMethod;
-  late String redemptionRules;
-  late String lockInPeriod;
-  late String dividendPolicy;
-  late String liquidityProfile;
-  late String distributionFrequency;
-  late String distributionMethod;
-  late String benchmarkComparisonMethod;
-  late String feeBreakdownSummary;
-  late String investmentObjective;
-  late String? equityStrategy;
-  late String? marketCapitalizationFocus;
-  late String benchmarkIndex;
-  late String sectorExposureLimits;
-  late String geographicExposure; // % allocation by region
-  late String riskProfile;
-  late String trusteeName;
-  late String custodian;
-  late String auditor;
-  late String fundAdministrator;
-  late String legalAdvisor;
-  late String ratingAgency;
+  var formData = {};
 
   final valueOfAssetController = TextEditingController();
   final miscCostOfAssetController = TextEditingController();
@@ -151,62 +109,583 @@ class _EquityMutualFundsAssetInformationView
     super.initState();
     getdarkmodepreviousstate();
 
-    totalExpenseRatio = double.parse(data['totalExpenseRatio'].toString());
-    exitLoadRedemptionFee = double.parse(
+    formData = {
+      "assetName": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Fund Name',
+        'placeholderText': 'Trovo Funds',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "assetType": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Fund Type',
+        'placeholderText': 'Equity funds',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "fundStructure": {
+        'type': 'string',
+        'widgetType': 'dropdown',
+        'label': 'Fund Structure',
+        'placeholderText': 'Select fund structure',
+        'value': '',
+        'options': ['Open-ended', 'Close-ended', 'Interval Fund'],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "assetManagementCompanyName": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Asset Management Company Name',
+        'placeholderText': 'e.g. Trovo Fund Management',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "fundManagers": {
+        'type': 'string',
+        'widgetType': 'list',
+        'label': 'Fund Manager(s) (Names and profiles of managing team)',
+        'placeholderText': 'Add fund manager',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "regulatoryLicenseNumber": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Regulatory License No. (Issued by SEC or relevant authority)',
+        'placeholderText': 'e.g. 112233445566',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "isinOrSecFundCode": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label':
+            'ISIN / SEC Fund Code (Unique identifier assigned by regulatory authority)',
+        'placeholderText': 'e.g. 112233445566',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "fundLaunchDate": {
+        'type': 'string',
+        'widgetType': 'datetime',
+        'label': 'Fund Launch Date (Official date fund began operations)',
+        'placeholderText': "Select launch date",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "totalExpenseRatio": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label':
+            'Total Expense Ratio (TER) (Annual % of fund’s operating expenses)',
+        'placeholderText': "e.g. 12.5",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "exitLoadRedemptionFee": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label':
+            'Exit Load / Redemption Fee (Fee charged on redemption within specific period)',
+        'placeholderText': "e.g. 1,000",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "section2": {
+        'type': 'string',
+        'widgetType': 'section',
+        'label': 'Fund Structure and Operations',
+        'placeholderText':
+            "Provide information about the fund structure of the fund",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "tenure": {
+        'type': 'int',
+        'widgetType': 'text',
+        'label': 'Tenure (Fund duration (e.g. 3 years))',
+        'placeholderText': "e.g. 3",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "initialNetAssetValue": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Initial Net Asset Value (NAV)',
+        'placeholderText': "e.g. 1,000,000,000",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "navUpdateFrequency": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'NAV Update Frequency',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "navCalculationMethod": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'NAV Calculation Method',
+        'placeholderText': "Enter %",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "minimumInvestmentAmount": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Minimum Investment Amount (e.g. ₦1,000)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "redemptionRules": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Redemption Rules (Anytime or Specify)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "lockInPeriod": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Lock-In Period (For ELSS or special structures)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "entryLoad": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Entry Load (Fee charged at time of purchase)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "performanceFee": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Performance Fee',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "dividendPolicy": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Dividend Policy',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "liquidityProfile": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Liquidity Profile',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "distributionFrequency": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Distribution Frequency',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "distributionMethod": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Distribution Method',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "benchmarkComparisonMethod": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Benchmark Comparison Method',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "feeBreakdownSummary": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Fee Breakdown Summary',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "section3": {
+        'type': 'string',
+        'widgetType': 'section',
+        'label': 'Portfolio Composition & Strategy',
+        'placeholderText': "provideassetvalueinfo",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "investmentObjective": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Investment Objective',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "equityStrategy": {
+        'type': 'string',
+        'widgetType': 'dropdown',
+        'label': 'Equity Strategy',
+        'placeholderText': "Select type",
+        'value': '',
+        'options': ['Value', 'Growth', 'Income', 'Thematic', 'Index'],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "marketCapitalizationFocus": {
+        'type': 'string',
+        'widgetType': 'dropdown',
+        'label': 'Market Capitalization Focus',
+        'placeholderText': "Select type",
+        'value': '',
+        'options': ['Large-cap', 'Mid-cap', 'Small-cap', 'Mixed'],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "benchmarkIndex": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Benchmark Index (E.g., NGX ASI, MSCI Frontier Markets)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "sectorExposureLimits": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label':
+            'Sector Exposure Limits (Optional regulatory or internal limits)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "topHoldings": {
+        'type': 'string',
+        'widgetType': 'list',
+        'label': 'Top Holdings',
+        'placeholderText': 'Add item',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "geographicExposure": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Geographic Exposure (% allocation by country/region)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "riskProfile": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Risk Profile',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "volatilityEstimate": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Volatility Estimate (Standard deviation or beta)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "dividendYield": {
+        'type': 'double',
+        'widgetType': 'text',
+        'label': 'Dividend Yield (Equity)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "section4": {
+        'type': 'string',
+        'widgetType': 'section',
+        'label': 'Key Entities Involved',
+        'placeholderText': "provideassetvalueinfo",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "trusteeName": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Trustee Name',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "custodian": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Custodian',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "auditor": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Auditor',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "fundAdministrator": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Fund Administrator (If different from AMC)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "legalAdvisor": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Legal Advisor (Compliance/legal counsel)',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "ratingAgency": {
+        'type': 'string',
+        'widgetType': 'text',
+        'label': 'Rating Agency',
+        'placeholderText': "Enter value",
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+      "investmentCommitteeMembers": {
+        'type': 'string',
+        'widgetType': 'list',
+        'label': 'Investment Committee Members',
+        'placeholderText': 'Add committee member',
+        'value': '',
+        'options': [],
+        'autoFormatNumber': false,
+        'isFiat': false,
+        'controller': null,
+      },
+    };
+
+    formData['totalExpenseRatio']['value'] = double.parse(
+      data['totalExpenseRatio'].toString(),
+    );
+    formData['exitLoadRedemptionFee']['value'] = double.parse(
       data['exitLoadRedemptionFee'].toString(),
     );
-    initialNetAssetValue = double.parse(
+    formData['initialNetAssetValue']['value'] = double.parse(
       data['initialNetAssetValue'].toString(),
     );
-    entryLoad = double.parse(data['entryLoad'].toString());
-    performanceFee = double.parse(data['performanceFee'].toString());
-    minimumInvestmentAmount = double.parse(
+    formData['entryLoad']['value'] = double.parse(data['entryLoad'].toString());
+    formData['performanceFee']['value'] = double.parse(
+      data['performanceFee'].toString(),
+    );
+    formData['minimumInvestmentAmount']['value'] = double.parse(
       data['minimumInvestmentAmount'].toString(),
     );
-    volatilityEstimate = double.parse(data['volatilityEstimate'].toString());
-    dividendYield = double.parse(data['dividendYield'].toString());
-    tenure = int.parse(data['tenure'].toString());
-    topHoldings = data['topHoldings'].toString().isEmpty
-        ? []
-        : data['topHoldings'].toString().split(',');
-    fundManagers = data['fundManagers'].toString().isEmpty
-        ? []
-        : data['fundManagers'].toString().split(',');
-    investmentCommitteeMembers =
-        data['investmentCommitteeMembers'].toString().isEmpty
-        ? []
-        : data['investmentCommitteeMembers'].toString().split(',');
-    assetName = data['assetName'].toString();
-    assetType = data['assetType'].toString();
-    fundStructure = data['fundStructure'].toString().nullIfEmpty();
-    assetManagementCompanyName = data['assetManagementCompanyName'].toString();
-    regulatoryLicenseNumber = data['regulatoryLicenseNumber'].toString();
-    isinOrSecFundCode = data['isinOrSecFundCode'].toString();
-    navUpdateFrequency = data['navUpdateFrequency'].toString();
-    navCalculationMethod = data['navCalculationMethod'].toString();
-    redemptionRules = data['redemptionRules'].toString();
-    lockInPeriod = data['lockInPeriod'].toString();
-    dividendPolicy = data['dividendPolicy'].toString();
-    liquidityProfile = data['liquidityProfile'].toString();
-    distributionFrequency = data['distributionFrequency'].toString();
-    distributionMethod = data['distributionMethod'].toString();
-    benchmarkComparisonMethod = data['benchmarkComparisonMethod'].toString();
-    feeBreakdownSummary = data['feeBreakdownSummary'].toString();
-    investmentObjective = data['investmentObjective'].toString();
-    equityStrategy = data['equityStrategy'].toString().nullIfEmpty();
-    marketCapitalizationFocus = data['marketCapitalizationFocus']
+    formData['volatilityEstimate']['value'] = double.parse(
+      data['volatilityEstimate'].toString(),
+    );
+    formData['dividendYield']['value'] = double.parse(
+      data['dividendYield'].toString(),
+    );
+    formData['tenure']['value'] = int.parse(data['tenure'].toString());
+    formData['topHoldings']['value'] = data['topHoldings'].toString();
+    formData['fundManagers']['value'] = data['fundManagers'].toString();
+    formData['investmentCommitteeMembers']['value'] =
+        data['investmentCommitteeMembers'].toString();
+    formData['assetName']['value'] = data['assetName'].toString();
+    formData['assetType']['value'] = data['assetType'].toString();
+    formData['fundStructure']['value'] = data['fundStructure']
         .toString()
         .nullIfEmpty();
-    benchmarkIndex = data['benchmarkIndex'].toString();
-    sectorExposureLimits = data['sectorExposureLimits'].toString();
-    geographicExposure = data['geographicExposure'].toString();
-    riskProfile = data['riskProfile'].toString();
-    trusteeName = data['trusteeName'].toString();
-    custodian = data['custodian'].toString();
-    auditor = data['auditor'].toString();
-    fundAdministrator = data['fundAdministrator'].toString();
-    legalAdvisor = data['legalAdvisor'].toString();
-    ratingAgency = data['ratingAgency'].toString();
+    formData['assetManagementCompanyName']['value'] =
+        data['assetManagementCompanyName'].toString();
+    formData['regulatoryLicenseNumber']['value'] =
+        data['regulatoryLicenseNumber'].toString();
+    formData['isinOrSecFundCode']['value'] = data['isinOrSecFundCode']
+        .toString();
+    formData['navUpdateFrequency']['value'] = data['navUpdateFrequency']
+        .toString();
+    formData['navCalculationMethod']['value'] = data['navCalculationMethod']
+        .toString();
+    formData['redemptionRules']['value'] = data['redemptionRules'].toString();
+    formData['lockInPeriod']['value'] = data['lockInPeriod'].toString();
+    formData['dividendPolicy']['value'] = data['dividendPolicy'].toString();
+    formData['liquidityProfile']['value'] = data['liquidityProfile'].toString();
+    formData['distributionFrequency']['value'] = data['distributionFrequency']
+        .toString();
+    formData['distributionMethod']['value'] = data['distributionMethod']
+        .toString();
+    formData['benchmarkComparisonMethod']['value'] =
+        data['benchmarkComparisonMethod'].toString();
+    formData['feeBreakdownSummary']['value'] = data['feeBreakdownSummary']
+        .toString();
+    formData['investmentObjective']['value'] = data['investmentObjective']
+        .toString();
+    formData['equityStrategy']['value'] = data['equityStrategy']
+        .toString()
+        .nullIfEmpty();
+    formData['marketCapitalizationFocus']['value'] =
+        data['marketCapitalizationFocus'].toString().nullIfEmpty();
+    formData['benchmarkIndex']['value'] = data['benchmarkIndex'].toString();
+    formData['sectorExposureLimits']['value'] = data['sectorExposureLimits']
+        .toString();
+    formData['geographicExposure']['value'] = data['geographicExposure']
+        .toString();
+    formData['riskProfile']['value'] = data['riskProfile'].toString();
+    formData['trusteeName']['value'] = data['trusteeName'].toString();
+    formData['custodian']['value'] = data['custodian'].toString();
+    formData['auditor']['value'] = data['auditor'].toString();
+    formData['fundAdministrator']['value'] = data['fundAdministrator']
+        .toString();
+    formData['legalAdvisor']['value'] = data['legalAdvisor'].toString();
+    formData['ratingAgency']['value'] = data['ratingAgency'].toString();
   }
 
   @override
@@ -247,2372 +726,60 @@ class _EquityMutualFundsAssetInformationView
                 ),
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      "Fund Name",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: CustomTextFormField.textField(
-                      "Enter fund name",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      "Fund Type",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: CustomTextFormField.textField(
-                      "Enter fund type",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetType,
-                      onChanged: (value) {
-                        setState(() {
-                          assetType = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetType = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
-                  width: width,
-                  child: Text(
-                    textAlign: TextAlign.left,
-                    "Fund Structure",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      fundStructure = value.toString();
-                    });
-                  },
-                  getFundStructureOptions,
-                  fundStructure,
-                  'Select type',
-                  context,
-                  null,
-                  validator: (value) {
-                    if (fundStructure == null) {
-                      return "Please choose an option";
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Asset Management Company Name",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: assetManagementCompanyName,
-                      onChanged: (value) {
-                        setState(() {
-                          assetManagementCompanyName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          assetManagementCompanyName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Fund Manager(s) (Names and profiles of managing team)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        addMilestone(
-                          label: 'Add Fund Manager',
-                          placeholder: 'Enter fund manager name',
-                          onDone: (value) {
-                            fundManagers.add(value);
-                          },
-                        );
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        minimumSize: WidgetStatePropertyAll(Size.zero),
-                      ),
-                      child: Icon(Icons.add_circle, size: 20),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: height / 70),
-              if (fundManagers.isEmpty) ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'At least 1 fund manager',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              for (var item in fundManagers) ...[
-                SizedBox(height: height / 70),
-                listItem(
-                  item: item,
-                  onDelete: (item) {
-                    setState(() {
-                      fundManagers.removeWhere((i) => i == item);
-                    });
-                  },
-                ),
-              ],
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Regulatory License No. (Issued by SEC or relevant authority)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter license no.",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: regulatoryLicenseNumber,
-                      onChanged: (value) {
-                        setState(() {
-                          regulatoryLicenseNumber = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          regulatoryLicenseNumber = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "ISIN / SEC Fund Code (Unique identifier assigned by regulatory authority)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter code",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: isinOrSecFundCode,
-                      onChanged: (value) {
-                        setState(() {
-                          isinOrSecFundCode = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          isinOrSecFundCode = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Fund Launch Date (Official date fund began operations)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              ButtonOutlined(
-                fundLaunchDate != null
-                    ? DateFormat('MMMM dd, yyyy').format(fundLaunchDate!)
-                    : "Select launch date",
-                notifier.getwihitecolor,
-                notifier.getgrey,
-                borderColor: notifier.getgrey,
-                width: 320,
-                height: 50.sp,
-                onTap: () {
-                  showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.fromMicrosecondsSinceEpoch(1000),
-                    lastDate: DateTime.now().add(Duration(days: 730)),
-                  ).then(
-                    (value) => {
-                      setState(() {
-                        fundLaunchDate = value;
-                      }),
-                    },
-                  );
-                },
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Total Expense Ratio (TER) (Annual % of fund’s operating expenses)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter %",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: totalExpenseRatio.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          totalExpenseRatio = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          totalExpenseRatio = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Exit Load / Redemption Fee (Fee charged on redemption within specific period)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter %",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      width / 1.12,
-                      onChanged: (value) {
-                        setState(() {
-                          exitLoadRedemptionFee = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        exitLoadRedemptionFee = double.parse(value!.toString());
-                      },
-                      autoFormatNumber: true,
-                      isFiat: true,
-                      controller: valueOfAssetController,
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Fund Structure and Operations",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Container(
-                    width: width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "Provide information about the fund structure of the fund",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Tenure (Fund duration (e.g. 3 years))",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter %",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: tenure == 0 ? null : tenure.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          tenure = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          tenure = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Initial Net Asset Value (NAV)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: initialNetAssetValue.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          initialNetAssetValue = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          initialNetAssetValue = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "NAV Update Frequency",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: navUpdateFrequency,
-                      onChanged: (value) {
-                        setState(() {
-                          navUpdateFrequency = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          navUpdateFrequency = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "NAV Calculation Method",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: navCalculationMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          navCalculationMethod = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          navCalculationMethod = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Minimum Investment Amount (e.g. ₦1,000)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: minimumInvestmentAmount.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          minimumInvestmentAmount = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          minimumInvestmentAmount = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Redemption Rules (Anytime or Specify)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: redemptionRules,
-                      onChanged: (value) {
-                        setState(() {
-                          redemptionRules = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          redemptionRules = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Lock-In Period (For ELSS or special structures)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: lockInPeriod,
-                      onChanged: (value) {
-                        setState(() {
-                          lockInPeriod = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          lockInPeriod = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Entry Load (Fee charged at time of purchase)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: entryLoad.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          entryLoad = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          entryLoad = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Performance Fee",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: performanceFee.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          performanceFee = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          performanceFee = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Dividend Policy",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: dividendPolicy,
-                      onChanged: (value) {
-                        setState(() {
-                          dividendPolicy = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          dividendPolicy = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Liquidity Profile",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: liquidityProfile,
-                      onChanged: (value) {
-                        setState(() {
-                          liquidityProfile = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          liquidityProfile = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Distribution Frequency",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: distributionFrequency,
-                      onChanged: (value) {
-                        setState(() {
-                          distributionFrequency = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          distributionFrequency = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Distribution Method",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: distributionMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          distributionMethod = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          distributionMethod = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Benchmark Comparison Method",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: benchmarkComparisonMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          benchmarkComparisonMethod = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          benchmarkComparisonMethod = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Fee Breakdown Summary",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: feeBreakdownSummary,
-                      onChanged: (value) {
-                        setState(() {
-                          feeBreakdownSummary = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          feeBreakdownSummary = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Portfolio Composition & Strategy",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Container(
-                    width: width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "provideassetvalueinfo",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Investment Objective",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: investmentObjective,
-                      onChanged: (value) {
-                        setState(() {
-                          investmentObjective = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          investmentObjective = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Equity Strategy",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      equityStrategy = value.toString();
-                    });
-                  },
-                  getEquityStrategyOptions,
-                  equityStrategy,
-                  'Select type',
-                  context,
-                  null,
-                  validator: (value) {
-                    if (equityStrategy == null) {
-                      return "pleaseselectassetsector".tr();
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Market Capitalization Focus",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      marketCapitalizationFocus = value.toString();
-                    });
-                  },
-                  getMarketCapitalizationFocusOptions,
-                  marketCapitalizationFocus,
-                  'Select type',
-                  context,
-                  null,
-                  validator: (value) {
-                    if (marketCapitalizationFocus == null) {
-                      return "pleaseselectassetsector".tr();
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Benchmark Index (E.g., NGX ASI, MSCI Frontier Markets)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: benchmarkIndex,
-                      onChanged: (value) {
-                        setState(() {
-                          benchmarkIndex = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          benchmarkIndex = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Sector Exposure Limits (Optional regulatory or internal limits)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: sectorExposureLimits,
-                      onChanged: (value) {
-                        setState(() {
-                          sectorExposureLimits = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          sectorExposureLimits = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Top Holdings",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              if (topHoldings.isEmpty) ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'Atleast 5 milestones',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              for (var item in topHoldings) ...[
-                SizedBox(height: height / 70),
-                listItem(
-                  item: item,
-                  onDelete: (item) {
-                    setState(() {
-                      topHoldings.removeWhere((i) => i == item);
-                    });
-                  },
-                ),
-              ],
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Geographic Exposure (% allocation by country/region)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: multilineInput(
-                      'Enter value',
-                      notifier.getbluecolor,
-                      notifier.getgrey,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      100.sp,
-                      width / 1.12,
-                      initialValue: geographicExposure,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          geographicExposure = value!;
-                        });
-                      },
-                      minLines: 3,
-                      maxLines: null,
-                      keyboardtype: TextInputType.multiline,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Risk Profile",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: riskProfile,
-                      onChanged: (value) {
-                        setState(() {
-                          riskProfile = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          riskProfile = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Volatility Estimate (Standard deviation or beta)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: volatilityEstimate.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          volatilityEstimate = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          volatilityEstimate = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Dividend Yield (Equity)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: dividendYield.toCleanString(),
-                      onChanged: (value) {
-                        setState(() {
-                          dividendYield = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          dividendYield = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Key Entities Involved",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Container(
-                    width: width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "provideassetvalueinfo",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Trustee Name",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: trusteeName,
-                      onChanged: (value) {
-                        setState(() {
-                          trusteeName = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          trusteeName = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Custodian",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: custodian,
-                      onChanged: (value) {
-                        setState(() {
-                          custodian = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          custodian = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Auditor",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: auditor,
-                      onChanged: (value) {
-                        setState(() {
-                          auditor = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          auditor = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Fund Administrator  (If different from AMC)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: fundAdministrator,
-                      onChanged: (value) {
-                        setState(() {
-                          fundAdministrator = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          fundAdministrator = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Legal Advisor  (Compliance/legal counsel)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: legalAdvisor,
-                      onChanged: (value) {
-                        setState(() {
-                          legalAdvisor = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          legalAdvisor = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Rating Agency",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter value",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: ratingAgency,
-                      onChanged: (value) {
-                        setState(() {
-                          ratingAgency = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          ratingAgency = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SizedBox(
-                      width: 300,
-                      child: Text(
-                        "Investment Committee Members",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              if (topHoldings.isEmpty) ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'Atleast 5 milestones',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              for (var item in investmentCommitteeMembers) ...[
-                SizedBox(height: height / 70),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                        width: width / 1.12,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(10),
+              for (var item in formData.entries) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 300,
+                        child: Text(
+                          item.value['label'],
+                          style: TextStyle(
+                            fontSize: item.value['widgetType'] == 'section'
+                                ? 18
+                                : 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
-                          color: notifier.getaddsubwalletgrey,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    item,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        investmentCommitteeMembers.removeWhere(
-                                          (i) => i == item,
+                      ),
+                      if (item.value['widgetType'] == 'list') ...[
+                        TextButton(
+                          onPressed: () {
+                            addMilestone(
+                              label: 'Add ${item.value['label']}',
+                              placeholder: item.value['placeholderText'],
+                              onDone: (value) {
+                                setState(() {
+                                  var val =
+                                      item.value['value'] == null ||
+                                          item.value['value'].toString().isEmpty
+                                      ? []
+                                      : item.value['value'].toString().split(
+                                          ',',
                                         );
-                                      });
-                                    },
-                                    style: ButtonStyle(
-                                      padding: WidgetStatePropertyAll(
-                                        EdgeInsets.all(7),
-                                      ),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      minimumSize: WidgetStatePropertyAll(
-                                        Size.zero,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      CupertinoIcons.trash,
-                                      size: 15,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  val.add(value);
+                                  formData[item.key]['value'] = val.join(',');
+                                });
+                              },
+                            );
+                          },
+                          style: ButtonStyle(
+                            padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: WidgetStatePropertyAll(Size.zero),
                           ),
+                          child: Icon(Icons.add_circle, size: 20),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    ],
+                  ),
                 ),
+                SizedBox(height: height / 70),
+                getFormElement(item),
               ],
-              SizedBox(height: height / 30),
               Button(
                 "saveandcontinuee".tr(),
                 notifier.getbluecolor,
@@ -2638,53 +805,279 @@ class _EquityMutualFundsAssetInformationView
     );
   }
 
+  Widget getFormElement(MapEntry<dynamic, dynamic> item) {
+    switch (item.value['widgetType']) {
+      case 'section':
+        return Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      item.value['placeholderText'],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: height / 50),
+          ],
+        );
+      case 'list':
+        var listItems =
+            item.value['value'] == null ||
+                item.value['value'].toString().isEmpty
+            ? []
+            : item.value['value'].toString().split(',');
+        print('=========> this is slist items ${listItems}');
+        return Column(
+          children: [
+            if (listItems.isEmpty) ...[
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'This field is required',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              for (var it in listItems) ...[
+                SizedBox(height: height / 70),
+                listItem(
+                  item: it,
+                  onDelete: (val) {
+                    setState(() {
+                      listItems.removeWhere((i) => i == val);
+                      item.value['value'] = listItems.join(',');
+                    });
+                  },
+                ),
+              ],
+            ],
+            SizedBox(height: height / 50),
+          ],
+        );
+      case 'dropdown':
+        List<DropdownMenuItem<String>> options = [];
+        var data = item.value['options'];
+        for (var i = 0; i < data.length; i++) {
+          options.add(
+            DropdownMenuItem(
+              child: Text(data[i], overflow: TextOverflow.ellipsis),
+              value: data[i],
+            ),
+          );
+        }
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    formData[item.key]['value'] = value;
+                  });
+                },
+                options,
+                item.value['value'],
+                item.value['placeholderText'],
+                context,
+                null,
+                validator: (value) {
+                  if (item.value['value'] == null) {
+                    return "Please select an item";
+                  }
+                  return null;
+                },
+              ),
+            ),
+            SizedBox(height: height / 50),
+          ],
+        );
+      default:
+        if (item.value['type'] == 'double') {
+          return Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: CustomTextFormField.textField(
+                  item.value['placeholderText'],
+                  notifier.getbluecolor,
+                  null,
+                  notifier.getgrey,
+                  null,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  85,
+                  300.sp,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    setState(() {
+                      formData[item.key]['value'] = double.parse(value);
+                    });
+                  },
+                  autoFormatNumber: true,
+                  controller: TextEditingController(
+                    text: item.value['value'] == 0
+                        ? ''
+                        : formatNumberForInput(item.value['value']),
+                  ),
+                  keyboardtype: TextInputType.numberWithOptions(decimal: true),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (item.value['type'] == 'int') {
+          return Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: CustomTextFormField.textField(
+                  item.value['placeholderText'],
+                  notifier.getbluecolor,
+                  null,
+                  notifier.getgrey,
+                  null,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  85.sp,
+                  300.sp,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    setState(() {
+                      formData[item.key]['value'] = int.tryParse(value) ?? 0;
+                    });
+                  },
+                  autoFormatNumber: true,
+                  controller: TextEditingController(
+                    text: item.value['value'] == 0
+                        ? ''
+                        : item.value['value'].toString(),
+                  ),
+                  keyboardtype: TextInputType.numberWithOptions(decimal: true),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: CustomTextFormField.textField(
+                item.value['placeholderText'],
+                notifier.getbluecolor,
+                null,
+                notifier.getgrey,
+                null,
+                notifier.getblck,
+                notifier.getgrey,
+                85,
+                300.sp,
+                initialValue: item.value['value'].toString(),
+                onSaved: (value) {
+                  setState(() {
+                    formData[item.key]['value'] = value;
+                  });
+                },
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return "fieldcannotbeempty".tr();
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
   void submitForm() async {
     try {
       showLoader(context);
       var newData = {...data as Map};
 
-      newData['totalExpenseRatio'] = totalExpenseRatio;
-      newData['exitLoadRedemptionFee'] = exitLoadRedemptionFee;
-      newData['initialNetAssetValue'] = initialNetAssetValue;
-      newData['entryLoad'] = entryLoad;
-      newData['performanceFee'] = performanceFee;
-      newData['minimumInvestmentAmount'] = minimumInvestmentAmount;
-      newData['volatilityEstimate'] = volatilityEstimate;
-      newData['dividendYield'] = dividendYield;
-      newData['tenure'] = tenure;
-      newData['topHoldings'] = topHoldings.join(',');
-      newData['investmentCommitteeMembers'] = investmentCommitteeMembers.join(
-        ',',
-      );
-      newData['assetName'] = assetName;
-      newData['assetType'] = assetType;
-      newData['fundStructure'] = fundStructure;
-      newData['assetManagementCompanyName'] = assetManagementCompanyName;
-      newData['regulatoryLicenseNumber'] = regulatoryLicenseNumber;
-      newData['isinOrSecFundCode'] = isinOrSecFundCode;
-      newData['navUpdateFrequency'] = navUpdateFrequency;
-      newData['navCalculationMethod'] = navCalculationMethod;
-      newData['redemptionRules'] = redemptionRules;
-      newData['lockInPeriod'] = lockInPeriod;
-      newData['dividendPolicy'] = dividendPolicy;
-      newData['liquidityProfile'] = liquidityProfile;
-      newData['distributionFrequency'] = distributionFrequency;
-      newData['distributionMethod'] = distributionMethod;
-      newData['benchmarkComparisonMethod'] = benchmarkComparisonMethod;
-      newData['feeBreakdownSummary'] = feeBreakdownSummary;
-      newData['investmentObjective'] = investmentObjective;
-      newData['equityStrategy'] = equityStrategy;
-      newData['marketCapitalizationFocus'] = marketCapitalizationFocus;
-      newData['benchmarkIndex'] = benchmarkIndex;
-      newData['sectorExposureLimits'] = sectorExposureLimits;
-      newData['geographicExposure'] = geographicExposure;
-      newData['riskProfile'] = riskProfile;
-      newData['trusteeName'] = trusteeName;
-      newData['custodian'] = custodian;
-      newData['auditor'] = auditor;
-      newData['fundAdministrator'] = fundAdministrator;
-      newData['legalAdvisor'] = legalAdvisor;
-      newData['ratingAgency'] = ratingAgency;
+      newData['totalExpenseRatio'] = formData['totalExpenseRatio']['value'];
+      newData['exitLoadRedemptionFee'] =
+          formData['exitLoadRedemptionFee']['value'];
+      newData['initialNetAssetValue'] =
+          formData['initialNetAssetValue']['value'];
+      newData['entryLoad'] = formData['entryLoad']['value'];
+      newData['performanceFee'] = formData['performanceFee']['value'];
+      newData['minimumInvestmentAmount'] =
+          formData['minimumInvestmentAmount']['value'];
+      newData['volatilityEstimate'] = formData['volatilityEstimate']['value'];
+      newData['dividendYield'] = formData['dividendYield']['value'];
+      newData['tenure'] = formData['tenure']['value'];
+      newData['topHoldings'] = formData['topHoldings']['value'];
+      newData['investmentCommitteeMembers'] =
+          formData['investmentCommitteeMembers']['value'];
+      newData['assetName'] = formData['assetName']['value'];
+      newData['assetType'] = formData['assetType']['value'];
+      newData['fundStructure'] = formData['fundStructure']['value'];
+      newData['assetManagementCompanyName'] =
+          formData['assetManagementCompanyName']['value'];
+      newData['regulatoryLicenseNumber'] =
+          formData['regulatoryLicenseNumber']['value'];
+      newData['isinOrSecFundCode'] = formData['isinOrSecFundCode']['value'];
+      newData['navUpdateFrequency'] = formData['navUpdateFrequency']['value'];
+      newData['navCalculationMethod'] =
+          formData['navCalculationMethod']['value'];
+      newData['redemptionRules'] = formData['redemptionRules']['value'];
+      newData['lockInPeriod'] = formData['lockInPeriod']['value'];
+      newData['dividendPolicy'] = formData['dividendPolicy']['value'];
+      newData['liquidityProfile'] = formData['liquidityProfile']['value'];
+      newData['distributionFrequency'] =
+          formData['distributionFrequency']['value'];
+      newData['distributionMethod'] = formData['distributionMethod']['value'];
+      newData['benchmarkComparisonMethod'] =
+          formData['benchmarkComparisonMethod']['value'];
+      newData['feeBreakdownSummary'] = formData['feeBreakdownSummary']['value'];
+      newData['investmentObjective'] = formData['investmentObjective']['value'];
+      newData['equityStrategy'] = formData['equityStrategy']['value'];
+      newData['marketCapitalizationFocus'] =
+          formData['marketCapitalizationFocus']['value'];
+      newData['benchmarkIndex'] = formData['benchmarkIndex']['value'];
+      newData['sectorExposureLimits'] =
+          formData['sectorExposureLimits']['value'];
+      newData['geographicExposure'] = formData['geographicExposure']['value'];
+      newData['riskProfile'] = formData['riskProfile']['value'];
+      newData['trusteeName'] = formData['trusteeName']['value'];
+      newData['custodian'] = formData['custodian']['value'];
+      newData['auditor'] = formData['auditor']['value'];
+      newData['fundAdministrator'] = formData['fundAdministrator']['value'];
+      newData['legalAdvisor'] = formData['legalAdvisor']['value'];
+      newData['ratingAgency'] = formData['ratingAgency']['value'];
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(
@@ -2867,13 +1260,16 @@ class _EquityMutualFundsAssetInformationView
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          label,
-                          overflow: TextOverflow.visible,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
+                        SizedBox(
+                          width: 250.sp,
+                          child: Text(
+                            label,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
                           ),
                         ),
                         TextButton(
