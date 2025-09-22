@@ -523,6 +523,8 @@ type TokenizedAsset struct {
 	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
 	SecurityOrCollateralOffered                  *string                         `json:"securityOrCollateralOffered"`
+	FundInstrumentType                           *string                         `json:"fundInstrumentType"`
+	InstrumentRatingAgency                       *string                         `json:"instrumentRatingAgency"`
 }
 
 type TokenizedAssetID string
@@ -927,6 +929,8 @@ type TokenizedAssetJSONInput struct {
 	TrusteeAppointed                       int       `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                     int       `gorm:"default:0" json:"reserveFundInPlace"`
 	SecurityOrCollateralOffered            string    `json:"securityOrCollateralOffered"`
+	FundInstrumentType                     string    `json:"fundInstrumentType"`
+	InstrumentRatingAgency                 string    `json:"instrumentRatingAgency"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1421,6 +1425,8 @@ type TokenizedAssetJSON struct {
 	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
 	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
 	SecurityOrCollateralOffered                  string                          `json:"securityOrCollateralOffered"`
+	FundInstrumentType                           string                          `json:"fundInstrumentType"`
+	InstrumentRatingAgency                       string                          `json:"instrumentRatingAgency"`
 }
 
 type TokenizedAssetSector struct {
@@ -4077,6 +4083,16 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.SecurityOrCollateralOffered = &ti.SecurityOrCollateralOffered
 	} else {
 		t.SecurityOrCollateralOffered = nil
+	}
+	if len(ti.FundInstrumentType) > 0 {
+		t.FundInstrumentType = &ti.FundInstrumentType
+	} else {
+		t.FundInstrumentType = nil
+	}
+	if len(ti.InstrumentRatingAgency) > 0 {
+		t.InstrumentRatingAgency = &ti.InstrumentRatingAgency
+	} else {
+		t.InstrumentRatingAgency = nil
 	}
 
 	//////////
