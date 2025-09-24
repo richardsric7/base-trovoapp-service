@@ -525,6 +525,7 @@ type TokenizedAsset struct {
 	SecurityOrCollateralOffered                  *string                         `json:"securityOrCollateralOffered"`
 	FundInstrumentType                           *string                         `json:"fundInstrumentType"`
 	InstrumentRatingAgency                       *string                         `json:"instrumentRatingAgency"`
+	PortfolioTopHoldings                         *string                         `json:"portfolioTopHoldings"`
 }
 
 type TokenizedAssetID string
@@ -931,6 +932,7 @@ type TokenizedAssetJSONInput struct {
 	SecurityOrCollateralOffered            string    `json:"securityOrCollateralOffered"`
 	FundInstrumentType                     string    `json:"fundInstrumentType"`
 	InstrumentRatingAgency                 string    `json:"instrumentRatingAgency"`
+	PortfolioTopHoldings                   string    `json:"portfolioTopHoldings"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1427,6 +1429,7 @@ type TokenizedAssetJSON struct {
 	SecurityOrCollateralOffered                  string                          `json:"securityOrCollateralOffered"`
 	FundInstrumentType                           string                          `json:"fundInstrumentType"`
 	InstrumentRatingAgency                       string                          `json:"instrumentRatingAgency"`
+	PortfolioTopHoldings                         string                          `json:"portfolioTopHoldings"`
 }
 
 type TokenizedAssetSector struct {
@@ -4094,6 +4097,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	} else {
 		t.InstrumentRatingAgency = nil
 	}
+	if len(ti.PortfolioTopHoldings) > 0 {
+		t.PortfolioTopHoldings = &ti.PortfolioTopHoldings
+	} else {
+		t.PortfolioTopHoldings = nil
+	}
 
 	//////////
 
@@ -5508,7 +5516,15 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.SecurityOrCollateralOffered != nil {
 		t.SecurityOrCollateralOffered = *ti.SecurityOrCollateralOffered
 	}
-
+	if ti.FundInstrumentType != nil {
+		t.FundInstrumentType = *ti.FundInstrumentType
+	}
+	if ti.InstrumentRatingAgency != nil {
+		t.InstrumentRatingAgency = *ti.InstrumentRatingAgency
+	}
+	if ti.PortfolioTopHoldings != nil {
+		t.PortfolioTopHoldings = *ti.PortfolioTopHoldings
+	}
 	return t
 
 }
