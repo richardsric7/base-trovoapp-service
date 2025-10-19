@@ -629,7 +629,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ],
               ),
               SizedBox(height: height / 50),
-              if (fundingStructure == 0 || fundingStructure == 2) ...[
+              if (fundingStructure == 2) ...[
                 Row(
                   children: [
                     Padding(
@@ -687,7 +687,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   ],
                 ),
               ],
-              if (fundingStructure == 1 || fundingStructure == 2) ...[
+              if (fundingStructure == 2) ...[
                 Row(
                   children: [
                     Padding(
@@ -1145,7 +1145,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     try {
       showLoader(context);
-
+      data = appState.viewData;
       data["assetSector"] = selectedAssetSectorId;
       data["assetSubSector"] = selectedAssetSubSectorId;
       data["assetType"] = selectedAssetTypeId;
@@ -1178,10 +1178,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        appState.viewData = responseData['data'];
+        await refreshCurrentTokenizationInfo(appState);
         await fetchBanksList();
         appState.currentAction = PageAction(
           state: PageState.addPage,
@@ -1194,6 +1193,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
           message: responseData['data']['message'],
         );
       }
+      hideLoader(context);
     } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());

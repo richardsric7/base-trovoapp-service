@@ -1213,14 +1213,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
             calculateFiatValue(
               asset.amount.toString(),
               asset.usdPrice.toString(),
-              asset.tokenizedAsset ? 'USD' : appState.defaultCurrency,
+              asset.tokenizedAsset ? 'NGN' : appState.defaultCurrency,
               appState,
             ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }
@@ -1236,6 +1238,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
             calculateFiatValue(
               asset.amount.toString(),
@@ -1244,6 +1247,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               appState,
             ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }

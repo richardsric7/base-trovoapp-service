@@ -29,6 +29,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController tabController;
+  var formData = {};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -188,27 +189,27 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1124') {
-      return DebtMutualFundsAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1125') {
-      return HybridMutualFundsAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1114') {
-      return BondAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1115') {
-      return CorporateBondAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1182') {
-      return CommodityAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1180') {
-      return CommoditySKRAssetInformationViewPageConfig;
+      return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
     if (appState.viewData!['assetType'].toString().toLowerCase() == '1121') {
