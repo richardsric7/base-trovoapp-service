@@ -695,7 +695,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                       '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',
                   fiatBalance: appState.defaultCurrency == 'USD'
                       ? null
-                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallets[indexOfWallet].claimedAssets!)} USD',
+                      : '${totalAccountBalanceInUSD(appState, wallets[indexOfWallet].claimedAssets!)} USD',
                   initialHiddenState: appState.hideWalletList[indexOfWallet],
                   onHiddenStateChanged: (state) => {
                     setState(() {

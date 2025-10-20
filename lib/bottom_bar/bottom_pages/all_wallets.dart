@@ -1067,7 +1067,7 @@ class _AllWalletsView extends State<AllWalletsView>
             child: isTileMode
                 ? walletTile(
                     filteredWallets[i].alias!.capitalizeFirst!,
-                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
+                    '${totalAccountBalanceInUSD(appState, filteredWallets[i].claimedAssets!)} USD',
                     '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
                     i % 2 == 0
                         ? colors[((i + 1) % colors.length)]
@@ -1081,7 +1081,7 @@ class _AllWalletsView extends State<AllWalletsView>
                           alias: filteredWallets[i].alias!.capitalizeFirst!,
                           walletType: filteredWallets[i].walletType ?? 0,
                           fiatBalance:
-                              '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
+                              '${totalAccountBalanceInUSD(appState, filteredWallets[i].claimedAssets!)} USD',
                           totalBalance:
                               '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
                           assetCount: filteredWallets[i].claimedAssets!.length

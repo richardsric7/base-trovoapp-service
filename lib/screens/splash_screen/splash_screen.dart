@@ -200,8 +200,8 @@ class _SplashScreenState extends State<SplashScreen>
               }
 
               fetchNotifications(appState);
+              getFiatRates(appState);
               fetchCuratedSwapList(appState);
-              print('=============> appstate linkId ${appState.linkId}');
               if (appState.linkId.isNotEmpty) {
                 initialDynamicLink = await resolveShortlink(appState.linkId);
               }

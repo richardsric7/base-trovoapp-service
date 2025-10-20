@@ -1237,12 +1237,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
           balance += double.parse(
-            calculateFiatValue(
-              asset.amount.toString(),
-              asset.usdPrice.toString(),
-              'USD',
-              appState,
-            ).replaceAll(',', ''),
+            asset.tokenizedAsset
+                ? ((asset.usdPrice! * asset.amount!) / appState.fiatRate['NGN'])
+                      .toString()
+                : calculateFiatValue(
+                    asset.amount.toString(),
+                    asset.usdPrice.toString(),
+                    'USD',
+                    appState,
+                  ).replaceAll(',', ''),
           );
         }
       }

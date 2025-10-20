@@ -168,7 +168,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                   fiatBalance: appState.defaultCurrency == 'USD'
                       ? null
-                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
+                      : '${totalAccountBalanceInUSD(appState, wallet.claimedAssets!)} USD',
                   initialHiddenState: appState.hideBalances,
                   onHiddenStateChanged: (state) => {
                     setState(() => localHideBalance = state),

@@ -287,6 +287,30 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
   );
 }
 
+String totalAccountBalanceInUSD(DataProvider appState, List<Asset> assets) {
+  double balance = 0;
+  if (assets.length > 0) {
+    for (var asset in assets) {
+      balance += double.parse(
+        asset.tokenizedAsset
+            ? ((asset.usdPrice! * asset.amount!) / appState.fiatRate['NGN'])
+                  .toString()
+            : calculateFiatValue(
+                asset.amount.toString(),
+                asset.usdPrice.toString(),
+                'USD',
+                appState,
+              ).replaceAll(',', ''),
+      );
+    }
+  }
+  return formatHistoryNumber(
+    double.parse(balance.toString()),
+    1000000,
+    isShort: true,
+  );
+}
+
 postProcessData(
   context,
   messageShown,
