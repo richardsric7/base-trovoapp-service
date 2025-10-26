@@ -87,12 +87,14 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 	}
 	paymentInfo.AmountToPay = paymentInfo.Amount
+	paymentInfo.FeeAmount = "0"
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
 	if !walletHasViewOnlyAccess {
 		paymentInfo.Multiparty = 1
 		{
 			//calculate fees
-			fee := decimal.RequireFromString(sourceWallet.GetSharedAccessPaymentFee(gc))
+			serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
+			fee := decimal.NewFromFloat(serviceFee.FeePercent)
 			paymentInfo.Fee = fee.String()
 			feeAmount := ((decimal.RequireFromString(paymentInfo.Amount).Mul(fee)).Div(decimal.NewFromInt(100))).Truncate(7)
 			paymentInfo.FeeAmount = feeAmount.String()
@@ -238,6 +240,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	paymentInfo.FeeAmount = "0"
 	var tokenizedAssetIssuerMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
@@ -582,11 +585,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 	//service fee
 	signForFeeTrustLine := 0
-	serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() && os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
+	serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
+	// serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
+	// if e != nil {
+	// 	serviceFee = decimal.Zero
+	// }
+	if (decimal.RequireFromString(paymentInfo.FeeAmount)).IsPositive() && serviceFee.Inactive == 0 {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
 			feeLabel := paymentInfo.Fee + "%"
@@ -594,7 +598,15 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			// if !asset.IsNative() {
 			// 	assetCode = asset.GetCode()
 			// }
-			feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
+			feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+			if e != nil {
+				log.Println("[generatePaymentXdr] error parsing fee wallet secret key", e)
+				return "", nil, &tErrors.CustomError{
+					Err:        "error-parsing-fee-wallet-secret-key",
+					Param:      "feeAmont",
+					ErrMessage: "Failed to parse Shared Access Fee Wallet. Fee Wallet is Invalid",
+				}
+			}
 			feeAddress := feeKeypair.Address()
 
 			if !asset.IsNative() {
@@ -625,7 +637,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			}
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   feeAddress,
-				Amount:        serviceFee.String(),
+				Amount:        paymentInfo.FeeAmount,
 				SourceAccount: sourceWallet.ID,
 				Asset:         asset,
 			})

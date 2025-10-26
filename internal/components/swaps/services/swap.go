@@ -34,7 +34,9 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
-	fee := decimal.RequireFromString(wallet.GetSwapFee(gc))
+
+	serviceFee := wallet.GetSwapFee(gc)
+	fee := decimal.NewFromFloat(serviceFee.FeePercent)
 
 	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.SourceAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
 
@@ -199,7 +201,8 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
-	fee := decimal.RequireFromString(wallet.GetSwapFee(gc))
+	serviceFee := wallet.GetSwapFee(gc)
+	fee := decimal.NewFromFloat(serviceFee.FeePercent)
 
 	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.DestinationAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
 
@@ -516,19 +519,26 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
-	serviceFee, e := decimal.NewFromString(swapInfo.FeeAmount)
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
+	serviceFee := wallet.GetSwapFee(gc)
+	swapFee := decimal.RequireFromString(swapInfo.FeeAmount)
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
 	signForFeeTrustLine := 0
-	if serviceFee.IsPositive() && os.Getenv("SWAP_FEE_ENABLED") == "1" {
+	if swapFee.IsPositive() && serviceFee.Inactive == 0 {
 		//process service fee
 
 		//ensure that the fee address is can accept the asset.
 		// but bcos  fee address needs to sign, it cannot be done here
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		// feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+		if e != nil {
+			log.Println("[generateSwapXdr] error parsing fee wallet secret key", e)
+			return "", &tErrors.CustomError{
+				Err:        "error-parsing-swap-fee-wallet-secret-key",
+				Param:      "feeAmont",
+				ErrMessage: "Failed to parse Swap Fee Wallet. Fee Wallet is Invalid",
+			}
+		}
 		feeAddress := feeKeypair.Address()
 
 		if !sourceAsset.IsNative() {
@@ -560,7 +570,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   feeAddress,
-			Amount:        serviceFee.String(),
+			Amount:        swapFee.String(),
 			SourceAccount: wallet.ID,
 			Asset:         sourceAsset,
 		})

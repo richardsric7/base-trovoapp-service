@@ -1746,30 +1746,39 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 	return
 }
 
-func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (swapFee string) {
-	if os.Getenv("SWAP_FEE_ENABLED") == "1" {
-		fee := decimal.RequireFromString(os.Getenv("SWAP_FEE_AMOUNT"))
+func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ?", "SWAP_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
 
-		//TODO: check if user has zero swap fees
+		//TODO: check if user has zero swap fees and modify the swap fee
 
-		swapFee = fee.String()
-	} else {
-		swapFee = "0"
+	}
+
+	return
+}
+func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	if u.SharedAccessEnabled == 0 {
+		return
+	}
+	gc.DB.Where("id = ?", "SHARED_ACCESS_PAYMENT_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
 	}
 
 	return
 }
 
-func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (sharedAccessFee string) {
+func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ?", serviceFeeID).First(&serviceFee)
+	if serviceFee.Inactive == 0 {
 
-	if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
-		fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_PAYMENT_FEE_AMOUNT"))
+		//TODO: check if user has zero swap fees and modify the swap fee
 
-		//TODO: get shared access fees
-
-		sharedAccessFee = fee.String()
-	} else {
-		sharedAccessFee = "0"
 	}
 
 	return
