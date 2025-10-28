@@ -239,6 +239,11 @@ func GetTokenizationByDocumentID(did uint64, gc *sharedconfig.GlobalConfig) (t u
 	return userModels.AssetTokenizationDocumentID(did).GetTokenization(gc)
 }
 
+func GetTokenizationFormByID(formId uint64, gc *sharedconfig.GlobalConfig) (t userModels.JsonForm) {
+	gc.DB.Where("id = ?", formId).First(&t)
+	return
+}
+
 func GetTokenizationCurrencyByCode(code string, db *gorm.DB) (currency userModels.TokenizationCurrency) {
 	db.Where("asset_code = ?", strings.ToUpper(code)).First(&currency)
 

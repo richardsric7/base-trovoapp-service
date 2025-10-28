@@ -4652,6 +4652,51 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
+		router.GET("/v1/forms/:formId", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+			formIDstr := strings.ReplaceAll(c.Param("formId"), " ", "")
+			if len(formIDstr) == 0 {
+
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error-invlaid-form-id", "message": "Form ID is invalid."}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			formId, _ := strconv.Atoi(formIDstr)
+
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			form := userServices.GetTokenizationFormByID(uint64(formId), gc)
+
+			c.JSON(http.StatusOK, gin.H{"formString": form.JsonString})
+
+		})
+
 		router.GET("/v1/trovo-manager/banks/:countryCode", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
 			var err error
 			au, err := middleware.ExtractTokenMetadata(c.Request)

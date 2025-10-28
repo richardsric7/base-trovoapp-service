@@ -548,6 +548,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating DynamicLink: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.JsonForm{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating JsonForm: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)

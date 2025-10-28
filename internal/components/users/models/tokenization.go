@@ -54,6 +54,11 @@ EngineeringReportsForConstruction
 
 *
 */
+
+type JsonForm struct {
+	ID         uint64
+	JsonString string
+}
 type ExistingAssetValidationAssetDocument struct {
 	ID                                uint64 `gorm:"" json:"-" form:"-"`
 	ProofOfAssetExistence             int    `gorm:"default:1" json:"proofOfAssetExistence"`             //1
