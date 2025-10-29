@@ -253,7 +253,6 @@ String getFiatRate(
   DataProvider appState, {
   bool getUnFormatted = false,
 }) {
-  print('fiatRate ===> $usdPrice, currency ===> $currency');
   usdPrice = usdPrice.isEmpty ? '0' : usdPrice;
   if (getUnFormatted)
     return (appState.fiatRate[currency] * double.parse(usdPrice)).toString();

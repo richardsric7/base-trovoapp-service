@@ -134,6 +134,8 @@ const String CommoditySKRAssetInformationViewPath =
 const String MBSAssetInformationViewPath = '/MBSAssetInformationView';
 const String CommercialPapersAssetInformationViewPath =
     '/CommercialPapersAssetInformationView';
+const String QuickBuyViewPath = '/QuickBuyView';
+const String ConfirmQuickBuyViewPath = '/ConfirmQuickBuyView';
 
 enum Pages {
   Splash,
@@ -262,6 +264,8 @@ enum Pages {
   CommoditySKRAssetInformationView,
   MBSAssetInformationView,
   CommercialPapersAssetInformationView,
+  QuickBuyView,
+  ConfirmQuickBuyView,
 }
 
 class PageConfiguration {
@@ -995,3 +999,15 @@ PageConfiguration CommercialPapersAssetInformationViewPageConfig =
       uiPage: Pages.CommercialPapersAssetInformationView,
       currentPageAction: null,
     );
+PageConfiguration QuickBuyViewPageConfig = PageConfiguration(
+  key: 'QuickBuyView',
+  path: QuickBuyViewPath,
+  uiPage: Pages.QuickBuyView,
+  currentPageAction: null,
+);
+PageConfiguration ConfirmQuickBuyViewPageConfig = PageConfiguration(
+  key: 'ConfirmQuickBuyView',
+  path: ConfirmQuickBuyViewPath,
+  uiPage: Pages.ConfirmQuickBuyView,
+  currentPageAction: null,
+);

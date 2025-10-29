@@ -126,6 +126,32 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return Scaffold(
       key: key,
       resizeToAvoidBottomInset: false,
+      floatingActionButton: Container(
+        width: 135,
+        child: FloatingActionButton(
+          onPressed: () {
+            showQuickBuyPopup(context);
+            setState(() {});
+          },
+          backgroundColor: Colors.green,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [
+              Image.asset('assets/images/quick-buy.png', width: 30),
+              Text(
+                'Quick Buy',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: fontsemibold,
+                  color: wihitecolor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       backgroundColor: notifier.getwihitecolor,
       drawer: getDrawer(context, appState, notifier),
       body: SmartRefresher(

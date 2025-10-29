@@ -4,6 +4,8 @@ import 'package:trovo_app/bottom_bar/bottom_pages/about_trovo.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/confirm_quick_buy.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/quick_buy.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_app/custom_bloc_observer/swiper/swiper.dart';
@@ -637,6 +639,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             CommercialPapersAssetInformationViewPageConfig,
           );
           break;
+        case Pages.QuickBuyView:
+          _addPageData(QuickBuyView(), QuickBuyViewPageConfig);
+          break;
+        case Pages.ConfirmQuickBuyView:
+          _addPageData(ConfirmQuickBuyView(), ConfirmQuickBuyViewPageConfig);
+          break;
         default:
           break;
       }
@@ -967,6 +975,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.DebtMutualFundsAssetInformationView:
         DebtMutualFundsAssetInformationViewPageConfig.currentPageAction =
             action;
+        break;
+      case Pages.QuickBuyView:
+        QuickBuyViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
