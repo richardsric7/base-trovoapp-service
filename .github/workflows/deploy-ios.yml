@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - deploy-ios
+      - shortlinks
   pull_request:
     types: [merged]
     branches:
