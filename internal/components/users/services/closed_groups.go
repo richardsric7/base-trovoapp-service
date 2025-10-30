@@ -133,7 +133,6 @@ func UploadClosedGroupRegistrationDocument(groupOwner *userModels.User, file mul
 }
 
 func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels.ClosedGroupJSONInput, gc *sharedconfig.GlobalConfig) (string, error) {
-	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{} "CLOSED_GROUP_FEE_WALLET","CLOSED_GROUP_FEE_QUOTE_AMOUNT","CLOSED_GROUP_FEE_ASSET_CODE","CLOSED_GROUP_FEE_ASSET_ISSUER"
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	CLOSED_GROUP_FEE := owner.UserWallets[0].GetClosedGroupFee(gc)
 	cgFeeAmountUSD := CLOSED_GROUP_FEE.FeeFixed
