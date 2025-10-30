@@ -83,17 +83,15 @@ func main() {
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
-			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
-			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
-			"GC", "GOOGLE_PROJECT_ID", "ACCOUNT_RECOVERY_SALT", "MNEMONIC_ACCOUNT_RECOVERY", "RECOVERY_SIGNER_ACTIVATION_AMOUNT",
+			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
+			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
+			"GC", "GOOGLE_PROJECT_ID", "ACCOUNT_RECOVERY_SALT", "MNEMONIC_ACCOUNT_RECOVERY",
 			"NATIVE_ASSET_CODE", "ACCOUNT_RECOVERY_MINIMUM_BALANCE",
-			"SHARED_ACCESS_PAYMENT_FEE_AMOUNT", "CHANNEL_ACCOUNTS", "WALLET_SIGNER_ACTIVATION_AMOUNT", "WALLET_DOMAIN",
+			"CHANNEL_ACCOUNTS", "WALLET_DOMAIN",
 			"MNEMONIC_BULK_PAYMENT", "BULK_PAYMENT_SALT", "ENCODER_SALT", "MARKET_MAKING_SALT",
-			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET", "CHECK_CHANNEL_ACCOUNT_BALANCE",
+			"MNEMONIC_MARKET_MAKING", "CHECK_CHANNEL_ACCOUNT_BALANCE",
 			"JWT_ACCESS_SECRET", "JWT_TOKEN_EXPIRY", "JWT_REFRESH_TOKEN_EXPIRY",
-			"SUBWALLET_FEE_AMOUNT_USD", "SUBWALLET_FEE_ASSET_ISSUER", "SUBWALLET_FEE_ASSET_CODE",
-			"SUBWALLET_FEE_WALLET", "DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED", "FEE_QUOTE_DEX_ASSET",
-			"CLOSED_GROUP_FEE_WALLET", "CLOSED_GROUP_FEE_QUOTE_AMOUNT", "CLOSED_GROUP_FEE_ASSET_CODE", "CLOSED_GROUP_FEE_ASSET_ISSUER",
+			"DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED", "FEE_QUOTE_DEX_ASSET",
 			"BLOCKCHAIN_DATA_CACHE_LIFETIME",
 		}
 
@@ -113,52 +111,38 @@ func main() {
 
 			exit = true
 		}
-		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
-			log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
+		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
+		// 	log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
 
-			exit = true
-		}
+		// 	exit = true
+		// }
 
 		if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" && len(os.Getenv("NAIRA_ASSET")) < 60 {
 			log.Println("NAIRA_ASSET environment variable is required when ENABLE_NAIRA_ASSET_BY_DEFAULT is set to 1")
 
 			exit = true
 		}
-		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
-			if err != nil {
-				log.Println("MARKET_MAKING_FEE_WALLET  is invalid wallet secret key")
+		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
+		// 	_, err := keypair.ParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+		// 	if err != nil {
+		// 		log.Println("MARKET_MAKING_FEE_WALLET  is invalid wallet secret key")
 
-				exit = true
-			}
-		}
-		if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
-			log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
+		// 		exit = true
+		// 	}
+		// }
+		// if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
+		// 	log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
 
-			exit = true
-		}
-		if os.Getenv("SWAP_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("SWAP_FEE_WALLET"))
-			if err != nil {
-				log.Println("SWAP_FEE_WALLET is invalid wallet secret key")
+		// 	exit = true
+		// }
+		// if os.Getenv("SWAP_FEE_ENABLED") == "1" {
+		// 	_, err := keypair.ParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		// 	if err != nil {
+		// 		log.Println("SWAP_FEE_WALLET is invalid wallet secret key")
 
-				exit = true
-			}
-		}
-
-		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" && len(os.Getenv("SHARED_ACCESS_FEE_WALLET")) != 56 {
-			log.Println("SHARED_ACCESS_FEE_WALLET environment variable is required when SHARED_ACCESS_FEE_ENABLED is set to 1")
-
-			exit = true
-		}
-		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
-			if err != nil {
-				log.Println("SHARED_ACCESS_FEE_WALLET is invalid wallet secret key")
-
-				exit = true
-			}
-		}
+		// 		exit = true
+		// 	}
+		// }
 
 		if exit {
 			return

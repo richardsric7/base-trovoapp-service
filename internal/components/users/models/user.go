@@ -379,3 +379,14 @@ type UserKyc struct {
 	FacematchPassport           int    `gorm:"default:0" json:"facematchPassport"`
 	GovermentIDProofOfResidency int    `gorm:"default:0" json:"govermentIDProofOfResidency"`
 }
+
+type ActivationAmount struct {
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	LastUpdatedBy string    `json:"lastUpdatedBy"`
+	ID            string    `json:"id"`
+	Amount        float64   `gorm:"default:0" json:"amount"`
+	AssetCode     string    `gorm:"default:'XBN'" json:"assetCode"`
+	AssetIssuer   string    `gorm:"default:'XBN'" json:"assetIssuer"`
+	Inactive      int       `gorm:"default:0" json:"inactive"`
+}

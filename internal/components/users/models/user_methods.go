@@ -897,22 +897,22 @@ func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
-func (u *UserWallet) CanIssueMoreAssets() bool {
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return false
-	}
-	maxCountAssets := 200
+// // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+// func (u *UserWallet) CanIssueMoreAssets() bool {
+// 	assetPage, err := u.GetBlockchainAssets()
+// 	if err != nil {
+// 		return false
+// 	}
+// 	maxCountAssets := 200
 
-	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-	if err != nil {
-		return len(assetPage.Embedded.Records) < maxCountAssets
-	}
+// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+// 	if err != nil {
+// 		return len(assetPage.Embedded.Records) < maxCountAssets
+// 	}
 
-	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
 
-}
+// }
 
 // GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
 func (u *UserWallet) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
@@ -963,22 +963,22 @@ func (u Issuer) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
-func (u Issuer) CanIssueMoreAssets() bool {
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return false
-	}
-	maxCountAssets := 200
+// // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+// func (u Issuer) CanIssueMoreAssets() bool {
+// 	assetPage, err := u.GetBlockchainAssets()
+// 	if err != nil {
+// 		return false
+// 	}
+// 	maxCountAssets := 200
 
-	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-	if err != nil {
-		return len(assetPage.Embedded.Records) < maxCountAssets
-	}
+// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+// 	if err != nil {
+// 		return len(assetPage.Embedded.Records) < maxCountAssets
+// 	}
 
-	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
 
-}
+// }
 
 // GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
 func (u Issuer) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
@@ -1772,10 +1772,87 @@ func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (s
 	return
 }
 
+func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "PATRON_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
+func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "ACCOUNT_RECOVERY_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
+func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "SUBWALLET_CREATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
+func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "TOKENIZATION_APPLICATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
+func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "CLOSED_GROUP_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
 func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 	gc.DB.Where("id = ?", serviceFeeID).First(&serviceFee)
 	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero swap fees and modify the swap fee
+
+	}
+
+	return
+}
+
+func (u *UserWallet) GetActivationFee(activationFeeID string, gc *sharedconfig.GlobalConfig) (activationAmount ActivationAmount) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ?", activationFeeID).First(&activationAmount)
+	if activationAmount.Inactive == 0 {
 
 		//TODO: check if user has zero swap fees and modify the swap fee
 

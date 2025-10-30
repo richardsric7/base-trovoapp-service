@@ -135,18 +135,19 @@ func UploadClosedGroupRegistrationDocument(groupOwner *userModels.User, file mul
 func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels.ClosedGroupJSONInput, gc *sharedconfig.GlobalConfig) (string, error) {
 	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{} "CLOSED_GROUP_FEE_WALLET","CLOSED_GROUP_FEE_QUOTE_AMOUNT","CLOSED_GROUP_FEE_ASSET_CODE","CLOSED_GROUP_FEE_ASSET_ISSUER"
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-	cgFeeAmountUSD := strings.TrimSpace(os.Getenv("CLOSED_GROUP_FEE_QUOTE_AMOUNT"))
-	cgFeeAssetCode := strings.TrimSpace(os.Getenv("CLOSED_GROUP_FEE_ASSET_CODE"))
-	cgFeeAssetIssuer := strings.TrimSpace(os.Getenv("CLOSED_GROUP_FEE_ASSET_ISSUER"))
+	CLOSED_GROUP_FEE := owner.UserWallets[0].GetClosedGroupFee(gc)
+	cgFeeAmountUSD := CLOSED_GROUP_FEE.FeeFixed
+	cgFeeAssetCode := CLOSED_GROUP_FEE.FeeAssetCode
+	cgFeeAssetIssuer := CLOSED_GROUP_FEE.FeeAssetIssuer
 	if len(cgFeeAssetCode) == 0 {
-		cgFeeAmountUSD = "0"
+		cgFeeAmountUSD = 0
 	}
-	if len(cgFeeAmountUSD) == 0 {
+	if cgFeeAmountUSD > 0 {
 		cgFeeAssetCode = "TROV"
 		cgFeeAssetIssuer = "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
 	}
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	cgFeeKP := keypair.MustParseFull(os.Getenv("CLOSED_GROUP_FEE_WALLET"))
+	cgFeeKP := keypair.MustParseFull(CLOSED_GROUP_FEE.FeeWalletSecretKey)
 	sourceAssets := strings.ToUpper(fmt.Sprintf("%v:%v", cgFeeAssetCode, cgFeeAssetIssuer))
 
 	var errGetEstimate error
@@ -175,14 +176,14 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	//get the trov quantity/equivalent needed for the USD from the market.
 	pathInput := swapModel.SwapPathInput{
 		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0],
-		DestinationAssetIssuer: strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[1],
-		DestinationAmount:      cgFeeAmountUSD,
+		DestinationAssetCode:   CLOSED_GROUP_FEE.FeeAssetCode,
+		DestinationAssetIssuer: CLOSED_GROUP_FEE.FeeAssetIssuer,
+		DestinationAmount:      fmt.Sprintf("%v", cgFeeAmountUSD),
 	}
 	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 	// requiredTrovAssetEstimate = requiredUsdEstimate
 
-	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, cgFeeAssetCode, cgFeeAmountUSD, strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0])
+	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, cgFeeAssetCode, cgFeeAmountUSD, CLOSED_GROUP_FEE.FeeAssetCode)
 	if errGetEstimate != nil && requiredUsdWorth == "" {
 		log.Println("[generateClosedGroupXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdWorth)
 
@@ -204,56 +205,7 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 			}
 		}
 	}
-	// //assume the primary wallet does not have trustline to the trov asset. Build the trustline.
-	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
 
-	// if !destAccountTrustsDestinationAsset {
-
-	// 	ops = append(ops, &txnbuild.ChangeTrust{
-	// 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"}},
-	// 		Limit:         "900000000000",
-	// 		SourceAccount: owner.PublicKey,
-	// 	})
-	// }
-	// if !strings.EqualFold(patronSubInput.PaymentAssetCode, "TROV") {
-
-	// 	//get swap the asset amount to TROV.
-	// 	pathInput := swapModel.SwapSendPathInput{
-	// 		DestinationAssets: "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
-	// 		SourceAssetCode:   patronSubInput.PaymentAssetCode,
-	// 		SourceAssetIssuer: patronSubInput.PaymentAssetIssuer,
-	// 		SourceAmount:      requiredUsdWorth,
-	// 	}
-
-	// 	path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
-	// 	log.Printf(" %v %v converts to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, estimatedTrov, "TROV")
-	// 	if errGetEstimate != nil && estimatedTrov == "" {
-	// 		log.Printf("[generateClosedGroupXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)
-	// 		return "", errGetEstimate
-	// 	}
-
-	// 	{
-	// 		//build a swap operation to swap the non-trov asset to trov so that trov can be debited.
-	// 		var sendAsset txnbuild.Asset
-	// 		if len(patronSubInput.PaymentAssetIssuer) == 0 {
-	// 			sendAsset = txnbuild.NativeAsset{}
-	// 		} else {
-	// 			sendAsset = txnbuild.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
-	// 		}
-
-	// 		ops = append(ops, &txnbuild.PathPaymentStrictSend{
-	// 			SendAsset:     sendAsset,
-	// 			SendAmount:    requiredUsdWorth,
-	// 			Destination:   patronFeeKP.Address(),
-	// 			DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
-	// 			DestMin:       "0.0000001",
-	// 			Path:          path,
-	// 			SourceAccount: owner.PublicKey, //primary wallet
-	// 		})
-	// 	}
-	// } else {
-
-	// }
 	ops = append(ops, &txnbuild.Payment{
 		Destination:   cgFeeKP.Address(),
 		Amount:        requiredUsdWorth,

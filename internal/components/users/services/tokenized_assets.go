@@ -3594,14 +3594,19 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 
 func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.TokenizedAsset, taInput *userModels.ConfirmTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
 
-	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
+	// countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
 
-	tfa := strings.Split(countryConfig.TokenizationApplicationFeeAsset, ":") //CODE:ISSUER
-	feeAmount := decimal.NewFromFloat(countryConfig.TokenizationApplicationFee)
-	feeWallet := os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
-	feeWalletPK := keypair.MustParseFull(feeWallet)
-	assetIssuer := tfa[1]
-	assetCode := tfa[0]
+	// tfa := strings.Split(countryConfig.TokenizationApplicationFeeAsset, ":") //CODE:ISSUER
+	TOKENIZATION_APPLICATION_FEE := wallet.GetTokenizationApplicationFee(gc)
+	if len(TOKENIZATION_APPLICATION_FEE.FeeWalletSecretKey) == 0 {
+		gc.LogDiscordFailedRequest("TOKENIZATION_APPLICATION_FEE secret key not configuired in service fee table")
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+	feeAmount := decimal.NewFromFloat(TOKENIZATION_APPLICATION_FEE.FeeFixed)
+
+	feeWalletPK := keypair.MustParseFull(TOKENIZATION_APPLICATION_FEE.FeeWalletSecretKey)
+	assetIssuer := TOKENIZATION_APPLICATION_FEE.FeeAssetIssuer
+	assetCode := TOKENIZATION_APPLICATION_FEE.FeeAssetCode
 
 	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 
@@ -3612,7 +3617,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	}
 	if assetAccountFeeBalance.LessThan(feeAmount) {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", feeAmount.String(), tfa[0]), Code: http.StatusBadRequest}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", feeAmount.String(), assetCode), Code: http.StatusBadRequest}
 
 	}
 

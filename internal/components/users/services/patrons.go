@@ -381,7 +381,13 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	patronFeeKP := keypair.MustParseFull(os.Getenv("PATRON_FEE_WALLET"))
+	serviceFee := owner.UserWallets[0].GetPatronFee(gc)
+	patronFeeKP, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+	if e != nil {
+		log.Println("[generatePatronSubscriptionXdr] error fetching account fee wallet for patron fee ", e)
+		logDiscordFailedSubscription("[generatePatronSubscriptionXdr] error fetching account fee wallet for patron fee ")
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
 	sourceAssets := ""
 	var errGetEstimate error
 	var requiredUsdWorth, estimatedTrov string

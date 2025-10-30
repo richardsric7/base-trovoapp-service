@@ -133,7 +133,8 @@ func OpenSqliteDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(gormDB *gorm.DB) {
-	if os.Getenv("DB_AUTOMIGRATE") == "1" {
+	//do automigrate if it is not explicitly disabled,
+	if os.Getenv("DB_AUTOMIGRATE") != "0" {
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
@@ -551,6 +552,16 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.JsonForm{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating JsonForm: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ServiceFee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ServiceFee: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ActivationAmount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ActivationAmount: ", errMigrate)
 		}
 
 		// errMigrate = UserTriggers(gormDB)

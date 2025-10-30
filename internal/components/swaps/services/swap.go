@@ -533,6 +533,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
 		if e != nil {
 			log.Println("[generateSwapXdr] error parsing fee wallet secret key", e)
+			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing fee wallet secret key")
+
 			return "", &tErrors.CustomError{
 				Err:        "error-parsing-swap-fee-wallet-secret-key",
 				Param:      "feeAmont",
@@ -629,7 +631,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	if signForFeeTrustLine == 1 && !sourceAsset.IsNative() {
 		log.Printf("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with swap fee key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", sourceAsset)
 
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {

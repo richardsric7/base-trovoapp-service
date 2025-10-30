@@ -601,6 +601,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
 			if e != nil {
 				log.Println("[generatePaymentXdr] error parsing fee wallet secret key", e)
+				gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing fee wallet secret key")
 				return "", nil, &tErrors.CustomError{
 					Err:        "error-parsing-fee-wallet-secret-key",
 					Param:      "feeAmont",
@@ -694,7 +695,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	if signForFeeTrustLine == 1 && !asset.IsNative() && paymentInfo.Multiparty == 1 {
-		feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
+		serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
+		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 
 		if err != nil {
