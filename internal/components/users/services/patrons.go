@@ -435,14 +435,14 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	//get the trov quantity/equivalent needed for the USD from the market.
 	pathInput := swapModel.SwapPathInput{
 		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0],
-		DestinationAssetIssuer: strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[1],
+		DestinationAssetCode:   serviceFee.FeeAssetCode,
+		DestinationAssetIssuer: serviceFee.FeeAssetIssuer,
 		DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	}
 	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 	// requiredTrovAssetEstimate = requiredUsdEstimate
 
-	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, strings.Split(os.Getenv("FEE_QUOTE_DEX_ASSET"), ":")[0])
+	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, serviceFee.FeeAssetCode)
 	if errGetEstimate != nil && requiredUsdWorth == "" {
 		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdWorth)
 
