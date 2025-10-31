@@ -2943,7 +2943,9 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		return
 	}
 	client := gc.BantuExpansionClient
-	feeWallet := keypair.MustParseFull(os.Getenv("TOKENIZATION_FEE_WALLET"))
+
+	TOKENIZATION_FEE:= t.GetTokenizationFeeWallet(gc)
+	feeWallet := keypair.MustParseFull(TOKENIZATION_FEE.FeeWalletSecretKey)
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
 	var permInfo []userModels.WalletPermissionInfo

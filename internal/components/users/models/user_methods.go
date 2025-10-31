@@ -1824,6 +1824,19 @@ func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig
 	return
 }
 
+func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ?", "TOKENIZATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+
+	return
+}
+
 func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
