@@ -1748,7 +1748,7 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 
 func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
-	gc.DB.Where("id = ?", "SWAP_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "SWAP_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero swap fees and modify the swap fee
@@ -1762,7 +1762,7 @@ func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (s
 	if u.SharedAccessEnabled == 0 {
 		return
 	}
-	gc.DB.Where("id = ?", "SHARED_ACCESS_PAYMENT_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "SHARED_ACCESS_PAYMENT_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1775,7 +1775,7 @@ func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (s
 func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "PATRON_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "PATRON_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1788,7 +1788,7 @@ func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee Ser
 func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "ACCOUNT_RECOVERY_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "ACCOUNT_RECOVERY_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1801,7 +1801,7 @@ func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (servi
 func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "SUBWALLET_CREATION_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "SUBWALLET_CREATION_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1814,7 +1814,7 @@ func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (ser
 func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "TOKENIZATION_APPLICATION_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_APPLICATION_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1827,7 +1827,7 @@ func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig
 func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "TOKENIZATION_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1840,7 +1840,7 @@ func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig)
 func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 
-	gc.DB.Where("id = ?", "CLOSED_GROUP_FEE").First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", "CLOSED_GROUP_FEE").First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero fees and modify the fee
@@ -1852,7 +1852,7 @@ func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFe
 
 func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
-	gc.DB.Where("id = ?", serviceFeeID).First(&serviceFee)
+	gc.DB.Where("id = ? AND inactive = 0", serviceFeeID).First(&serviceFee)
 	if serviceFee.Inactive == 0 {
 
 		//TODO: check if user has zero swap fees and modify the swap fee
@@ -1864,7 +1864,7 @@ func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalC
 
 func (u *UserWallet) GetActivationFee(activationFeeID string, gc *sharedconfig.GlobalConfig) (activationAmount ActivationAmount) {
 	// var serviceFee ServiceFee
-	gc.DB.Where("id = ?", activationFeeID).First(&activationAmount)
+	gc.DB.Where("id = ? AND inactive = 0", activationFeeID).First(&activationAmount)
 	if activationAmount.Inactive == 0 {
 
 		//TODO: check if user has zero swap fees and modify the swap fee
