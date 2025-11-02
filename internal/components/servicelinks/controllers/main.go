@@ -9,6 +9,7 @@ import (
 	"time"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	userServices "trovo-wallet-api/internal/components/users/services"
 
 	conDB "trovo-wallet-api/internal/db"
@@ -19,6 +20,7 @@ import (
 
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"trovo-wallet-api/internal/middleware"
 
@@ -1881,6 +1883,253 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		userInfo.SendPushMessage(serviceLinkRequestInput.Title, serviceLinkRequestInput.Message, serviceLinkRequestInput.ImageURI, dataPayload, gc)
 
 		c.JSON(http.StatusOK, successResponseData)
+	})
+
+	//register user from service link
+	router.POST("/v1/servicelinks/users/onboard", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var userRegistrationInfo userModels.UserRegistrationInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &userRegistrationInfo)
+
+		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
+		userRegistrationInfo.PrimarySigner = middleware.ExtractSigner(c)
+		userRegistrationInfo.CreatedByServiceLinkID = mInfo.ID
+		userRegistrationInfo.PublicIP = c.ClientIP()
+		if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+			userRegistrationInfo.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+		}
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		if strings.Contains(userRegistrationInfo.Username, "%") {
+			u, e := url.QueryUnescape(userRegistrationInfo.Username)
+			if e == nil {
+				userRegistrationInfo.Username = u
+			}
+		}
+
+		//if referral is allowed, set the referrer
+		if mInfo.AllowReferralForRegisteredUsers == 1 {
+			userRegistrationInfo.Referrer = mInfo.OwnerUsername
+		}
+
+		//replace _ and /
+		userRegistrationInfo.Username = strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(userRegistrationInfo.Username), "_", ""), "/", "")
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), gc.DB)
+
+		var emailSent bool
+
+		_, emailSent, err = userServices.RegisterUser(userRegistrationInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+		//But either the email was sent or not.
+		if emailSent {
+			c.JSON(http.StatusAccepted, gin.H{"message": "Verification code sent to your email"})
+			//send push notificationMessage
+			if len(userRegistrationInfo.PushNotificationToken) > 50 {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Verification code sent to your email", "Please check your email to get the verification code. It is only valid today.", "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		} else {
+			//registration completed
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			//return response
+			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
+			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your TrovoApp account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+		}
+
+		c.JSON(http.StatusOK, data)
+	})
+
+	//register user from service link
+	router.POST("/v1/servicelinks/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var kycData servicelinkModels.ServiceLinkUpdateKycInput
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &kycData)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//validate the json data
+		sliceOfByte := []byte(kycData.KycJsonData)
+
+		if len(sliceOfByte) < 10 {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-kyc-data", "data": "KycJsonData", "message": "KYC data is invalid."}
+			c.JSON(statusCode, response)
+			return
+
+		}
+
+		if strings.Contains(kycData.TargetTrovoUsername, "%") {
+			u, e := url.QueryUnescape(kycData.TargetTrovoUsername)
+			if e == nil {
+				kycData.TargetTrovoUsername = u
+			}
+		}
+		if kycData.KycStatus != 1 && kycData.KycStatus != 2 && kycData.KycStatus != 3 && kycData.KycStatus != 4 {
+			//wrong status
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-kyc-status", "data": "KycStatus", "message": "KYC status is invalid."}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//get the user object
+		targetUser, err := userModels.Username(kycData.KycStatus).GetSimpleUser(gc.DB, gc)
+		if err != nil {
+			log.Println("[GET servicelink target user] error for getting user:", kycData.TargetTrovoUsername, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//check if the user belongs to the service link
+		if targetUser.CreatedByServiceLinkID != nil {
+			if mInfo.ID != *targetUser.CreatedByServiceLinkID {
+
+				statusCode := http.StatusUnauthorized
+				response := gin.H{"error": "error-invalid-user-access", "data": "KycStatus", "message": "User was not created by your service."}
+				c.JSON(statusCode, response)
+				return
+			}
+		}
+
+		err = servicelinkServices.UpdateUserKYCStatus(&targetUser, kycData.KycStatus, kycData.KycJsonData, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, data)
 	})
 
 }

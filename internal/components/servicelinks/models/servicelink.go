@@ -24,6 +24,8 @@ type ServiceLink struct {
 	IncludePhoneNumbers                   int       `json:"-" gorm:"type:integer;not null;default:0"`
 	IncludeUserBalances                   int       `json:"-" gorm:"type:integer;not null;default:0"`
 	TokenizedAssetAuthorizationPermission int       `json:"-" gorm:"type:integer;not null;default:0"`
+	CreateUsersPermission                 int       `json:"-" gorm:"type:integer;not null;default:0"`
+	AllowReferralForRegisteredUsers       int       `json:"-" gorm:"type:integer;not null;default:0"`
 	Verified                              int       `json:"-" gorm:"type:integer;not null;default:0"`
 	// RewardOnly                 int       `json:"-" gorm:"type:integer;not null;default:0"`
 	Inactive         int     `json:"inactive" gorm:"type:integer;not null;default:0"`
@@ -98,6 +100,12 @@ type ServiceLinkPushNotificationInput struct {
 	Message  string `json:"message"`
 	ImageURI string `json:"imageUri"`
 	Action   string `json:"action"` //login, payment, 2fa, event
+}
+
+type ServiceLinkUpdateKycInput struct {
+	TargetTrovoUsername string `json:"targetTrovoUsername"`
+	KycStatus           int    `json:"kycStatus"` //1, 2, 3, 4
+	KycJsonData         string `json:"kycJsonData"`
 }
 type Android struct {
 	Priority     string               `json:"priority"`

@@ -48,6 +48,7 @@ type User struct {
 	PatronMembership         *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
 	UserClosedGroups         []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
 	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
+	CreatedByServiceLinkID   *string                 `gorm:"null;size:150" json:"createdByServiceLinkId"`
 }
 
 type UserWallet struct {
@@ -195,19 +196,20 @@ type ServiceLinkUserInfo struct {
 	Wallet   []Balance        `json:"wallet,omitempty"`
 }
 type UserRegistrationInfo struct {
-	Username              string `json:"username"`
-	Email                 string `json:"email"`
-	FirstName             string `json:"firstName"`
-	LastName              string `json:"lastName"`
-	Mobile                string `json:"mobile"`
-	MobileCountryCode     string `json:"mobileCountryCode"`
-	PublicKey             string `json:"publicKey"`
-	PrimarySigner         string `json:"primarySigner"`
-	Referrer              string `json:"referrer"`
-	PushNotificationToken string `json:"pushNotificationToken"`
-	Corporate             uint   `json:"corporate"`
-	VerificationCode      string `json:"verificationCode"`
-	PublicIP              string `json:"-"`
+	Username               string `json:"username"`
+	Email                  string `json:"email"`
+	FirstName              string `json:"firstName"`
+	LastName               string `json:"lastName"`
+	Mobile                 string `json:"mobile"`
+	MobileCountryCode      string `json:"mobileCountryCode"`
+	PublicKey              string `json:"publicKey"`
+	PrimarySigner          string `json:"primarySigner"`
+	Referrer               string `json:"referrer"`
+	PushNotificationToken  string `json:"pushNotificationToken"`
+	Corporate              uint   `json:"corporate"`
+	VerificationCode       string `json:"verificationCode"`
+	PublicIP               string `json:"-"`
+	CreatedByServiceLinkID string `json:"-"`
 }
 
 // UserWalletsharedAccessID is type for wallet access id

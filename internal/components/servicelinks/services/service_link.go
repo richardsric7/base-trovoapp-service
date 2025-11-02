@@ -18,6 +18,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // GetMerchantInfo gets merchant data
@@ -291,4 +292,29 @@ func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetA
 }
 func GetUserFromPrimarySigner(signerKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
 	return usersDB.GetUserFromPrimarySigner(signerKey, gc.DB, gc)
+}
+
+func UpdateUserKYCStatus(targetUser *userModels.User, kycStatus int, jsonString string, gc *sharedconfig.GlobalConfig) (err error) {
+	dbTx := gc.DB.Begin()
+	defer dbTx.Rollback()
+
+	targetUser.KYCVerified = kycStatus
+	e := dbTx.Omit(clause.Associations).Save(targetUser).Error
+	if e != nil {
+		log.Printf("[UpdateUserKYCStatus] error saving user KYC %v\n", e)
+		return &tErrors.ErrorTemporaryServerError{}
+
+	}
+	jstruc := userModels.KycWebhookRequest{
+		ServiceProvider: *targetUser.CreatedByServiceLinkID,
+		Data:            jsonString,
+	}
+	e = dbTx.Omit(clause.Associations).Save(&jstruc).Error
+	if e != nil {
+		log.Printf("[UpdateUserKYCStatus] error saving user KYC Json string%v\n", e)
+		return &tErrors.ErrorTemporaryServerError{}
+
+	}
+	dbTx.Commit()
+	return nil
 }

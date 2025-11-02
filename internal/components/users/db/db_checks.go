@@ -47,6 +47,10 @@ func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *
 		//Check if referrer exists
 		user.Referrer = &userInfo.Referrer
 	}
+	if len(userInfo.CreatedByServiceLinkID) > 2 {
+		//Check if service link created user
+		user.CreatedByServiceLinkID = &userInfo.CreatedByServiceLinkID
+	}
 
 	user.PublicIP = userInfo.PublicIP
 }
