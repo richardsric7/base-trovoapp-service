@@ -1887,7 +1887,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//register user from service link
-	router.POST("/v1/servicelinks/users/onboard", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.POST("/v1/trovo-api/users/onboard", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
@@ -1985,7 +1985,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//update user kyc from service link
-	router.POST("/v1/servicelinks/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.POST("/v1/trovo-api/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
@@ -2116,7 +2116,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//update user kyc from service link
-	router.POST("/v1/servicelinks/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.POST("/v1/trovo-api/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
