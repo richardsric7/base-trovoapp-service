@@ -86,14 +86,14 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 	//Check if mobile already exists.
 	if len(userInfo.Mobile) > 0 {
 		log.Printf("-------------- ------Checking if mobile [%s] already exists\n", userInfo.Mobile)
-		err = db.Where("mobile = ?", userInfo.Mobile).First(&user).Error
+		err = db.Where("mobile = ? AND Created_By_Service_Link_ID IS NULL", userInfo.Mobile).First(&user).Error
 		if err == nil {
 			return nil, &tErrors.ErrorMobileNumberAlreadyExists{Detail: fmt.Sprintf("mobile number [%v] already exists with another account", userInfo.Mobile)}
 
 		}
 	}
 	//Check if username already exists.
-	err = db.Where("username = ?", strings.ToLower(userInfo.Username)).Or("email = ?", strings.ToLower(userInfo.Email)).First(&user).Error
+	err = db.Where("username = ?", strings.ToLower(userInfo.Username)).Or("(email = ? AND Created_By_Service_Link_ID IS NULL)", strings.ToLower(userInfo.Email)).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			//check if primarySigner already exists.

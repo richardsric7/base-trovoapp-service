@@ -9,6 +9,7 @@ import (
 	"time"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
+	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	userServices "trovo-wallet-api/internal/components/users/services"
 
@@ -1929,8 +1930,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
-		userRegistrationInfo.PrimarySigner = middleware.ExtractSigner(c)
+		if len(userRegistrationInfo.PublicKey) != 56 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-public-key", "data": "publicKey", "message": "Invalid Public key."})
+			return
+		}
+		if len(userRegistrationInfo.PrimarySigner) != 56 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-primary-signer-public-key", "data": "primarySigner", "message": "Invalid Primary Signer Public key."})
+			return
+		}
+
 		userRegistrationInfo.CreatedByServiceLinkID = mInfo.ID
 		userRegistrationInfo.PublicIP = c.ClientIP()
 		if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
@@ -1944,13 +1952,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if strings.Contains(userRegistrationInfo.Username, "%") {
-			u, e := url.QueryUnescape(userRegistrationInfo.Username)
-			if e == nil {
-				userRegistrationInfo.Username = u
-			}
-		}
-
+		//Generate username for the serviceLink user
+		uid := uuid.NewString()
+		endBatch := strings.Split(uid, "-")[len(strings.Split(uid, "-"))-1]
+		// append it to the mInfo.Username
+		userRegistrationInfo.Username = mInfo.OwnerUsername + endBatch
 		//if referral is allowed, set the referrer
 		if mInfo.AllowReferralForRegisteredUsers == 1 {
 			userRegistrationInfo.Referrer = mInfo.OwnerUsername
@@ -1959,11 +1965,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//replace _ and /
 		userRegistrationInfo.Username = strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(userRegistrationInfo.Username), "_", ""), "/", "")
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), gc.DB)
-
-		var emailSent bool
-
-		_, emailSent, err = userServices.RegisterUser(userRegistrationInfo, gc)
+		_, _, err = userServices.RegisterUser(userRegistrationInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1979,29 +1981,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
-		//But either the email was sent or not.
-		if emailSent {
-			c.JSON(http.StatusAccepted, gin.H{"message": "Verification code sent to your email"})
-			//send push notificationMessage
-			if len(userRegistrationInfo.PushNotificationToken) > 50 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Verification code sent to your email", "Please check your email to get the verification code. It is only valid today.", "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-		} else {
-			//registration completed
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			//return response
-			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
-			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your TrovoApp account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
-		}
-
 		c.JSON(http.StatusOK, data)
 	})
 
-	//register user from service link
+	//update user kyc from service link
 	router.POST("/v1/servicelinks/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
@@ -2113,6 +2096,139 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		err = servicelinkServices.UpdateUserKYCStatus(&targetUser, kycData.KycStatus, kycData.KycJsonData, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, data)
+	})
+
+	//update user kyc from service link
+	router.POST("/v1/servicelinks/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var mintingData userModels.MintingInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &mintingData)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		if len(mintingData.Destination) == 0 {
+			//wrong status
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-minting-destination", "data": "destination", "message": "Invalid minting Destination."}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if len(mintingData.AssetCode) == 0 {
+			//wrong status
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-minting-asset-code", "data": "assetCode", "message": "Invalid Asset Code."}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if len(mintingData.AssetIssuer) == 0 {
+			//wrong status
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-minting-asset-issuer", "data": "assetIssuer", "message": "Invalid Asset Issuer."}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if len(mintingData.Amount) == 0 {
+			//wrong status
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-minting-amount", "data": "amount", "message": "Invalid Amount."}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		_, _, err = userServices.MintAsset(&signerUser, &wallet, &mintingData, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError

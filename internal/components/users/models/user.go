@@ -48,7 +48,7 @@ type User struct {
 	PatronMembership         *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
 	UserClosedGroups         []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
 	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
-	CreatedByServiceLinkID   *string                 `gorm:"null;size:150" json:"createdByServiceLinkId"`
+	CreatedByServiceLinkID   *string                 `gorm:"null;size:150; index:idx_user_unique_email, unique; index:idx_user_unique_phone, unique" json:"createdByServiceLinkId"`
 }
 
 type UserWallet struct {
