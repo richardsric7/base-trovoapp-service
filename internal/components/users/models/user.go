@@ -205,9 +205,9 @@ type UserRegistrationInfo struct {
 	PublicKey              string `json:"publicKey"`
 	PrimarySigner          string `json:"primarySigner"`
 	Referrer               string `json:"referrer"`
-	PushNotificationToken  string `json:"pushNotificationToken"`
+	PushNotificationToken  string `json:"pushNotificationToken,omitempty"`
 	Corporate              uint   `json:"corporate"`
-	VerificationCode       string `json:"verificationCode"`
+	VerificationCode       string `json:"verificationCode,omitempty"`
 	PublicIP               string `json:"-"`
 	CreatedByServiceLinkID string `json:"-"`
 }

@@ -1981,7 +1981,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
-		c.JSON(http.StatusOK, data)
+		c.JSON(http.StatusOK, userRegistrationInfo)
 	})
 
 	//update user kyc from service link
@@ -2112,7 +2112,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//At this point, there was no error.
 
-		c.JSON(http.StatusOK, data)
+		c.JSON(http.StatusOK, kycData)
 	})
 
 	//update user kyc from service link
