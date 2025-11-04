@@ -127,7 +127,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       key: key,
       resizeToAvoidBottomInset: false,
       floatingActionButton: Container(
-        width: 135,
+        // width: 110,
         child: FloatingActionButton(
           onPressed: () {
             showQuickBuyPopup(context);
@@ -139,15 +139,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             spacing: 10,
             children: [
               Image.asset('assets/images/quick-buy.png', width: 30),
-              Text(
-                'Quick Buy',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: fontsemibold,
-                  color: wihitecolor,
-                ),
-              ),
+              // Text(
+              //   'Quick Buy',
+              //   style: TextStyle(
+              //     fontSize: 13,
+              //     fontWeight: FontWeight.bold,
+              //     fontFamily: fontsemibold,
+              //     color: wihitecolor,
+              //   ),
+              // ),
             ],
           ),
         ),

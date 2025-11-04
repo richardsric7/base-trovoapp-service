@@ -746,6 +746,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ],
             ],
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(

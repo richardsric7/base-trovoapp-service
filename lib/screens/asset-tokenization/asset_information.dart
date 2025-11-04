@@ -135,7 +135,11 @@ class _AssetInformation extends State<AssetInformation>
   List<DropdownMenuItem<String>> get getDebtInstrumentOptions {
     List<DropdownMenuItem<String>> debtInstrumentOptions = [];
     var data = ['Term Loan', 'Bond', 'Promissory Note', 'Debenture', 'Sukuk'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (debtInstrumentType == data[i]) {
+        isFound = true;
+      }
       debtInstrumentOptions.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -143,6 +147,7 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    debtInstrumentType = isFound ? debtInstrumentType : null;
     return debtInstrumentOptions;
   }
 
@@ -154,7 +159,17 @@ class _AssetInformation extends State<AssetInformation>
       'Semi-Annually',
       'Bullet (at maturity)',
     ];
+    bool isFoundInterest = false;
+    bool isFoundDebtInstrument = false;
     for (var i = 0; i < data.length; i++) {
+      if (interestRepaymentFrequency == data[i]) {
+        isFoundInterest = true;
+      }
+
+      if (debtInstrumentRepaymentFrequency == data[i]) {
+        isFoundDebtInstrument = true;
+      }
+
       debtRepaymentFrequencyOptions.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -162,13 +177,25 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    interestRepaymentFrequency = isFoundInterest
+        ? interestRepaymentFrequency
+        : null;
+
+    debtInstrumentRepaymentFrequency = isFoundDebtInstrument
+        ? debtInstrumentRepaymentFrequency
+        : null;
     return debtRepaymentFrequencyOptions;
   }
 
   List<DropdownMenuItem<String>> get getPrincipalPaymentOptions {
     List<DropdownMenuItem<String>> principalPaymentOptions = [];
     var data = ['Bullet', 'Equal Installments', 'Balloon'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (principalPaymentMethod == data[i]) {
+        isFound = true;
+      }
+
       principalPaymentOptions.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -176,13 +203,18 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    principalPaymentMethod = isFound ? principalPaymentMethod : null;
     return principalPaymentOptions;
   }
 
   List<DropdownMenuItem<String>> get getRepaymentSourceOptions {
     List<DropdownMenuItem<String>> repaymentSourceOptions = [];
     var data = ['Rental Income', 'Operations Revenue'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (debtInstrumentRepaymentSource == data[i]) {
+        isFound = true;
+      }
       repaymentSourceOptions.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -190,13 +222,21 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    debtInstrumentRepaymentSource = isFound
+        ? debtInstrumentRepaymentSource
+        : null;
+
     return repaymentSourceOptions;
   }
 
   List<DropdownMenuItem<String>> get getSecurityCollateralOptions {
     List<DropdownMenuItem<String>> options = [];
     var data = ['Secured (Real Estate, Equipment)', 'Unsecured'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (securityOrCollateralOffered == data[i]) {
+        isFound = true;
+      }
       options.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -204,13 +244,18 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    securityOrCollateralOffered = isFound ? securityOrCollateralOffered : null;
     return options;
   }
 
   List<DropdownMenuItem<String>> get getGuaranteesOptions {
     List<DropdownMenuItem<String>> guaranteesOptions = [];
     var data = ['None', 'Guarantee', 'DSRA', 'Insurance'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (debtInstrumentGuaranteesOrEnhancements == data[i]) {
+        isFound = true;
+      }
       guaranteesOptions.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -218,13 +263,20 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    debtInstrumentGuaranteesOrEnhancements = isFound
+        ? debtInstrumentGuaranteesOrEnhancements
+        : null;
     return guaranteesOptions;
   }
 
   List<DropdownMenuItem<String>> get getYesOrNoOptions {
     List<DropdownMenuItem<String>> options = [];
     var data = ['Yes', 'No'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (earlyRedemptionOption == data[i]) {
+        isFound = true;
+      }
       options.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -232,13 +284,18 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    earlyRedemptionOption = isFound ? earlyRedemptionOption : null;
     return options;
   }
 
   List<DropdownMenuItem<String>> get getRightOfRecourseOptions {
     List<DropdownMenuItem<String>> options = [];
     var data = ['Full Recourse', 'Limited Recourse', 'Non-Recourse'];
+    bool isFound = false;
     for (var i = 0; i < data.length; i++) {
+      if (rightOfRecourse == data[i]) {
+        isFound = true;
+      }
       options.add(
         DropdownMenuItem(
           child: Text(data[i], overflow: TextOverflow.ellipsis),
@@ -246,6 +303,7 @@ class _AssetInformation extends State<AssetInformation>
         ),
       );
     }
+    rightOfRecourse = isFound ? rightOfRecourse : null;
     return options;
   }
 

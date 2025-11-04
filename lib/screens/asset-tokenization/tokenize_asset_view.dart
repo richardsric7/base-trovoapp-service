@@ -182,38 +182,54 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   }
 
   PageConfiguration getFormPage() {
-    inspect(appState.viewData);
+    inspect(appState.tokenizationData);
+    var data = appState.tokenizationData;
+    for (var i = 0; i < data['assetTypes'].length; i++) {
+      // print(
+      //   '${data['assetTypes'][i]['id']} =========> ${appState.viewData!['assetType'].toString().toLowerCase()}',
+      // );
+      if (data['assetTypes'][i]['id'].toString() ==
+          appState.viewData!['assetType'].toString()) {
+        appState.viewData!['assetFormName'] =
+            data['assetTypes'][i]['assetType'];
+        print(
+          '================> form name : ${appState.viewData!['assetFormName']}',
+        );
+        break;
+      }
+    }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1123') {
+    if (appState.viewData!['assetType'].toString() == '1123') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1124') {
+    if (appState.viewData!['assetType'].toString() == '1124') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1125') {
+    if (appState.viewData!['assetType'].toString() == '1125') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1114') {
+    if (appState.viewData!['assetType'].toString() == '1114') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1115') {
+    if (appState.viewData!['assetType'].toString() == '1115') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1182') {
+    if (appState.viewData!['assetType'].toString() == '1182') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1180') {
+    if (appState.viewData!['assetType'].toString() == '1180') {
       return EquityMutualFundsAssetInformationViewPageConfig;
     }
 
-    if (appState.viewData!['assetType'].toString().toLowerCase() == '1121') {
-      return CommercialPapersAssetInformationViewPageConfig;
+    if (appState.viewData!['assetType'].toString() == '1121') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+      // return CommercialPapersAssetInformationViewPageConfig;
       // return MBSAssetInformationViewPageConfig;
     }
 

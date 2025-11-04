@@ -1782,7 +1782,7 @@
               "required": true,
               "public": true
             },
-            "instrumentFundType": {
+            "fundInstrumentType": {
               "type": "string",
               "widgetType": "text",
               "label": "Bond Type",
@@ -2276,7 +2276,7 @@
               "public": true,
               "required": true
             },
-            "instrumentFundType": {
+            "fundInstrumentType": {
               "type": "string",
               "widgetType": "text",
               "label": "Bond Type",
@@ -2502,7 +2502,7 @@
               "public": true,
               "required": true
             },
-            "rankingOfDebt": {
+            "ranking": {
               "type": "string",
               "widgetType": "dropdown",
               "label": "Ranking of Debt",
@@ -5002,7 +5002,7 @@
               "public": true,
               "required": true
             },
-            "custodian": {
+            "partiesInvolvedCustodian": {
               "type": "string",
               "widgetType": "text",
               "label": "Custodian",
@@ -5013,7 +5013,7 @@
               "public": true,
               "required": true
             },
-            "assetManagerOrAdministrator": {
+            "partiesInvolvedAssetManager": {
               "type": "string",
               "widgetType": "text",
               "label": "Asset Manager / Administrator",
