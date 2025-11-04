@@ -531,6 +531,11 @@ type TokenizedAsset struct {
 	FundInstrumentType                           *string                         `json:"fundInstrumentType"`
 	InstrumentRatingAgency                       *string                         `json:"instrumentRatingAgency"`
 	PortfolioTopHoldings                         *string                         `json:"portfolioTopHoldings"`
+	CreditRatingAgency                           *string                         `json:"CreditRatingAgency"`
+	TrusteeRegNumber                             *string                         `json:"trusteeRegNumber"`
+	CreditEnhancerOrGuarantor                    *string                         `json:"creditEnhancerOrGuarantor"`
+	BondStructuringAdvisor                       *string                         `json:"bondStructuringAdvisor"`
+	EntitiesAdditionalInfo                       *string                         `json:"entitiesAdditionalInfo"`
 }
 
 type TokenizedAssetID string
@@ -938,6 +943,11 @@ type TokenizedAssetJSONInput struct {
 	FundInstrumentType                     string    `json:"fundInstrumentType"`
 	InstrumentRatingAgency                 string    `json:"instrumentRatingAgency"`
 	PortfolioTopHoldings                   string    `json:"portfolioTopHoldings"`
+	CreditRatingAgency                     string    `json:"CreditRatingAgency"`
+	TrusteeRegNumber                       string    `json:"trusteeRegNumber"`
+	CreditEnhancerOrGuarantor              string    `json:"creditEnhancerOrGuarantor"`
+	BondStructuringAdvisor                 string    `json:"bondStructuringAdvisor"`
+	EntitiesAdditionalInfo                 string    `json:"entitiesAdditionalInfo"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1435,6 +1445,11 @@ type TokenizedAssetJSON struct {
 	FundInstrumentType                           string                          `json:"fundInstrumentType"`
 	InstrumentRatingAgency                       string                          `json:"instrumentRatingAgency"`
 	PortfolioTopHoldings                         string                          `json:"portfolioTopHoldings"`
+	CreditRatingAgency                           string                          `json:"CreditRatingAgency"`
+	TrusteeRegNumber                             string                          `json:"trusteeRegNumber"`
+	CreditEnhancerOrGuarantor                    string                          `json:"creditEnhancerOrGuarantor"`
+	BondStructuringAdvisor                       string                          `json:"bondStructuringAdvisor"`
+	EntitiesAdditionalInfo                       string                          `json:"entitiesAdditionalInfo"`
 }
 
 type TokenizedAssetSector struct {
@@ -4108,6 +4123,36 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.PortfolioTopHoldings = nil
 	}
 
+	if len(ti.CreditRatingAgency) > 0 {
+		t.CreditRatingAgency = &ti.CreditRatingAgency
+	} else {
+		t.CreditRatingAgency = nil
+	}
+
+	if len(ti.TrusteeRegNumber) > 0 {
+		t.TrusteeRegNumber = &ti.TrusteeRegNumber
+	} else {
+		t.TrusteeRegNumber = nil
+	}
+
+	if len(ti.CreditEnhancerOrGuarantor) > 0 {
+		t.CreditEnhancerOrGuarantor = &ti.CreditEnhancerOrGuarantor
+	} else {
+		t.CreditEnhancerOrGuarantor = nil
+	}
+
+	if len(ti.BondStructuringAdvisor) > 0 {
+		t.BondStructuringAdvisor = &ti.BondStructuringAdvisor
+	} else {
+		t.BondStructuringAdvisor = nil
+	}
+
+	if len(ti.EntitiesAdditionalInfo) > 0 {
+		t.EntitiesAdditionalInfo = &ti.EntitiesAdditionalInfo
+	} else {
+		t.EntitiesAdditionalInfo = nil
+	}
+
 	//////////
 
 	return *t
@@ -4743,7 +4788,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		if len(p.DynamicLink) > 0 {
 			ti.DeepLink = &p.DynamicLink
 			//save the tokenized asset information
-			gc.DB.Save(ti)
+			gc.DB.Omit(clause.Associations).Save(ti)
 		}
 	}
 	if ti.DeepLink != nil {
@@ -5530,6 +5575,27 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.PortfolioTopHoldings != nil {
 		t.PortfolioTopHoldings = *ti.PortfolioTopHoldings
 	}
+
+	if ti.CreditRatingAgency != nil {
+		t.CreditRatingAgency = *ti.CreditRatingAgency
+	}
+
+	if ti.TrusteeRegNumber != nil {
+		t.TrusteeRegNumber = *ti.TrusteeRegNumber
+	}
+
+	if ti.CreditEnhancerOrGuarantor != nil {
+		t.CreditEnhancerOrGuarantor = *ti.CreditEnhancerOrGuarantor
+	}
+
+	if ti.BondStructuringAdvisor != nil {
+		t.BondStructuringAdvisor = *ti.BondStructuringAdvisor
+	}
+
+	if ti.EntitiesAdditionalInfo != nil {
+		t.EntitiesAdditionalInfo = *ti.EntitiesAdditionalInfo
+	}
+
 	return t
 
 }
