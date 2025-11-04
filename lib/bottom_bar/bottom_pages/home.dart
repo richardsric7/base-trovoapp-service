@@ -126,6 +126,32 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return Scaffold(
       key: key,
       resizeToAvoidBottomInset: false,
+      floatingActionButton: Container(
+        // width: 110,
+        child: FloatingActionButton(
+          onPressed: () {
+            showQuickBuyPopup(context);
+            setState(() {});
+          },
+          backgroundColor: Colors.green,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [
+              Image.asset('assets/images/quick-buy.png', width: 30),
+              // Text(
+              //   'Quick Buy',
+              //   style: TextStyle(
+              //     fontSize: 13,
+              //     fontWeight: FontWeight.bold,
+              //     fontFamily: fontsemibold,
+              //     color: wihitecolor,
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
       backgroundColor: notifier.getwihitecolor,
       drawer: getDrawer(context, appState, notifier),
       body: SmartRefresher(
@@ -1213,14 +1239,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
             calculateFiatValue(
               asset.amount.toString(),
               asset.usdPrice.toString(),
-              asset.tokenizedAsset ? 'USD' : appState.defaultCurrency,
+              asset.tokenizedAsset ? 'NGN' : appState.defaultCurrency,
               appState,
             ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }
@@ -1236,6 +1264,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
             asset.tokenizedAsset
                 ? ((asset.usdPrice! * asset.amount!) / appState.fiatRate['NGN'])
@@ -1247,6 +1276,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     appState,
                   ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }

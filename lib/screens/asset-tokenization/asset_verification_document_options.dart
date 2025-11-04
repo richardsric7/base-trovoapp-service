@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -20,21 +21,21 @@ import 'package:trovo_app/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class AssetVerificationDocuments extends StatefulWidget {
-  const AssetVerificationDocuments({Key? key}) : super(key: key);
+class AssetVerificationDocumentOptionsView extends StatefulWidget {
+  const AssetVerificationDocumentOptionsView({Key? key}) : super(key: key);
 
   @override
-  State<AssetVerificationDocuments> createState() =>
-      _AssetVerificationDocuments();
+  State<AssetVerificationDocumentOptionsView> createState() =>
+      _AssetVerificationDocumentOptionsView();
 }
 
-class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
+class _AssetVerificationDocumentOptionsView
+    extends State<AssetVerificationDocumentOptionsView>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   int documentUploadCount = 1;
   int totalDocuments = 5;
-  double documentUploadProgress = 0;
 
   Map<String, Map<String, dynamic>> documentTypeAndCodes = {};
 
@@ -119,9 +120,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    documentUploadProgress = documentUploadCount == totalDocuments
-        ? 1
-        : documentUploadCount / totalDocuments; // Convert to 0-1 range
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -132,7 +130,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Asset Verification Documents',
+              appState.viewData?['title'],
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
@@ -140,12 +138,15 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
                 children: [
-                  Text(
-                    "Upload the files required in each folder",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                  SizedBox(
+                    width: 350,
+                    child: Text(
+                      "Select a file to upload. Files marked with * are required to proceed with your application",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ],
@@ -190,33 +191,10 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             // ],
             // for (var item in selectedDocuments.entries) ...[item.value],
             SizedBox(height: 20),
-            documentCardItem(
-              title: "Asset Information Documents",
-              onTap: () {
-                appState.viewData!['title'] = 'Asset Information Documents';
-                appState.setPage(
-                  page: AssetVerificationDocumentOptionsViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(height: 10),
-            documentCardItem(
-              title: "Asset Value and Costing",
-              onTap: () {
-                appState.viewData!['title'] = 'Asset Value and Costing';
-                appState.setPage(
-                  page: AssetVerificationDocumentOptionsViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(height: 10),
-            documentCardItem(
+            proofItemCard(
               title: "Asset Protection Documents",
               onTap: () {
-                appState.viewData!['title'] = 'Asset Protection Documents';
-                appState.setPage(
-                  page: AssetVerificationDocumentOptionsViewPageConfig,
-                );
+                uploadFileBottomSheet(title: 'Asset Protection Documents');
               },
             ),
             SizedBox(height: height / 30),
@@ -235,9 +213,136 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     );
   }
 
-  Widget documentCardItem({
+  void uploadFileBottomSheet({required String title}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: notifier.getwihitecolor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ), // Rounded top corners
+      ),
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.25,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          title,
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Icon(Icons.cancel_outlined),
+                          style: ButtonStyle(
+                            padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: WidgetStatePropertyAll(Size.zero),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 350,
+                          child: Text(
+                            "Select a file to upload.",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          getFile();
+                        },
+                        child: Column(
+                          children: [
+                            SizedBox(height: height / 50),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                width: 320,
+                                padding: EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: notifier.getbluewhitecolor,
+                                    width: 1,
+                                  ),
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(15.0),
+                                  ),
+                                  color: notifier.getwihitecolor,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 10,
+                                  children: [
+                                    Icon(
+                                      Icons.file_upload_outlined,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                    Text(
+                                      "Upload file here",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontsemibold,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 60),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget proofItemCard({
     required String title,
     required void Function() onTap,
+    bool isRequired = true,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -245,57 +350,37 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         padding: EdgeInsets.symmetric(horizontal: 10),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 20),
           decoration: BoxDecoration(
+            border: Border.all(color: notifier.getsplashgrey, width: 1),
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
+            color: wihitecolor,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.folder, color: notifier.getbluewhitecolor, size: 35),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
+                  if (isRequired) ...[
+                    Text(
+                      "*",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: fontsemibold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
                   Text(
-                    title,
+                    "Proof of Asset Address",
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Container(
-                    height: 5,
-                    width: 280,
-                    child: LinearProgressIndicator(
-                      value: documentUploadProgress, // Show progress (0 to 1)
-                      minHeight: 10,
-                      borderRadius: BorderRadius.circular(10),
-                      backgroundColor: Colors.grey[300],
-                      color: Colors.blue[400],
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    "$documentUploadCount/$totalDocuments files uploaded",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getgrey,
-                    ),
-                  ),
-                  SizedBox(height: 5),
                 ],
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: notifier.getbluewhitecolor,
-                size: 18,
               ),
             ],
           ),

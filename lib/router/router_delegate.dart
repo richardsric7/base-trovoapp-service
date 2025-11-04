@@ -4,6 +4,8 @@ import 'package:trovo_app/bottom_bar/bottom_pages/about_trovo.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/confirm_quick_buy.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/quick_buy.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_app/custom_bloc_observer/swiper/swiper.dart';
@@ -19,8 +21,19 @@ import 'package:trovo_app/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_app/bottom_bar/bottom_bar.dart';
+import 'package:trovo_app/screens/asset-tokenization/asset_verification_document_options.dart';
+import 'package:trovo_app/screens/asset-tokenization/govrnment_bond_asset_information.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_receipt.dart';
 import 'package:trovo_app/screens/asset-tokenization/buy_tokens_success.dart';
+import 'package:trovo_app/screens/asset-tokenization/commercial_paper_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/commodity_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/commodity_skr_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/corporate_bond_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/debt_mutual_funds_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/equity_mutual_funds_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/hybrid_mutual_funds_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/mbs_asset_information.dart';
+import 'package:trovo_app/screens/asset-tokenization/upcoming_asset_information.dart';
 import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
 import 'package:trovo_app/screens/flutterwave_webview.dart';
@@ -563,6 +576,75 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AboutTrovoView:
           _addPageData(AboutTrovoView(), AboutTrovoViewPageConfig);
           break;
+        case Pages.UpcomingAssetInformationView:
+          _addPageData(
+            UpcomingAssetInformationView(),
+            UpcomingAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.AssetVerificationDocumentOptionsView:
+          _addPageData(
+            AssetVerificationDocumentOptionsView(),
+            AssetVerificationDocumentOptionsViewPageConfig,
+          );
+        case Pages.DebtMutualFundsAssetInformationView:
+          _addPageData(
+            DebtMutualFundsAssetInformationView(),
+            DebtMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.EquityMutualFundsAssetInformationView:
+          _addPageData(
+            EquityMutualFundsAssetInformationView(),
+            EquityMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.HybridMutualFundsAssetInformationView:
+          _addPageData(
+            HybridMutualFundsAssetInformationView(),
+            HybridMutualFundsAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.BondAssetInformationView:
+          _addPageData(
+            BondAssetInformationView(),
+            BondAssetInformationViewPageConfig,
+          );
+        case Pages.CorporateBondAssetInformationView:
+          _addPageData(
+            CorporateBondAssetInformationView(),
+            CorporateBondAssetInformationViewPageConfig,
+          );
+        case Pages.CommodityAssetInformationView:
+          _addPageData(
+            CommodityAssetInformationView(),
+            CommodityAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.CommoditySKRAssetInformationView:
+          _addPageData(
+            CommoditySKRAssetInformationView(),
+            CommoditySKRAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.MBSAssetInformationView:
+          _addPageData(
+            MBSAssetInformationView(),
+            MBSAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.CommercialPapersAssetInformationView:
+          _addPageData(
+            CommercialPapersAssetInformationView(),
+            CommercialPapersAssetInformationViewPageConfig,
+          );
+          break;
+        case Pages.QuickBuyView:
+          _addPageData(QuickBuyView(), QuickBuyViewPageConfig);
+          break;
+        case Pages.ConfirmQuickBuyView:
+          _addPageData(ConfirmQuickBuyView(), ConfirmQuickBuyViewPageConfig);
+          break;
         default:
           break;
       }
@@ -886,6 +968,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.FlutterwaveWebView:
         FlutterwaveWebViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.UpcomingAssetInformationView:
+        UpcomingAssetInformationViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DebtMutualFundsAssetInformationView:
+        DebtMutualFundsAssetInformationViewPageConfig.currentPageAction =
+            action;
+        break;
+      case Pages.QuickBuyView:
+        QuickBuyViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

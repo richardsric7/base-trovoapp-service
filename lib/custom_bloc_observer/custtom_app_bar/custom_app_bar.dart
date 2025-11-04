@@ -19,30 +19,31 @@ class CustomAppBarWithoutBanner extends PreferredSize {
     Key? key,
     required this.height,
   }) : super(
-          key: key,
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: color,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-            title: Text(
-              txt,
-              style: TextStyle(color: titlecolor, fontFamily: fontsemibold),
-            ),
-          ),
-          preferredSize: Size.fromHeight(height),
-        );
+         key: key,
+         child: AppBar(
+           centerTitle: true,
+           elevation: 0,
+           backgroundColor: color,
+           leading: GestureDetector(
+             onTap: () {
+               Navigator.of(context).pop();
+             },
+             child: Image.asset("assets/images/back.png", scale: 5),
+           ),
+           title: Text(
+             txt,
+             style: TextStyle(color: titlecolor, fontFamily: fontsemibold),
+           ),
+         ),
+         preferredSize: Size.fromHeight(height),
+       );
 }
 
 class CustomAppBar {
   final BuildContext context;
   final double height;
   final String txt;
+  final double? fontSize;
   final Color color;
   final Color titlecolor;
   late DataProvider appState;
@@ -52,6 +53,7 @@ class CustomAppBar {
     this.color,
     this.txt,
     this.titlecolor, {
+    this.fontSize,
     required this.height,
   });
 
@@ -70,7 +72,11 @@ class CustomAppBar {
         ),
         title: Text(
           txt,
-          style: TextStyle(color: titlecolor, fontFamily: fontsemibold),
+          style: TextStyle(
+            color: titlecolor,
+            fontSize: fontSize,
+            fontFamily: fontsemibold,
+          ),
         ),
         actions: [
           if (appState.walletMode == "Testnet") ...[
@@ -100,7 +106,7 @@ class CustomAppBar {
                 ),
               ),
             ),
-          ]
+          ],
         ],
       ),
       preferredSize: Size.fromHeight(height),
@@ -141,11 +147,7 @@ class CustomAppBarWithoutLeading {
                 onPressed: () {
                   scaffoldKey?.currentState!.openDrawer();
                 },
-                icon: Icon(
-                  Icons.menu,
-                  size: 35,
-                  color: titlecolor,
-                ),
+                icon: Icon(Icons.menu, size: 35, color: titlecolor),
               )
             : null,
         title: Text(
@@ -180,7 +182,7 @@ class CustomAppBarWithoutLeading {
                 ),
               ),
             ),
-          ]
+          ],
         ],
       ),
       preferredSize: Size.fromHeight(height),

@@ -6443,6 +6443,174 @@ addSubWalletPopup(context) async {
   return show;
 }
 
+showQuickBuyPopup(context) async {
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  Widget buyOption({
+    required String iconUrl,
+    required String text,
+    required void Function() onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 3),
+        child: Container(
+          width: width,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              spacing: 10,
+              children: [
+                Image.asset(iconUrl, height: 40, width: 40),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(1),
+            content: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(Radius.circular(23)),
+                ),
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Quick Buy",
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(
+                              fontSize: 16,
+                              height: 1.4,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Icon(Icons.cancel_outlined, size: 20),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              alignment: Alignment.centerLeft,
+                              foregroundColor: notifier.getbluewhitecolor,
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      buyOption(
+                        iconUrl: 'assets/images/cngn-logo.png',
+                        text: 'Buy CNGN',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == 'CNGN',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 5),
+                      buyOption(
+                        iconUrl: 'assets/images/xbn-logo.png',
+                        text: 'Buy XBN',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == '',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 5),
+                      buyOption(
+                        iconUrl: 'assets/images/trov-icon.png',
+                        text: 'Buy TROV',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == 'TROV',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                        },
+                      ),
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 showCreateTokenizationWalletPopup(context) async {
   var appState = Provider.of<DataProvider>(context, listen: false);
   var notifier = Provider.of<ColorNotifier>(context, listen: false);

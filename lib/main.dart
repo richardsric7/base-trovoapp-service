@@ -36,14 +36,6 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  // var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
-  // if (dynamicLink != null) {
-  //   await StoreData().storeInsertData(
-  //     'initialDynamicLink',
-  //     dynamicLink.link.toString(),
-  //   );
-  // }
-
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   NotificationSettings settings = await messaging.requestPermission(

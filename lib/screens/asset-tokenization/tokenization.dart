@@ -461,7 +461,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 style: ButtonStyle(
                                   backgroundColor:
                                       WidgetStateProperty.all<Color>(
-                                        notifier.getbluecolor!,
+                                        wihitecolor,
                                       ),
                                 ),
                                 child: Text(

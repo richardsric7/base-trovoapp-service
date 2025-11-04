@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
@@ -1266,6 +1267,38 @@ extension StringCasing on String {
 
   String capitalizeEachWord() {
     return split(' ').map((word) => word.capitalizeFirstLetter()).join(' ');
+  }
+
+  String? nullIfEmpty() {
+    return isEmpty ? null : this;
+  }
+}
+
+extension DoubleFormat on double {
+  String toCleanString() {
+    return this == toInt() ? toInt().toString() : toString();
+  }
+}
+
+Future<void> refreshCurrentTokenizationInfo(DataProvider appState) async {
+  try {
+    var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: appState.primaryWallet.signer!,
+    );
+
+    if (responseData['statusCode'] == 200) {
+      appState.viewData = responseData['data'];
+      inspect(responseData['data']);
+    } else {
+      return Future.error('Error! Something went wrong.');
+    }
+  } catch (e) {
+    return Future.error('Error! ${e}');
   }
 }
 

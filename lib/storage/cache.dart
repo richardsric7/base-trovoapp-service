@@ -97,6 +97,7 @@ Future<void> getFiatRates(appState) async {
 
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
+    inspect(responseData['data']);
     await StoreData().storeInsertData('fiatRate', responseData['data']);
   }
 }

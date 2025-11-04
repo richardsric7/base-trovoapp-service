@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -27,6 +29,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController tabController;
+  var formData = {};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -88,7 +91,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: AssetInformationViewPageConfig,
+                  page: getFormPage(),
                 );
               },
             ),
@@ -176,6 +179,65 @@ class _TokenizeAssetState extends State<TokenizeAsset>
         ),
       ),
     );
+  }
+
+  PageConfiguration getFormPage() {
+    inspect(appState.tokenizationData);
+    var data = appState.tokenizationData;
+    for (var i = 0; i < data['assetTypes'].length; i++) {
+      // print(
+      //   '${data['assetTypes'][i]['id']} =========> ${appState.viewData!['assetType'].toString().toLowerCase()}',
+      // );
+      if (data['assetTypes'][i]['id'].toString() ==
+          appState.viewData!['assetType'].toString()) {
+        appState.viewData!['assetFormName'] =
+            data['assetTypes'][i]['assetType'];
+        print(
+          '================> form name : ${appState.viewData!['assetFormName']}',
+        );
+        break;
+      }
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1123') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1124') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1125') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1114') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1115') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1182') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1180') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetType'].toString() == '1121') {
+      return EquityMutualFundsAssetInformationViewPageConfig;
+      // return CommercialPapersAssetInformationViewPageConfig;
+      // return MBSAssetInformationViewPageConfig;
+    }
+
+    if (appState.viewData!['assetAlreadyExists'] == 1) {
+      return AssetInformationViewPageConfig;
+    }
+
+    return UpcomingAssetInformationViewPageConfig;
   }
 
   Widget detailItem(
