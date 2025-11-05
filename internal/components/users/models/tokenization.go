@@ -2768,6 +2768,12 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.RepaymentMethod = nil
 	}
 
+	if len(ti.PaymentCycle) > 0 {
+		t.PaymentCycle = &ti.PaymentCycle
+	} else {
+		t.PaymentCycle = nil
+	}
+
 	if len(ti.PoolComposition) > 0 {
 		t.PoolComposition = &ti.PoolComposition
 	} else {
