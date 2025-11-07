@@ -1594,6 +1594,7 @@ type AssetTokenizationDocument struct {
 	DocumentType     string `json:"documentType"`
 	DocumentTitle    string `json:"documentTitle"`
 	DocumentUrl      string `json:"documentUrl"`
+	ShowToPublic     int    `gorm:"default:0" json:"showToPublic"`
 }
 type AssetTokenizationInputDocument struct {
 	ID               uint64    `json:"-" form:"-"`
