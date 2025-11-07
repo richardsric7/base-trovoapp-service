@@ -1615,6 +1615,7 @@ type AssetTokenizationDocumentType struct {
 	DocumentType            string `json:"documentType" form:"documentType"`
 	DocumentTypeDescription string `json:"documentTypeDescription" form:"documentTypeDescription"`
 	DocumentCategory        string `json:"documentCategory" form:"documentCategory"`
+	IsPublic                int    `gorm:"default:0" json:"isPublic" form:"isPublic"`
 	// ColumnName              string `json:"-" form:"-"`
 }
 
