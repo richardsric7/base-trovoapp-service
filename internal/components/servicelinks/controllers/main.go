@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
@@ -2246,6 +2247,1305 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, data)
+	})
+
+	//Get tokenization parameters from service link
+	router.GET("/v1/trovo-api/assets/parameters", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
+		subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
+		assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+		docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
+		custdians := userServices.GetApprovedAssetCustodians(gc.DB)
+		managers := userServices.GetAssetManagers(gc.DB)
+		issuers := userServices.GetAssetIssuingHouses(gc.DB)
+		fees := userServices.GetTokenizationFees(gc.DB)
+		statuses := userServices.GetTokenizationStatuses(gc.DB)
+		// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
+		currencies := userServices.GetTokenizationCurrencies(gc.DB)
+		apo := userServices.GetAssetProtectionOptions(gc.DB)
+		apc := userServices.GetAssetProceedCycle(gc.DB)
+		ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
+		fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
+		countries := userServices.GetCountryConfigs(gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
+			"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
+			"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
+			"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countries})
+
+	})
+
+	//Get tokenization bank list from service link
+	router.GET("/v1/trovo-api/assets/bank-list/:countryCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+		countryCode := c.Param("countryCode")
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+		bankList := userServices.GetBanks(countryCode, gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"bankList": bankList})
+
+	})
+
+	//Get tokenization bank list from service link
+	router.GET("/v1/trovo-api/assets/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		user, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		tokenizationList := userServices.GetTokenizationList(&user, false, gc, c)
+
+		c.JSON(http.StatusOK, tokenizationList)
+
+	})
+
+	//Apply for tokenization from service link
+	router.POST("/v1/trovo-api/assets/apply", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.TokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.SubmitTokenizationAssetInfoByInitiator(&initiator, &tInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+	})
+
+	//Upload logo for tokenization from service link
+	router.PUT("/v1/trovo-api/assets/logo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the logo uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif are supported", "message": "Unsurported document format. Only jpg, jpeg, png and gif are supported"})
+
+				return
+			}
+		}
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	})
+
+	//Upload documents for tokenization from service link
+	router.PUT("/v1/trovo-api/assets/documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+				return
+			}
+		}
+
+		var tokenizationInput userModels.AssetTokenizationInputDocument
+
+		err = c.ShouldBind(&tokenizationInput)
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tokenizationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if tokenizationInput.DocumentType == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+			return
+		}
+		if len(tokenizationInput.DocumentTitle) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+			return
+		}
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+		tokenizationInput.TokenizedAssetID = t.ID
+		if len(tokenizationInput.TokenizedAssetID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid. Ensure you ahve an open tokenizstion and try again."})
+			return
+		}
+
+		url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	})
+
+	//Upload fee payment documents for tokenization from service link
+	router.PUT("/v1/trovo-api/assets/fees/document", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err = r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR PARSING MULTIPART FORM, error: [%v]\n", err)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-size", "message": "Document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error opening file with param DocumentFile:%v\n", err)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-unable-to-validate", "message": "error attempting to validate the document uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error unsorported file format file:%v\n", fileExtension)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsurported-format", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+				return
+			}
+		}
+		var tokenizationInput userModels.TokenizationFeeProofOfPaymentInput
+
+		err = c.ShouldBind(&tokenizationInput)
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tokenizationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("Error binding to fileds:%+v\n error: %v", r.Body, err)
+
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if tokenizationInput.TokenizationFeePaymentMethodID == "" {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error payment method not specified:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "payment-type-not-specified", "message": "payment type not specified"})
+			return
+		}
+		//c.Param("tokenizedAssetID")
+		t, _, err := userModels.Username(initiator.Username).GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(gc.DB)
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING TOKENIZED ASSERT FROM DB [%v], error: [%v]\n", initiator.Username, err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if t.InitiatorUsername != initiator.Username {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+		if len(t.ID) < 5 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus < 1 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error status still open:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		if t.VettingStatus == 0 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error. still not vetted:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "tokenization Request is still being vetted by the team, therefore cannot be modified or updated at this time. Please excercise patience."})
+			return
+		}
+
+		url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
+
+		if err != nil {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error uploading document:%+v\n", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, url)
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment updated!", "You have successfully uploaded proof of payment.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+	})
+
+	//confirm fee payment for tokenization from service link
+	router.POST("/v1/trovo-api/assets/fees/confirm/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		//confirm request
+		ta, err := userServices.ConfirmTokenizationFeePaymentByInitiator(&initiator, c.Param("tokenizationID"), gc)
+
+		if err != nil {
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta)
+
+	})
+
+	//DELETE tokenization from service link
+	router.DELETE("/v1/trovo-api/assets/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta)
+	})
+
+	//DELETE tokenization document from service link
+	router.DELETE("/v1/trovo-api/assets/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		documentIDStr := c.Param("documentID")
+		documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if t.InitiatorUsername != initiator.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option withint the tokenization detail."})
+			return
+		}
+
+		document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, document)
+	})
+
+	//DELETE tokenization fee document from service link
+	router.DELETE("/v1/trovo-api/assets/fees/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		documentIDStr := c.Param("documentID")
+		documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if t.InitiatorUsername != initiator.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
+			return
+		}
+		if t.AssetTokenizationStatus != 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		document, err := userServices.DeleteTokenizationFeePaymentDocument(&initiator, documentID, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment deleted!", fmt.Sprintf("You have successfully deleted document with ID [%v].", documentID), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, document)
+	})
+
+	//Confirm Application for tokenization from service link
+	router.POST("/v1/trovo-api/assets/confirm-application/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		initiator, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		var confirmationInput userModels.ConfirmTokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &confirmationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		//confirm request
+		_, err = userServices.ConfirmTokenizationApplicationInfoByInitiator(&initiator, c.Param("tokenizationID"), &confirmationInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, confirmationInput)
+	})
+
+	//Purchase tokenized asset from service link
+	router.POST("/v1/trovo-api/assets/buy/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+				tokenizedAssetID := c.Param("tokenizedAssetID")
+			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			//get the wallet you are sending payment from
+			subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-temporary-wallet",
+					ErrMessage: "Only normal/standard wallets are allowed for this request.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			var tInput userModels.TokenizedAssetSubscriptionInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, tInput)
+
+			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "assetSubscription"
+				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+			}
+			user.InvalidateUserCache(gc)
 	})
 
 }

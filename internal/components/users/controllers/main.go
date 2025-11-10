@@ -5630,55 +5630,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			//initiator is initiator on issuing wallet?
-			// hasInitiatorAccess := false
-			// // check if user has initiator access to wallet.
-			// for _, p := range initiator.WalletsSharedWithUser {
-			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-			// 		hasInitiatorAccess = true
-			// 	}
-			// }
-
-			//get the wallet you are sending payment from
-			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			// if getWalletError != nil {
-
-			// 	var ex tErrors.GenericError
-			// 	var ok bool
-
-			// 	ex, ok = getWalletError.(tErrors.GenericError)
-			// 	if ok {
-			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
-			// 	} else {
-			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-			// 	}
-			// 	return
-			// }
-
-			// if temp {
-			// 	errAccountIsTemp := &tErrors.CustomError{
-			// 		Param:      "Username",
-			// 		Err:        "error-account-not-issuing-wallet-alias",
-			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-			// 		Code:       http.StatusForbidden,
-			// 	}
-
-			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			// 	return
-
-			// }
-
-			// if issuingWallet.WalletType != 1 {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
-			// 	return
-			// }
-
-			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-			// 	return
-			// }
-
 			var tInput userModels.TokenizedAssetJSONInput
 
 			data, _ := io.ReadAll(c.Request.Body)
@@ -6307,55 +6258,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			// //initiator is initiator on issuing wallet?
-			// hasInitiatorAccess := false
-			// // check if user has initiator access to wallet.
-			// for _, p := range initiator.WalletsSharedWithUser {
-			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-			// 		hasInitiatorAccess = true
-			// 	}
-			// }
-			// //get the wallet you are sending payment from
-			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			// if getWalletError != nil {
-
-			// 	var ex tErrors.GenericError
-			// 	var ok bool
-
-			// 	ex, ok = getWalletError.(tErrors.GenericError)
-			// 	if ok {
-			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
-			// 	} else {
-			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-			// 	}
-			// 	return
-			// }
-
-			// if temp {
-			// 	errAccountIsTemp := &tErrors.CustomError{
-			// 		Param:      "Username",
-			// 		Err:        "error-account-not-issuing-wallet-alias",
-			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-			// 		Code:       http.StatusForbidden,
-			// 	}
-
-			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			// 	return
-
-			// }
-
-			// if issuingWallet.WalletType != 1 {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
-			// 	return
-			// }
-
-			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-			// 	return
-			// }
-
-			//update request
 			ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
@@ -7192,54 +7094,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			// //initiator is initiator on issuing wallet?
-			// hasInitiatorAccess := false
-			// // check if user has initiator access to wallet.
-			// for _, p := range initiator.WalletsSharedWithUser {
-			// 	if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == initiator.Username && p.Permission == "INITIATOR" {
-			// 		hasInitiatorAccess = true
-			// 	}
-			// }
-			// //get the wallet you are sending payment from
-			// issuingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			// if getWalletError != nil {
-
-			// 	var ex tErrors.GenericError
-			// 	var ok bool
-
-			// 	ex, ok = getWalletError.(tErrors.GenericError)
-			// 	if ok {
-			// 		c.JSON(ex.HTTPCode(), ex.JSONError())
-			// 	} else {
-			// 		c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-			// 	}
-			// 	return
-			// }
-
-			// if temp {
-			// 	errAccountIsTemp := &tErrors.CustomError{
-			// 		Param:      "Username",
-			// 		Err:        "error-account-not-issuing-wallet-alias",
-			// 		ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-			// 		Code:       http.StatusForbidden,
-			// 	}
-
-			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			// 	return
-
-			// }
-
-			// if issuingWallet.WalletType != 1 {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
-			// 	return
-			// }
-
-			// if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			// 	c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-			// 	return
-			// }
-
 			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
 
 			if t.InitiatorUsername != initiator.Username {
@@ -7421,7 +7275,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if initiator.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of pahyment deleted!", fmt.Sprintf("You have successfully deleted document with ID [%v].", documentID), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment deleted!", fmt.Sprintf("You have successfully deleted document with ID [%v].", documentID), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
 
 			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 	"trovo-wallet-api/internal/dynamiclinks"
-	"trovo-wallet-api/internal/errors"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -1836,7 +1835,7 @@ func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *shar
 		}
 	}
 
-	for key, _ := range knownAssets {
+	for key := range knownAssets {
 		untrusted = append(untrusted, key)
 	}
 
@@ -1845,14 +1844,14 @@ func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *shar
 
 func (p *ProceedPayout) CreateBatch() error {
 	if len(p.TokenizedAssetID) == 0 {
-		return &errors.CustomError{Err: "error invalid tokenizedAssetId", ErrMessage: "tokenized asset identification is invalid"}
+		return &tErrors.CustomError{Err: "error invalid tokenizedAssetId", ErrMessage: "tokenized asset identification is invalid"}
 	}
 	if p.TokenizedAsset.ProceedCycle == nil {
-		return &errors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
+		return &tErrors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
 
 	}
 	if *p.TokenizedAsset.ProceedCycle != "None" {
-		return &errors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
+		return &tErrors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
 
 	}
 	//asset code + payout cycle + month + year
@@ -1934,7 +1933,7 @@ func (t *TokenizedAsset) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.G
 func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *sharedconfig.GlobalConfig) (exp ExpressionOfInterest, err error) {
 	if t == nil {
 		log.Println("[TokenizedAsset::GetExpressedInterestByUsername] Error tokenized asset is nil")
-		err = &errors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
 	var issuerWalletPublicKey string
@@ -2023,7 +2022,7 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
 	if t == nil {
 		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
-		err = &errors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
 	var issuerWalletPublicKey string
@@ -5785,7 +5784,7 @@ func ne(s string) bool {
 }
 
 // nn returns true is *string s is not nil
-func nn(s *string) bool {
+func NN(s *string) bool {
 	return s != nil
 
 }
