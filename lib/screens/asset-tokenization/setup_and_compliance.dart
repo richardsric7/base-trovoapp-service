@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -1081,6 +1083,81 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                           ? Colors.red
                           : notifier.getbluewhitecolor,
                       fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Transform.scale(
+                  scale: 1,
+                  child: FormField(
+                    builder: (state) {
+                      return Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                        ),
+                        activeColor: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor90,
+                        side: BorderSide(
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
+                        value: agreeTransferTitleToCustodian,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            agreeTransferTitleToCustodian = value!;
+                          });
+                        },
+                      );
+                    },
+                    validator: (value) {
+                      if (!agreeTransferTitleToCustodian) {
+                        setState(() {
+                          formHasError = true;
+                        });
+                        return '';
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  width: width / 1.2,
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'I agree to the Trovotech ',
+                      children: [
+                        TextSpan(
+                          text: 'Tokenization Terms and Conditions',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: notifier.getbluewhitecolor,
+                            fontVariations: [FontVariation('wght', 700)],
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              // appState.viewData = {
+                              //   'url': 'https://olaratech.com/legal?tab=terms',
+                              // };
+                              // appState.currentAction = PageAction(
+                              //   state: PageState.addPage,
+                              //   page: appWebViewPageConfig,
+                              // );
+                            },
+                        ),
+                      ],
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),

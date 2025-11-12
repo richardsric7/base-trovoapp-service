@@ -4528,7 +4528,7 @@ showDocumentUploadPopup(
 Future<PlatformFile?>? getFile() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
-    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
+    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'csv'],
     withData: true,
   );
 
@@ -6942,6 +6942,108 @@ confirmAccountDeletionPopup(
                         children: [
                           ButtonOutlined(
                             "close".tr(),
+                            notifier.getwihitecolor,
+                            notifier.getbluewhitecolor,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            width: width / 1.5,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+confirmVerificationDocumentDeletePopup(
+  context, {
+  required String fileName,
+  required void Function() onConfirmationSuccess,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: height / 50),
+                      Text(
+                        "Confirm File Delete",
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        "Are you sure you want to delete this file?",
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        fileName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Button(
+                        "yesdelete".tr(),
+                        Colors.red,
+                        wihitecolor,
+                        width: width / 1.5,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          onConfirmationSuccess();
+                        },
+                      ),
+                      SizedBox(height: height / 90),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ButtonOutlined(
+                            "nocancel".tr(),
                             notifier.getwihitecolor,
                             notifier.getbluewhitecolor,
                             onTap: () {

@@ -512,7 +512,7 @@ Widget dropdown(
                         hint,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: notifier.getbluewhitecolor,
+                          color: notifier.getbluecolor80,
                           fontSize: 15,
                           fontFamily: fontsemibold,
                           fontWeight: FontWeight.w500,
@@ -1293,6 +1293,8 @@ Future<void> refreshCurrentTokenizationInfo(DataProvider appState) async {
 
     if (responseData['statusCode'] == 200) {
       appState.viewData = responseData['data'];
+      // Clipboard.setData(ClipboardData(text: jsonEncode(responseData['data'])));
+      // print('=======+>copied to phone clipboard!');
       inspect(responseData['data']);
     } else {
       return Future.error('Error! Something went wrong.');

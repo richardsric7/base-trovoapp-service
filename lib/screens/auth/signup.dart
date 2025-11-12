@@ -244,62 +244,62 @@ class _SignUpState extends State<SignUp> {
                           ],
                         ),
                         if (importMode) ...[
-                          if (usePassPhrase) ...[
-                            // Pass phrase/Mnemonic
-                            passPhraseInput(
-                              '${"passphrase".tr()} (optional)',
-                              notifier.getbluecolor,
-                              notifier.getgrey,
-                              notifier.getblck,
-                              notifier.getgrey,
-                              100.sp,
-                              300.sp,
-                              onSaved: (value) {
-                                passPhrase = value;
-                              },
-                              minLines: 3,
-                              maxLines: null,
-                              keyboardtype: TextInputType.multiline,
-                              focusNode: passPhraseFocusNode,
-                            ),
-                          ] else ...[
-                            // Secret Key
-                            CustomPasswordFormField(
-                              '${"secretkey".tr()} (optional)',
-                              notifier.getbluecolor,
-                              Icons.lock,
-                              notifier.getgrey,
-                              notifier.getprefixicon,
-                              notifier.getblck,
-                              70.sp,
-                              300.sp,
-                              validator: (value) {
-                                var trimmedVal = value!.trim().replaceAll(
-                                  ' ',
-                                  '',
-                                );
-                                if (trimmedVal.isNotEmpty &&
-                                    trimmedVal.length < 56) {
-                                  return "secretkeyinvalid".tr();
-                                }
-                                return null;
-                              },
-                              onSaved: (value) {
-                                secretKey = value!.trim().replaceAll(' ', '');
-                              },
-                              controller: secretKeyController,
-                              maxLength: 56,
-                              focusNode: secretKeyFocusNode,
-                            ),
-                          ],
-                          Row(
-                            children: [
-                              Container(
-                                width: width / 1.2,
-                                child: checkUsePassphrase(),
-                              ),
-                            ],
+                          // if (usePassPhrase) ...[
+                          //   // Pass phrase/Mnemonic
+                          //   passPhraseInput(
+                          //     '${"passphrase".tr()} (optional)',
+                          //     notifier.getbluecolor,
+                          //     notifier.getgrey,
+                          //     notifier.getblck,
+                          //     notifier.getgrey,
+                          //     100.sp,
+                          //     300.sp,
+                          //     onSaved: (value) {
+                          //       passPhrase = value;
+                          //     },
+                          //     minLines: 3,
+                          //     maxLines: null,
+                          //     keyboardtype: TextInputType.multiline,
+                          //     focusNode: passPhraseFocusNode,
+                          //   ),
+                          // ] else ...[
+                          // Secret Key
+                          CustomPasswordFormField(
+                            '${"secretkey".tr()} (optional)',
+                            notifier.getbluecolor,
+                            Icons.lock,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            70.sp,
+                            300.sp,
+                            validator: (value) {
+                              var trimmedVal = value!.trim().replaceAll(
+                                ' ',
+                                '',
+                              );
+                              if (trimmedVal.isNotEmpty &&
+                                  trimmedVal.length < 56) {
+                                return "secretkeyinvalid".tr();
+                              }
+                              return null;
+                            },
+                            onSaved: (value) {
+                              secretKey = value!.trim().replaceAll(' ', '');
+                            },
+                            controller: secretKeyController,
+                            maxLength: 56,
+                            focusNode: secretKeyFocusNode,
                           ),
+                          // ],
+                          // Row(
+                          //   children: [
+                          //     Container(
+                          //       width: width / 1.2,
+                          //       child: checkUsePassphrase(),
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                         SizedBox(height: height / 50),
                         // Terms of Service
@@ -481,57 +481,57 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Widget checkUsePassphrase() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  "enterpassphrase".tr(),
-                  style: TextStyle(
-                    fontSize: height / 55,
-                    color: notifier.getblck,
-                    fontFamily: fontbody,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Transform.scale(
-          scale: 1.sp,
-          child: Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
-            ),
-            activeColor: notifier.isDark
-                ? notifier.getbluecolor50
-                : notifier.getbluecolor90,
-            side: BorderSide(
-              color: notifier.isDark
-                  ? notifier.getbluecolor50
-                  : notifier.getbluecolor90,
-            ),
-            value: usePassPhrase,
-            onChanged: (bool? value) {
-              setState(() {
-                usePassPhrase = value!;
-                if (usePassPhrase) {
-                  passPhraseFocusNode.requestFocus();
-                } else {
-                  secretKeyFocusNode.requestFocus();
-                }
-              });
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget checkUsePassphrase() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     children: [
+  //       Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Row(
+  //             children: [
+  //               Text(
+  //                 "enterpassphrase".tr(),
+  //                 style: TextStyle(
+  //                   fontSize: height / 55,
+  //                   color: notifier.getblck,
+  //                   fontFamily: fontbody,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //       Transform.scale(
+  //         scale: 1.sp,
+  //         child: Checkbox(
+  //           shape: RoundedRectangleBorder(
+  //             borderRadius: BorderRadius.all(Radius.circular(5.sp)),
+  //           ),
+  //           activeColor: notifier.isDark
+  //               ? notifier.getbluecolor50
+  //               : notifier.getbluecolor90,
+  //           side: BorderSide(
+  //             color: notifier.isDark
+  //                 ? notifier.getbluecolor50
+  //                 : notifier.getbluecolor90,
+  //           ),
+  //           value: usePassPhrase,
+  //           onChanged: (bool? value) {
+  //             setState(() {
+  //               usePassPhrase = value!;
+  //               if (usePassPhrase) {
+  //                 passPhraseFocusNode.requestFocus();
+  //               } else {
+  //                 secretKeyFocusNode.requestFocus();
+  //               }
+  //             });
+  //           },
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget getNameFields() {
     if (corporate == 0) {

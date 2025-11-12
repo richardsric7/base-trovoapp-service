@@ -328,7 +328,8 @@ class _EquityMutualFundsAssetInformationView
         var formStr = responseData['data']['formString'];
         var first = jsonDecode(formStr);
         var jsonObj = first is String ? jsonDecode(first) : first;
-        return jsonObj;
+        inspect(jsonObj);
+        return jsonObj['fields'];
       } catch (e) {
         print(e);
         // inspect(e);

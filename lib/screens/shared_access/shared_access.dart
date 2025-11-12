@@ -2846,7 +2846,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (value != null && value.toString().isNotEmpty) {
               appState.setFilterWalletAlias = value;
               appState.setFilterQuery = "&walletAlias=$value";
-              await appState.getApprovals(onDone: () => {});
+              await appState.getApprovals();
             }
           },
         );
@@ -2861,7 +2861,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (value != null && value.toString().isNotEmpty) {
               appState.setFilterDescription = value;
               appState.setFilterQuery = "&description=$value";
-              await appState.getApprovals(onDone: () => {});
+              await appState.getApprovals();
             }
           },
         );
@@ -2876,7 +2876,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (value != null && value.toString().isNotEmpty) {
               appState.setFilterTransactionId = value;
               appState.setFilterQuery = "&transactionID=$value";
-              await appState.getApprovals(onDone: () => {});
+              await appState.getApprovals();
             }
           },
         );
@@ -2901,7 +2901,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (value != null && value.toString().isNotEmpty) {
               appState.setFilterWalletPublicKey = value;
               appState.setFilterQuery = "&walletPublicKey=$value";
-              await appState.getApprovals(onDone: () => {});
+              await appState.getApprovals();
             }
           },
         );
@@ -2916,7 +2916,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (value != null && value.toString().isNotEmpty) {
               appState.setFilterInitiatorUsername = value;
               appState.setFilterQuery = "&initiator=$value";
-              await appState.getApprovals(onDone: () => {});
+              await appState.getApprovals();
             }
           },
         );

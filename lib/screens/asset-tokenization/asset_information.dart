@@ -603,153 +603,153 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Upload Asset Images",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      getFile();
-                    },
-                    child: Column(
-                      children: [
-                        SizedBox(height: height / 50),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                          child: Container(
-                            height: height / 4,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: notifier.getbluewhitecolor,
-                                width: 1,
-                              ),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(15.0),
-                              ),
-                              color: notifier.getwihitecolor,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Icon(
-                                  Icons.add_circle_sharp,
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                                SizedBox(
-                                  width: width / 1.2,
-                                  child: Center(
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      children: [
-                                        Text(
-                                          "browsefiles".tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: notifier.getbluewhitecolor,
-                                            fontFamily: fontsemibold,
-                                            fontSize: 12.sp,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                if (true) ...[
-                                  Container(
-                                    width: 300,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                      color: notifier.isDark
-                                          ? darktilewhitecolor
-                                          : notifier.getaddsubwalletgrey,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        getFile();
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "11 images uploaded",
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: fontsemibold,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
-                                                ),
-                                              ),
-                                              Icon(
-                                                Icons.fullscreen_outlined,
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                              ),
-                                            ],
-                                          ),
-                                          Row(
-                                            children: [
-                                              Image.network(
-                                                'https://picsum.photos/50/50',
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (true) ...[
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'Please upload asset images',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontbody,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              // SizedBox(height: height / 50),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "Upload Asset Images",
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // Row(
+              //   children: [
+              //     GestureDetector(
+              //       onTap: () {
+              //         getFile();
+              //       },
+              //       child: Column(
+              //         children: [
+              //           SizedBox(height: height / 50),
+              //           Padding(
+              //             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+              //             child: Container(
+              //               height: height / 4,
+              //               decoration: BoxDecoration(
+              //                 border: Border.all(
+              //                   color: notifier.getbluewhitecolor,
+              //                   width: 1,
+              //                 ),
+              //                 borderRadius: const BorderRadius.all(
+              //                   Radius.circular(15.0),
+              //                 ),
+              //                 color: notifier.getwihitecolor,
+              //               ),
+              //               child: Column(
+              //                 crossAxisAlignment: CrossAxisAlignment.center,
+              //                 mainAxisAlignment: MainAxisAlignment.center,
+              //                 spacing: 10,
+              //                 children: [
+              //                   Icon(
+              //                     Icons.add_circle_sharp,
+              //                     color: notifier.getbluewhitecolor,
+              //                   ),
+              //                   SizedBox(
+              //                     width: width / 1.2,
+              //                     child: Center(
+              //                       child: Wrap(
+              //                         alignment: WrapAlignment.center,
+              //                         children: [
+              //                           Text(
+              //                             "browsefiles".tr(),
+              //                             textAlign: TextAlign.center,
+              //                             style: TextStyle(
+              //                               color: notifier.getbluewhitecolor,
+              //                               fontFamily: fontsemibold,
+              //                               fontSize: 12.sp,
+              //                             ),
+              //                           ),
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   ),
+              //                   const SizedBox(height: 2),
+              //                   if (true) ...[
+              //                     Container(
+              //                       width: 300,
+              //                       padding: EdgeInsets.symmetric(
+              //                         horizontal: 5,
+              //                         vertical: 10,
+              //                       ),
+              //                       decoration: BoxDecoration(
+              //                         borderRadius: const BorderRadius.all(
+              //                           Radius.circular(15.0),
+              //                         ),
+              //                         color: notifier.isDark
+              //                             ? darktilewhitecolor
+              //                             : notifier.getaddsubwalletgrey,
+              //                       ),
+              //                       child: GestureDetector(
+              //                         onTap: () {
+              //                           getFile();
+              //                         },
+              //                         child: Column(
+              //                           children: [
+              //                             Row(
+              //                               mainAxisAlignment:
+              //                                   MainAxisAlignment.spaceBetween,
+              //                               children: [
+              //                                 Text(
+              //                                   "11 images uploaded",
+              //                                   style: TextStyle(
+              //                                     fontSize: 12,
+              //                                     fontFamily: fontsemibold,
+              //                                     color: notifier
+              //                                         .getbluewhitecolor,
+              //                                   ),
+              //                                 ),
+              //                                 Icon(
+              //                                   Icons.fullscreen_outlined,
+              //                                   color:
+              //                                       notifier.getbluewhitecolor,
+              //                                 ),
+              //                               ],
+              //                             ),
+              //                             Row(
+              //                               children: [
+              //                                 Image.network(
+              //                                   'https://picsum.photos/50/50',
+              //                                 ),
+              //                               ],
+              //                             ),
+              //                           ],
+              //                         ),
+              //                       ),
+              //                     ),
+              //                   ],
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // if (true) ...[
+              //   Row(
+              //     children: [
+              //       Padding(
+              //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //         child: Text(
+              //           'Please upload asset images',
+              //           style: TextStyle(
+              //             fontSize: 12,
+              //             fontFamily: fontbody,
+              //             color: Colors.red,
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ],
               SizedBox(height: height / 50),
               Row(
                 children: [

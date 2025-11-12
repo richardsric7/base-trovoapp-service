@@ -327,6 +327,7 @@ class DataProvider with ChangeNotifier {
   String initialUrl = "";
   goToWebView(url) {
     initialUrl = url;
+    print('initialUrl: =====> $initialUrl');
     currentAction = PageAction(
       state: PageState.addPage,
       page: WebViewPageConfig,
@@ -491,15 +492,17 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
-      await updateUserInfo(
-        userInfo!.wallets![0].signer,
-        secretKeys[0],
-        userInfo!.wallets![0].publicKey,
-        userInfo!.username,
-        this,
-        forceRefresh: true,
-      );
-      await getFiatRates(this);
+      await Future.wait([
+        updateUserInfo(
+          userInfo!.wallets![0].signer,
+          secretKeys[0],
+          userInfo!.wallets![0].publicKey,
+          userInfo!.username,
+          this,
+          forceRefresh: true,
+        ),
+        getFiatRates(this),
+      ]);
 
       notifyListeners();
     } catch (e) {}
@@ -581,7 +584,7 @@ class DataProvider with ChangeNotifier {
     }
   }
 
-  getApprovals({void Function()? onDone}) {
+  getApprovals() {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
   }
 
