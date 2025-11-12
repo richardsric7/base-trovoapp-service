@@ -2944,7 +2944,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 	client := gc.BantuExpansionClient
 
-	TOKENIZATION_FEE:= t.GetTokenizationFeeWallet(gc)
+	TOKENIZATION_FEE := t.GetTokenizationFeeWallet(gc)
 	feeWallet := keypair.MustParseFull(TOKENIZATION_FEE.FeeWalletSecretKey)
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -3659,6 +3659,14 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 		return "", err
 	}
 
+	//save application fee to the object.
+	ato.TokenizationApplicationFee = TOKENIZATION_APPLICATION_FEE.FeeFixed
+	e := gc.DB.Omit(clause.Associations).Save(ato).Error
+	if e != nil {
+		log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)
+		logDiscordFailedRecovery("[generateTokenizationFeeXdr]error saving the application fee to tokenization object")
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
 	return xdrBase64, nil
 
 }
