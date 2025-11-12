@@ -3664,7 +3664,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 	e := gc.DB.Omit(clause.Associations).Save(ato).Error
 	if e != nil {
 		log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)
-		logDiscordFailedRecovery("[generateTokenizationFeeXdr]error saving the application fee to tokenization object")
+		logDiscordFailedRecovery("[generateTokenizationFeeXdr] error saving the application fee to tokenization object")
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 	return xdrBase64, nil
