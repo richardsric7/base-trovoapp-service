@@ -1957,7 +1957,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		uid := uuid.NewString()
 		endBatch := strings.Split(uid, "-")[len(strings.Split(uid, "-"))-1]
 		// append it to the mInfo.Username
-		userRegistrationInfo.Username = mInfo.OwnerUsername + endBatch
+		ownerIdentifier := mInfo.OwnerUsername
+		if len(ownerIdentifier) > 6 {
+			ownerIdentifier = ownerIdentifier[0:5]
+		}
+		userRegistrationInfo.Username = ownerIdentifier + endBatch[len(endBatch)-6:] //append the last 6 characters of the endBatch
 		//if referral is allowed, set the referrer
 		if mInfo.AllowReferralForRegisteredUsers == 1 {
 			userRegistrationInfo.Referrer = mInfo.OwnerUsername
@@ -2116,7 +2120,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, kycData)
 	})
 
-	//update user kyc from service link
+	//mint token from service link
 	router.POST("/v1/trovo-api/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
@@ -3441,111 +3445,111 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-				tokenizedAssetID := c.Param("tokenizedAssetID")
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			//get the wallet you are sending payment from
-			subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if getWalletError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-temporary-wallet",
-					ErrMessage: "Only normal/standard wallets are allowed for this request.",
-					Code:       http.StatusForbidden,
-				}
+			c.JSON(statusCode, response)
+			return
+		}
+		//get the wallet you are sending payment from
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+		if getWalletError != nil {
 
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-temporary-wallet",
+				ErrMessage: "Only normal/standard wallets are allowed for this request.",
+				Code:       http.StatusForbidden,
 			}
 
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
-			if err != nil {
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
 
-				var ex tErrors.GenericError
-				var ok bool
+		}
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
+			return
+		}
 
-			var tInput userModels.TokenizedAssetSubscriptionInput
+		var tInput userModels.TokenizedAssetSubscriptionInput
 
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
 
-			var invalidJSON tErrors.ErrorInvalidJSON
+		var invalidJSON tErrors.ErrorInvalidJSON
 
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
+			return
+		}
 
-			sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
-			if err != nil {
+		c.JSON(http.StatusOK, tInput)
 
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, tInput)
-
-			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "assetSubscription"
-				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
-			}
-			user.InvalidateUserCache(gc)
+		if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "assetSubscription"
+			user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+		}
+		user.InvalidateUserCache(gc)
 	})
 
 }
