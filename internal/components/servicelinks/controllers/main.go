@@ -2157,7 +2157,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetUser(mInfo.OwnerUsername, gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2251,6 +2251,100 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, data)
+	})
+
+	//create new subwallet from service link
+	router.POST("/v1/trovo-api/users/subwallet", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		signerUser, err := usersDB.GetUser(mInfo.OwnerUsername, gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var subWalletInfo userModels.SubWalletInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &subWalletInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/trovo-api/users/subwallet %v", signerUser.Username), gc.DB)
+
+		returnedSubwalletInfo, err := userServices.CreateNewSubWallet(&signerUser, &subWalletInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if signerUser.PushNotificationToken != nil && len(returnedSubwalletInfo.TransactionID) > 0 && returnedSubwalletInfo.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*signerUser.PushNotificationToken, "New Sub-wallet Added!", fmt.Sprintf("You have successfully added a new sub wallet tagged [%v].", returnedSubwalletInfo.WalletTag), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedSubwalletInfo)
 	})
 
 	//Get tokenization parameters from service link
