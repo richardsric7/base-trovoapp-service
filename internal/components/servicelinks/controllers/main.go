@@ -2453,8 +2453,66 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//Get tokenization bank list from service link
-	router.GET("/v1/trovo-api/assets/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	//Get tokenization list for Admin from service link
+	router.GET("/v1/trovo-api/assets/admin/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// ownerUsername := mInfo.OwnerUsername
+
+		if mInfo.CreateUsersPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Permission to create users not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		user, getUserError := userModels.Username(mInfo.OwnerUsername).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		tokenizationList := userServices.GetTokenizationList(&user, true, gc, c)
+
+		c.JSON(http.StatusOK, tokenizationList)
+
+	})
+
+	//Get tokenization list for marketvfrom service link
+	router.GET("/v1/trovo-api/assets/market/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
