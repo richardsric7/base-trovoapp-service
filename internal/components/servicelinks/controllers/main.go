@@ -3563,7 +3563,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//Purchase tokenized asset from service link
-	router.POST("/v1/trovo-api/assets/buy/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.POST("/v1/trovo-api/assets/marketplace/buy", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
@@ -3597,11 +3597,22 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		tokenizedAssetID := c.Param("tokenizedAssetID")
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		var tInput userModels.TokenizedAssetPurchaseInputForServiceLink
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
 
 		if err != nil {
-			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		user, err := usersDB.GetUser(tInput.PurchaserUsername, gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", tInput.PurchaserUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3622,7 +3633,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//get the wallet you are sending payment from
-		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		destinationWallet, temp, getWalletError := usersDB.GetWallet(tInput.DestinationWalletPublicKey, gc.DB)
 
 		if getWalletError != nil {
 
@@ -3651,7 +3662,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tInput.TokenizedAssetID, gc.DB)
 		if err != nil {
 
 			var ex tErrors.GenericError
@@ -3665,21 +3676,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
-		var tInput userModels.TokenizedAssetSubscriptionInput
-
-		data, _ := io.ReadAll(c.Request.Body)
-		// log.Println(string(data))
-		err = json.Unmarshal(data, &tInput)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
-
-		sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+		subscriptionInput := tInput.ToSubscriptionInput(gc)
+		sub, err := userServices.SubscribeToTokenizedAsset(&user, &destinationWallet, &tokenizedAsset, &subscriptionInput, gc)
 		if err != nil {
 
 			var ex tErrors.GenericError
@@ -3693,13 +3691,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
+		tInput = subscriptionInput.ToServiceLinkInput(gc)
 		c.JSON(http.StatusOK, tInput)
 
 		if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "assetSubscription"
-			user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+			user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, destinationWallet.Alias), "", dataPayload, gc)
 		}
 		user.InvalidateUserCache(gc)
 	})

@@ -1741,6 +1741,55 @@ type TokenizedAssetSubscriptionInput struct {
 	Commit               int      `json:"commit"`
 	ReturnedDescription  string   `json:"-"`
 }
+type TokenizedAssetPurchaseInputForServiceLink struct {
+	TokenizedAssetID           string   `json:"tokenizedAssetId"`
+	PurchaserUsername          string   `json:"purchaserUsername"`
+	DestinationWalletPublicKey string   `json:"destinationWalletPublicKey"`
+	AmountInAssetCurrency      float64  `json:"amountInAssetCurrency"` //fiat Amount in tokenized asset quote currency
+	SwappedEstimate            string   `json:"swappedEstimate"`
+	Transaction                string   `json:"transaction"`
+	TransactionSignature       string   `json:"transactionSignature"`
+	TransactionID              string   `json:"transactionId"`
+	NetworkPassPhrase          string   `json:"networkPassPhrase"`
+	Messages                   []string `json:"messages"`
+	Memo                       string   `json:"memo"`
+	SignatureRequired          int      `json:"signatureRequired"`
+	Commit                     int      `json:"commit"`
+}
+
+func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPurchaseInputForServiceLink) {
+	si.TokenizedAssetID = i.TokenizedAssetID
+	si.PurchaserUsername = i.SubscriberUsername
+	si.DestinationWalletPublicKey = i.WalletPublicKey
+	si.AmountInAssetCurrency = i.Amount
+	si.SwappedEstimate = i.SwappedEstimate
+	si.Transaction = i.Transaction
+	si.TransactionSignature = i.TransactionSignature
+	si.TransactionID = i.TransactionID
+	si.NetworkPassPhrase = i.NetworkPassPhrase
+	si.Messages = i.Messages
+	si.Memo = i.Memo
+	si.SignatureRequired = i.SignatureRequired
+	si.Commit = i.Commit
+	return si
+}
+
+func (i *TokenizedAssetPurchaseInputForServiceLink) ToSubscriptionInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetSubscriptionInput) {
+	si.TokenizedAssetID = i.TokenizedAssetID
+	si.SubscriberUsername = i.PurchaserUsername
+	si.WalletPublicKey = i.DestinationWalletPublicKey
+	si.Amount = i.AmountInAssetCurrency
+	si.SwappedEstimate = i.SwappedEstimate
+	si.Transaction = i.Transaction
+	si.TransactionSignature = i.TransactionSignature
+	si.TransactionID = i.TransactionID
+	si.NetworkPassPhrase = i.NetworkPassPhrase
+	si.Messages = i.Messages
+	si.Memo = i.Memo
+	si.SignatureRequired = i.SignatureRequired
+	si.Commit = i.Commit
+	return si
+}
 
 type ExpressionOfInterestInput struct {
 	Amount float64 `json:"amount"` //fiat Amount in tokenized asset quote currency
