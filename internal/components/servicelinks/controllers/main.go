@@ -3562,8 +3562,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, confirmationInput)
 	})
 
-	//Purchase tokenized asset from service link
-	router.POST("/v1/trovo-api/assets/marketplace/buy", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	//Purchase primary sales tokenized asset from service link
+	router.POST("/v1/trovo-api/assets/marketplace/primary", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
@@ -3597,7 +3597,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		var tInput userModels.TokenizedAssetPurchaseInputForServiceLink
+		var tInput userModels.TokenizedAssetPrimarySalesPurchaseInputForServiceLink
 
 		data, _ := io.ReadAll(c.Request.Body)
 		// log.Println(string(data))

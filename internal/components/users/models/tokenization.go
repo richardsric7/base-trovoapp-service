@@ -1741,7 +1741,7 @@ type TokenizedAssetSubscriptionInput struct {
 	Commit               int      `json:"commit"`
 	ReturnedDescription  string   `json:"-"`
 }
-type TokenizedAssetPurchaseInputForServiceLink struct {
+type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	TokenizedAssetID           string   `json:"tokenizedAssetId"`
 	PurchaserUsername          string   `json:"purchaserUsername"`
 	DestinationWalletPublicKey string   `json:"destinationWalletPublicKey"`
@@ -1757,7 +1757,7 @@ type TokenizedAssetPurchaseInputForServiceLink struct {
 	Commit                     int      `json:"commit"`
 }
 
-func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPurchaseInputForServiceLink) {
+func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPrimarySalesPurchaseInputForServiceLink) {
 	si.TokenizedAssetID = i.TokenizedAssetID
 	si.PurchaserUsername = i.SubscriberUsername
 	si.DestinationWalletPublicKey = i.WalletPublicKey
@@ -1774,7 +1774,7 @@ func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.Gl
 	return si
 }
 
-func (i *TokenizedAssetPurchaseInputForServiceLink) ToSubscriptionInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetSubscriptionInput) {
+func (i *TokenizedAssetPrimarySalesPurchaseInputForServiceLink) ToSubscriptionInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetSubscriptionInput) {
 	si.TokenizedAssetID = i.TokenizedAssetID
 	si.SubscriberUsername = i.PurchaserUsername
 	si.WalletPublicKey = i.DestinationWalletPublicKey
