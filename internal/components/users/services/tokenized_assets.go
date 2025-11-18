@@ -2301,7 +2301,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
 	if e != nil {
 
-		log.Printf("[SubscribeToTokenizedAsset] Error Unable to verify wallet owner for subscribing wallet %v\n", subscriberWallet.Alias)
+		log.Printf("[SubscribeToTokenizedAsset] Error Unable to verify wallet owner of subscribing wallet %v\n", subscriberWallet.Alias)
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
 		return
 
