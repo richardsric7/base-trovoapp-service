@@ -328,7 +328,7 @@ type TokenizedAsset struct {
 	NavUpdateFrequency                           *string                         `json:"navUpdateFrequency"`
 	NavCalculationMethod                         *string                         `json:"navCalculationMethod"`
 	RedemptionRules                              *string                         `json:"redemptionRules"`
-	LockInPeriod                                 *string                         `json:"lockInPeriod"`
+	LockInPeriod                                 int                             `gorm:"default:0" json:"lockInPeriod"`
 	EntryLoad                                    float64                         `gorm:"default:0" json:"entryLoad"`
 	PerformanceFee                               float64                         `gorm:"default:0" json:"performanceFee"`
 	DividendPolicy                               *string                         `json:"dividendPolicy"`
@@ -357,7 +357,7 @@ type TokenizedAsset struct {
 	AverageMaturity                              float64                         `gorm:"default:0" json:"averageMaturity"`
 	YieldToMaturity                              float64                         `gorm:"default:0" json:"yieldToMaturity"`
 	CreditRatingProfile                          *string                         `json:"creditRatingProfile"`
-	LockInPeriodPortfolio                        *string                         `json:"lockInPeriodPortfolio"`
+	LockInPeriodPortfolio                        int                             `gorm:"default:0" json:"lockInPeriodPortfolio"`
 	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
 	TopEquityHoldings                            *string                         `json:"topEquityHoldings"`
 	TargetAllocation                             *string                         `json:"targetAllocation"`
@@ -468,7 +468,7 @@ type TokenizedAsset struct {
 	OwnershipTrustee                             *string                         `json:"ownershipTrustee"`
 	OwnershipLienOrEncumbrances                  *string                         `json:"ownershipLienOrEncumbrances"`
 	ValuationAssetValuation                      *string                         `json:"valuationAssetValuation"`
-	HoldingLockinPeriod                          *string                         `json:"holdingLockinPeriod"`
+	HoldingLockinPeriod                          int                             `gorm:"default:0" json:"holdingLockinPeriod"`
 	InsuranceMarketRisk                          *string                         `json:"insuranceMarketRisk"`
 	InsuranceStorageRisk                         *string                         `json:"insuranceStorageRisk"`
 	InsuranceTitleRisk                           *string                         `json:"insuranceTitleRisk"`
@@ -502,7 +502,7 @@ type TokenizedAsset struct {
 	LicenseNumber                                *string                         `json:"licenseNumber"`
 	ExitLoadFee                                  float64                         `gorm:"default:0" json:"exitLoadFee"`
 	EntryLoadFee                                 float64                         `gorm:"default:0" json:"entryLoadFee"`
-	PortfolioLockInPeriod                        *string                         `json:"portfolioLockInPeriod"`
+	PortfolioLockInPeriod                        int                             `gorm:"default:0" json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee                      float64                         `gorm:"default:0" json:"portfolioPerformanceFee"`
 	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
 	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
@@ -748,7 +748,7 @@ type TokenizedAssetJSONInput struct {
 	NavUpdateFrequency                      string    `json:"navUpdateFrequency"`
 	NavCalculationMethod                    string    `json:"navCalculationMethod"`
 	RedemptionRules                         string    `json:"redemptionRules"`
-	LockInPeriod                            string    `json:"lockInPeriod"`
+	LockInPeriod                            int       `json:"lockInPeriod"`
 	EntryLoad                               float64   `json:"entryLoad"`
 	PerformanceFee                          float64   `json:"performanceFee"`
 	DividendPolicy                          string    `json:"dividendPolicy"`
@@ -777,7 +777,7 @@ type TokenizedAssetJSONInput struct {
 	AverageMaturity                         float64   `json:"averageMaturity"`
 	YieldToMaturity                         float64   `json:"yieldToMaturity"`
 	CreditRatingProfile                     string    `json:"creditRatingProfile"`
-	LockInPeriodPortfolio                   string    `json:"lockInPeriodPortfolio"`
+	LockInPeriodPortfolio                   int       `json:"lockInPeriodPortfolio"`
 	PerformanceFeeIfAny                     float64   `json:"performanceFeeIfAny"`
 	TopEquityHoldings                       string    `json:"topEquityHoldings"`
 	TargetAllocation                        string    `json:"targetAllocation"`
@@ -888,7 +888,7 @@ type TokenizedAssetJSONInput struct {
 	OwnershipTrustee                        string    `json:"ownershipTrustee"`
 	OwnershipLienOrEncumbrances             string    `json:"ownershipLienOrEncumbrances"`
 	ValuationAssetValuation                 string    `json:"valuationAssetValuation"`
-	HoldingLockinPeriod                     string    `json:"holdingLockinPeriod"`
+	HoldingLockinPeriod                     int       `json:"holdingLockinPeriod"`
 	InsuranceMarketRisk                     string    `json:"insuranceMarketRisk"`
 	InsuranceStorageRisk                    string    `json:"insuranceStorageRisk"`
 	InsuranceTitleRisk                      string    `json:"insuranceTitleRisk"`
@@ -922,7 +922,7 @@ type TokenizedAssetJSONInput struct {
 	LicenseNumber                           string    `json:"licenseNumber"`
 	ExitLoadFee                             float64   `json:"exitLoadFee"`
 	EntryLoadFee                            float64   `json:"entryLoadFee"`
-	PortfolioLockInPeriod                   string    `json:"portfolioLockInPeriod"`
+	PortfolioLockInPeriod                   int       `json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee                 float64   `json:"portfolioPerformanceFee"`
 	FundingStructure                        int       `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
 	EquityPercentage                        float64   `gorm:"default:0" json:"equityPercentage"`
@@ -1258,7 +1258,7 @@ type TokenizedAssetJSON struct {
 	NavUpdateFrequency                           string                          `json:"navUpdateFrequency"`
 	NavCalculationMethod                         string                          `json:"navCalculationMethod"`
 	RedemptionRules                              string                          `json:"redemptionRules"`
-	LockInPeriod                                 string                          `json:"lockInPeriod"`
+	LockInPeriod                                 int                             `json:"lockInPeriod"`
 	EntryLoad                                    float64                         `json:"entryLoad"`
 	PerformanceFee                               float64                         `json:"performanceFee"`
 	DividendPolicy                               string                          `json:"dividendPolicy"`
@@ -1287,7 +1287,7 @@ type TokenizedAssetJSON struct {
 	AverageMaturity                              float64                         `json:"averageMaturity"`
 	YieldToMaturity                              float64                         `json:"yieldToMaturity"`
 	CreditRatingProfile                          string                          `json:"creditRatingProfile"`
-	LockInPeriodPortfolio                        string                          `json:"lockInPeriodPortfolio"`
+	LockInPeriodPortfolio                        int                             `json:"lockInPeriodPortfolio"`
 	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
 	TopEquityHoldings                            string                          `json:"topEquityHoldings"`
 	TargetAllocation                             string                          `json:"targetAllocation"`
@@ -1398,7 +1398,7 @@ type TokenizedAssetJSON struct {
 	OwnershipTrustee                             string                          `json:"ownershipTrustee"`
 	OwnershipLienOrEncumbrances                  string                          `json:"ownershipLienOrEncumbrances"`
 	ValuationAssetValuation                      string                          `json:"valuationAssetValuation"`
-	HoldingLockinPeriod                          string                          `json:"holdingLockinPeriod"`
+	HoldingLockinPeriod                          int                             `json:"holdingLockinPeriod"`
 	InsuranceMarketRisk                          string                          `json:"insuranceMarketRisk"`
 	InsuranceStorageRisk                         string                          `json:"insuranceStorageRisk"`
 	InsuranceTitleRisk                           string                          `json:"insuranceTitleRisk"`
@@ -1432,7 +1432,7 @@ type TokenizedAssetJSON struct {
 	LicenseNumber                                string                          `json:"licenseNumber"`
 	ExitLoadFee                                  float64                         `json:"exitLoadFee"`
 	EntryLoadFee                                 float64                         `json:"entryLoadFee"`
-	PortfolioLockInPeriod                        string                          `json:"portfolioLockInPeriod"`
+	PortfolioLockInPeriod                        int                             `json:"portfolioLockInPeriod"`
 	PortfolioPerformanceFee                      float64                         `json:"portfolioPerformanceFee"`
 	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
 	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
@@ -3192,11 +3192,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.RedemptionRules = nil
 	}
 
-	if len(ti.LockInPeriod) > 0 {
-		t.LockInPeriod = &ti.LockInPeriod
-	} else {
-		t.LockInPeriod = nil
-	}
+	t.LockInPeriod = ti.LockInPeriod
 
 	if len(ti.DividendPolicy) > 0 {
 		t.DividendPolicy = &ti.DividendPolicy
@@ -3324,11 +3320,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.CreditRatingProfile = nil
 	}
 
-	if len(ti.LockInPeriodPortfolio) > 0 {
-		t.LockInPeriodPortfolio = &ti.LockInPeriodPortfolio
-	} else {
-		t.LockInPeriodPortfolio = nil
-	}
+	t.LockInPeriodPortfolio = ti.LockInPeriodPortfolio
 
 	if len(ti.TopEquityHoldings) > 0 {
 		t.TopEquityHoldings = &ti.TopEquityHoldings
@@ -3914,11 +3906,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.ValuationAssetValuation = nil
 	}
 
-	if len(ti.HoldingLockinPeriod) > 0 {
-		t.HoldingLockinPeriod = &ti.HoldingLockinPeriod
-	} else {
-		t.HoldingLockinPeriod = nil
-	}
+	t.HoldingLockinPeriod = ti.HoldingLockinPeriod
 
 	if len(ti.InsuranceMarketRisk) > 0 {
 		t.InsuranceMarketRisk = &ti.InsuranceMarketRisk
@@ -4100,11 +4088,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.LicenseNumber = nil
 	}
 
-	if len(ti.PortfolioLockInPeriod) > 0 {
-		t.PortfolioLockInPeriod = &ti.PortfolioLockInPeriod
-	} else {
-		t.PortfolioLockInPeriod = nil
-	}
+	t.PortfolioLockInPeriod = ti.PortfolioLockInPeriod
+
 	t.FundingStructure = ti.FundingStructure
 	t.EquityPercentage = ti.EquityPercentage
 	t.DebtPercentage = ti.DebtPercentage
@@ -5154,9 +5139,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.RedemptionRules != nil {
 		t.RedemptionRules = *ti.RedemptionRules
 	}
-	if ti.LockInPeriod != nil {
-		t.LockInPeriod = *ti.LockInPeriod
-	}
+	t.LockInPeriod = ti.LockInPeriod
+
 	if ti.DividendPolicy != nil {
 		t.DividendPolicy = *ti.DividendPolicy
 	}
@@ -5220,9 +5204,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.CreditRatingProfile != nil {
 		t.CreditRatingProfile = *ti.CreditRatingProfile
 	}
-	if ti.LockInPeriodPortfolio != nil {
-		t.LockInPeriodPortfolio = *ti.LockInPeriodPortfolio
-	}
+
+	t.LockInPeriodPortfolio = ti.LockInPeriodPortfolio
+
 	if ti.TopEquityHoldings != nil {
 		t.TopEquityHoldings = *ti.TopEquityHoldings
 	}
@@ -5529,9 +5513,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.ValuationAssetValuation != nil {
 		t.ValuationAssetValuation = *ti.ValuationAssetValuation
 	}
-	if ti.HoldingLockinPeriod != nil {
-		t.HoldingLockinPeriod = *ti.HoldingLockinPeriod
-	}
+
+	t.HoldingLockinPeriod = ti.HoldingLockinPeriod
+
 	if ti.InsuranceMarketRisk != nil {
 		t.InsuranceMarketRisk = *ti.InsuranceMarketRisk
 	}
@@ -5622,9 +5606,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.LicenseNumber != nil {
 		t.LicenseNumber = *ti.LicenseNumber
 	}
-	if ti.PortfolioLockInPeriod != nil {
-		t.PortfolioLockInPeriod = *ti.PortfolioLockInPeriod
-	}
+	t.PortfolioLockInPeriod = ti.PortfolioLockInPeriod
 
 	//////
 
