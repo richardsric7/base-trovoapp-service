@@ -541,6 +541,8 @@ type TokenizedAsset struct {
 	AcceptTokenizationTermsAndAgreement          int                             `gorm:"default:0" json:"acceptTokenizationTermsAndAgreement"`
 	AttestInformationAccurateAndVerifiable       int                             `gorm:"default:0" json:"attestInformationAccurateAndVerifiable"`
 	AcknowledgedSuitabilityCriteria              int                             `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
+	MinimumKycTier                               *string                         `json:"minimumKycTier"`
+	InvestorCategory                             *string                         `json:"investorCategory"`
 }
 
 type TokenizedAssetID string
@@ -959,6 +961,8 @@ type TokenizedAssetJSONInput struct {
 	AcceptTokenizationTermsAndAgreement     int       `gorm:"default:0" json:"acceptTokenizationTermsAndAgreement"`
 	AttestInformationAccurateAndVerifiable  int       `gorm:"default:0" json:"attestInformationAccurateAndVerifiable"`
 	AcknowledgedSuitabilityCriteria         int       `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
+	MinimumKycTier                          string    `json:"minimumKycTier"`
+	InvestorCategory                        string    `json:"investorCategory"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1467,6 +1471,8 @@ type TokenizedAssetJSON struct {
 	AcceptTokenizationTermsAndAgreement          int                             `gorm:"default:0" json:"acceptTokenizationTermsAndAgreement"`
 	AttestInformationAccurateAndVerifiable       int                             `gorm:"default:0" json:"attestInformationAccurateAndVerifiable"`
 	AcknowledgedSuitabilityCriteria              int                             `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
+	MinimumKycTier                               string                          `json:"minimumKycTier"`
+	InvestorCategory                             string                          `json:"investorCategory"`
 }
 
 type TokenizedAssetSector struct {
@@ -4248,6 +4254,19 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	t.AcceptTokenizationTermsAndAgreement = ti.AcceptTokenizationTermsAndAgreement
 	t.AttestInformationAccurateAndVerifiable = ti.AttestInformationAccurateAndVerifiable
 	t.AcknowledgedSuitabilityCriteria = ti.AcknowledgedSuitabilityCriteria
+
+	if len(ti.MinimumKycTier) > 0 {
+		t.MinimumKycTier = &ti.MinimumKycTier
+	} else {
+		t.MinimumKycTier = nil
+	}
+
+	if len(ti.InvestorCategory) > 0 {
+		t.InvestorCategory = &ti.InvestorCategory
+	} else {
+		t.InvestorCategory = nil
+	}
+
 	//////////
 
 	return *t
@@ -5706,6 +5725,14 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.AcceptTokenizationTermsAndAgreement = ti.AcceptTokenizationTermsAndAgreement
 	t.AttestInformationAccurateAndVerifiable = ti.AttestInformationAccurateAndVerifiable
 	t.AcknowledgedSuitabilityCriteria = ti.AcknowledgedSuitabilityCriteria
+
+	if ti.MinimumKycTier != nil {
+		t.MinimumKycTier = *ti.MinimumKycTier
+	}
+
+	if ti.InvestorCategory != nil {
+		t.InvestorCategory = *ti.InvestorCategory
+	}
 
 	return t
 
