@@ -2511,7 +2511,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//Get tokenization list for marketvfrom service link
+	//Get tokenization list for market from service link
 	router.GET("/v1/trovo-api/assets/market/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
