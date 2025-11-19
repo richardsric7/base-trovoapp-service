@@ -18,6 +18,7 @@ import 'package:trovo_app/router/router_delegate.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 import 'custom_bloc_observer/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
@@ -151,6 +152,7 @@ class _AppState extends State<App> {
       Duration(minutes: timeOut == null ? 5 : timeOut),
       () => _handleInactivity(),
     );
+    setSystemChrome(notifier.isDark);
   }
 
   void _handleInactivity() async {

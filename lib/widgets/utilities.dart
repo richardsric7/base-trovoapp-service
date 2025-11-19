@@ -490,74 +490,99 @@ Widget dropdown(
   double? itemHeight,
 }) {
   var notifier = Provider.of<ColorNotifier>(context, listen: true);
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        DropdownButtonFormField(
-          selectedItemBuilder: selectedItemBuilder,
-          isDense: true,
-          isExpanded: true,
-          itemHeight: itemHeight,
-          validator: validator,
-          onTap: onTap,
-          hint: Container(
-            child: hint != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        hint,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: notifier.getbluecolor80,
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500,
+  return GestureDetector(
+    onTap: () {
+      print('dropdown tapped');
+      if (items.isEmpty) {
+        popup(context, title: 'Info!', message: 'No items to select from');
+      }
+    },
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          DropdownButtonFormField(
+            selectedItemBuilder: selectedItemBuilder,
+            isDense: true,
+            isExpanded: true,
+            itemHeight: itemHeight,
+            validator: validator,
+            onTap: onTap,
+            hint: Container(
+              child: hint != null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          hint,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: notifier.isDark
+                                ? wihitecolor
+                                : notifier.getbluecolor80,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                : null,
-          ),
-          dropdownColor: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10),
+                      ],
+                    )
+                  : null,
             ),
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            filled: true,
-            fillColor: notifier.isDark
+            dropdownColor: notifier.isDark
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              border: OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              filled: true,
+              fillColor: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            value: value,
+            icon: onChanged == null
+                ? null
+                : Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+            elevation: 0,
+            style: TextStyle(
+              color: notifier.getbluewhitecolor,
+              fontSize: 15,
+              fontFamily: fontsemibold,
+              fontWeight: FontWeight.w500,
+            ),
+            onChanged: onChanged,
+            items: items,
           ),
-          value: value,
-          icon: onChanged == null
-              ? null
-              : Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: notifier.getbluewhitecolor,
-                ),
-          elevation: 0,
-          style: TextStyle(
-            color: notifier.getbluewhitecolor,
-            fontSize: 15,
-            fontFamily: fontsemibold,
-            fontWeight: FontWeight.w500,
-          ),
-          onChanged: onChanged,
-          items: items,
-        ),
-      ],
+        ],
+      ),
+    ),
+  );
+}
+
+void setSystemChrome(bool isDark) async {
+  print('============> sseting system chrome to dark: $isDark');
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: isDark ? Color(0xFF00225A) : Colors.white,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: isDark ? Color(0xFF00225A) : Colors.white,
+      systemNavigationBarIconBrightness: isDark
+          ? Brightness.light
+          : Brightness.dark,
+      systemNavigationBarContrastEnforced: true,
     ),
   );
 }

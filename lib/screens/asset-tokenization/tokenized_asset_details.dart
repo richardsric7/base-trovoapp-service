@@ -397,7 +397,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         ),
                       ),
                     ),
-                    child: Icon(Icons.share),
+                    child: Icon(Icons.share, color: notifier.getbluewhitecolor),
                   ),
                 ],
               ),
@@ -1313,6 +1313,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: notifier.getwihitecolor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),

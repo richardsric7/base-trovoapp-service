@@ -26,7 +26,7 @@ class PaymentHistory extends StatefulWidget {
 }
 
 class Payment_HistoryState extends State<PaymentHistory>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late ColorNotifier notifier;
   late RefreshController _refreshController;
   late DataProvider appState;
@@ -47,6 +47,9 @@ class Payment_HistoryState extends State<PaymentHistory>
     HistoryFilterType.ToPublicKey: "To public key",
     HistoryFilterType.Memo: "Memo",
   };
+
+  @override
+  bool get wantKeepAlive => true;
 
   ScrollController scrollController = new ScrollController();
 
@@ -167,6 +170,7 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;

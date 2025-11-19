@@ -2962,7 +2962,7 @@
               "value": "Close-ended"
             }
           },
-          "initialNetAssetValue": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Initial Net Asset Value (NAV)",
@@ -3018,10 +3018,10 @@
             "public": true
           },
           "lockInPeriod": {
-            "type": "string",
+            "type": "int",
             "widgetType": "text",
-            "label": "Lock-In Period (For ELSS or special structures)",
-            "placeholderText": "3 years",
+            "label": "Lock-In Period in Months (For ELSS or special structures)",
+            "placeholderText": "3",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -3580,7 +3580,7 @@
               "value": "Close-ended"
             }
           },
-          "initialNetAssetValue": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Initial Net Asset Value (NAV)",
@@ -3641,10 +3641,10 @@
             "public": true
           },
           "lockInPeriod": {
-            "type": "string",
+            "type": "int",
             "widgetType": "text",
-            "label": "Lock-In Period (For ELSS or special structures)",
-            "placeholderText": "3 years",
+            "label": "Lock-In Period in Months (For ELSS or special structures)",
+            "placeholderText": "3",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -3846,10 +3846,10 @@
             "public": true
           },
           "portfolioLockInPeriod": {
-            "type": "string",
+            "type": "int",
             "widgetType": "text",
-            "label": "Lock-in Period",
-            "placeholderText": "e.g. 6 months",
+            "label": "Lock-in Period (in Months)",
+            "placeholderText": "6 ",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4062,7 +4062,7 @@
             "widgetType": "text",
             "label": "Fund Type",
             "placeholderText": "Mutual Fund",
-            "value": null,
+            "value": "Hybrid Mutual Fund",
             "options": [],
             "isFiat": false,
             "required": true,
@@ -4077,9 +4077,7 @@
             "options": [
               "Open-ended",
               "Close-ended",
-              "Interval Fund",
-              "",
-              "Dummy Text2"
+              "Interval Fund"
             ],
             "isFiat": false,
             "required": true,
@@ -4154,8 +4152,8 @@
           "exitLoadRedemptionFee": {
             "type": "double",
             "widgetType": "text",
-            "label": "Exit Load / Redemption Fee (Fee charged on redemption within specific period)",
-            "placeholderText": "20,000",
+            "label": "Exit Load / Redemption Fee in % (Fee charged on redemption within specific period)",
+            "placeholderText": "10%",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4184,7 +4182,7 @@
               "value": "Close-ended"
             }
           },
-          "initialNetAssetValue": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Initial Net Asset Value (NAV)",
@@ -4197,11 +4195,11 @@
           },
           "navUpdateFrequency": {
             "type": "string",
-            "widgetType": "text",
+            "widgetType": "dropdown",
             "label": "NAV Update Frequency",
             "placeholderText": "Daily",
             "value": null,
-            "options": [],
+            "options": ["Daily", "Weekly", "Monthly"],
             "isFiat": false,
             "required": true,
             "public": true
@@ -4240,10 +4238,10 @@
             "public": true
           },
           "lockInPeriod": {
-            "type": "string",
+            "type": "int",
             "widgetType": "text",
-            "label": "Lock-In Period (For ELSS or special structures)",
-            "placeholderText": "3 years",
+            "label": "Lock-In Period in Months (For ELSS or special structures)",
+            "placeholderText": "3",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4253,7 +4251,7 @@
           "entryLoad": {
             "type": "double",
             "widgetType": "text",
-            "label": "Entry Load (Fee charged at time of purchase)",
+            "label": "Entry Load in % (Fee charged at time of purchase)",
             "placeholderText": "1.0%",
             "value": null,
             "options": [],
@@ -4280,9 +4278,7 @@
             "value": null,
             "options": [
               "Growth",
-              "Income",
-              "Dummy Text2",
-              ""
+              "Income"
             ],
             "isFiat": false,
             "required": true,
@@ -4290,11 +4286,11 @@
           },
           "fundRiskRating": {
             "type": "string",
-            "widgetType": "text",
+            "widgetType": "dropdown",
             "label": "Fund Risk Rating (External)",
             "placeholderText": "e.g. Low, Medium, High",
             "value": null,
-            "options": [],
+            "options": ["Low", "Medium", "High"],
             "isFiat": false,
             "required": false,
             "public": true
@@ -4442,10 +4438,10 @@
             "required": true
           },
           "portfolioLockInPeriod": {
-            "type": "string",
+            "type": "int",
             "widgetType": "text",
-            "label": "Lock-in Period (Portfolio)",
-            "placeholderText": "2 years",
+            "label": "Lock-in Period in Months (Portfolio)",
+            "placeholderText": "2",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4454,7 +4450,7 @@
           "portfolioPerformanceFee": {
             "type": "double",
             "widgetType": "text",
-            "label": "Performance Fee",
+            "label": "Performance Fee in % (Portfolio)",
             "placeholderText": "20% of profits above benchmark",
             "value": null,
             "options": [],
@@ -4473,8 +4469,7 @@
               "Growth",
               "Income",
               "Thematic",
-              "Index",
-              "Dummy Text2"
+              "Index"
             ],
             "isFiat": false,
             "required": true,
@@ -4490,8 +4485,7 @@
               "Large-cap",
               "Mid-cap",
               "Small-cap",
-              "Mixed",
-              "Dummy Text2"
+              "Mixed"
             ],
             "isFiat": false,
             "required": true,
@@ -4551,7 +4545,7 @@
           "volatilityEstimate": {
             "type": "double",
             "widgetType": "text",
-            "label": "Volatility Estimate (Standard deviation or beta)",
+            "label": "Volatility Estimate in % (Standard deviation or beta)",
             "placeholderText": "15% annualized",
             "value": null,
             "options": [],
@@ -4590,11 +4584,11 @@
           },
           "rebalancingFrequency": {
             "type": "string",
-            "widgetType": "text",
+            "widgetType": "dropdown",
             "label": "Rebalancing Frequency",
-            "placeholderText": "Semi-Annual",
+            "placeholderText": "Select rebalancing frequency",
             "value": null,
-            "options": [],
+            "options": ["Monthly", "Quarterly", "Annual", "As-needed"],
             "isFiat": false,
             "required": true
           },
@@ -4610,7 +4604,7 @@
           },
           "topEquityHoldings": {
             "type": "string",
-            "widgetType": "text",
+            "widgetType": "longtext",
             "label": "Top Equity Holdings",
             "placeholderText": "Apple, Amazon, Facebook",
             "value": null,
@@ -4620,7 +4614,7 @@
           },
           "topDebtHoldings": {
             "type": "string",
-            "widgetType": "text",
+            "widgetType": "longtext",
             "label": "Top Debt Holdings",
             "placeholderText": "US Treasury Bonds, Corporate Bonds",
             "value": null,
@@ -4631,7 +4625,7 @@
           "dividendYield": {
             "type": "double",
             "widgetType": "text",
-            "label": "Dividend Yield (Equity)",
+            "label": "Dividend Yield in % (Equity)",
             "placeholderText": "3.5%",
             "value": null,
             "options": [],
@@ -4660,7 +4654,7 @@
           "yieldToMaturityHybrid": {
             "type": "double",
             "widgetType": "text",
-            "label": "Yield to Maturity (Hybrid)",
+            "label": "Yield to Maturity in % (Hybrid)",
             "placeholderText": "7.1",
             "value": null,
             "options": [],
@@ -5231,8 +5225,8 @@
           "holdingLockinPeriod": {
             "type": "int",
             "widgetType": "text",
-            "label": "Holding/Lock-in Period",
-            "placeholderText": "2 years",
+            "label": "Holding/Lock-in Period (in months)",
+            "placeholderText": "2",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -6250,6 +6244,1810 @@
             "description": "Signed declaration confirming asset authenticity and ownership",
             "fileType": "file",
             "required": true,
+            "public": false
+          }
+        ]
+      }
+    }
+  },
+  "1": {
+    "fields": {
+      "0": {
+        "sectionName": "Basic Information",
+        "description": "",
+        "body": {
+          "assetName": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Asset Name",
+            "placeholderText": "AA Farms",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Asset Description",
+            "placeholderText": "24K refined gold bars",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectStrategicObjectives": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Strategic Objectives",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectScope": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Scope",
+            "placeholderText": "Grade A",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "1": {
+        "sectionName": "Project Timeline",
+        "description": "Please provide the following information about the project's relevant dates",
+        "body": {
+          "projectDevelopmentTimeline": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Project Development Timeline (in months)",
+            "placeholderText": "Time to go live in months",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": false
+          },
+          "estimatedProjectPaybackPeriodsInMonths": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Project Estimated Payback Period (in Months)",
+            "placeholderText": "20",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectKeyMilestoneAndDates": {
+            "type": "string",
+            "widgetType": "list",
+            "label": "5 Key Milestones & Dates",
+            "placeholderText": "Atleast 5 milestones",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "2": {
+        "sectionName": "Project Benefits",
+        "description": "Please provide the following information about the project's benefits",
+        "body": {
+          "projectEconomicBenefits": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Economic Benefits",
+            "placeholderText": "Enter intended economic benefits",
+            "value": null,
+            "options": [],
+            "isFiat": true
+          },
+          "projectExpectedNoOfJobs": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Expected No. of Job to be Created",
+            "placeholderText": "Enter number of jobs",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": false
+          },
+          "projectIntendedSocialBenefits": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Intended Social Benefits",
+            "placeholderText": "Enter intended social benefits",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "3": {
+        "sectionName": "Partners",
+        "description": "Please provide the following information about the project's partners if any",
+        "body": {
+          "projectTechnicalPartners": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Technical Partners",
+            "placeholderText": "Enter name of technical partners",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectFinancialPartners": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Financial Partners",
+            "placeholderText": "Enter details of financial partners",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "4": {
+        "sectionName": "Asset Location",
+        "description": "Please provide the following information about the asset's location",
+        "body": {
+          "assetPhysicalAddress": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Asset Physical Address",
+            "placeholderText": "Asset physical address",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "latitude": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Google Map Latitude",
+            "placeholderText": "Latitude coordinate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "longitude": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Google Map Longitude",
+            "placeholderText": "Longitude coordinate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "5": {
+        "sectionName": "Asset Value & Financing",
+        "description": "Please provide the following information about the asset value",
+        "body": {
+          "currentValueOfAsset": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "What is the Total Estimated Project Budget",
+            "placeholderText": "How much?",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "percentageFromPromoters": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "How Much Equity is Contributed by Promoters (%)",
+            "placeholderText": "How much (%)",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetOwnerRetainedOrContributedValue": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Value of the Equity Contributed by the Promoter(s)",
+            "placeholderText": "How much (%)",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "6": {
+        "sectionName": "Asset Financial Performance",
+        "description": "Provide projections of your project’s future financial performance to help assess the viability and potential growth trajectory of your project",
+        "body": {
+          "estimatedProjectIRR": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project IRR (in %)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectROI": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project ROI in 5 years (in %)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectNPV": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project NPV at Launch (Day 1)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectPaybackPeriodsInMonths": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Estimated Project Payback Periods?",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "keyAssumptionsList": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "List all Key Assumptions Including Values Assumed (If any)",
+            "placeholderText": "List all key assumptions",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "7": {
+        "sectionName": "Project Risk Assessment",
+        "description": "Outline the types of risks you anticipate, their likelihood and potential impact, This assessment will help us understand your risk management approach and consider how these factors may influence project outcomes.",
+        "body": {
+          "projectIdentifiedLegalRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Legal Risks Identified (Provide Details)",
+            "placeholderText": "Enter legal risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedRegulatoryRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Regulatory Risks Identified (Provide Details)",
+            "placeholderText": "Enter regulatory risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOperationalOrExecutionRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Operational/Execution Risks Identified (Provide Details)",
+            "placeholderText": "Enter operational/execution risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedMarketRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Market Risks Identified (Provide Details)",
+            "placeholderText": "Enter market risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOtherRelevantRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Other Relevant Risks Identified (Provide Details)",
+            "placeholderText": "Enter other relevant risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "8": {
+        "sectionName": "Asset Protection In Place",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {          
+        }
+      },
+      "9": {
+        "sectionName": "Asset Protection In Place",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {          
+        }
+      },
+      "10": {
+        "sectionName": "Debt Instrument Structure",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {    
+          "projectIdentifiedLegalRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Legal Risks Identified (Provide Details)",
+            "placeholderText": "Enter legal risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedRegulatoryRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Regulatory Risks Identified (Provide Details)",
+            "placeholderText": "Enter regulatory risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOperationalOrExecutionRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Operational/Execution Risks Identified (Provide Details)",
+            "placeholderText": "Enter operational/execution risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedMarketRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Market Risks Identified (Provide Details)",
+            "placeholderText": "Enter market risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOtherRelevantRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Other Relevant Risks Identified (Provide Details)",
+            "placeholderText": "Enter other relevant risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }      
+        }
+      }
+    },
+    "documents": {
+      "0": {
+        "sectionName": "Supporting Documents",
+        "files": [
+          {
+            "name": "Proof of Asset Existence",
+            "documentType": "ProofOfAssetExistence",
+            "description": "(e.g. Inspection reports from independent auditors, photographs, operational reports utility bills, ets)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Asset Address",
+            "documentType": "ProofOfAssetAddress",
+            "description": "(e.g. utility bills, title deed, property tax receipt showing the address survey plan, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Ownership",
+            "documentType": "ProofOfAssetOwnership",
+            "description": "(e.g. Title Deed, Certificate of Ownership, Inheritance documents, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Title deeds or certificates",
+            "documentType": "TitleDeedsOrCertificates",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Original Ownership Agreements",
+            "documentType": "OwnershipAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset Status Verification",
+            "documentType": "AssetStatusVerification",
+            "description": "(any document that confirms the current operational or legal status of the asset (e.g., active, operational, under construction, or dormant)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Asset’s Condition",
+            "documentType": "ProofOfAssetCondtion",
+            "description": "(e.g. Inspection reports from independent auditors, Appraisal reports etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Government issued ID  of original asset owner(s) or authorized representatives",
+            "documentType": "AssetOwnerGovernmentID",
+            "description": "(e.g. National ID, International Passport, Driver's License, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Infrastructure inspection reports",
+            "documentType": "InfrastructureInspectionReports",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Maintenance records",
+            "documentType": "MaintenanceRecords",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset financial performance report",
+            "documentType": "AssetFinancialPerformanceReport",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Compliance with Local Laws and Regulation",
+            "documentType": "ComplianceWithLocalRegulation",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Compliance with Environmental Standards and Regulations",
+            "documentType": "ComplianceWithEnvironmentalStandard",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Statutory licenses and permits/compliance certificates",
+            "documentType": "StatutoryLicensesAndPermits",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Proposal Concept Note/Business Case",
+            "documentType": "ProjectConceptNote",
+            "description": "Provides an overview of the project, including its objectives, scope, location, and expected benefits.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Market Analysis",
+            "documentType": "MarketAnalysis",
+            "description": "Evaluates the demand, supply, and competitive landscape for the project's services or products.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Feasibility Study",
+            "documentType": "FeasibilityStudy",
+            "description": "Assesses the technical, economic, financial, and legal feasibility of the project.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Business Plan",
+            "documentType": "BusinessPlan",
+            "description": "Outlines the project's business model, revenue streams, market analysis, competitive landscape, and financial projections)",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Financial Model",
+            "documentType": "ProjectFinancialModel",
+            "description": "Detailed evaluation of the financial viability, projections of revenue, expenses, cash flow,  profitability, etc. over the project's lifecycle.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Contracts",
+            "documentType": "ProjectContracts",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Permits,",
+            "documentType": "ProjectPermits",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Licenses",
+            "documentType": "ProjectLicenses",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Regulatory approvals",
+            "documentType": "RegulatoryApprovals",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Detailed plans",
+            "documentType": "ProjectDetailedPlans",
+            "description": "Construction Plans and Specifications for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Drawings",
+            "documentType": "Construction Plans and Specifications for development, construction, and operation",
+            "description": "ProjectDrawings",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Specifications",
+            "documentType": "ProjectSpecifications",
+            "description": "Construction Plans and Specifications for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Site Survey Reports",
+            "documentType": "SiteSurveyReports",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Environmental and Social Impact Assessment (ESIA)",
+            "documentType": "EnvironmentalImpactAssessmentReport",
+            "description": "Evaluates the project's potential environmental impact, along with proposed mitigation measures.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Risk Management Plan",
+            "documentType": "RiskManagementPlan",
+            "description": "Identifies and assesses potential risks associated with the project and outlines strategies for risk mitigation.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Operational Plans and Procedures",
+            "documentType": "OperationalPlansProcedures",
+            "description": "Describes how the infrastructure will be operated, managed, and maintained once completed",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Timeline",
+            "documentType": "ProjectTimeline",
+            "description": "The schedule of key milestones, construction phases, and expected completion dates.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project developers",
+            "documentType": "ProjectDevelopers",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Contractors",
+            "documentType": "ProjectContractors",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Consultants",
+            "documentType": "ProjectConsultants",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Other key stakeholders involved in the project.",
+            "documentType": "OtherKeyStakeholdersInvolved",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Regulatory and Compliance Documentation",
+            "documentType": "ComplianceDocumentation",
+            "description": "Document demonstrating compliance with relevant laws, regulations, and industry standards.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Insurance Policies",
+            "documentType": "InsurancePolicyUpload",
+            "description": "Documents showing details of insurance coverage for the project, including liability, construction, and operational risks.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Third-Party Reports and Due Diligence",
+            "documentType": "ThirdPartyDueDiligenceReports",
+            "description": "Independent reports, studies, and due diligence assessments conducted by third-party experts.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset Valuation Certificate from licensed appraisers",
+            "documentType": "AssetValuationCertificate",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Additional Cost Incurred Outside Valuation",
+            "documentType": "ProofOfAdditionalCosts",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          }, 
+          {
+            "name": "Approved Project Budget",
+            "documentType": "ApprovedProjectBudget",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          }, 
+          {
+            "name": "Proof of Equity Contribution from Promoters",
+            "documentType": "ProofOfEquityContribution",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },          
+          {
+            "name": "Insurance policies",
+            "documentType": "InsurancePolicyUpload",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Revenue Guarantees",
+            "documentType": "RevenueGuarantees",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Performance Bond",
+            "documentType": "PerformanceBond",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Service Level Agreements",
+            "documentType": "ServiceLevelAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Public Private Partnerships (PPPs) agreement",
+            "documentType": "PPPAgreement",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Hedging Instruments",
+            "documentType": "HedgingInstruments",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Completion Guarantees",
+            "documentType": "CompletionGuarantees",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Independent Monitoring Engagement Agreements for Indipendent engineers or auditors to monotor project imlementation and operations",
+            "documentType": "MonitoringEngagementAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Sustainability Certifications",
+            "documentType": "SustainabilityCertifications",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Community Engagement Plans",
+            "documentType": "CommunityEngagementPlans",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Security measures documentation (optional)",
+            "documentType": "SecurityMeasuresDocumentation",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Legal Advisors Contact/Proof",
+            "documentType": "LegalAdvisorsContact",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Financial Advisors Contact/Proof",
+            "documentType": "FinancialAdvisorsContact",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of all liens, mortgages, and outstanding loans.",
+            "documentType": "ProofOfLiensLoans",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.",
+            "documentType": "ProofOfUnpaidPropertyExpenses",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of hidden liabilities or obligations that have not been disclosed.",
+            "documentType": "ProofOfHiddenLiabilities",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of unresolved structural, maintenance, or safety issues.",
+            "documentType": "ProofOfUnresolvedIssues",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          }
+        ]
+      }
+    }
+  },
+  "2": {
+    "fields": {
+      "0": {
+        "sectionName": "Basic Information",
+        "description": "",
+        "body": {
+          "assetName": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Asset Name",
+            "placeholderText": "AA Farms",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Asset Description",
+            "placeholderText": "24K refined gold bars",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectStrategicObjectives": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Strategic Objectives",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectScope": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Scope",
+            "placeholderText": "Grade A",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "1": {
+        "sectionName": "Project Timeline",
+        "description": "Please provide the following information about the project's relevant dates",
+        "body": {
+          "projectDevelopmentTimeline": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Project Development Timeline (in months)",
+            "placeholderText": "Time to go live in months",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": false
+          },
+          "estimatedProjectPaybackPeriodsInMonths": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Project Estimated Payback Period (in Months)",
+            "placeholderText": "20",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectKeyMilestoneAndDates": {
+            "type": "string",
+            "widgetType": "list",
+            "label": "5 Key Milestones & Dates",
+            "placeholderText": "Atleast 5 milestones",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "2": {
+        "sectionName": "Project Benefits",
+        "description": "Please provide the following information about the project's benefits",
+        "body": {
+          "projectEconomicBenefits": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Economic Benefits",
+            "placeholderText": "Enter intended economic benefits",
+            "value": null,
+            "options": [],
+            "isFiat": true
+          },
+          "projectExpectedNoOfJobs": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Expected No. of Job to be Created",
+            "placeholderText": "Enter number of jobs",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": false
+          },
+          "projectIntendedSocialBenefits": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Project Intended Social Benefits",
+            "placeholderText": "Enter intended social benefits",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }          
+        }
+      },
+      "3": {
+        "sectionName": "Partners",
+        "description": "Please provide the following information about the project's partners if any",
+        "body": {
+          "projectTechnicalPartners": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Technical Partners",
+            "placeholderText": "Enter name of technical partners",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectFinancialPartners": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Financial Partners",
+            "placeholderText": "Enter details of financial partners",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "4": {
+        "sectionName": "Asset Location",
+        "description": "Please provide the following information about the asset's location",
+        "body": {
+          "assetPhysicalAddress": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Asset Physical Address",
+            "placeholderText": "Asset physical address",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "latitude": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Google Map Latitude",
+            "placeholderText": "Latitude coordinate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "longitude": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Google Map Longitude",
+            "placeholderText": "Longitude coordinate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "5": {
+        "sectionName": "Asset Value & Financing",
+        "description": "Please provide the following information about the asset value",
+        "body": {
+          "currentValueOfAsset": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "What is the Total Estimated Project Budget",
+            "placeholderText": "How much?",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "percentageFromPromoters": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "How Much Equity is Contributed by Promoters (%)",
+            "placeholderText": "How much (%)",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetOwnerRetainedOrContributedValue": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Value of the Equity Contributed by the Promoter(s)",
+            "placeholderText": "How much (%)",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "6": {
+        "sectionName": "Asset Financial Performance",
+        "description": "Provide projections of your project’s future financial performance to help assess the viability and potential growth trajectory of your project",
+        "body": {
+          "estimatedProjectIRR": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project IRR (in %)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectROI": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project ROI in 5 years (in %)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectNPV": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Estimated Project NPV at Launch (Day 1)",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "estimatedProjectPaybackPeriodsInMonths": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Estimated Project Payback Periods?",
+            "placeholderText": "Enter estimate",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "keyAssumptionsList": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "List all Key Assumptions Including Values Assumed (If any)",
+            "placeholderText": "List all key assumptions",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "7": {
+        "sectionName": "Project Risk Assessment",
+        "description": "Outline the types of risks you anticipate, their likelihood and potential impact, This assessment will help us understand your risk management approach and consider how these factors may influence project outcomes.",
+        "body": {
+          "projectIdentifiedLegalRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Legal Risks Identified (Provide Details)",
+            "placeholderText": "Enter legal risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedRegulatoryRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Regulatory Risks Identified (Provide Details)",
+            "placeholderText": "Enter regulatory risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOperationalOrExecutionRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Operational/Execution Risks Identified (Provide Details)",
+            "placeholderText": "Enter operational/execution risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedMarketRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Market Risks Identified (Provide Details)",
+            "placeholderText": "Enter market risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOtherRelevantRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Other Relevant Risks Identified (Provide Details)",
+            "placeholderText": "Enter other relevant risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
+        }
+      },
+      "8": {
+        "sectionName": "Asset Protection In Place",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {          
+        }
+      },
+      "9": {
+        "sectionName": "Asset Protection In Place",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {          
+        }
+      },
+      "10": {
+        "sectionName": "Debt Instrument Structure",
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "body": {    
+          "projectIdentifiedLegalRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Legal Risks Identified (Provide Details)",
+            "placeholderText": "Enter legal risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedRegulatoryRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Regulatory Risks Identified (Provide Details)",
+            "placeholderText": "Enter regulatory risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOperationalOrExecutionRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Operational/Execution Risks Identified (Provide Details)",
+            "placeholderText": "Enter operational/execution risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedMarketRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Market Risks Identified (Provide Details)",
+            "placeholderText": "Enter market risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "projectIdentifiedOtherRelevantRisks": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Other Relevant Risks Identified (Provide Details)",
+            "placeholderText": "Enter other relevant risks identified",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }      
+        }
+      }
+    },
+    "documents": {
+      "0": {
+        "sectionName": "Supporting Documents",
+        "files": [
+          {
+            "name": "Proof of Asset Existence",
+            "documentType": "ProofOfAssetExistence",
+            "description": "(e.g. Inspection reports from independent auditors, photographs, operational reports utility bills, ets)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Asset Address",
+            "documentType": "ProofOfAssetAddress",
+            "description": "(e.g. utility bills, title deed, property tax receipt showing the address survey plan, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Ownership",
+            "documentType": "ProofOfAssetOwnership",
+            "description": "(e.g. Title Deed, Certificate of Ownership, Inheritance documents, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Title deeds or certificates",
+            "documentType": "TitleDeedsOrCertificates",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Original Ownership Agreements",
+            "documentType": "OwnershipAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset Status Verification",
+            "documentType": "AssetStatusVerification",
+            "description": "(any document that confirms the current operational or legal status of the asset (e.g., active, operational, under construction, or dormant)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Proof of Asset’s Condition",
+            "documentType": "ProofOfAssetCondtion",
+            "description": "(e.g. Inspection reports from independent auditors, Appraisal reports etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Government issued ID  of original asset owner(s) or authorized representatives",
+            "documentType": "AssetOwnerGovernmentID",
+            "description": "(e.g. National ID, International Passport, Driver's License, etc.)",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Infrastructure inspection reports",
+            "documentType": "InfrastructureInspectionReports",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Maintenance records",
+            "documentType": "MaintenanceRecords",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset financial performance report",
+            "documentType": "AssetFinancialPerformanceReport",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Compliance with Local Laws and Regulation",
+            "documentType": "ComplianceWithLocalRegulation",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Compliance with Environmental Standards and Regulations",
+            "documentType": "ComplianceWithEnvironmentalStandard",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Statutory licenses and permits/compliance certificates",
+            "documentType": "StatutoryLicensesAndPermits",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Proposal Concept Note/Business Case",
+            "documentType": "ProjectConceptNote",
+            "description": "Provides an overview of the project, including its objectives, scope, location, and expected benefits.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Market Analysis",
+            "documentType": "MarketAnalysis",
+            "description": "Evaluates the demand, supply, and competitive landscape for the project's services or products.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Feasibility Study",
+            "documentType": "FeasibilityStudy",
+            "description": "Assesses the technical, economic, financial, and legal feasibility of the project.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Business Plan",
+            "documentType": "BusinessPlan",
+            "description": "Outlines the project's business model, revenue streams, market analysis, competitive landscape, and financial projections)",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Financial Model",
+            "documentType": "ProjectFinancialModel",
+            "description": "Detailed evaluation of the financial viability, projections of revenue, expenses, cash flow,  profitability, etc. over the project's lifecycle.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Contracts",
+            "documentType": "ProjectContracts",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Permits,",
+            "documentType": "ProjectPermits",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Licenses",
+            "documentType": "ProjectLicenses",
+            "description": "Legal Documentation for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Regulatory approvals",
+            "documentType": "RegulatoryApprovals",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Detailed plans",
+            "documentType": "ProjectDetailedPlans",
+            "description": "Construction Plans and Specifications for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Drawings",
+            "documentType": "Construction Plans and Specifications for development, construction, and operation",
+            "description": "ProjectDrawings",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Specifications",
+            "documentType": "ProjectSpecifications",
+            "description": "Construction Plans and Specifications for development, construction, and operation",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Site Survey Reports",
+            "documentType": "SiteSurveyReports",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Environmental and Social Impact Assessment (ESIA)",
+            "documentType": "EnvironmentalImpactAssessmentReport",
+            "description": "Evaluates the project's potential environmental impact, along with proposed mitigation measures.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Risk Management Plan",
+            "documentType": "RiskManagementPlan",
+            "description": "Identifies and assesses potential risks associated with the project and outlines strategies for risk mitigation.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Operational Plans and Procedures",
+            "documentType": "OperationalPlansProcedures",
+            "description": "Describes how the infrastructure will be operated, managed, and maintained once completed",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project Timeline",
+            "documentType": "ProjectTimeline",
+            "description": "The schedule of key milestones, construction phases, and expected completion dates.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Project developers",
+            "documentType": "ProjectDevelopers",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Contractors",
+            "documentType": "ProjectContractors",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Consultants",
+            "documentType": "ProjectConsultants",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Other key stakeholders involved in the project.",
+            "documentType": "OtherKeyStakeholdersInvolved",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Regulatory and Compliance Documentation",
+            "documentType": "ComplianceDocumentation",
+            "description": "Document demonstrating compliance with relevant laws, regulations, and industry standards.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Insurance Policies",
+            "documentType": "InsurancePolicyUpload",
+            "description": "Documents showing details of insurance coverage for the project, including liability, construction, and operational risks.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Third-Party Reports and Due Diligence",
+            "documentType": "ThirdPartyDueDiligenceReports",
+            "description": "Independent reports, studies, and due diligence assessments conducted by third-party experts.",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Asset Valuation Certificate from licensed appraisers",
+            "documentType": "AssetValuationCertificate",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Proof of Additional Cost Incurred Outside Valuation",
+            "documentType": "ProofOfAdditionalCosts",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },          
+          {
+            "name": "Insurance policies",
+            "documentType": "InsurancePolicyUpload",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Revenue Guarantees",
+            "documentType": "RevenueGuarantees",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Performance Bond",
+            "documentType": "PerformanceBond",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Service Level Agreements",
+            "documentType": "ServiceLevelAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Public Private Partnerships (PPPs) agreement",
+            "documentType": "PPPAgreement",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Hedging Instruments",
+            "documentType": "HedgingInstruments",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Completion Guarantees",
+            "documentType": "CompletionGuarantees",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Independent Monitoring Engagement Agreements for Indipendent engineers or auditors to monotor project imlementation and operations",
+            "documentType": "MonitoringEngagementAgreements",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Sustainability Certifications",
+            "documentType": "SustainabilityCertifications",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Community Engagement Plans",
+            "documentType": "CommunityEngagementPlans",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Security measures documentation (optional)",
+            "documentType": "SecurityMeasuresDocumentation",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Legal Advisors Contact/Proof",
+            "documentType": "LegalAdvisorsContact",
+            "description": "",
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Financial Advisors Contact/Proof",
+            "documentType": "FinancialAdvisorsContact",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of all liens, mortgages, and outstanding loans.",
+            "documentType": "ProofOfLiensLoans",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.",
+            "documentType": "ProofOfUnpaidPropertyExpenses",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of hidden liabilities or obligations that have not been disclosed.",
+            "documentType": "ProofOfHiddenLiabilities",
+            "description": "",
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Proof of unresolved structural, maintenance, or safety issues.",
+            "documentType": "ProofOfUnresolvedIssues",
+            "description": "",
+            "fileType": "file",
+            "required": false,
             "public": false
           }
         ]

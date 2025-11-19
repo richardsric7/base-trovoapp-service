@@ -37,7 +37,8 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with TickerProviderStateMixin {
+class _HomeState extends State<Home>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late ColorNotifier notifier;
   late RefreshController _refreshController;
   late DataProvider appState;
@@ -61,6 +62,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   };
   final Authenticator _authenticator = Authenticator();
   bool showNewUserView = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -115,6 +119,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;

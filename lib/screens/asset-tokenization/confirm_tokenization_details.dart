@@ -186,20 +186,23 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}',
                         ),
                         SizedBox(height: height / 90),
-                        item(
-                          "Percentage Retained",
-                          '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%',
-                        ),
-                        SizedBox(height: height / 90),
-                        item(
-                          "Value Retained",
-                          '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}',
-                        ),
-                        SizedBox(height: height / 90),
-                        item(
-                          "Additional Cost",
-                          '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}',
-                        ),
+                        if (tokenizedAsset.assetSector!.toLowerCase() !=
+                            'finance and investment markets') ...{
+                          item(
+                            "Percentage Retained",
+                            '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%',
+                          ),
+                          SizedBox(height: height / 90),
+                          item(
+                            "Value Retained",
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}',
+                          ),
+                          SizedBox(height: height / 90),
+                          item(
+                            "Additional Cost",
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}',
+                          ),
+                        },
                       ] else ...[
                         item(
                           "Project Budget",

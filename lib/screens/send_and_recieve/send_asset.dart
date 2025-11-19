@@ -609,7 +609,11 @@ class _DestinationTextInputState extends State<DestinationTextInput> {
                     },
                     child: Row(
                       children: [
-                        Text(wallets[index].alias!, textAlign: TextAlign.start),
+                        Text(
+                          wallets[index].alias!,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(color: notifier.getbluewhitecolor),
+                        ),
                       ],
                     ),
                   );

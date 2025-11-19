@@ -61,6 +61,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
+  late bool acceptTokenizationTermsAndAgreement;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -96,7 +97,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetManager = data!["assetManagerId"].toString();
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
-
+      acceptTokenizationTermsAndAgreement =
+          data['acceptTokenizationTermsAndAgreement'] == 1;
       equityPercentageController.text = equityPercentage.toString();
       debtPercentageController.text = debtPercentage.toString();
       agreeTransferTitleToCustodian =
@@ -298,6 +300,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     );
                     selectedAssetSubSectorId = '';
                   });
+                  if (selectedAssetSectorId.toLowerCase() ==
+                      'finance and investment markets') {
+                    assetExisting = true;
+                  }
                 },
                 assetSectors,
                 selectedAssetSectorId.isEmpty ? null : selectedAssetSectorId,
@@ -1108,16 +1114,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                               ? notifier.getbluecolor50
                               : notifier.getbluecolor90,
                         ),
-                        value: agreeTransferTitleToCustodian,
+                        value: acceptTokenizationTermsAndAgreement,
                         onChanged: (bool? value) {
                           setState(() {
-                            agreeTransferTitleToCustodian = value!;
+                            acceptTokenizationTermsAndAgreement = value!;
                           });
                         },
                       );
                     },
                     validator: (value) {
-                      if (!agreeTransferTitleToCustodian) {
+                      if (!acceptTokenizationTermsAndAgreement) {
                         setState(() {
                           formHasError = true;
                         });
@@ -1138,7 +1144,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                           text: 'Tokenization Terms and Conditions',
                           style: TextStyle(
                             decoration: TextDecoration.underline,
-                            color: notifier.getbluewhitecolor,
+                            color:
+                                formHasError &&
+                                    !acceptTokenizationTermsAndAgreement
+                                ? Colors.red
+                                : notifier.getbluewhitecolor,
                             fontVariations: [FontVariation('wght', 700)],
                           ),
                           recognizer: TapGestureRecognizer()
@@ -1156,7 +1166,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
+                        color:
+                            formHasError && !acceptTokenizationTermsAndAgreement
+                            ? Colors.red
+                            : notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -1258,6 +1271,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       );
 
       if (responseData['statusCode'] == 200) {
+        appState.viewData = responseData['data'];
         await refreshCurrentTokenizationInfo(appState);
         await fetchBanksList();
         appState.currentAction = PageAction(

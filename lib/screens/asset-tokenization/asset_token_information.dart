@@ -55,7 +55,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late String additionalKYCRequirements;
   late bool investorAccreditationRequired;
   late bool capOnPurchase;
+  late bool attestInformationAccurateAndVerifiable;
+  late bool acknowledgedSuitabilityCriteria;
   late String walletToHoldAssetsNotForSale;
+  late String authorizedRepresentativeName;
+  late String authorizedRepresentativeTitleOrPosition;
+  late String authorizedRepresentativeEmail;
+  late String minimumKycTier;
+  late String investorCategory;
   late int bankId;
   late String accountNumber;
   late String beneficiaryName;
@@ -210,11 +217,35 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     return cycles;
   }
 
+  List<DropdownMenuItem<String>> get getInvestorCategory {
+    List<DropdownMenuItem<String>> categories = [];
+    ["Retail", "Qualified", "Institutional"].forEach((item) {
+      categories.add(
+        DropdownMenuItem(
+          child: Text(item, overflow: TextOverflow.ellipsis),
+          value: item,
+        ),
+      );
+    });
+    return categories;
+  }
+
+  List<DropdownMenuItem<String>> get getKYCTiers {
+    List<DropdownMenuItem<String>> tiers = [];
+    ["Tier 1", "Tier 2", "Tier 3"].forEach((item) {
+      tiers.add(
+        DropdownMenuItem(
+          child: Text(item, overflow: TextOverflow.ellipsis),
+          value: item,
+        ),
+      );
+    });
+    return tiers;
+  }
+
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    inspect(appState.viewData);
-    inspect(appState.tokenizationData);
     data = appState.viewData;
 
     for (
@@ -245,6 +276,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
         ? ''
         : data['walletToHoldAssetsNotForSale'].toString();
+
+    authorizedRepresentativeName = data['authorizedRepresentativeName'] ?? '';
+
+    authorizedRepresentativeTitleOrPosition =
+        data['authorizedRepresentativeTitleOrPosition'] ?? '';
+    authorizedRepresentativeEmail = data['authorizedRepresentativeEmail'] ?? '';
+
+    minimumKycTier = data['minimumKycTier'] ?? '';
+    investorCategory = data['investorCategory'] ?? '';
+
     assetCode = data['assetCode'];
     assetName = data['assetName'];
     accountNumber = data['accountNumber'];
@@ -259,6 +300,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? null
         : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
+    attestInformationAccurateAndVerifiable =
+        data['acceptTokenizationTermsAndAgreement'] == 1;
+    acknowledgedSuitabilityCriteria =
+        data['acceptTokenizationTermsAndAgreement'] == 1;
     capQuantity = double.parse(data['capQuantity'].toString());
     capAmountInFiat = double.parse(data['capAmountInFiat'].toString());
     capDurationInDays = data['capDurationInDays'];
@@ -933,57 +978,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               ),
               SizedBox(height: height / 50),
               if (capOnPurchase) ...[
-                // Row(
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //       child: Text(
-                //         "capquantity".tr(),
-                //         style: TextStyle(
-                //           fontSize: 12,
-                //           fontFamily: fontsemibold,
-                //           color: notifier.getbluewhitecolor,
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // SizedBox(
-                //   height: height / 50,
-                // ),
-                // Row(
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //       child: CustomTextFormField.textField(
-                //         "quantity".tr(),
-                //         notifier.getbluecolor,
-                //         null,
-                //         notifier.getgrey,
-                //         null,
-                //         notifier.getblck,
-                //         notifier.getgrey,
-                //         85,
-                //         300.sp,
-                //         controller: capQuantityController,
-                //         validator: (value) {
-                //           if (value.isEmpty) {
-                //             return "fieldcannotbeempty".tr();
-                //           }
-                //           return null;
-                //         },
-                //         onSaved: (value) {
-                //           setState(() {
-                //             capQuantity = double.parse(value!);
-                //           });
-                //         },
-                //         autoFormatNumber: true,
-                //         keyboardtype:
-                //             TextInputType.numberWithOptions(decimal: true),
-                //       ),
-                //     ),
-                //   ],
-                // ),
                 Row(
                   children: [
                     Padding(
@@ -1658,25 +1652,18 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      // walletToHoldAssetsNotForSale = value.toString();
+                      investorCategory = value.toString();
                     });
                   },
-                  getStandardWallets,
-                  getStandardWallets
-                          .where(
-                            (wallet) =>
-                                wallet.value == walletToHoldAssetsNotForSale,
-                          )
-                          .isEmpty
-                      ? null
-                      : walletToHoldAssetsNotForSale,
-                  'selectwallet'.tr(),
+                  getInvestorCategory,
+                  investorCategory.isEmpty ? null : investorCategory,
+                  'Select option',
                   context,
                   null,
                   validator: (value) {
-                    // if (value == null || value.toString().isEmpty) {
-                    //   return "fieldcannotbeempty".tr();
-                    // }
+                    if (value == null || value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
                     return null;
                   },
                 ),
@@ -1706,19 +1693,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      // walletToHoldAssetsNotForSale = value.toString();
+                      minimumKycTier = value.toString();
                     });
                   },
-                  getStandardWallets,
-                  getStandardWallets
-                          .where(
-                            (wallet) =>
-                                wallet.value == walletToHoldAssetsNotForSale,
-                          )
-                          .isEmpty
-                      ? null
-                      : walletToHoldAssetsNotForSale,
-                  'selectwallet'.tr(),
+                  getKYCTiers,
+                  minimumKycTier.isEmpty ? null : minimumKycTier,
+                  'Select option',
                   context,
                   null,
                   validator: (value) {
@@ -1756,11 +1736,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: checkBoxItem(
                       text:
                           "I acknowledge that I have reviewed the suitability criteria",
-                      value: investorAccreditationRequired,
+                      value: acknowledgedSuitabilityCriteria,
                       onChanged: (bool? value) {
                         setState(() {
-                          investorAccreditationRequired =
-                              !investorAccreditationRequired;
+                          acknowledgedSuitabilityCriteria =
+                              !acknowledgedSuitabilityCriteria;
                         });
                       },
                     ),
@@ -1814,10 +1794,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: beneficiaryName,
+                      initialValue: authorizedRepresentativeName,
                       onChanged: (value) {
                         setState(() {
-                          beneficiaryName = value;
+                          authorizedRepresentativeName = value;
                         });
                       },
                       validator: (value) {
@@ -1828,7 +1808,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          beneficiaryName = value!;
+                          authorizedRepresentativeName = value!;
                         });
                       },
                     ),
@@ -1865,10 +1845,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: beneficiaryName,
+                      initialValue: authorizedRepresentativeTitleOrPosition,
                       onChanged: (value) {
                         setState(() {
-                          beneficiaryName = value;
+                          authorizedRepresentativeTitleOrPosition = value;
                         });
                       },
                       validator: (value) {
@@ -1879,7 +1859,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          beneficiaryName = value!;
+                          authorizedRepresentativeTitleOrPosition = value!;
                         });
                       },
                     ),
@@ -1916,10 +1896,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       notifier.getgrey,
                       85,
                       300.sp,
-                      initialValue: beneficiaryName,
+                      initialValue: authorizedRepresentativeEmail,
                       onChanged: (value) {
                         setState(() {
-                          beneficiaryName = value;
+                          authorizedRepresentativeEmail = value;
                         });
                       },
                       validator: (value) {
@@ -1930,7 +1910,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          beneficiaryName = value!;
+                          authorizedRepresentativeEmail = value!;
                         });
                       },
                     ),
@@ -1945,29 +1925,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: checkBoxItem(
                       text:
                           "I attest that the information provided is accurate and verifiable",
-                      value: investorAccreditationRequired,
+                      value: attestInformationAccurateAndVerifiable,
                       onChanged: (bool? value) {
                         setState(() {
-                          investorAccreditationRequired =
-                              !investorAccreditationRequired;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Container(
-                    width: width / 1.09,
-                    child: checkBoxItem(
-                      text: "I accept the Tokenization Terms and Agreement",
-                      value: investorAccreditationRequired,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          investorAccreditationRequired =
-                              !investorAccreditationRequired;
+                          attestInformationAccurateAndVerifiable =
+                              !attestInformationAccurateAndVerifiable;
                         });
                       },
                     ),

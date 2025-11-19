@@ -841,30 +841,14 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getgreencolor,
+                activeTrackColor: notifier.getgreencolor,
                 value: notifier.getIsDark,
                 onChanged: (val) async {
                   final prefs = await SharedPreferences.getInstance();
                   setState(() {
                     notifier.setIsDark = val;
                     prefs.setBool("setIsDark", val);
-                    SystemChrome.setSystemUIOverlayStyle(
-                      SystemUiOverlayStyle(
-                        statusBarColor: notifier.isDark
-                            ? Color(0xFF00225A)
-                            : Colors.white,
-                        statusBarIconBrightness: notifier.isDark
-                            ? Brightness.light
-                            : Brightness.dark,
-                        systemNavigationBarColor: notifier.isDark
-                            ? Color(0xFF00225A)
-                            : Colors.white,
-                        systemNavigationBarIconBrightness: notifier.isDark
-                            ? Brightness.light
-                            : Brightness.dark,
-                        systemNavigationBarContrastEnforced: true,
-                      ),
-                    );
+                    setSystemChrome(notifier.isDark);
                   });
                 },
               ),

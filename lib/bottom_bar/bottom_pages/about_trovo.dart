@@ -48,7 +48,7 @@ class AboutTrovoView extends StatelessWidget {
                 SizedBox(
                   width: 300,
                   child: Text(
-                    'The Trovo App is a  decentralized, non-custodial platform for asset tokenization. It is a primary gateway for tokenized securities and features multi-signature wallets, multi-sub-wallets, and a range of advanced features for the secure storage and exchange of digital assets.',
+                    'The Trovo App is a decentralized, non-custodial platform for asset tokenization. It is a primary gateway for tokenized securities and features multi-signature wallets, multi-sub-wallets, and a range of advanced features for the secure storage and exchange of digital assets.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,

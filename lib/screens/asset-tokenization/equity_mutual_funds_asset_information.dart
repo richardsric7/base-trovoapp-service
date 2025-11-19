@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -153,7 +154,6 @@ class _EquityMutualFundsAssetInformationView
                       );
                     } else if (snapshot.hasData) {
                       formData = snapshot.data!;
-                      inspect(formData);
                       return Column(
                         children: [
                           for (var section in formData.entries) ...[
@@ -322,17 +322,14 @@ class _EquityMutualFundsAssetInformationView
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
-    // inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
       try {
         var formStr = responseData['data']['formString'];
         var first = jsonDecode(formStr);
         var jsonObj = first is String ? jsonDecode(first) : first;
-        inspect(jsonObj);
         return jsonObj['fields'];
       } catch (e) {
         print(e);
-        // inspect(e);
       }
     }
 
@@ -367,11 +364,6 @@ class _EquityMutualFundsAssetInformationView
   Timer? _timer;
 
   Widget getFormElement(MapEntry<dynamic, dynamic> item) {
-    if (item.key == 'fundInstrumentType') {
-      print(
-        'widget key ${item.key} ========> widget value ${item.value['value']} ====> ${data[item.key]}',
-      );
-    }
     switch (item.value['widgetType']) {
       case 'list':
         if (item.value['value'] == null) {
@@ -599,7 +591,7 @@ class _EquityMutualFundsAssetInformationView
                   },
                   onSaved: (value) {
                     setState(() {
-                      item.value['value'] = double.parse(value);
+                      item.value['value'] = double.tryParse(value) ?? 0;
                     });
                   },
                   autoFormatNumber: true,
@@ -613,7 +605,7 @@ class _EquityMutualFundsAssetInformationView
 
         if (item.value['type'] == 'int') {
           if (item.value['value'] == null) {
-            item.value['value'] = int.parse(data[item.key].toString());
+            item.value['value'] = int.tryParse(data[item.key].toString()) ?? 0;
           }
 
           if (item.value['controller'] == null) {
@@ -640,6 +632,10 @@ class _EquityMutualFundsAssetInformationView
                   85.sp,
                   300.sp,
                   validator: (value) {
+                    if (value.isNotEmpty && double.tryParse(value)! % 1 != 0) {
+                      return "Please enter a valid integer value";
+                    }
+
                     if (item.value['required'] != true) return null;
 
                     if (value.isEmpty) {
@@ -662,7 +658,7 @@ class _EquityMutualFundsAssetInformationView
                   },
                   autoFormatNumber: true,
                   controller: item.value['controller'],
-                  keyboardtype: TextInputType.numberWithOptions(decimal: true),
+                  keyboardtype: TextInputType.number,
                 ),
               ),
             ],
@@ -675,11 +671,11 @@ class _EquityMutualFundsAssetInformationView
               : data[item.key].toString();
         }
 
-        if (item.key == 'fundInstrumentType') {
-          print(
-            'widget key ${item.key} ========> widget value ${item.value['value']} ====> ${data[item.key]}',
-          );
-        }
+        // if (item.key == 'fundInstrumentType') {
+        //   print(
+        //     'widget key ${item.key} ========> widget value ${item.value['value']} ====> ${data[item.key]}',
+        //   );
+        // }
 
         return Row(
           children: [
@@ -747,7 +743,7 @@ class _EquityMutualFundsAssetInformationView
       }
 
       // Logger().i(newData);
-      // inspect(newData);
+      inspect(newData);
 
       String requestBody = jsonEncode(newData);
       Map responseData = await makePostRequest(
