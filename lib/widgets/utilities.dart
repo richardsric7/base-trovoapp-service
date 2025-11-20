@@ -1305,6 +1305,34 @@ extension DoubleFormat on double {
   }
 }
 
+Future<dynamic> fetchFormJson(String formId, DataProvider appState) async {
+  var uri = '/v1/forms/$formId';
+
+  Map responseData = await makeGetRequest(
+    uri: Uri.encodeFull(uri),
+    signer: appState.primaryWallet.signer!,
+    secretKey: appState.secretKeys[0], // the primary wallet secret key
+    publicKey: appState.primaryWallet.signer!,
+  );
+  inspect(responseData);
+  if (responseData['statusCode'] == 200) {
+    try {
+      var formStr = responseData['data']['formString'];
+      if (formStr.isEmpty) {
+        return {};
+      }
+
+      var first = jsonDecode(formStr);
+      var jsonObj = first is String ? jsonDecode(first) : first;
+      return jsonObj['fields'] ?? {};
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  return Future.error('Error fetching form data');
+}
+
 Future<void> refreshCurrentTokenizationInfo(DataProvider appState) async {
   try {
     var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';

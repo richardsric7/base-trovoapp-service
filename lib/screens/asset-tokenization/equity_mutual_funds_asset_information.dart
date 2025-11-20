@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -64,7 +63,7 @@ class _EquityMutualFundsAssetInformationView
     inspect(data);
     super.initState();
     getdarkmodepreviousstate();
-    formJsonFuture = fetchFormJson(appState.viewData?['assetType']);
+    formJsonFuture = fetchFormJson(appState.viewData?['assetType'], appState);
   }
 
   @override
@@ -130,6 +129,7 @@ class _EquityMutualFundsAssetInformationView
                                   setState(() {
                                     formJsonFuture = fetchFormJson(
                                       appState.viewData?['assetType'],
+                                      appState,
                                     );
                                   });
                                 },
@@ -313,29 +313,6 @@ class _EquityMutualFundsAssetInformationView
     );
   }
 
-  Future<dynamic> fetchFormJson(String formId) async {
-    var uri = '/v1/forms/$formId';
-
-    Map responseData = await makeGetRequest(
-      uri: Uri.encodeFull(uri),
-      signer: appState.primaryWallet.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
-    );
-    if (responseData['statusCode'] == 200) {
-      try {
-        var formStr = responseData['data']['formString'];
-        var first = jsonDecode(formStr);
-        var jsonObj = first is String ? jsonDecode(first) : first;
-        return jsonObj['fields'];
-      } catch (e) {
-        print(e);
-      }
-    }
-
-    return Future.error('Error fetching form data');
-  }
-
   bool checkConditions(MapEntry<dynamic, dynamic> item) {
     bool value = true;
     var condition = item.value['when'];
@@ -375,40 +352,66 @@ class _EquityMutualFundsAssetInformationView
                 item.value['value'].toString().isEmpty
             ? []
             : item.value['value'].toString().split(',');
-        return Column(
-          children: [
-            if (item.value['required'] == true && listItems.isEmpty) ...[
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'This field is required',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: Colors.red,
+        return FormField(
+          builder: (state) {
+            return Column(
+              children: [
+                if (state.hasError && listItems.isEmpty) ...[
+                  Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 20.w),
+                        child: Text(
+                          state.errorText!,
+                          style: TextStyle(
+                            color: const Color(0xFFC91104),
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
-              ),
-            ] else ...[
-              for (var it in listItems) ...[
-                SizedBox(height: height / 70),
-                listItem(
-                  item: it,
-                  onDelete: (val) {
-                    setState(() {
-                      listItems.removeWhere((i) => i == val);
-                      item.value['value'] = listItems.join(',');
-                    });
-                  },
-                ),
+                if (!state.hasError && listItems.isEmpty) ...[
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Text(
+                          'List items appear here',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  for (var it in listItems) ...[
+                    SizedBox(height: height / 70),
+                    listItem(
+                      item: it,
+                      onDelete: (val) {
+                        setState(() {
+                          listItems.removeWhere((i) => i == val);
+                          item.value['value'] = listItems.join(',');
+                        });
+                      },
+                    ),
+                  ],
+                ],
+                SizedBox(height: height / 50),
               ],
-            ],
-            SizedBox(height: height / 50),
-          ],
+            );
+          },
+          validator: (value) {
+            if (item.value['required'] == true && listItems.isEmpty) {
+              return "Please add at least one item here";
+            }
+            return null;
+          },
         );
       case 'datetime':
         if (item.value['value'] == null) {

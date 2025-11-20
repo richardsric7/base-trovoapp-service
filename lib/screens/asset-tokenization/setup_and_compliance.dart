@@ -1259,6 +1259,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data['fundingStructure'] = fundingStructure;
       data['equityPercentage'] = equityPercentage;
       data['debtPercentage'] = debtPercentage;
+      data['acceptTokenizationTermsAndAgreement'] =
+          acceptTokenizationTermsAndAgreement ? 1 : 0;
 
       String requestBody = jsonEncode(data);
 

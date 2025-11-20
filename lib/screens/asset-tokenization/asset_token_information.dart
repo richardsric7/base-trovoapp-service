@@ -57,6 +57,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late bool capOnPurchase;
   late bool attestInformationAccurateAndVerifiable;
   late bool acknowledgedSuitabilityCriteria;
+  late bool withholdingTaxDisclosure;
   late String walletToHoldAssetsNotForSale;
   late String authorizedRepresentativeName;
   late String authorizedRepresentativeTitleOrPosition;
@@ -313,6 +314,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? []
         : data['exemptedCountries'].toString().split(',');
     hasAdditionalKYCRequirements = data['hasAdditionalKYCRequirements'] == 1;
+    withholdingTaxDisclosure = data['withholdingTaxDisclosure'] == 1;
     proceedPayoutCurrency = data['proceedPayoutCurrency'];
     proceedPayoutType = data['proceedPayoutType'];
     assetQuoteCurrency = data['assetQuoteCurrency'];
@@ -1168,6 +1170,23 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   },
                 ),
               ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Container(
+                    width: width / 1.09,
+                    child: checkBoxItem(
+                      text: "Withholding Tax Disclosure",
+                      value: withholdingTaxDisclosure,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          withholdingTaxDisclosure = !withholdingTaxDisclosure;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
               SizedBox(height: height / 30),
               Row(
                 children: [
@@ -1918,23 +1937,61 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ],
               ),
               SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Container(
-                    width: width / 1.09,
-                    child: checkBoxItem(
-                      text:
-                          "I attest that the information provided is accurate and verifiable",
-                      value: attestInformationAccurateAndVerifiable,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          attestInformationAccurateAndVerifiable =
-                              !attestInformationAccurateAndVerifiable;
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              FormField(
+                builder: (state) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Transform.scale(
+                        scale: 1,
+                        child: Checkbox(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          ),
+                          activeColor: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                          side: BorderSide(
+                            color: notifier.isDark
+                                ? notifier.getbluecolor50
+                                : notifier.getbluecolor90,
+                          ),
+                          value: attestInformationAccurateAndVerifiable,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              attestInformationAccurateAndVerifiable = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: width / 1.2,
+                        child: RichText(
+                          text: TextSpan(
+                            text:
+                                "I attest that the information provided is accurate and verifiable",
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontFamily: fontbody,
+                              color:
+                                  state.hasError &&
+                                      !attestInformationAccurateAndVerifiable
+                                  ? Colors.red
+                                  : notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                validator: (value) {
+                  if (!attestInformationAccurateAndVerifiable) {
+                    return '';
+                  }
+
+                  return null;
+                },
               ),
               SizedBox(height: height / 30),
               Button(
@@ -2016,6 +2073,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['proceedCycle'] = proceedCycle;
       newData['walletToHoldAssetsNotForSale'] = walletToHoldAssetsNotForSale;
       newData['assetLogo'] = assetLogo;
+      newData['minimumKycTier'] = minimumKycTier;
+      newData['investorCategory'] = investorCategory;
       newData['exemptedCountries'] = exemptedCountries.join(',');
       newData['hasAdditionalKYCRequirements'] = hasAdditionalKYCRequirements
           ? 1
@@ -2027,7 +2086,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['investorAccreditationRequired'] = investorAccreditationRequired
           ? 1
           : 0;
+      newData['attestInformationAccurateAndVerifiable'] =
+          attestInformationAccurateAndVerifiable ? 0 : 1;
+      newData['acknowledgedSuitabilityCriteria'] =
+          acknowledgedSuitabilityCriteria ? 0 : 1;
+      newData['withholdingTaxDisclosure'] = withholdingTaxDisclosure ? 1 : 0;
       newData['tokenizationFeeId'] = tokenizationFeeId;
+      newData['authorizedRepresentativeName'] = authorizedRepresentativeName;
+      newData['authorizedRepresentativeTitleOrPosition'] =
+          authorizedRepresentativeTitleOrPosition;
+      newData['authorizedRepresentativeEmail'] = authorizedRepresentativeEmail;
 
       inspect(newData);
 

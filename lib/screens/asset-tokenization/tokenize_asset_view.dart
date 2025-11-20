@@ -163,7 +163,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                       );
                     } else if (snapshot.hasData) {
                       var documents = snapshot.data! as Map<dynamic, dynamic>;
-                      appState.viewData!['documents'] = documents;
 
                       int uploadedRequiredFileTypeCount = 0;
                       int requiredFilesCount = 0;
@@ -219,6 +218,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                 ? "continuee".tr()
                                 : "start".tr(),
                             onTap: () {
+                              appState.viewData!['documents'] = documents;
                               appState.currentAction = PageAction(
                                 state: PageState.addPage,
                                 page: AssetVerificationDocumentsViewPageConfig,
