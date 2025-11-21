@@ -2305,12 +2305,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		var subWalletInfo userModels.SubWalletInfo
+		var input userModels.ServiceLinkSubWalletInfo
 		// var err error
 
 		data, _ := io.ReadAll(c.Request.Body)
 
-		err = json.Unmarshal(data, &subWalletInfo)
+		err = json.Unmarshal(data, &input)
 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
@@ -2320,7 +2320,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/trovo-api/users/subwallet %v", signerUser.Username), gc.DB)
-
+		subWalletInfo := input.ToSubwalletInfo(gc)
 		returnedSubwalletInfo, err := userServices.CreateNewSubWallet(&signerUser, &subWalletInfo, gc)
 
 		if err != nil {
@@ -2343,8 +2343,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
-
-		c.JSON(http.StatusOK, returnedSubwalletInfo)
+		input = returnedSubwalletInfo.ToServiceLinkSubwalletInfo(gc)
+		c.JSON(http.StatusOK, input)
 	})
 
 	//Get tokenization parameters from service link

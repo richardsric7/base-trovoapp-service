@@ -543,6 +543,7 @@ type TokenizedAsset struct {
 	AcknowledgedSuitabilityCriteria              int                             `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
 	MinimumKycTier                               *string                         `json:"minimumKycTier"`
 	InvestorCategory                             *string                         `json:"investorCategory"`
+	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
 }
 
 type TokenizedAssetID string
@@ -963,6 +964,7 @@ type TokenizedAssetJSONInput struct {
 	AcknowledgedSuitabilityCriteria         int       `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
 	MinimumKycTier                          string    `json:"minimumKycTier"`
 	InvestorCategory                        string    `json:"investorCategory"`
+	WithholdingTaxDisclosure                int       `gorm:"default:0" json:"withholdingTaxDisclosure"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1473,6 +1475,7 @@ type TokenizedAssetJSON struct {
 	AcknowledgedSuitabilityCriteria              int                             `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
 	MinimumKycTier                               string                          `json:"minimumKycTier"`
 	InvestorCategory                             string                          `json:"investorCategory"`
+	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
 }
 
 type TokenizedAssetSector struct {
@@ -4252,6 +4255,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 		t.InvestorCategory = nil
 	}
 
+	t.WithholdingTaxDisclosure = ti.WithholdingTaxDisclosure
+
 	//////////
 
 	return *t
@@ -5715,6 +5720,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.InvestorCategory != nil {
 		t.InvestorCategory = *ti.InvestorCategory
 	}
+	t.WithholdingTaxDisclosure = ti.WithholdingTaxDisclosure
 
 	return t
 

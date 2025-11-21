@@ -3003,7 +3003,7 @@ func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconf
 
 	client := http.DefaultClient
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
-	jbody, err := json.Marshal(SubWalletInput{
+	jbody, err := json.Marshal(OnliquiditySubWalletInput{
 		Currency: currency,
 		UID:      w.Alias + "@" + os.Getenv("WALLET_DOMAIN"),
 	})

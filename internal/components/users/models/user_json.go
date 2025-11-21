@@ -3,6 +3,7 @@ package users
 import (
 	"time"
 	assets "trovo-wallet-api/internal/components/assets/models"
+	"trovo-wallet-api/internal/sharedconfig"
 )
 
 type UserJSON struct {
@@ -32,7 +33,7 @@ type UserJSON struct {
 	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
 	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
 	PatronMembership       *UserPatronMembership     `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
-	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
+	UserFiatPaymentMethods []UserFiatPaymentMethod   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
 
 	DownlineStats struct {
 		Level1 uint64 `json:"level1"`
@@ -104,19 +105,19 @@ type PaginatedAuths struct {
 }
 
 type SubWalletInfo struct {
+	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
 	PublicKey               string   `json:"publicKey"`
 	WalletTag               string   `json:"walletTag"`
 	WalletDescription       string   `json:"walletDescription"`
 	Alias                   string   `json:"alias"`
 	Transaction             string   `json:"transaction"`
 	PrimarySignature        string   `json:"primarySignature"`
+	SubWalletMustSign       int      `json:"subWalletMustSign"`
 	SubWalletSignature      string   `json:"subWalletSignature"`
 	TransactionID           string   `json:"transactionId"`
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
-	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
 	Messages                []string `json:"messages"`
 	SHash                   string   `json:"sHash"`
 	FeeAmount               string   `json:"feeAmount"`
@@ -124,4 +125,68 @@ type SubWalletInfo struct {
 	LinkedWalletMustSign    int      `json:"linkedWalletMustSign"`
 	LinkedWalletPublicKey   string   `json:"linkedWalletPublicKey"`
 	LinkedWalletSignature   string   `json:"linkedWalletSignature"`
+}
+
+type ServiceLinkSubWalletInfo struct {
+	WalletType            int      `json:"walletType"`         //0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletPublicKey is required). Required for initial Call
+	SubwalletPublicKey    string   `json:"subwalletPublicKey"` //required for Initial Call
+	WalletTag             string   `json:"walletTag"`          //required for initial Call
+	Alias                 string   `json:"alias"`
+	Transaction           string   `json:"transaction"`
+	PrimarySignature      string   `json:"primarySignature"`
+	SubWalletMustSign     int      `json:"subWalletMustSign"`
+	SubWalletSignature    string   `json:"subWalletSignature"`
+	TransactionID         string   `json:"transactionId"`
+	NetworkPassPhrase     string   `json:"networkPassPhrase"`
+	Messages              []string `json:"messages"`
+	FeeAmount             string   `json:"feeAmount"`
+	FeeCode               string   `json:"feeCode"`
+	LinkedWalletMustSign  int      `json:"linkedWalletMustSign"`
+	LinkedWalletPublicKey string   `json:"linkedWalletPublicKey"` //required for initial call only if wallet type is issuing wallet
+	LinkedWalletSignature string   `json:"linkedWalletSignature"`
+}
+
+func (i *ServiceLinkSubWalletInfo) ToSubwalletInfo(gc *sharedconfig.GlobalConfig) (o SubWalletInfo) {
+	o.WalletType = i.WalletType
+	o.PublicKey = i.SubwalletPublicKey
+	o.WalletTag = i.WalletTag
+	o.WalletDescription = i.WalletTag
+	o.Alias = i.Alias
+	o.Transaction = i.Transaction
+	o.PrimarySignature = i.PrimarySignature
+	o.SubWalletMustSign = i.SubWalletMustSign
+	o.SubWalletSignature = i.SubWalletSignature
+	o.TransactionID = i.TransactionID
+	o.NetworkPassPhrase = i.NetworkPassPhrase
+	o.Messages = i.Messages
+	o.FeeAmount = i.FeeAmount
+	o.FeeCode = i.FeeCode
+	o.LinkedWalletMustSign = i.LinkedWalletMustSign
+	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletSignature = i.LinkedWalletSignature
+
+	return
+
+}
+
+func (i *SubWalletInfo) ToServiceLinkSubwalletInfo(gc *sharedconfig.GlobalConfig) (o ServiceLinkSubWalletInfo) {
+	o.WalletType = i.WalletType
+	o.SubwalletPublicKey = i.PublicKey
+	o.WalletTag = i.WalletTag
+	o.Alias = i.Alias
+	o.Transaction = i.Transaction
+	o.PrimarySignature = i.PrimarySignature
+	o.SubWalletMustSign = i.SubWalletMustSign
+	o.SubWalletSignature = i.SubWalletSignature
+	o.TransactionID = i.TransactionID
+	o.NetworkPassPhrase = i.NetworkPassPhrase
+	o.Messages = i.Messages
+	o.FeeAmount = i.FeeAmount
+	o.FeeCode = i.FeeCode
+	o.LinkedWalletMustSign = i.LinkedWalletMustSign
+	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletSignature = i.LinkedWalletSignature
+
+	return
+
 }
