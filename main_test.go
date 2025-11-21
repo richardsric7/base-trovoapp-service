@@ -2126,7 +2126,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			p.ChannelAccountSignature = dsigned
 
 		}
-		primarySignature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
+		primarySignature, subwalletSignature, _, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey,"", p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
 			t.Error(err.Error())

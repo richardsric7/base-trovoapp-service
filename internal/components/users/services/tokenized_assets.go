@@ -969,7 +969,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 				p.LinkedWalletSignature = dsigned
 			}
 
-			primarySignature, subwalletSignature, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), issuer.Seed(), p.Transaction, p.NetworkPassPhrase)
+			primarySignature, subwalletSignature, _, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), "", issuer.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if e != nil {
 				log.Printf("[SubmitTokenizationAssetInfo.SignSubwalletBase64Txn] Error signing issuing wallet with primary and sub wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), e)
 				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
@@ -979,6 +979,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 
 			p.PrimarySignature = primarySignature
 			p.SubWalletSignature = subwalletSignature
+			// p.LinkedWalletSignature = linkedWalletSignature
 
 		}
 

@@ -81,46 +81,65 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 }
 
 // SignBase64Txn signs the transaction hash from base64Txn string using the secret key
-func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey string, base64Txn string, networkPassPhrase string) (primarySignature, subWalletSignature string, err error) {
+func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey, linkedWalletSecret string, base64Txn string, networkPassPhrase string) (primarySignature, subWalletSignature, linkedWalletSignature string, err error) {
 
 	primaryKP, keyPairError := keypair.ParseFull(primarySecretKey)
 	if keyPairError != nil {
-		return "", "", keyPairError
+		return "", "", "", keyPairError
 	}
 	subWalletKP, keyPairError := keypair.ParseFull(subWalletSecretKey)
 	if keyPairError != nil {
-		return "", "", keyPairError
+		return "", "", "", keyPairError
 	}
+
+	// if len(linkedWalletSecret) > 0 {
+	// 	_, keyPairError := keypair.ParseFull(linkedWalletSecret)
+	// 	if keyPairError != nil {
+	// 		return "", "", "", keyPairError
+	// 	}
+	// }
 
 	tx, err := txnbuild.TransactionFromXDR(base64Txn)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	txn, b := tx.Transaction()
 
 	if !b {
-		return "", "", errors.New("not a txn")
+		return "", "", "", errors.New("not a txn")
 	}
 
 	bytes, err := txn.Hash(networkPassPhrase)
 
 	if err != nil {
-		return "", "", errors.New("could not hash txn")
+		return "", "", "", errors.New("could not hash txn")
 	}
 
 	primarySignature, err = primaryKP.SignBase64(bytes[:])
 
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 	subWalletSignature, err = subWalletKP.SignBase64(bytes[:])
 
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
-	return primarySignature, subWalletSignature, nil
+	if len(linkedWalletSecret) > 0 {
+		linkedWalletKP, keyPairError := keypair.ParseFull(linkedWalletSecret)
+		if keyPairError != nil {
+			return "", "", "", keyPairError
+		}
+		linkedWalletSignature, err = linkedWalletKP.SignBase64(bytes[:])
+
+		if err != nil {
+			return "", "", "", err
+		}
+	}
+
+	return primarySignature, subWalletSignature, linkedWalletSignature, nil
 
 }
 
