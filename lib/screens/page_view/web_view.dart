@@ -51,16 +51,6 @@ class TrovoWebViewState extends State<TrovoWebView> {
           },
           onPageFinished: (String url) async {
             print('===========> running javascript');
-            //   await controller..runJavaScript('''
-            //   if (!document.querySelector('meta[name="viewport"]')) {
-            //     var meta = document.createElement('meta');
-            //     meta.name = "viewport";
-            //     meta.content = "width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=false";
-            //     document.head.appendChild(meta);
-            //   }
-            // ''');
-            await controller.runJavaScript("document.body.style.zoom = 0.1");
-            print('=============> javascript finish running');
             isLoading = false;
             hideLoader(context);
           },

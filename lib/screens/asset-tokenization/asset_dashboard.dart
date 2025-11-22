@@ -1199,7 +1199,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                               return;
                             }
 
-                            appState.goToWebView(fileUrl);
+                            appState.initialUrl = fileUrl;
+                            appState.setPage(page: AppImageViewerPageConfig);
                           },
                           child: Text(
                             item.documentTitle ?? '',
@@ -1351,7 +1352,7 @@ class _AssetDashboardState extends State<AssetDashboard>
   String getTokenizationStatus(int status) {
     switch (status) {
       case 0:
-        return 'Continue';
+        return 'Draft';
       case 1:
         return 'Awaiting Fee';
       case 4:

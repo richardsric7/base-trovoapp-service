@@ -61,7 +61,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
-  late bool acceptTokenizationTermsAndAgreement;
+  late bool acceptTokenizationTermsAndAgreement = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -249,7 +249,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetclassification".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -264,7 +264,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "pleaseselectclassification".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -280,7 +280,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   textAlign: TextAlign.left,
                   "assetsector".tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14.sp,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -327,7 +327,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetsubsector".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -373,7 +373,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assettype".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -414,7 +414,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "assetstatus".tr(),
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -430,7 +430,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     "selectwhatappliestoasset".tr(),
                     textAlign: TextAlign.left,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14.sp,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -464,7 +464,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Text(
                         "assetexisting".tr(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -496,7 +496,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Text(
                         "assetnotyetexisting".tr(),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -513,7 +513,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "Funding Structure",
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -529,7 +529,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     "Select funding structure",
                     textAlign: TextAlign.left,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14.sp,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -563,7 +563,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Text(
                         "Equity",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -595,7 +595,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Text(
                         "Debt",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -627,7 +627,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       Text(
                         "Hybrid",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontFamily: fontbody,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -645,7 +645,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       child: Text(
                         'What is the equity percentage (%)',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14.sp,
                           fontFamily: fontsemibold,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -703,7 +703,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       child: Text(
                         'What is the debt percentage (%)',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14.sp,
                           fontFamily: fontsemibold,
                           color: notifier.getbluewhitecolor,
                         ),
@@ -762,7 +762,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetlocation".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -778,7 +778,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "pleaseselectcountry".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -794,7 +794,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "country".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -851,7 +851,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     child: Text(
                       "pleaseselectcountrylocation".tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontFamily: fontbody,
                         color: Colors.red,
                       ),
@@ -868,7 +868,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "offeringtype".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -884,7 +884,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "selectofferingtype".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -941,7 +941,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "requireddocuments".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -971,7 +971,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "doyouhaverequiredmanagerdocs".tr(),
                   style: TextStyle(
                     decoration: TextDecoration.underline,
-                    fontSize: 13,
+                    fontSize: 14.sp,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -1001,7 +1001,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "yes".tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1029,7 +1029,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "no".tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -1081,10 +1081,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 Container(
                   width: width / 1.2,
                   child: Text(
-                    "Tokenizing your asset requires ownership transfer of the asset to a licensed custodian. Agree?",
+                    "Tokenizing your asset requires ownership transfer of the asset to a licensed trustee. Agree?",
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14.sp,
                       color: formHasError && !agreeTransferTitleToCustodian
                           ? Colors.red
                           : notifier.getbluewhitecolor,
@@ -1153,18 +1153,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              // appState.viewData = {
-                              //   'url': 'https://olaratech.com/legal?tab=terms',
-                              // };
-                              // appState.currentAction = PageAction(
-                              //   state: PageState.addPage,
-                              //   page: appWebViewPageConfig,
-                              // );
+                              var url =
+                                  '$tokenizationRequirementsUrl/#/terms-and-conditions';
+                              appState.goToWebView(url);
                             },
                         ),
                       ],
                       style: TextStyle(
-                        fontSize: 13.sp,
+                        fontSize: 14.sp,
                         fontFamily: fontbody,
                         color:
                             formHasError && !acceptTokenizationTermsAndAgreement

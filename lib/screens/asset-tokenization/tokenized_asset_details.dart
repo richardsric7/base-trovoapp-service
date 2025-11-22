@@ -1635,7 +1635,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               return;
                             }
 
-                            appState.goToWebView(fileUrl);
+                            appState.initialUrl = fileUrl;
+                            appState.setPage(page: AppImageViewerPageConfig);
                           },
                           child: Text(
                             item.documentTitle ?? '',

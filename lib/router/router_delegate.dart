@@ -38,7 +38,12 @@ import 'package:trovo_app/screens/delete_account/delete_account.dart';
 import 'package:trovo_app/screens/delete_account/delete_account_prerequisites.dart';
 import 'package:trovo_app/screens/flutterwave_webview.dart';
 import 'package:trovo_app/screens/kyc_screen.dart';
+import 'package:trovo_app/screens/page_view/app_image_viewer.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdraw_details.dart';
+import 'package:trovo_app/screens/send_and_recieve/dividend_and_yield.dart';
+import 'package:trovo_app/screens/send_and_recieve/dividend_history.dart';
+import 'package:trovo_app/screens/send_and_recieve/dividend_payment_detail.dart';
+import 'package:trovo_app/screens/send_and_recieve/early_exit_summary.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_asset.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_in_out_asset.dart';
 import 'package:trovo_app/screens/send_and_recieve/opt_out_asset.dart';
@@ -65,6 +70,7 @@ import 'package:trovo_app/screens/send_and_recieve/asset_details.dart';
 import 'package:trovo_app/screens/send_and_recieve/confirm_transaction.dart';
 import 'package:trovo_app/screens/send_and_recieve/confirm_withdraw.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdrawal_history.dart';
+import 'package:trovo_app/screens/send_and_recieve/request_early_exit.dart';
 import 'package:trovo_app/screens/send_and_recieve/select_deposit_address.dart';
 import 'package:trovo_app/screens/send_and_recieve/generate_deposit_address.dart';
 import 'package:trovo_app/screens/send_and_recieve/recieve_asset.dart';
@@ -102,6 +108,7 @@ import 'package:trovo_app/screens/market_trade/market_trade_info.dart';
 import 'package:trovo_app/screens/page_view/pdf_view.dart';
 import 'package:trovo_app/screens/page_view/success_view.dart';
 import 'package:trovo_app/screens/page_view/web_view.dart';
+import 'package:trovo_app/screens/send_and_recieve/yield_history.dart';
 import 'package:trovo_app/screens/shared_access/add_shared_access_details.dart';
 import 'package:trovo_app/screens/shared_access/approval_details.dart';
 import 'package:trovo_app/screens/shared_access/shared_access.dart';
@@ -644,6 +651,30 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.ConfirmQuickBuyView:
           _addPageData(ConfirmQuickBuyView(), ConfirmQuickBuyViewPageConfig);
+          break;
+        case Pages.DividendAndYieldView:
+          _addPageData(DividendAndYieldView(), DividendAndYieldViewPageConfig);
+          break;
+        case Pages.DividendHistoryView:
+          _addPageData(DividendHistoryView(), DividendHistoryViewPageConfig);
+          break;
+        case Pages.YieldHistoryView:
+          _addPageData(YieldHistoryView(), YieldHistoryViewPageConfig);
+          break;
+        case Pages.DividendPaymentDetailsView:
+          _addPageData(
+            DividendPaymentDetailsView(),
+            DividendPaymentDetailsViewPageConfig,
+          );
+          break;
+        case Pages.RequestEarlyExitView:
+          _addPageData(RequestEarlyExitView(), RequestEarlyExitViewPageConfig);
+          break;
+        case Pages.EarlyExitSummaryView:
+          _addPageData(EarlyExitSummaryView(), EarlyExitSummaryViewPageConfig);
+          break;
+        case Pages.AppImageViewer:
+          _addPageData(AppImageViewer(), AppImageViewerPageConfig);
           break;
         default:
           break;

@@ -105,7 +105,7 @@ class ButtonWithIcon extends StatefulWidget {
   final String? buttontext;
   final Color? colorbutton;
   final Color? buttontextcolor;
-  final String imageUrl;
+  final Widget image;
   final double? width;
   final double? height;
   final void Function()? onTap;
@@ -114,7 +114,7 @@ class ButtonWithIcon extends StatefulWidget {
     this.buttontext,
     this.colorbutton,
     this.buttontextcolor,
-    this.imageUrl, {
+    this.image, {
     Key? key,
     this.onTap,
     this.height,
@@ -170,6 +170,13 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                     foregroundColor: WidgetStateProperty.all<Color>(
                       notifier.getwihitecolor,
                     ),
+                    side: WidgetStateProperty.all(
+                      BorderSide(
+                        color: widget.buttontextcolor ?? notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
                     shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -177,8 +184,9 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                     ),
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(widget.imageUrl, height: 50, width: 50),
+                      widget.image,
                       SizedBox(width: 5),
                       Text(
                         widget.buttontext!,

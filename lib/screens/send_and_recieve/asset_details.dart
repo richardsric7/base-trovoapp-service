@@ -94,8 +94,18 @@ class _AssetDetailsState extends State<AssetDetails>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         bottomSheet: Container(
-          color: notifier.getwihitecolor,
-          height: 120,
+          decoration: BoxDecoration(
+            color: notifier.getwihitecolor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.5),
+                spreadRadius: 2,
+                blurRadius: 7,
+                offset: Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          height: asset!.tokenizedAsset ? 210.sp : 120.sp,
           width: double.infinity,
           child: Column(
             children: [
@@ -228,6 +238,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                 ],
               ),
+              SizedBox(height: 10.h),
               Container(
                 constraints: BoxConstraints(maxHeight: height / 5.8),
                 child: WalletSlide(
@@ -245,7 +256,7 @@ class _AssetDetailsState extends State<AssetDetails>
               ),
               SizedBox(height: height / 30),
               if (curatedAsset != null) curatedAssetInfo() else assetInfo(),
-              SizedBox(height: 150),
+              SizedBox(height: asset!.tokenizedAsset ? 250 : 150),
             ],
           ),
         ),
@@ -254,58 +265,134 @@ class _AssetDetailsState extends State<AssetDetails>
   }
 
   Widget actionButtons() {
-    return Container(
-      constraints: BoxConstraints(maxWidth: width / 1.3),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          actionButton("assets/images/send.png", 'Send', () {
-            appState.viewData = {
-              'walletPublicKey': wallet.publicKey,
-              'assetCode': asset!.assetCode,
-              'assetIssuer': asset!.assetIssuer,
-            };
+    return asset!.tokenizedAsset
+        ? Column(
+            spacing: 8,
+            children: [
+              ButtonWithIcon(
+                "Send",
+                notifier.getbluecolor,
+                wihitecolor,
+                Image.asset(
+                  'assets/images/send.png',
+                  color: wihitecolor,
+                  height: 20,
+                  width: 20,
+                ),
+                onTap: () {
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
 
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: SendAssetViewPageConfig,
-            );
-          }),
-          if (curatedAsset != null &&
-              (curatedAsset!.isWithdrawable ||
-                  curatedAsset!.canGenerateDepositAddresses == 1)) ...[
-            actionButton(
-              "assets/images/dep-with-button.png",
-              'Deposit/Withdraw',
-              () {
-                appState.viewData = {
-                  'walletPublicKey': wallet.publicKey,
-                  'assetCode': asset!.assetCode,
-                  'assetIssuer': asset!.assetIssuer,
-                };
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: SendAssetViewPageConfig,
+                  );
+                },
+              ),
+              ButtonWithIcon(
+                "Recieve",
+                notifier.getbluecolor80,
+                wihitecolor,
+                Image.asset(
+                  'assets/images/receive.png',
+                  color: wihitecolor,
+                  height: 20,
+                  width: 20,
+                ),
+                onTap: () {
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
 
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: WrappedAssetViewPageConfig,
-                );
-              },
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: ReceiveAssetViewPageConfig,
+                  );
+                },
+              ),
+
+              ButtonWithIcon(
+                "Dividend & Yield",
+                notifier.getwihitecolor,
+                notifier.getbluewhitecolor,
+                Image.asset(
+                  'assets/images/dividend_cash.png',
+                  color: notifier.getbluewhitecolor,
+                  height: 20,
+                  width: 20,
+                ),
+                onTap: () {
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
+
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: DividendAndYieldViewPageConfig,
+                  );
+                },
+              ),
+            ],
+          )
+        : Container(
+            constraints: BoxConstraints(maxWidth: width / 1.3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                actionButton("assets/images/send.png", 'Send', () {
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
+
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: SendAssetViewPageConfig,
+                  );
+                }),
+                if (curatedAsset != null &&
+                    (curatedAsset!.isWithdrawable ||
+                        curatedAsset!.canGenerateDepositAddresses == 1)) ...[
+                  actionButton(
+                    "assets/images/dep-with-button.png",
+                    'Deposit/Withdraw',
+                    () {
+                      appState.viewData = {
+                        'walletPublicKey': wallet.publicKey,
+                        'assetCode': asset!.assetCode,
+                        'assetIssuer': asset!.assetIssuer,
+                      };
+
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: WrappedAssetViewPageConfig,
+                      );
+                    },
+                  ),
+                ],
+                actionButton("assets/images/receive.png", 'Receive', () {
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
+
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: ReceiveAssetViewPageConfig,
+                  );
+                }),
+              ],
             ),
-          ],
-          actionButton("assets/images/receive.png", 'Receive', () {
-            appState.viewData = {
-              'walletPublicKey': wallet.publicKey,
-              'assetCode': asset!.assetCode,
-              'assetIssuer': asset!.assetIssuer,
-            };
-
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: ReceiveAssetViewPageConfig,
-            );
-          }),
-        ],
-      ),
-    );
+          );
   }
 
   Widget actionButton(iconUrl, actionText, action) {

@@ -136,6 +136,13 @@ const String CommercialPapersAssetInformationViewPath =
     '/CommercialPapersAssetInformationView';
 const String QuickBuyViewPath = '/QuickBuyView';
 const String ConfirmQuickBuyViewPath = '/ConfirmQuickBuyView';
+const String DividendAndYieldViewPath = '/DividendAndYieldView';
+const String DividendHistoryViewPath = '/DividendHistoryView';
+const String YieldHistoryViewPath = '/YieldHistoryView';
+const String DividendPaymentDetailsViewPath = '/DividendPaymentDetailsView';
+const String RequestEarlyExitViewPath = '/RequestEarlyExitView';
+const String EarlyExitSummaryViewPath = '/EarlyExitSummaryView';
+const String AppImageViewerPath = '/AppImageViewer';
 
 enum Pages {
   Splash,
@@ -266,6 +273,13 @@ enum Pages {
   CommercialPapersAssetInformationView,
   QuickBuyView,
   ConfirmQuickBuyView,
+  DividendAndYieldView,
+  DividendHistoryView,
+  YieldHistoryView,
+  DividendPaymentDetailsView,
+  RequestEarlyExitView,
+  EarlyExitSummaryView,
+  AppImageViewer,
 }
 
 class PageConfiguration {
@@ -1009,5 +1023,47 @@ PageConfiguration ConfirmQuickBuyViewPageConfig = PageConfiguration(
   key: 'ConfirmQuickBuyView',
   path: ConfirmQuickBuyViewPath,
   uiPage: Pages.ConfirmQuickBuyView,
+  currentPageAction: null,
+);
+PageConfiguration DividendAndYieldViewPageConfig = PageConfiguration(
+  key: 'DividendAndYieldView',
+  path: DividendAndYieldViewPath,
+  uiPage: Pages.DividendAndYieldView,
+  currentPageAction: null,
+);
+PageConfiguration DividendHistoryViewPageConfig = PageConfiguration(
+  key: 'DividendHistoryView',
+  path: DividendHistoryViewPath,
+  uiPage: Pages.DividendHistoryView,
+  currentPageAction: null,
+);
+PageConfiguration YieldHistoryViewPageConfig = PageConfiguration(
+  key: 'YieldHistoryView',
+  path: YieldHistoryViewPath,
+  uiPage: Pages.YieldHistoryView,
+  currentPageAction: null,
+);
+PageConfiguration DividendPaymentDetailsViewPageConfig = PageConfiguration(
+  key: 'DividendPaymentDetailsView',
+  path: DividendPaymentDetailsViewPath,
+  uiPage: Pages.DividendPaymentDetailsView,
+  currentPageAction: null,
+);
+PageConfiguration RequestEarlyExitViewPageConfig = PageConfiguration(
+  key: 'RequestEarlyExitView',
+  path: RequestEarlyExitViewPath,
+  uiPage: Pages.RequestEarlyExitView,
+  currentPageAction: null,
+);
+PageConfiguration EarlyExitSummaryViewPageConfig = PageConfiguration(
+  key: 'EarlyExitSummaryView',
+  path: EarlyExitSummaryViewPath,
+  uiPage: Pages.EarlyExitSummaryView,
+  currentPageAction: null,
+);
+PageConfiguration AppImageViewerPageConfig = PageConfiguration(
+  key: 'AppImageViewer',
+  path: AppImageViewerPath,
+  uiPage: Pages.AppImageViewer,
   currentPageAction: null,
 );
