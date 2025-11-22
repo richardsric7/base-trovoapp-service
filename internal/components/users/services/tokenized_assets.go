@@ -3669,6 +3669,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	//save application fee to the object.
 	ato.TokenizationApplicationFee = TOKENIZATION_APPLICATION_FEE.FeeFixed
+	ato.TokenizationApplicationFeeAsset = fmt.Sprintf("%v:%v", TOKENIZATION_APPLICATION_FEE.FeeAssetCode, TOKENIZATION_APPLICATION_FEE.FeeAssetIssuer)
 	// e := gc.DB.Omit(clause.Associations).Save(ato).Error
 	// if e != nil {
 	// 	log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)

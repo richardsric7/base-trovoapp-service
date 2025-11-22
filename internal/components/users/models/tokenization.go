@@ -4671,12 +4671,13 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.TokenizationApplicationFee > 0 {
 		t.TokenizationApplicationFee = ti.TokenizationApplicationFee
 		t.TokenizationApplicationFeeAsset = ti.TokenizationApplicationFeeAsset
-	} else {
+	} 
+	// else {
 
-		t.TokenizationApplicationFee = t.CountryConfig.TokenizationApplicationFee
-		t.TokenizationApplicationFeeAsset = t.CountryConfig.TokenizationApplicationFeeAsset
+	// 	t.TokenizationApplicationFee = t.CountryConfig.TokenizationApplicationFee
+	// 	t.TokenizationApplicationFeeAsset = t.CountryConfig.TokenizationApplicationFeeAsset
 
-	}
+	// }
 
 	if ti.AssetQuoteCurrency != nil {
 		t.AssetQuoteCurrency = *ti.AssetQuoteCurrency
