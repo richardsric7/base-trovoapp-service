@@ -1695,7 +1695,14 @@ func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, t
 		return
 
 	}
+	//save again because fee value has been added to object
+	e = dbTX.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[ConfirmTokenizationApplicationInfoByInitiator] error saving tokenization to database  [%+v] for %v: %v\n", ato, initiator.Username, e)
 
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
 	taInput.Transaction = xdrBase64
 
 	if len(taInput.TransactionSignature) > 0 {
@@ -3662,12 +3669,12 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	//save application fee to the object.
 	ato.TokenizationApplicationFee = TOKENIZATION_APPLICATION_FEE.FeeFixed
-	e := gc.DB.Omit(clause.Associations).Save(ato).Error
-	if e != nil {
-		log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)
-		logDiscordFailedRecovery("[generateTokenizationFeeXdr] error saving the application fee to tokenization object")
-		return "", &tErrors.ErrorTemporaryServerError{}
-	}
+	// e := gc.DB.Omit(clause.Associations).Save(ato).Error
+	// if e != nil {
+	// 	log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)
+	// 	logDiscordFailedRecovery("[generateTokenizationFeeXdr] error saving the application fee to tokenization object")
+	// 	return "", &tErrors.ErrorTemporaryServerError{}
+	// }
 	return xdrBase64, nil
 
 }
