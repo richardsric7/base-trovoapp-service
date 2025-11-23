@@ -1068,7 +1068,7 @@ func AssignIssuingWallet(tokenizationID string, gc *sharedconfig.GlobalConfig) (
 
 			primarySignature, subwalletSignature, _, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), issuer.Seed(), "", p.Transaction, p.NetworkPassPhrase)
 			if e != nil {
-				log.Printf("[AssignIssuingWallet.SignSubwalletBase64Txn] Error signing issuing wallet with primary, sub and linked wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), e)
+				log.Printf("[AssignIssuingWallet.SignSubwalletBase64Txn] Error signing issuing wallet with primary, sub and linked wallets [%v] [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), "", e)
 				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
 				return
 
