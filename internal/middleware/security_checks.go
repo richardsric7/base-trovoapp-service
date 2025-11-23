@@ -127,7 +127,7 @@ func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey, linkedWalletSe
 		return "", "", "", err
 	}
 
-	if len(linkedWalletSecret) > 0 {
+	if len(linkedWalletSecret) == 56 {
 		linkedWalletKP, keyPairError := keypair.ParseFull(linkedWalletSecret)
 		if keyPairError != nil {
 			return "", "", "", keyPairError
