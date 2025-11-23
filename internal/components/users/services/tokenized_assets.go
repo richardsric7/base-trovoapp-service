@@ -919,94 +919,18 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
 		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
 	}
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
 	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
 
 		//create issuing wallet
+		ato, issuingWallet, err = AssignIssuingWallet(tokenizationID, gc)
 
-		//get atprofile
-		var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
-			tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
-		}
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-		}
-		tokenizationIssuer, e := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-		if e != nil {
-			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
-			return
-		}
-		issuer, _ := keypair.Random()
-		distributor, _ := keypair.Random()
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
-
-		walletTag := fmt.Sprintf("%v_issuer", input.AssetCode)
-		p := userModels.SubWalletInfo{
-			PublicKey:             issuer.Address(),
-			WalletTag:             walletTag,
-			WalletType:            1,
-			LinkedWalletPublicKey: distributor.Address(),
-		}
-		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
-
-		if err != nil {
-			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
-			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
-			return
-		}
-
-		//sign transactions
-		{
-
-			if p.LinkedWalletMustSign == 1 {
-				dsigned, e := middleware.SignBase64Txn(distributor.Seed(), p.Transaction, p.NetworkPassPhrase)
-				if e != nil {
-					log.Printf("[SubmitTokenizationAssetInfo.SignBase64Txn] Error signing issuing wallet with linked wallet [%v], err: %v\n", distributor.Address(), e)
-					err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
-					return
-				}
-				p.LinkedWalletSignature = dsigned
-			}
-
-			primarySignature, subwalletSignature, _, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), "", issuer.Seed(), p.Transaction, p.NetworkPassPhrase)
-			if e != nil {
-				log.Printf("[SubmitTokenizationAssetInfo.SignSubwalletBase64Txn] Error signing issuing wallet with primary and sub wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), e)
-				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
-				return
-
-			}
-
-			p.PrimarySignature = primarySignature
-			p.SubWalletSignature = subwalletSignature
-			// p.LinkedWalletSignature = linkedWalletSignature
-
-		}
-
-		//second submission to blockchain
-		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
-		if err != nil {
-			log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
-			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
-			return
-		}
-
-		log.Printf("[SubmitTokenizationAssetInfo.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", p.PublicKey, p.TransactionID)
-
-		w, e := userModels.UserWalletID(p.PublicKey).GetWallet(gc.DB, gc)
-		if e != nil {
-			log.Printf("[SubmitTokenizationAssetInfo] Error fetching issuing wallet [%v], err: %v\n", p.PublicKey, e)
-			err = e
-			return
-		}
-
-		//set issuing wallet
-		issuingWallet = w
-		ato.IssuingWalletAlias = &w.Alias
-
-		ato.IssuingWalletPublicKey = &w.ID
-		ato.MarketMakingWallet = w.LinkedWalletPublicKey
-		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
 	}
 	if ato.IssuingWalletAlias == nil {
 		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
@@ -1050,12 +974,169 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		return
 	}
 
-	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	return ato, issuingWallet, nil
+}
 
+// AssignIssuingWallet assigns issuing wallet to tokenized asset instance
+func AssignIssuingWallet(tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
+
+	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
+		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
+		return
+	}
+
+	//referesh issuing wallet profile
+	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
+
+	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
+	if errorGetTokenizationByID != nil {
+		// error tokenization is already in progress
+		log.Printf("[AssignIssuingWallet] Error fetching  tokenization with ID: %v\n", tokenizationID)
+		err = errorGetTokenizationByID
+		return
+
+	}
+	if ato.AssetCode == nil {
+		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
+		return
+	}
+	assetCode := (strings.ToUpper(replacer.Replace(strings.TrimSpace(*ato.AssetCode))))
+	ato.AssetCode = &assetCode
+
+	var NotIssuedByIssuer bool
+	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
+		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
+	}
+
+	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && len(*ato.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
+
+		//create issuing wallet
+
+		//get atprofile
+		var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
+			tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+		}
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+		tokenizationIssuer, e := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
+		if e != nil {
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
+			return
+		}
+		issuer, _ := keypair.Random()
+		distributor, _ := keypair.Random()
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		walletTag := fmt.Sprintf("%v_issuer", *ato.AssetCode)
+		p := userModels.SubWalletInfo{
+			PublicKey:             issuer.Address(),
+			WalletTag:             walletTag,
+			WalletType:            1,
+			LinkedWalletPublicKey: distributor.Address(),
+		}
+		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
+
+		if err != nil {
+			log.Printf("[AssignIssuingWallet.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
+			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
+			return
+		}
+
+		//sign transactions
+		{
+
+			if p.LinkedWalletMustSign == 1 {
+				dsigned, e := middleware.SignBase64Txn(distributor.Seed(), p.Transaction, p.NetworkPassPhrase)
+				if e != nil {
+					log.Printf("[AssignIssuingWallet.SignBase64Txn] Error signing issuing wallet with linked wallet [%v], err: %v\n", distributor.Address(), e)
+					err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
+					return
+				}
+				p.LinkedWalletSignature = dsigned
+			}
+
+			primarySignature, subwalletSignature, _, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), "", issuer.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if e != nil {
+				log.Printf("[AssignIssuingWallet.SignSubwalletBase64Txn] Error signing issuing wallet with primary and sub wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), e)
+				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
+				return
+
+			}
+
+			p.PrimarySignature = primarySignature
+			p.SubWalletSignature = subwalletSignature
+			// p.LinkedWalletSignature = linkedWalletSignature
+
+		}
+
+		//second submission to blockchain
+		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
+		if err != nil {
+			log.Printf("[AssignIssuingWallet.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", p.PublicKey, err)
+			// err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: err}
+			return
+		}
+
+		log.Printf("[AssignIssuingWallet.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", p.PublicKey, p.TransactionID)
+
+		w, e := userModels.UserWalletID(p.PublicKey).GetWallet(gc.DB, gc)
+		if e != nil {
+			log.Printf("[AssignIssuingWallet] Error fetching issuing wallet [%v], err: %v\n", p.PublicKey, e)
+			err = e
+			return
+		}
+
+		//set issuing wallet
+		issuingWallet = w
+		ato.IssuingWalletAlias = &w.Alias
+
+		ato.IssuingWalletPublicKey = &w.ID
+		ato.MarketMakingWallet = w.LinkedWalletPublicKey
+		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
+	}
+	if ato.IssuingWalletAlias == nil {
+		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
+		return
+	}
+	if *ato.IssuingWalletAlias == "" {
+		err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
+		return
+	}
+	if len(issuingWallet.ID) == 0 {
+		//new wallet not generated. populate with existing wallet info.
+		w, e := userModels.UserWalletID(*ato.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+		if e != nil {
+			log.Printf("[AssignIssuingWallet] Error fetching issuing wallet [%v], err: %v\n", ato.IssuingWalletPublicKey, e)
+			err = e
+			return
+		}
+
+		//set issuing wallet
+		issuingWallet = w
+		ato.IssuingWalletAlias = &w.Alias
+		ato.IssuingWalletPublicKey = &w.ID
+		ato.MarketMakingWallet = w.LinkedWalletPublicKey
+		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
+		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletPublicKey
+	}
+
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[AssignIssuingWallet] error saving tokenization to database  for %v: %v\n", tokenizationID, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, issuingWallet, nil
@@ -1306,7 +1387,7 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		log.Printf("[VetTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
-
+		return
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
 	return ato, nil
@@ -1337,7 +1418,25 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 
 	ato.LastUpdatedBy = &initiator.Username
 
+	var NotIssuedByIssuer bool
+	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
+		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
+	}
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[AcknowledgeTokenizationFeePayment] error saving tokenization to database  for %v: %v\n", tokenizationID, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+
+	}
+	assetCodeExists := ato.AssetCode != nil
+	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
+
+		//create issuing wallet
+		ato, _, err = AssignIssuingWallet(tokenizationID, gc)
+
+	}
+	e = gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
 		log.Printf("[AcknowledgeTokenizationFeePayment] error saving tokenization to database [%v] %v\n", initiator.Username, e)
 
@@ -1345,6 +1444,7 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 
 	}
 	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+
 	return ato, nil
 }
 
@@ -3352,92 +3452,113 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		}
 
 	}
-	{
-		//check staff access
-		if !IsTokenizationMintingApprover(initiator.Username, gc.DB) && !IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
-			log.Printf("[MintRegulatedTokenizedAsset] Error %v not minting inititor/approver.\n", initiator.Username)
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-access-denied",
-				ErrMessage: fmt.Sprintf("%v does not have minting permission to perform this action.", initiator.Username),
-				Code:       401,
-			}
-			return
+
+	//check staff access
+	if !IsTokenizationMintingApprover(initiator.Username, gc.DB) && !IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
+		log.Printf("[MintRegulatedTokenizedAsset] Error %v not minting inititor/approver.\n", initiator.Username)
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-access-denied",
+			ErrMessage: fmt.Sprintf("%v does not have minting permission to perform this action.", initiator.Username),
+			Code:       401,
 		}
+		return
 	}
+
 	//validators
-	{
+	/////
 
-		if (ato.SecApproval == 0 || ato.SecApprovalIdNumber == nil) && *ato.OfferingType == "PUBLIC" {
-			log.Printf("[MintRegulatedTokenizedAsset] Error No complete DD information yet. Misssing SEC approval for public offering %v\n", ato.ID)
+	if (ato.SecApproval == 0 || ato.SecApprovalIdNumber == nil) && *ato.OfferingType == "PUBLIC" {
+		log.Printf("[MintRegulatedTokenizedAsset] Error No complete DD information yet. Misssing SEC approval for public offering %v\n", ato.ID)
 
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-incomplete-data",
-				ErrMessage: "Asset Due Duligence information (SEC Aproval Number) must be provided for public offerings.",
-				Code:       404,
-			}
-			return
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-incomplete-data",
+			ErrMessage: "Asset Due Duligence information (SEC Aproval Number) must be provided for public offerings.",
+			Code:       404,
 		}
-		if ato.ClosedGroupID == nil && *ato.OfferingType == "PRIVATE" {
-			log.Printf("[MintRegulatedTokenizedAsset] Error No complete information yet. Misssing Closed Group for private offering %v\n", ato.ID)
+		return
+	}
+	if ato.ClosedGroupID == nil && *ato.OfferingType == "PRIVATE" {
+		log.Printf("[MintRegulatedTokenizedAsset] Error No complete information yet. Misssing Closed Group for private offering %v\n", ato.ID)
 
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-incomplete-data",
-				ErrMessage: "Asset Closed Group information must be provided for private offerings.",
-				Code:       404,
-			}
-			return
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-incomplete-data",
+			ErrMessage: "Asset Closed Group information must be provided for private offerings.",
+			Code:       404,
 		}
+		return
+	}
 
-		if ato.AssetCode == nil || ato.AssetName == nil || ato.AssetDescription == nil || ato.AssetLogo == nil {
-			log.Printf("[MintRegulatedTokenizedAsset] Error No complete asset token information yet. %v\n", ato.ID)
+	if ato.AssetCode == nil || ato.AssetName == nil || ato.AssetDescription == nil || ato.AssetLogo == nil {
+		log.Printf("[MintRegulatedTokenizedAsset] Error No complete asset token information yet. %v\n", ato.ID)
 
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-incomplete-data",
-				ErrMessage: "Asset token information (Name,Code,Description,Logo) must be provided before Minting can be done.",
-				Code:       404,
-			}
-			return
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-incomplete-data",
+			ErrMessage: "Asset token information (Name,Code,Description,Logo) must be provided before Minting can be done.",
+			Code:       404,
 		}
-		if ato.AssetTokenizationStatus < 3 {
-			log.Printf("[MintRegulatedTokenizedAsset] Error Process has not reached stage to approve yet. %v\n", ato.ID)
+		return
+	}
+	if ato.AssetTokenizationStatus < 3 {
+		log.Printf("[MintRegulatedTokenizedAsset] Error Process has not reached stage to approve yet. %v\n", ato.ID)
 
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-status-too-low",
-				ErrMessage: "Process Status still too low for approval. Fee Payment confirmation not yet done.",
-				Code:       404,
-			}
-			return
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-status-too-low",
+			ErrMessage: "Process Status still too low for approval. Fee Payment confirmation not yet done.",
+			Code:       404,
 		}
-		if ato.AssetTokenizationStatus > 3 {
-			log.Printf("[MintRegulatedTokenizedAsset] Error Process has passed stage to mint. %v\n", ato.ID)
+		return
+	}
+	if ato.AssetTokenizationStatus > 3 {
+		log.Printf("[MintRegulatedTokenizedAsset] Error Process has passed stage to mint. %v\n", ato.ID)
 
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-status-too-high",
-				ErrMessage: "Project status has exceeded the stage of minting.",
-				Code:       404,
-			}
-			return
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-status-too-high",
+			ErrMessage: "Project status has exceeded the stage of minting.",
+			Code:       404,
 		}
+		return
+	}
 
-		if ato.IssuingWalletPublicKey == nil {
-			log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
-			ato.AssetTokenizationStatus = 2
-			gc.DB.Omit(clause.Associations).Save(&ato)
-			err = &tErrors.CustomError{
-				Param:      "publicKey",
-				Err:        "error-no-issuing-wallet",
-				ErrMessage: "Issuing Wallet not assigned. Tokenization has been Returned to approproate status.",
-				Code:       404,
-			}
+	var NotIssuedByIssuer bool
+	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
+		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
+	}
+	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
+	if e != nil {
+		log.Printf("[MintRegulatedTokenizedAsset] error saving tokenization to database  for %v: %v\n", tokenizationID, initiator.Username, e)
+
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	assetCodeExists := ato.AssetCode != nil
+	if (ato.IssuingWalletPublicKey == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 56 {
+
+		//create issuing wallet
+		ato, _, err = AssignIssuingWallet(tokenizationID, gc)
+		if err != nil {
 			return
 		}
 	}
+
+	if ato.IssuingWalletPublicKey == nil {
+		log.Printf("[MintRegulatedTokenizedAsset] Error no issuing wallet assigned. Returning this to earlier status. %v\n", ato.ID)
+		ato.AssetTokenizationStatus = 2
+		gc.DB.Omit(clause.Associations).Save(&ato)
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-no-issuing-wallet",
+			ErrMessage: "Issuing Wallet not assigned. Tokenization has been Returned to approproate status.",
+			Code:       404,
+		}
+		return
+	}
+	/////
 
 	xdrBase64, transactionSource, messages, issuingWallet, err := generateMintRegulatedTokenizedAssetXdr(&ato, gc)
 
@@ -3479,7 +3600,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
-	e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
+	e = dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
 	if e != nil {
 		log.Printf("[MintRegulatedTokenizedAsset] Error saving txn [%+v] on pending auth table: %s\n", pendingAuth, e.Error())
 		err = &tErrors.ErrorTemporaryServerError{}
