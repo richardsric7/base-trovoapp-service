@@ -2250,7 +2250,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//At this point, there was no error.
 
-		c.JSON(http.StatusOK, data)
+		c.JSON(http.StatusOK, mintingData)
 	})
 
 	//create new subwallet from service link
