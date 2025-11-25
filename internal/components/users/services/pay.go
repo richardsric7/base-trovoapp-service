@@ -1623,6 +1623,7 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	var xdrBase64 string
 	var destinationUser *userModels.User
 	var err error
+	mintingInfo.Messages = make([]string, 0)
 	walletHasViewOnlyAccess := true
 
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
