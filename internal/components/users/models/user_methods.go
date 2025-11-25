@@ -2747,7 +2747,7 @@ func (u *User) IsEnterpriseProfile(gc *sharedconfig.GlobalConfig) bool {
 	var result string
 	e := gc.DB.Table("service_links").Select("id").Where("username = ?", u.Username).Scan(&result).Error
 	if e != nil {
-		gc.LogDiscordFailedRequest(fmt.Sprintf("[IsEnterpriseProfile]Eerror verifying if %v is enterprise client: %v", u.Username, e))
+		gc.LogDiscordFailedRequest(fmt.Sprintf("[IsEnterpriseProfile]Error verifying if %v is enterprise client: %v", u.Username, e))
 	}
 	return len(result) > 0
 
