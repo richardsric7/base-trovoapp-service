@@ -2742,6 +2742,15 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
+
+func (u *User) IsEnterpriseProfile(gc *sharedconfig.GlobalConfig) bool {
+	var result string
+	gc.DB.Table("service_links").Select("id").Where("username = ?", u.Username).Scan(&result)
+
+	return len(result) > 0
+
+}
+
 func (u *User) GetFiatActiationAmount(gc *sharedconfig.GlobalConfig) (activationAmount, trovPercent float64) {
 	cc := CountryCode(*u.CountryCode).GetConfig(gc)
 	_, exists, _ := UserWalletID(u.PublicKey).GetBlockchainAccountDetail(gc)

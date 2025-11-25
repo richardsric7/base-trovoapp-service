@@ -2247,7 +2247,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, mintingData)
