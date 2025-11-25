@@ -2745,8 +2745,10 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 
 func (u *User) IsEnterpriseProfile(gc *sharedconfig.GlobalConfig) bool {
 	var result string
-	gc.DB.Table("service_links").Select("id").Where("username = ?", u.Username).Scan(&result)
-
+	e := gc.DB.Table("service_links").Select("id").Where("username = ?", u.Username).Scan(&result).Error
+	if e != nil {
+		gc.LogDiscordFailedRequest(fmt.Sprintf("error verifying if %v is enterprise client: %v", u.Username, e))
+	}
 	return len(result) > 0
 
 }
