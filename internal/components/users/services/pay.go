@@ -817,13 +817,13 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 
-	if !destinationAccountTrustsAsset && !owner.IsEnterpriseProfile(gc) {
-		message := fmt.Sprintf("%v has not yet opted in to receive the asset (%v) you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, mintingInfo.AssetCode, charge, nativeAssetCode, destinationWallet.Alias, mintingInfo.AssetCode)
+	// if !destinationAccountTrustsAsset && !owner.IsEnterpriseProfile(gc) {
+	// 	message := fmt.Sprintf("%v has not yet opted in to receive the asset (%v) you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, mintingInfo.AssetCode, charge, nativeAssetCode, destinationWallet.Alias, mintingInfo.AssetCode)
 
-		mintingInfo.Messages = append(mintingInfo.Messages, message)
-		// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)
+	// 	mintingInfo.Messages = append(mintingInfo.Messages, message)
+	// 	// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)
 
-	}
+	// }
 
 	chanAccount := <-gc.ChannelAccounts
 	defer func(c *keypair.Full) {
@@ -883,28 +883,29 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 		if destinationWallet.WalletType == 0 {
 			//standard wallet, create pending asset
-			if owner.IsEnterpriseProfile(gc) {
+			// if owner.IsEnterpriseProfile(gc) {
 
-				//set the trusline.
-				//set trusline for the enterprise subwallet
+			//set the trusline.
+			//set trusline for the enterprise subwallet
 
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
-					Limit:         "900000000000",
-					SourceAccount: destinationWallet.ID,
-				})
-				// tokenizedAssetIssuerMustSign = true
-			} else {
-				ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-				tokenizedAssetIssuerMustSign = tokenIssuerMustSign
-				if err != nil {
-					return "", nil, err
-				}
+			ops = append(ops, &txnbuild.ChangeTrust{
+				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+				Limit:         "900000000000",
+				SourceAccount: destinationWallet.ID,
+			})
+			// tokenizedAssetIssuerMustSign = true
+			// }
+			//  else {
+			// 	ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
+			// 	tokenizedAssetIssuerMustSign = tokenIssuerMustSign
+			// 	if err != nil {
+			// 		return "", nil, err
+			// 	}
 
-				extraAccountKeyPair = _tempAccountKeyPair
+			// 	extraAccountKeyPair = _tempAccountKeyPair
 
-				ops = append(ops, ops2...)
-			}
+			// 	ops = append(ops, ops2...)
+			// }
 
 		}
 
