@@ -2383,7 +2383,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, assetBalances)
 	})
 
-	//get wallet balance from service link
+	//get wallet payment history from service link
 	router.GET("/v1/trovo-api/users/payment-history/:walletPublicKey", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
