@@ -56,7 +56,7 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Dividend and Yield',
+          'Dividend and Interest',
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -164,7 +164,7 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
                           horizontal: 15,
                         ),
                         child: Text(
-                          "Yield Details",
+                          "Interest Details",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,

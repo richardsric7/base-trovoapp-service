@@ -62,6 +62,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
   late bool acceptTokenizationTermsAndAgreement = false;
+  bool isFinanceAndInvestmentMarketsSector = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -103,6 +104,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       debtPercentageController.text = debtPercentage.toString();
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
+      isFinanceAndInvestmentMarketsSector =
+          selectedAssetSectorId.toLowerCase() ==
+          'finance and investment markets';
       for (
         var i = 0;
         i < appState.tokenizationData['countryConfigs'].length;
@@ -299,11 +303,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       selectedAssetSectorId,
                     );
                     selectedAssetSubSectorId = '';
+                    isFinanceAndInvestmentMarketsSector =
+                        selectedAssetSectorId.toLowerCase() ==
+                        'finance and investment markets';
                   });
-                  if (selectedAssetSectorId.toLowerCase() ==
-                      'finance and investment markets') {
-                    assetExisting = true;
-                  }
+
+                  assetExisting = isFinanceAndInvestmentMarketsSector;
                 },
                 assetSectors,
                 selectedAssetSectorId.isEmpty ? null : selectedAssetSectorId,
@@ -388,7 +393,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetTypeId = value.toString();
-                    print('==========> $selectedAssetTypeId');
+                    var data = appState.tokenizationData;
+                    for (var i = 0; i < data['assetTypes'].length; i++) {
+                      if (data['assetTypes'][i]['id'].toString() ==
+                          appState.viewData!['assetType'].toString()) {
+                        appState.viewData!['assetFormName'] =
+                            data['assetTypes'][i]['assetType'];
+
+                        break;
+                      }
+                    }
                   });
                 },
                 assetTypes,
@@ -404,8 +418,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            if (selectedAssetSectorId.toLowerCase() !=
-                'finance and investment markets') ...[
+            if (!isFinanceAndInvestmentMarketsSector) ...[
               SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -963,8 +976,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     return;
                   }
 
-                  var url =
-                      '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
+                  var url = isFinanceAndInvestmentMarketsSector
+                      ? '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${appState.viewData!['assetFormName'].toString().toLowerCase().replaceAll(' ', '-')}'
+                      : '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
                   appState.goToWebView(url);
                 },
                 child: Text(

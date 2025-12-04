@@ -43,6 +43,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   late TokenizedAsset tokenizedAsset;
   String regulatorName = '';
   late Future<dynamic> formJsonFuture;
+  bool isFinancialAssetType = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -75,6 +76,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     tokenizedAsset = appState.tokenizedAsset!;
     formJsonFuture = fetchFormJson(tokenizedAsset.assetType ?? '', appState);
     var assetTypes = appState.tokenizationData['assetTypes'];
+    isFinancialAssetType =
+        tokenizedAsset.assetSector!.toLowerCase() ==
+        'finance and investment markets';
     var quoteCurrencyCode = '';
 
     for (
@@ -141,7 +145,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    inspect(appState.tokenizedAsset);
     _tokensBought = tokenizedAsset.quantityOfTokensSold ?? 0;
     _tokensRemaining =
         (tokenizedAsset.numberOfTokenToBeSold! -
@@ -231,7 +234,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     );
                   } else if (snapshot.hasData) {
                     var formData = snapshot.data! as Map<dynamic, dynamic>;
-                    inspect(formData);
                     return Column(
                       children: [
                         if (tokenizedAsset.assetLogo != null) ...[
@@ -737,7 +739,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   SharePlus.instance.share(
                                     ShareParams(
                                       text:
-                                          'Checout this asset on Trovo App => ${tokenizedAsset.deepLink}',
+                                          'Checkout this asset on Trovo App => ${tokenizedAsset.deepLink}',
                                     ),
                                   );
                                 },
@@ -1149,7 +1151,13 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                                   .assetPhysicalAddress ??
                                               '',
                                           'Map Coordinates':
-                                              "Lat. ${tokenizedAsset.assetLatitude}, Lon. ${tokenizedAsset.assetLongitude}",
+                                              tokenizedAsset.assetLatitude ==
+                                                      null ||
+                                                  tokenizedAsset
+                                                      .assetLatitude!
+                                                      .isEmpty
+                                              ? ''
+                                              : "Lat. ${tokenizedAsset.assetLatitude}, Lon. ${tokenizedAsset.assetLongitude}",
                                           'Project Strategic Objectives':
                                               tokenizedAsset
                                                   .projectStrategicObjectives ??
@@ -1229,6 +1237,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                               "",
                                         };
 
+                                        inspect(formData);
+
                                         if (formData.isNotEmpty) {
                                           for (var section
                                               in formData.entries) {
@@ -1238,11 +1248,36 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                                     .entries) {
                                               if (item.value['public'] ==
                                                   true) {
+                                                var value = "";
+                                                // if the type is double, parse it accordingly
+                                                if (item.value['type'] ==
+                                                    'double') {
+                                                  value = truncateToDecimalPlaces(
+                                                    double.tryParse(
+                                                          tokenizedAsset
+                                                                  .asMapData?['${item.key}']
+                                                                  .toString() ??
+                                                              '',
+                                                        ) ??
+                                                        0,
+                                                  );
+                                                }
+                                                // if the type is date time parse it accordingly
+                                                else if (item
+                                                        .value['widgetType'] ==
+                                                    'datetime') {
+                                                  value =
+                                                      '${DateFormat('MMMM dd, yyyy').format(DateTime.parse(tokenizedAsset.asMapData?['${item.key}'].toString() ?? ''))}';
+                                                } else {
+                                                  value =
+                                                      tokenizedAsset
+                                                          .asMapData?['${item.key}']
+                                                          .toString() ??
+                                                      '';
+                                                }
+
                                                 details[item.value['label']] =
-                                                    appState
-                                                        .viewData?['${item.key}']
-                                                        .toString() ??
-                                                    '';
+                                                    value;
                                               }
                                             }
                                           }
@@ -1402,47 +1437,49 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                         );
                                       },
                                     ),
-                                    SizedBox(height: 10),
-                                    categoryTile(
-                                      notifier,
-                                      label: 'Legal & Compliance Information',
-                                      imageUrl:
-                                          'assets/images/shareholders.png',
-                                      onTap: () {
-                                        var details = {
-                                          'Free of liens, mortgages, and outstanding loans.':
-                                              '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
-                                          'Not pledged as collateral for any debts and has no use restrictions.':
-                                              '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
-                                          'No third party has any claims, rights, or interests in this asset.':
-                                              '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
-                                          'Free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.':
-                                              '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
-                                          'Complies with all environmental and land use regulations and is free of violations.':
-                                              '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
-                                          'All necessary permits, licenses, and approvals for the use and ownership of this asset are in place.':
-                                              '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
-                                          'No unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.':
-                                              '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
-                                          'Asset does not have any hidden liabilities or obligations that have not been disclosed. ':
-                                              '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
-                                          'Asset is adequately insured against risks such as fire, theft, and natural disasters.':
-                                              '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
-                                          'The declared value of this asset reflects its current market value and condition.':
-                                              '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
-                                          'Asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.':
-                                              '${tokenizedAsset.physicalConditionNoUndisclosedEasements == 1 ? 'Yes' : 'No'}',
-                                          'Asset is structurally sound and has no unresolved maintenance or safety issues.':
-                                              '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
-                                          'Asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.':
-                                              '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
-                                        };
-                                        displayDetails(
-                                          "Legal & Compliance Information",
-                                          details,
-                                        );
-                                      },
-                                    ),
+                                    if (!isFinancialAssetType) ...[
+                                      SizedBox(height: 10),
+                                      categoryTile(
+                                        notifier,
+                                        label: 'Legal & Compliance Information',
+                                        imageUrl:
+                                            'assets/images/shareholders.png',
+                                        onTap: () {
+                                          var details = {
+                                            'Free of liens, mortgages, and outstanding loans.':
+                                                '${tokenizedAsset.isFreeFromLiensAndEncumbrances == 1 ? 'Yes' : 'No'}',
+                                            'Not pledged as collateral for any debts and has no use restrictions.':
+                                                '${tokenizedAsset.undertakingNotCollateral == 1 ? 'Yes' : 'No'}',
+                                            'No third party has any claims, rights, or interests in this asset.':
+                                                '${tokenizedAsset.undertakingNoClaims == 1 ? 'Yes' : 'No'}',
+                                            'Free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.':
+                                                '${tokenizedAsset.undertakingNoForeclosure == 1 ? 'Yes' : 'No'}',
+                                            'Complies with all environmental and land use regulations and is free of violations.':
+                                                '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+                                            'All necessary permits, licenses, and approvals for the use and ownership of this asset are in place.':
+                                                '${tokenizedAsset.complianceNoViolation == 1 ? 'Yes' : 'No'}',
+                                            'No unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.':
+                                                '${tokenizedAsset.outstandingFinancialRespNoDebts == 1 ? 'Yes' : 'No'}',
+                                            'Asset does not have any hidden liabilities or obligations that have not been disclosed. ':
+                                                '${tokenizedAsset.outstandingFinancialRespNoHiddenLiabilities == 1 ? 'Yes' : 'No'}',
+                                            'Asset is adequately insured against risks such as fire, theft, and natural disasters.':
+                                                '${tokenizedAsset.riskManagementFullyInsured == 1 ? 'Yes' : 'No'}',
+                                            'The declared value of this asset reflects its current market value and condition.':
+                                                '${tokenizedAsset.riskManagementDeclaredValue == 1 ? 'Yes' : 'No'}',
+                                            'Asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.':
+                                                '${tokenizedAsset.physicalConditionNoUndisclosedEasements == 1 ? 'Yes' : 'No'}',
+                                            'Asset is structurally sound and has no unresolved maintenance or safety issues.':
+                                                '${tokenizedAsset.physicalConditionSound == 1 ? 'Yes' : 'No'}',
+                                            'Asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.':
+                                                '${tokenizedAsset.physicalConditionNolease == 1 ? 'Yes' : 'No'}',
+                                          };
+                                          displayDetails(
+                                            "Legal & Compliance Information",
+                                            details,
+                                          );
+                                        },
+                                      ),
+                                    ],
                                     SizedBox(height: 10),
                                     categoryTile(
                                       notifier,

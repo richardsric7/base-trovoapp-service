@@ -58,7 +58,7 @@ class _AssetDashboardState extends State<AssetDashboard>
     isFinancialAssetType =
         tokenizedAsset.assetSector!.toLowerCase() ==
         'finance and investment markets';
-    inspect(appState.viewData);
+    inspect(tokenizedAsset.asMapData);
     var assetTypes = appState.tokenizationData['assetTypes'];
     for (var i = 0; i < assetTypes.length; i++) {
       if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
@@ -201,7 +201,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                     );
                   } else if (snapshot.hasData) {
                     var formData = snapshot.data! as Map<dynamic, dynamic>;
-                    inspect(formData);
                     return Column(
                       children: [
                         if (tokenizedAsset.assetLogo != null) ...[
@@ -405,7 +404,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                 notifier,
                                 label: 'Tokens not for Sale',
                                 value:
-                                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenFee)} ${tokenizedAsset.assetCode}',
+                                    '${getFiatValue(tokenizedAsset.numberOfTokenToBeIssued! - tokenizedAsset.numberOfTokenToBeSold! - tokenizedAsset.feeInAsset! - tokenizedAsset.vatInAsset!)} ${tokenizedAsset.assetCode}',
                               ),
                               infoCard(
                                 notifier,
@@ -786,13 +785,38 @@ class _AssetDashboardState extends State<AssetDashboard>
                                               in section
                                                   .value['body']
                                                   .entries) {
-                                            // if (item.value['public'] == true) {
-                                            details[item.value['label']] =
-                                                appState
-                                                    .viewData?['${item.key}']
-                                                    .toString() ??
-                                                '';
-                                            // }
+                                            if (item.value['public'] == true) {
+                                              var value = "";
+                                              // if the type is double, parse it accordingly
+                                              if (item.value['type'] ==
+                                                  'double') {
+                                                value = truncateToDecimalPlaces(
+                                                  double.tryParse(
+                                                        tokenizedAsset
+                                                                .asMapData?['${item.key}']
+                                                                .toString() ??
+                                                            '',
+                                                      ) ??
+                                                      0,
+                                                );
+                                              }
+                                              // if the type is date time parse it accordingly
+                                              else if (item
+                                                      .value['widgetType'] ==
+                                                  'datetime') {
+                                                value =
+                                                    '${DateFormat('MMMM dd, yyyy').format(DateTime.parse(tokenizedAsset.asMapData?['${item.key}'].toString() ?? ''))}';
+                                              } else {
+                                                value =
+                                                    tokenizedAsset
+                                                        .asMapData?['${item.key}']
+                                                        .toString() ??
+                                                    '';
+                                              }
+
+                                              details[item.value['label']] =
+                                                  value;
+                                            }
                                           }
                                         }
 

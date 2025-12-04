@@ -96,19 +96,24 @@ class _AssetVerificationDocumentOptionsView
             ),
             SizedBox(height: 20),
             for (var item in appState.viewData!['files']) ...[
-              Builder(
-                builder: (context) {
-                  var documents = <Map>[];
-                  for (var file
-                      in appState.viewData!['AssetTokenizationDocuments']) {
-                    if (file["documentType"] == item["documentType"]) {
-                      documents.add(file);
+              if (appState.viewData!["fundingStructure"] == 0 &&
+                  item["requiredForDebtAndHybrid"] == true) ...[
+                SizedBox.shrink(),
+              ] else ...[
+                Builder(
+                  builder: (context) {
+                    var documents = <Map>[];
+                    for (var file
+                        in appState.viewData!['AssetTokenizationDocuments']) {
+                      if (file["documentType"] == item["documentType"]) {
+                        documents.add(file);
+                      }
                     }
-                  }
-                  return proofItemCard(item: item, documents: documents);
-                },
-              ),
-              SizedBox(height: 10.sp),
+                    return proofItemCard(item: item, documents: documents);
+                  },
+                ),
+                SizedBox(height: 10.sp),
+              ],
             ],
             SizedBox(height: height / 30),
             Button(
@@ -143,149 +148,164 @@ class _AssetVerificationDocumentOptionsView
         ), // Rounded top corners
       ),
       builder: (BuildContext context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 280.sp,
-                          child: Text(
-                            appState.viewData?['title'],
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Icon(Icons.cancel_outlined, size: 20),
-                          style: ButtonStyle(
-                            padding: WidgetStatePropertyAll(EdgeInsets.all(7)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            minimumSize: WidgetStatePropertyAll(Size.zero),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 350,
-                          child: Text(
-                            "Upload ${title}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (errorMsg.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 350,
-                            child: Text(
-                              errorMsg,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  GestureDetector(
-                    onTap: () async {
-                      var file = await getFile();
-                      if (file != null && file.size > 900000) {
-                        errorMsg = "filesizeerror".tr();
-                        file = null;
-                      }
-
-                      var uuid = const Uuid();
-                      String shortId = uuid.v4().split('-').first;
-
-                      uploadFile(
-                        file!,
-                        documentType,
-                        "${title.split('(').first.trim()}-$shortId.${file.path?.split('.').last}"
-                            .toLowerCase(),
-                      );
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Column(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              builder: (context, scrollController) {
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(height: height / 50),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                              child: DottedBorder(
-                                ignoring: false,
-                                options: RectDottedBorderOptions(
-                                  dashPattern: [10, 4],
-                                  color: notifier.getbluecolor80,
+                            SizedBox(
+                              width: 280.sp,
+                              child: Text(
+                                appState.viewData?['title'],
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
                                 ),
-                                child: Container(
-                                  width: 320,
-                                  padding: EdgeInsets.all(20),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    spacing: 10,
-                                    children: [
-                                      Icon(
-                                        Icons.file_upload_outlined,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                      Text(
-                                        "Upload file here",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: notifier.getbluewhitecolor,
-                                          fontFamily: fontsemibold,
-                                          fontSize: 12.sp,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Icon(Icons.cancel_outlined, size: 20),
+                              style: ButtonStyle(
+                                padding: WidgetStatePropertyAll(
+                                  EdgeInsets.all(7),
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                minimumSize: WidgetStatePropertyAll(Size.zero),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 350,
+                              child: Text(
+                                "Upload ${title}",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ),
                           ],
                         ),
+                      ),
+                      if (errorMsg.isNotEmpty) ...[
+                        SizedBox(height: 5.h),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 350,
+                                child: Text(
+                                  errorMsg,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
+                      GestureDetector(
+                        onTap: () async {
+                          var file = await getFile();
+                          if (file != null && file.size > 900000) {
+                            errorMsg = "filesizeerror".tr();
+                            file = null;
+                            setModalState(() {});
+                            return;
+                          }
+
+                          var uuid = const Uuid();
+                          String shortId = uuid.v4().split('-').first;
+
+                          uploadFile(
+                            file!,
+                            documentType,
+                            "${title.split('(').first.trim()}-$shortId.${file.path?.split('.').last}"
+                                .toLowerCase(),
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(height: height / 50),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    10,
+                                    20,
+                                    3,
+                                  ),
+                                  child: DottedBorder(
+                                    ignoring: false,
+                                    options: RectDottedBorderOptions(
+                                      dashPattern: [10, 4],
+                                      color: notifier.getbluecolor80,
+                                    ),
+                                    child: Container(
+                                      width: 320,
+                                      padding: EdgeInsets.all(20),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        spacing: 10,
+                                        children: [
+                                          Icon(
+                                            Icons.file_upload_outlined,
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                          Text(
+                                            "Upload file here",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: notifier.getbluewhitecolor,
+                                              fontFamily: fontsemibold,
+                                              fontSize: 12.sp,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20.sp),
+                    ],
                   ),
-                  SizedBox(height: 20.sp),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -368,7 +388,8 @@ class _AssetVerificationDocumentOptionsView
                         return;
                       }
 
-                      appState.goToWebView(fileUrl);
+                      appState.initialUrl = fileUrl;
+                      appState.setPage(page: AppImageViewerPageConfig);
                     },
                     child: Row(
                       children: [

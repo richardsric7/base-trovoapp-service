@@ -317,7 +317,7 @@ class _AssetDetailsState extends State<AssetDetails>
               ),
 
               ButtonWithIcon(
-                "Dividend & Yield",
+                "Yield",
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 Image.asset(

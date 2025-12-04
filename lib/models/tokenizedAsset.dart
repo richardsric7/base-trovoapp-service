@@ -37,6 +37,7 @@ class TokenizedAsset {
   int? vettingStatus;
   double? numberOfTokenToBeSold;
   double? feeInAsset;
+  double? vatInAsset;
   double? feeInAssetPercent;
   double? numberOfTokenToBeIssued;
   String? walletToHoldAssetsNotForSale;
@@ -157,8 +158,10 @@ class TokenizedAsset {
   double? quantityOfTokensSold;
   double? quantityOfTokensSoldInFiat;
   String deepLink;
+  Map<String, dynamic>? asMapData;
 
   TokenizedAsset({
+    this.asMapData,
     this.id,
     this.shadowId,
     this.assetCode,
@@ -306,6 +309,7 @@ class TokenizedAsset {
     this.projectIdentifiedMarketRisks,
     this.projectIdentifiedOtherRelevantRisks,
     this.feeInAsset,
+    this.vatInAsset,
     this.feeInAssetPercent,
     this.numberOfExpressedInterests,
     this.numberOfSubscribers,
@@ -316,6 +320,7 @@ class TokenizedAsset {
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
     return TokenizedAsset(
+      asMapData: m,
       id: m["id"],
       shadowId: m["shadowId"],
       assetCode: m["assetCode"],
@@ -527,6 +532,7 @@ class TokenizedAsset {
       projectIdentifiedOtherRelevantRisks:
           m["projectIdentifiedOtherRelevantRisks"].toString(),
       feeInAsset: double.tryParse(m["feeInAsset"].toString()),
+      vatInAsset: double.tryParse(m["vatInAsset"].toString()),
       feeInAssetPercent: double.tryParse(m["feeInAssetPercent"].toString()),
       numberOfExpressedInterests: int.tryParse(
         m["numberOfExpressedInterests"].toString(),

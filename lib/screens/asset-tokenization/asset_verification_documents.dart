@@ -108,10 +108,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     int uploadedFileTypeCount = 0;
                     int uploadedRequiredFileTypeCount = 0;
                     int requiredFilesCount = 0;
+                    int totalDocuments = 0;
                     // get the number of documents that has been
                     // uploaded so far in order to calculate
                     // the number that is remaining
                     for (var file in item.value['files']) {
+                      // skip debt and hybrid files if funding structure is equity
+                      if (appState.viewData!["fundingStructure"] == 0 &&
+                          file["requiredForDebtAndHybrid"] == true) {
+                        continue;
+                      }
+
+                      totalDocuments += 1;
+
                       if (file['required'] == true) {
                         requiredFilesCount += 1;
                       }
@@ -141,7 +150,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                       uploadedRequiredFileTypeCount:
                           uploadedRequiredFileTypeCount,
                       requiredFilesCount: requiredFilesCount,
-                      totalDocuments: item.value['files'].length,
+                      // totalDocuments: item.value['files'].length,
+                      totalDocuments: totalDocuments,
                     );
                   },
                 ),

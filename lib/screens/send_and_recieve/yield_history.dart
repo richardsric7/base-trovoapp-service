@@ -55,7 +55,7 @@ class _YieldHistoryView extends State<YieldHistoryView>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Yield History',
+          'Interest History',
           notifier.getblck,
           height: height / 15,
         ).getBar(),

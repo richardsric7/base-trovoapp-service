@@ -169,6 +169,12 @@ class _TokenizeAssetState extends State<TokenizeAsset>
 
                       for (var item in documents.entries) {
                         for (var file in item.value['files']) {
+                          // Skip debt and hybrid required documents if funding structure is equity
+                          if (appState.viewData!["fundingStructure"] == 0 &&
+                              file["requiredForDebtAndHybrid"] == true) {
+                            continue;
+                          }
+
                           if (file['required'] == true) {
                             requiredFilesCount += 1;
                           }
@@ -323,17 +329,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   }
 
   PageConfiguration getFormPage() {
-    var data = appState.tokenizationData;
-    for (var i = 0; i < data['assetTypes'].length; i++) {
-      if (data['assetTypes'][i]['id'].toString() ==
-          appState.viewData!['assetType'].toString()) {
-        appState.viewData!['assetFormName'] =
-            data['assetTypes'][i]['assetType'];
-
-        break;
-      }
-    }
-
     switch (appState.viewData!['assetType'].toString()) {
       case '1123':
       case '1124':
@@ -505,10 +500,10 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       case '1174':
         uri = '$uri/$formId';
       default:
-        if (appState.viewData!['fundingStructure'] == 0) {
-          uri = '$uri/1'; // equity verification documents
+        if (appState.viewData!['assetAlreadyExists'] == 1) {
+          uri = '$uri/1'; // asset exists
         } else {
-          uri = '$uri/2'; // debt verification documents
+          uri = '$uri/2'; // upcoming asset
         }
     }
 

@@ -27,9 +27,9 @@ class _AppImageViewerState extends State<AppImageViewer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: notifier.getwihitecolor,
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: notifier.getwihitecolor,
+        backgroundColor: Colors.black,
         elevation: 0,
         toolbarHeight: 10,
         leading: Container(),

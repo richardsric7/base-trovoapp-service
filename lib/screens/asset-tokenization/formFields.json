@@ -27,6 +27,17 @@
             "required": true,
             "public": true
           },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
           "regulatoryApprovalId": {
             "type": "string",
             "widgetType": "text",
@@ -103,7 +114,7 @@
             "required": true,
             "public": true
           },
-          "totalIssueSize": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Total Issue Size (Total value of bond being issued)",
@@ -121,8 +132,7 @@
             "options": [
               "NGN",
               "USD",
-              "EUR",
-              ""
+              "EUR"
             ],
             "isFiat": false,
             "required": true,
@@ -187,8 +197,7 @@
             "value": null,
             "options": [
               "Floating",
-              "Fixed",
-              ""
+              "Fixed"
             ],
             "isFiat": false,
             "required": true,
@@ -246,8 +255,7 @@
             "options": [
               "Monthly",
               "Quarterly",
-              "Annually",
-              ""
+              "Annually"
             ],
             "isFiat": false,
             "required": true,
@@ -629,6 +637,17 @@
             "public": true,
             "required": true
           },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
           "issuerRegistrationNo": {
             "type": "string",
             "widgetType": "text",
@@ -737,7 +756,7 @@
             "public": true,
             "required": true
           },
-          "totalIssueSize": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Total Issue Size (Total value of bond being issued)",
@@ -755,10 +774,7 @@
             "options": [
               "NGN",
               "USD",
-              "EUR",
-              "",
-              "null",
-              "Dummy Text2"
+              "EUR"            
             ],
             "isFiat": false,
             "public": true,
@@ -823,10 +839,7 @@
             "value": null,
             "options": [
               "Floating",
-              "Fixed",
-              "",
-              "null",
-              "Dummy Text2"
+              "Fixed"
             ],
             "isFiat": false,
             "public": true,
@@ -884,10 +897,7 @@
             "options": [
               "Monthly",
               "Quarterly",
-              "Annually",
-              "",
-              "null",
-              "Dummy Text2"
+              "Annually"
             ],
             "isFiat": false,
             "public": true,
@@ -975,10 +985,7 @@
               "Senior",
               "Subordinated",
               "Secured",
-              "Unsecured",
-              "",
-              "null",
-              "Dummy Text2"
+              "Unsecured"
             ],
             "isFiat": false,
             "public": true,
@@ -993,9 +1000,7 @@
             "options": [
               "Daily",
               "Weekly",
-              "Monthly",
-              "",
-              "Dummy Text2"
+              "Monthly"
             ],
             "isFiat": false,
             "public": true,
@@ -1081,10 +1086,7 @@
             "value": null,
             "options": [
               "Secured",
-              "Unsecured",
-              "",
-              "null",
-              "Dummy Text2"
+              "Unsecured"
             ],
             "isFiat": false,
             "public": true,
@@ -1122,10 +1124,7 @@
               "Monthly",
               "Quarterly",
               "Semi-Annual",
-              "Annual",
-              "",
-              "null",
-              "Dummy Text2"
+              "Annual"
             ],
             "isFiat": false,
             "public": true,
@@ -1497,6 +1496,17 @@
             "public": true,
             "required": true
           },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
           "isinOrSerialNumber": {
             "type": "string",
             "widgetType": "text",
@@ -1508,7 +1518,7 @@
             "public": true,
             "required": false
           },
-          "totalIssueSize": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Total Issue Size",
@@ -2215,7 +2225,18 @@
             "required": true,
             "public": true
           },
-          "totalIssueSize": {
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Total Issue Size",
@@ -2837,6 +2858,17 @@
             "required": true,
             "public": true
           },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
           "fundInstrumentType": {
             "type": "string",
             "widgetType": "text",
@@ -3440,7 +3472,7 @@
   "1124": {
     "fields": {
       "0": {
-        "sectionName": "",
+        "sectionName": "Basic Information",
         "description": "",
         "body": {
           "assetName": {
@@ -3448,6 +3480,17 @@
             "widgetType": "text",
             "label": "Fund Name",
             "placeholderText": "Trovo Equity Growth Fund",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4043,7 +4086,7 @@
   "1125": {
     "fields": {
       "0": {
-        "sectionName": "",
+        "sectionName": "Basic Information",
         "description": "",
         "body": {
           "assetName": {
@@ -4079,6 +4122,17 @@
               "Close-ended",
               "Interval Fund"
             ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetDescription": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Description",
+            "placeholderText": "Describe the fund",
+            "value": null,
+            "options": [],
             "isFiat": false,
             "required": true,
             "public": true
@@ -5170,12 +5224,12 @@
         "sectionName": "Valuation & Tokenization Terms",
         "description": "",
         "body": {
-          "valuationAssetValuation": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "Valuation - Asset Valuation",
             "placeholderText": "₦1,200,000,000",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": true,
             "required": true,
@@ -5253,7 +5307,7 @@
       "3": {
         "sectionName": "Parties Involved",
         "description": "",
-        "items": {
+        "body": {
           "partiesInvolvedTrustee": {
             "type": "string",
             "widgetType": "text",
@@ -5325,7 +5379,7 @@
       "4": {
         "sectionName": "Risk Disclosures & Insurance",
         "description": "",
-        "items": {
+        "body": {
           "insuranceMarketRisk": {
             "type": "string",
             "widgetType": "text",
@@ -5467,7 +5521,7 @@
             "widgetType": "text",
             "label": "Coverage Value",
             "placeholderText": "$100 million",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": true,
             "required": true,
@@ -5549,7 +5603,7 @@
             "required": true,
             "public": true
           },
-          "commodityDescription": {
+          "assetDescription": {
             "type": "string",
             "widgetType": "longtext",
             "label": "Commodity Description",
@@ -5860,7 +5914,7 @@
         "sectionName": "Commodity Valuation & Tokenization Terms",
         "description": "",
         "body": {
-          "assetValuation": {
+          "assetCurrentValue": {
             "type": "string",
             "widgetType": "text",
             "label": "Asset Valuation",
@@ -6688,6 +6742,7 @@
             "name": "Proof of Asset Existence",
             "documentType": "ProofOfAssetExistence",
             "description": "(e.g. Inspection reports from independent auditors, photographs, operational reports utility bills, ets)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
@@ -6696,6 +6751,16 @@
             "name": "Proof of Asset Address",
             "documentType": "ProofOfAssetAddress",
             "description": "(e.g. utility bills, title deed, property tax receipt showing the address survey plan, etc.)",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
+            "name": "Photos of the Asset",
+            "documentType": "ProofOfAssetAddress",
+            "description": "(Please add good quality photos)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
@@ -6704,22 +6769,16 @@
             "name": "Proof of Ownership",
             "documentType": "ProofOfAssetOwnership",
             "description": "(e.g. Title Deed, Certificate of Ownership, Inheritance documents, etc.)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
           },
           {
-            "name": "Title deeds or certificates",
-            "documentType": "TitleDeedsOrCertificates",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
             "name": "Original Ownership Agreements",
             "documentType": "OwnershipAgreements",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -6728,6 +6787,7 @@
             "name": "Asset Status Verification",
             "documentType": "AssetStatusVerification",
             "description": "(any document that confirms the current operational or legal status of the asset (e.g., active, operational, under construction, or dormant)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
@@ -6736,6 +6796,7 @@
             "name": "Proof of Asset’s Condition",
             "documentType": "ProofOfAssetCondtion",
             "description": "(e.g. Inspection reports from independent auditors, Appraisal reports etc.)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
@@ -6744,22 +6805,7 @@
             "name": "Government issued ID  of original asset owner(s) or authorized representatives",
             "documentType": "AssetOwnerGovernmentID",
             "description": "(e.g. National ID, International Passport, Driver's License, etc.)",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Infrastructure inspection reports",
-            "documentType": "InfrastructureInspectionReports",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Maintenance records",
-            "documentType": "MaintenanceRecords",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -6768,6 +6814,7 @@
             "name": "Asset financial performance report",
             "documentType": "AssetFinancialPerformanceReport",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -6776,6 +6823,7 @@
             "name": "Proof of Compliance with Local Laws and Regulation",
             "documentType": "ComplianceWithLocalRegulation",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -6784,6 +6832,7 @@
             "name": "Proof of Compliance with Environmental Standards and Regulations",
             "documentType": "ComplianceWithEnvironmentalStandard",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -6792,206 +6841,16 @@
             "name": "Statutory licenses and permits/compliance certificates",
             "documentType": "StatutoryLicensesAndPermits",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
-          },
-          {
-            "name": "Project Proposal Concept Note/Business Case",
-            "documentType": "ProjectConceptNote",
-            "description": "Provides an overview of the project, including its objectives, scope, location, and expected benefits.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Market Analysis",
-            "documentType": "MarketAnalysis",
-            "description": "Evaluates the demand, supply, and competitive landscape for the project's services or products.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Feasibility Study",
-            "documentType": "FeasibilityStudy",
-            "description": "Assesses the technical, economic, financial, and legal feasibility of the project.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Business Plan",
-            "documentType": "BusinessPlan",
-            "description": "Outlines the project's business model, revenue streams, market analysis, competitive landscape, and financial projections)",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Project Financial Model",
-            "documentType": "ProjectFinancialModel",
-            "description": "Detailed evaluation of the financial viability, projections of revenue, expenses, cash flow,  profitability, etc. over the project's lifecycle.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Contracts",
-            "documentType": "ProjectContracts",
-            "description": "Legal Documentation for development, construction, and operation",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Permits,",
-            "documentType": "ProjectPermits",
-            "description": "Legal Documentation for development, construction, and operation",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Licenses",
-            "documentType": "ProjectLicenses",
-            "description": "Legal Documentation for development, construction, and operation",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Regulatory approvals",
-            "documentType": "RegulatoryApprovals",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Detailed plans",
-            "documentType": "ProjectDetailedPlans",
-            "description": "Construction Plans and Specifications for development, construction, and operation",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Drawings",
-            "documentType": "Construction Plans and Specifications for development, construction, and operation",
-            "description": "ProjectDrawings",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Specifications",
-            "documentType": "ProjectSpecifications",
-            "description": "Construction Plans and Specifications for development, construction, and operation",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Site Survey Reports",
-            "documentType": "SiteSurveyReports",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Environmental and Social Impact Assessment (ESIA)",
-            "documentType": "EnvironmentalImpactAssessmentReport",
-            "description": "Evaluates the project's potential environmental impact, along with proposed mitigation measures.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Risk Management Plan",
-            "documentType": "RiskManagementPlan",
-            "description": "Identifies and assesses potential risks associated with the project and outlines strategies for risk mitigation.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Operational Plans and Procedures",
-            "documentType": "OperationalPlansProcedures",
-            "description": "Describes how the infrastructure will be operated, managed, and maintained once completed",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Project Timeline",
-            "documentType": "ProjectTimeline",
-            "description": "The schedule of key milestones, construction phases, and expected completion dates.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Project developers",
-            "documentType": "ProjectDevelopers",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Contractors",
-            "documentType": "ProjectContractors",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Consultants",
-            "documentType": "ProjectConsultants",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Other key stakeholders involved in the project.",
-            "documentType": "OtherKeyStakeholdersInvolved",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Regulatory and Compliance Documentation",
-            "documentType": "ComplianceDocumentation",
-            "description": "Document demonstrating compliance with relevant laws, regulations, and industry standards.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Insurance Policies",
-            "documentType": "InsurancePolicyUpload",
-            "description": "Documents showing details of insurance coverage for the project, including liability, construction, and operational risks.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Third-Party Reports and Due Diligence",
-            "documentType": "ThirdPartyDueDiligenceReports",
-            "description": "Independent reports, studies, and due diligence assessments conducted by third-party experts.",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
+          },          
           {
             "name": "Asset Valuation Certificate from licensed appraisers",
             "documentType": "AssetValuationCertificate",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7000,22 +6859,16 @@
             "name": "Proof of Additional Cost Incurred Outside Valuation",
             "documentType": "ProofOfAdditionalCosts",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
-          }, 
+          },           
           {
-            "name": "Approved Project Budget",
-            "documentType": "ApprovedProjectBudget",
+            "name": "Comprehensive Insurance",
+            "documentType": "ComprehensiveInsurance",
             "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          }, 
-          {
-            "name": "Proof of Equity Contribution from Promoters",
-            "documentType": "ProofOfEquityContribution",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7024,6 +6877,16 @@
             "name": "Insurance policies",
             "documentType": "InsurancePolicyUpload",
             "description": "",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": true,
+            "public": false
+          },
+          {
+            "name": "Contractual Protections",
+            "documentType": "ContractualProtections",
+            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7032,14 +6895,7 @@
             "name": "Revenue Guarantees",
             "documentType": "RevenueGuarantees",
             "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Performance Bond",
-            "documentType": "PerformanceBond",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7048,54 +6904,7 @@
             "name": "Service Level Agreements",
             "documentType": "ServiceLevelAgreements",
             "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Public Private Partnerships (PPPs) agreement",
-            "documentType": "PPPAgreement",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Hedging Instruments",
-            "documentType": "HedgingInstruments",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Completion Guarantees",
-            "documentType": "CompletionGuarantees",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Independent Monitoring Engagement Agreements for Indipendent engineers or auditors to monotor project imlementation and operations",
-            "documentType": "MonitoringEngagementAgreements",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Sustainability Certifications",
-            "documentType": "SustainabilityCertifications",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Community Engagement Plans",
-            "documentType": "CommunityEngagementPlans",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7104,6 +6913,7 @@
             "name": "Security measures documentation (optional)",
             "documentType": "SecurityMeasuresDocumentation",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -7112,6 +6922,7 @@
             "name": "Legal Advisors Contact/Proof",
             "documentType": "LegalAdvisorsContact",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7120,6 +6931,7 @@
             "name": "Financial Advisors Contact/Proof",
             "documentType": "FinancialAdvisorsContact",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -7128,6 +6940,7 @@
             "name": "Proof of all liens, mortgages, and outstanding loans.",
             "documentType": "ProofOfLiensLoans",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -7136,6 +6949,7 @@
             "name": "Proof of unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.",
             "documentType": "ProofOfUnpaidPropertyExpenses",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -7144,6 +6958,7 @@
             "name": "Proof of hidden liabilities or obligations that have not been disclosed.",
             "documentType": "ProofOfHiddenLiabilities",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -7152,8 +6967,90 @@
             "name": "Proof of unresolved structural, maintenance, or safety issues.",
             "documentType": "ProofOfUnresolvedIssues",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
+            "public": false
+          },          
+          {
+            "name": "Draft Term Sheet/Loan Agreement",
+            "documentType": "DraftTermSheetLoanAgreement",
+            "description": "Legal terms of the debt",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Amortization Schedule",
+            "documentType": "AmortizationOrPaymentSchedule",
+            "description": "Repayment plan over tenor",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Credit Rating Report (if rated)",
+            "documentType": "RatingsReport",
+            "description": "From rating agency",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Security Agreement (if applicable)",
+            "documentType": "SecurityAgreement",
+            "description": "Secures repayment with asset",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Guarantee Certificate/Letter (if applicable)",
+            "documentType": "GuaranteeCertificate",
+            "description": "From guarantor",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Legal Opinion (if available)",
+            "documentType": "LegalOpinion",
+            "description": "Opinion on enforceability",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Debt Covenants Summary",
+            "documentType": "DebtCovenantsSummary",
+            "description": "Key financial or legal covenants",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Debt/Bond Trustee Agreement",
+            "documentType": "DebtBondTrusteeAgreement",
+            "description": "",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Upload Signed Declaration Form",
+            "documentType": "ProofOfUnresolvedIssues",
+            "description": "Signed copy of declaration and attestation (PDF)",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": true,
             "public": false
           }
         ]
@@ -7595,17 +7492,10 @@
         "sectionName": "Supporting Documents",
         "files": [
           {
-            "name": "Proof of Asset Existence",
-            "documentType": "ProofOfAssetExistence",
-            "description": "(e.g. Inspection reports from independent auditors, photographs, operational reports utility bills, ets)",
-            "fileType": "file",
-            "required": true,
-            "public": true
-          },
-          {
             "name": "Proof of Asset Address",
-            "documentType": "ProofOfAssetAddress",
+            "documentType": "",
             "description": "(e.g. utility bills, title deed, property tax receipt showing the address survey plan, etc.)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
@@ -7614,70 +7504,34 @@
             "name": "Proof of Ownership",
             "documentType": "ProofOfAssetOwnership",
             "description": "(e.g. Title Deed, Certificate of Ownership, Inheritance documents, etc.)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": true
           },
           {
-            "name": "Title deeds or certificates",
-            "documentType": "TitleDeedsOrCertificates",
-            "description": "",
+            "name": "Photos of the Asset",
+            "documentType": "ProofOfAssetAddress",
+            "description": "(Please add good quality photos)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
-            "public": false
+            "public": true
           },
           {
             "name": "Original Ownership Agreements",
             "documentType": "OwnershipAgreements",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
-          },
-          {
-            "name": "Asset Status Verification",
-            "documentType": "AssetStatusVerification",
-            "description": "(any document that confirms the current operational or legal status of the asset (e.g., active, operational, under construction, or dormant)",
-            "fileType": "file",
-            "required": true,
-            "public": true
-          },
-          {
-            "name": "Proof of Asset’s Condition",
-            "documentType": "ProofOfAssetCondtion",
-            "description": "(e.g. Inspection reports from independent auditors, Appraisal reports etc.)",
-            "fileType": "file",
-            "required": true,
-            "public": true
           },
           {
             "name": "Government issued ID  of original asset owner(s) or authorized representatives",
             "documentType": "AssetOwnerGovernmentID",
             "description": "(e.g. National ID, International Passport, Driver's License, etc.)",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Infrastructure inspection reports",
-            "documentType": "InfrastructureInspectionReports",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Maintenance records",
-            "documentType": "MaintenanceRecords",
-            "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Asset financial performance report",
-            "documentType": "AssetFinancialPerformanceReport",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7686,6 +7540,7 @@
             "name": "Proof of Compliance with Local Laws and Regulation",
             "documentType": "ComplianceWithLocalRegulation",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7694,14 +7549,7 @@
             "name": "Proof of Compliance with Environmental Standards and Regulations",
             "documentType": "ComplianceWithEnvironmentalStandard",
             "description": "",
-            "fileType": "file",
-            "required": true,
-            "public": false
-          },
-          {
-            "name": "Statutory licenses and permits/compliance certificates",
-            "documentType": "StatutoryLicensesAndPermits",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7710,6 +7558,7 @@
             "name": "Project Proposal Concept Note/Business Case",
             "documentType": "ProjectConceptNote",
             "description": "Provides an overview of the project, including its objectives, scope, location, and expected benefits.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7718,6 +7567,7 @@
             "name": "Market Analysis",
             "documentType": "MarketAnalysis",
             "description": "Evaluates the demand, supply, and competitive landscape for the project's services or products.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7726,6 +7576,7 @@
             "name": "Feasibility Study",
             "documentType": "FeasibilityStudy",
             "description": "Assesses the technical, economic, financial, and legal feasibility of the project.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7734,6 +7585,7 @@
             "name": "Business Plan",
             "documentType": "BusinessPlan",
             "description": "Outlines the project's business model, revenue streams, market analysis, competitive landscape, and financial projections)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7742,6 +7594,7 @@
             "name": "Project Financial Model",
             "documentType": "ProjectFinancialModel",
             "description": "Detailed evaluation of the financial viability, projections of revenue, expenses, cash flow,  profitability, etc. over the project's lifecycle.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7750,6 +7603,7 @@
             "name": "Contracts",
             "documentType": "ProjectContracts",
             "description": "Legal Documentation for development, construction, and operation",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7758,6 +7612,7 @@
             "name": "Permits,",
             "documentType": "ProjectPermits",
             "description": "Legal Documentation for development, construction, and operation",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7766,6 +7621,7 @@
             "name": "Licenses",
             "documentType": "ProjectLicenses",
             "description": "Legal Documentation for development, construction, and operation",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7774,6 +7630,7 @@
             "name": "Regulatory approvals",
             "documentType": "RegulatoryApprovals",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7782,6 +7639,7 @@
             "name": "Detailed plans",
             "documentType": "ProjectDetailedPlans",
             "description": "Construction Plans and Specifications for development, construction, and operation",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7790,6 +7648,7 @@
             "name": "Drawings",
             "documentType": "Construction Plans and Specifications for development, construction, and operation",
             "description": "ProjectDrawings",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7798,6 +7657,7 @@
             "name": "Specifications",
             "documentType": "ProjectSpecifications",
             "description": "Construction Plans and Specifications for development, construction, and operation",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7806,6 +7666,7 @@
             "name": "Site Survey Reports",
             "documentType": "SiteSurveyReports",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7814,6 +7675,7 @@
             "name": "Environmental and Social Impact Assessment (ESIA)",
             "documentType": "EnvironmentalImpactAssessmentReport",
             "description": "Evaluates the project's potential environmental impact, along with proposed mitigation measures.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7822,6 +7684,7 @@
             "name": "Risk Management Plan",
             "documentType": "RiskManagementPlan",
             "description": "Identifies and assesses potential risks associated with the project and outlines strategies for risk mitigation.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7830,6 +7693,7 @@
             "name": "Operational Plans and Procedures",
             "documentType": "OperationalPlansProcedures",
             "description": "Describes how the infrastructure will be operated, managed, and maintained once completed",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7838,14 +7702,16 @@
             "name": "Project Timeline",
             "documentType": "ProjectTimeline",
             "description": "The schedule of key milestones, construction phases, and expected completion dates.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
           },
           {
-            "name": "Project developers",
+            "name": "Project Developers",
             "documentType": "ProjectDevelopers",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7854,6 +7720,7 @@
             "name": "Contractors",
             "documentType": "ProjectContractors",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7862,6 +7729,7 @@
             "name": "Consultants",
             "documentType": "ProjectConsultants",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7870,6 +7738,7 @@
             "name": "Other key stakeholders involved in the project.",
             "documentType": "OtherKeyStakeholdersInvolved",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7878,6 +7747,7 @@
             "name": "Regulatory and Compliance Documentation",
             "documentType": "ComplianceDocumentation",
             "description": "Document demonstrating compliance with relevant laws, regulations, and industry standards.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7886,6 +7756,7 @@
             "name": "Insurance Policies",
             "documentType": "InsurancePolicyUpload",
             "description": "Documents showing details of insurance coverage for the project, including liability, construction, and operational risks.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
@@ -7894,110 +7765,151 @@
             "name": "Third-Party Reports and Due Diligence",
             "documentType": "ThirdPartyDueDiligenceReports",
             "description": "Independent reports, studies, and due diligence assessments conducted by third-party experts.",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
           },
           {
-            "name": "Asset Valuation Certificate from licensed appraisers",
-            "documentType": "AssetValuationCertificate",
+            "name": "Approved Project Budget",
+            "documentType": "ApprovedProjectBudget",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
             "public": false
           },
           {
-            "name": "Proof of Additional Cost Incurred Outside Valuation",
-            "documentType": "ProofOfAdditionalCosts",
+            "name": "Proof of Equity Contribution from promoter",
+            "documentType": "ProofOfEquityContribution",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
+            "public": false
+          },          
+          {
+            "name": "Comprehensive Insurance",
+            "documentType": "ComprehensiveInsurance",
+            "description": "",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": false,
             "public": false
           },          
           {
             "name": "Insurance policies",
             "documentType": "InsurancePolicyUpload",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
+            "required": false,
             "public": false
+          },
+          {
+            "name": "Contractual Protections",
+            "documentType": "ContractualProtections",
+            "description": "",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": false,
+            "public": true
           },
           {
             "name": "Revenue Guarantees",
             "documentType": "RevenueGuarantees",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
-            "public": false
+            "public": true
           },
           {
             "name": "Performance Bond",
             "documentType": "PerformanceBond",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": true,
-            "public": false
+            "public": true
           },
           {
             "name": "Service Level Agreements",
             "documentType": "ServiceLevelAgreements",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
-            "public": false
+            "required": false,
+            "public": true
           },
           {
             "name": "Public Private Partnerships (PPPs) agreement",
             "documentType": "PPPAgreement",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
-            "public": false
+            "required": false,
+            "public": true
           },
           {
             "name": "Hedging Instruments",
             "documentType": "HedgingInstruments",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
+            "required": false,
             "public": false
           },
           {
             "name": "Completion Guarantees",
             "documentType": "CompletionGuarantees",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
+            "required": false,
             "public": false
           },
           {
             "name": "Independent Monitoring Engagement Agreements for Indipendent engineers or auditors to monotor project imlementation and operations",
             "documentType": "MonitoringEngagementAgreements",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
+            "required": false,
             "public": false
+          },
+          {
+            "name": "Environmental, Social, and Governance (ESG) Safeguards",
+            "documentType": "ESGSafeguards",
+            "description": "",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": false,
+            "public": true
           },
           {
             "name": "Sustainability Certifications",
             "documentType": "SustainabilityCertifications",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
-            "public": false
+            "required": false,
+            "public": true
           },
           {
             "name": "Community Engagement Plans",
             "documentType": "CommunityEngagementPlans",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
-            "public": false
+            "required": false,
+            "public": true
           },
           {
             "name": "Security measures documentation (optional)",
             "documentType": "SecurityMeasuresDocumentation",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -8006,30 +7918,16 @@
             "name": "Legal Advisors Contact/Proof",
             "documentType": "LegalAdvisorsContact",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
-            "required": true,
+            "required": false,
             "public": false
           },
           {
             "name": "Financial Advisors Contact/Proof",
             "documentType": "FinancialAdvisorsContact",
             "description": "",
-            "fileType": "file",
-            "required": false,
-            "public": false
-          },
-          {
-            "name": "Proof of all liens, mortgages, and outstanding loans.",
-            "documentType": "ProofOfLiensLoans",
-            "description": "",
-            "fileType": "file",
-            "required": false,
-            "public": false
-          },
-          {
-            "name": "Proof of unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.",
-            "documentType": "ProofOfUnpaidPropertyExpenses",
-            "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
@@ -8038,18 +7936,101 @@
             "name": "Proof of hidden liabilities or obligations that have not been disclosed.",
             "documentType": "ProofOfHiddenLiabilities",
             "description": "",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
           },
           {
-            "name": "Proof of unresolved structural, maintenance, or safety issues.",
-            "documentType": "ProofOfUnresolvedIssues",
-            "description": "",
+            "name": "Upload Signed Declaration Form",
+            "documentType": "SignedDeclarationForm",
+            "description": "Signed copy of declaration and attestation (PDF)",
+            "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
             "public": false
-          }
+          },          
+          {
+            "name": "Draft Term Sheet/Loan Agreement",
+            "documentType": "DraftTermSheetLoanAgreement",
+            "description": "Legal terms of the debt",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Amortization Schedule",
+            "documentType": "AmortizationOrPaymentSchedule",
+            "description": "Repayment plan over tenor",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Credit Rating Report (if rated)",
+            "documentType": "RatingsReport",
+            "description": "From rating agency",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Security Agreement (if applicable)",
+            "documentType": "SecurityAgreement",
+            "description": "Secures repayment with asset",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Guarantee Certificate/Letter (if applicable)",
+            "documentType": "GuaranteeCertificate",
+            "description": "From guarantor",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Legal Opinion (if available)",
+            "documentType": "LegalOpinion",
+            "description": "Opinion on enforceability",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Debt Covenants Summary",
+            "documentType": "DebtCovenantsSummary",
+            "description": "Key financial or legal covenants",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": true
+          },
+          {
+            "name": "Debt/Bond Trustee Agreement",
+            "documentType": "DebtBondTrusteeAgreement",
+            "description": "",
+            "requiredForDebtAndHybrid": true,
+            "fileType": "file",
+            "required": false,
+            "public": false
+          },
+          {
+            "name": "Upload Signed Declaration Form",
+            "documentType": "ProofOfUnresolvedIssues",
+            "description": "Signed copy of declaration and attestation (PDF)",
+            "requiredForDebtAndHybrid": false,
+            "fileType": "file",
+            "required": true,
+            "public": false
+          }     
         ]
       }
     }
