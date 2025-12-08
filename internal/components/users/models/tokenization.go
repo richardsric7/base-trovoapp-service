@@ -544,6 +544,7 @@ type TokenizedAsset struct {
 	MinimumKycTier                               *string                         `json:"minimumKycTier"`
 	InvestorCategory                             *string                         `json:"investorCategory"`
 	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
+	ExitWithFiat                                 int                             `gorm:"default:0" json:"exitWithFiat"`
 }
 
 type TokenizedAssetID string
@@ -965,6 +966,7 @@ type TokenizedAssetJSONInput struct {
 	MinimumKycTier                          string    `json:"minimumKycTier"`
 	InvestorCategory                        string    `json:"investorCategory"`
 	WithholdingTaxDisclosure                int       `gorm:"default:0" json:"withholdingTaxDisclosure"`
+	ExitWithFiat                            int       `gorm:"default:0" json:"exitWithFiat"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1476,6 +1478,7 @@ type TokenizedAssetJSON struct {
 	MinimumKycTier                               string                          `json:"minimumKycTier"`
 	InvestorCategory                             string                          `json:"investorCategory"`
 	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
+	ExitWithFiat                                 int                             `gorm:"default:0" json:"exitWithFiat"`
 }
 
 type TokenizedAssetSector struct {
@@ -4256,6 +4259,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	}
 
 	t.WithholdingTaxDisclosure = ti.WithholdingTaxDisclosure
+	t.ExitWithFiat = ti.ExitWithFiat
 
 	//////////
 
@@ -4671,7 +4675,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.TokenizationApplicationFee > 0 {
 		t.TokenizationApplicationFee = ti.TokenizationApplicationFee
 		t.TokenizationApplicationFeeAsset = ti.TokenizationApplicationFeeAsset
-	} 
+	}
 	// else {
 
 	// 	t.TokenizationApplicationFee = t.CountryConfig.TokenizationApplicationFee
@@ -5722,6 +5726,7 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.InvestorCategory = *ti.InvestorCategory
 	}
 	t.WithholdingTaxDisclosure = ti.WithholdingTaxDisclosure
+	t.ExitWithFiat = ti.ExitWithFiat
 
 	return t
 
