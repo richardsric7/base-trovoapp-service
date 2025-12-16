@@ -303,111 +303,467 @@ func (gc *GlobalConfig) IsTokenizedAssetInPrimarySales(assetCode string) bool {
 }
 
 type TokenizedAsset struct {
-	ID                                          string    `json:"id"`
-	CreatedAt                                   time.Time `json:"createdAt"`
-	UpdatedAt                                   time.Time `json:"updatedAt"`
-	InitiatorUsername                           string    `gorm:"size:50;not null" json:"initiatorUsername"`
-	AssetSector                                 *string   `json:"assetSector"`
-	AssetSubSector                              *string   `json:"assetSubSector"`
-	AssetType                                   *string   `json:"assetType"`
-	AssetName                                   *string   `json:"assetName"`
-	ApprovedAssetCustodianID                    uint64    `gorm:"not null" json:"approvedAssetCustodianId"`
-	OfferingType                                *string   `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                               *string   `gorm:"null" json:"closedGroupId"`
-	SecApproval                                 int       `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                         *string   `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                      *string   `gorm:"size:60" json:"issuingWalletPublicKey"`
-	IssuingWalletAlias                          *string   `gorm:"size:60" json:"issuingWalletAlias"`
-	MarketMakingWallet                          *string   `json:"marketMakingWallet"`
-	AssetDescription                            *string   `json:"assetDescription"`
-	AssetCountryLocation                        *string   `json:"assetCountryLocation"`
-	AssetPhysicalAddress                        *string   `json:"assetPhysicalAddress"`
-	AssetLongitude                              *string   `json:"assetLongitude"`
-	AssetLatitude                               *string   `json:"assetLatitude"`
-	OwnershipType                               *string   `json:"ownershipType"` //DIRECT,THIRD-PARTY
-	OwnershipKind                               *string   `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
-	InitialOwnerPreferredWalletAddress          *string   `json:"initialOwnerPreferredWalletAddress"`
-	AssetOwnerName                              *string   `json:"assetOwnerName"`
-	AssetOwnerAddress                           *string   `json:"assetOwnerAddress"`
-	AssetManagerID                              uint64    `json:"assetManagerId"`
-	AssetQuoteCurrency                          *string   `gorm:"default:'NGN'" json:"assetQuoteCurrency"`
-	AssetCurrentValue                           float64   `gorm:"default:0" json:"assetCurrentValue"`
-	AssetOwnerRetainedOrContributedValue        float64   `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
-	AssetMscCostOutisdeOfValuation              float64   `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
-	ValueOfTokenizedAsset                       float64   `gorm:"default:0" json:"valueOfTokenizedAsset"`
-	ProtectionMethods                           *string   `json:"protectionMethods"` //csv format
-	InsuranceCompanyName                        *string   `json:"insuranceCompanyName"`
-	InsurancePolicyNumber                       *string   `json:"insurancePolicyNumber"`
-	InsurancePolicyHolder                       *string   `json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance                  float64   `gorm:"default:0" json:"percentageValueOfInsurance"`
-	IsFreeFromLiensAndEncumbrances              int       `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
-	AssetAlreadyExists                          int       `gorm:"default:1" json:"assetAlreadyExists"`
-	VettingStatus                               int       `gorm:"default:0" json:"vettingStatus"`
-	AssetCode                                   *string   `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
-	AssetLogo                                   *string   `json:"assetLogo"`
-	AssetWebsite                                *string   `gorm:"default:'trovotech.io'" json:"assetWebsite"`
-	NumberOfTokenToBeIssued                     float64   `gorm:"default:0" json:"numberOfTokenToBeIssued"`
-	MaxNumberOfTokenAvailableForSale            float64   `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
-	FeeInAsset                                  float64   `gorm:"default:0" json:"feeInAsset"`
-	FeeInFiat                                   float64   `gorm:"default:0" json:"feeInFiat"`
-	NumberOfTokenToBeSold                       float64   `gorm:"default:0" json:"numberOfTokenToBeSold"`
-	TotalTokenHeldByManager                     float64   `gorm:"default:0" json:"totalTokenHeldByManager"`
-	WalletToHoldAssetsNotForSale                *string   `json:"walletToHoldAssetsNotForSale"`
-	PricePerToken                               float64   `gorm:"default:0" json:"pricePerToken"`
-	SalesStart                                  time.Time `json:"salesStart"`
-	SalesEnd                                    time.Time `json:"salesEnd"`
-	CapOnPurchase                               float64   `gorm:"default:0" json:"capOnPurchase"`
-	CapQuantity                                 float64   `gorm:"default:0" json:"capQuantity"`
-	CapDurationInDays                           int       `gorm:"default:0" json:"capDurationInDays"`
-	ProceedCycle                                *string   `gorm:"size:50" json:"proceedCycle"`
-	TokenizationFeeID                           *uint64   `gorm:"default:0" json:"tokenizationFeeId"`
-	SECTokenizationFeePercent                   float64   `gorm:"default:0" json:"SECTokenizationFeePercent"`
-	SECTokenizationFeeValue                     float64   `gorm:"default:0" json:"SECTokenizationFeeValue"`
-	CustodianFeePercent                         float64   `gorm:"default:0" json:"custodianFeePercent"`
-	CustodianFeeValue                           float64   `gorm:"default:0" json:"custodianFeeValue"`
-	AssetManagerFeeValue                        float64   `gorm:"default:0" json:"assetManagerFeeValue"`
-	AssetManagerFeePercent                      float64   `gorm:"default:0" json:"assetManagerFeePercent"`
-	ProceedPayoutCurrency                       *string   `json:"proceedPayoutCurrency"`
-	ProceedPayoutType                           int       `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
-	ExemptedCountries                           *string   `json:"exemptedCountries"`
-	HasAdditionalKYCRequirements                int       `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
-	AdditionalKYCRequirements                   *string   `json:"additionalKYCRequirements"`
-	InvestorAccreditationRequired               int       `gorm:"default:0" json:"investorAccreditationRequired"`
-	AssetTokenizationStatus                     int       `gorm:"default:0" json:"assetTokenizationStatus"`
-	LastUpdatedBy                               *string   `gorm:"null" json:"lastUpdatedBy"`
-	TokenizationTransaction                     *string   `gorm:"null" json:"tokenizationTransaction"`
-	AgreeTransferTitleToCustodian               int       `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
-	ContractualProtectionRevGuarantees          int       `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
-	ContractualProtectionPerfBond               int       `gorm:"default:0" json:"contractualProtectionPerfBond"`
-	ContractualProtectionSLA                    int       `gorm:"default:0" json:"contractualProtectionSLA"`
-	RiskSharingMechanismPPPs                    int       `gorm:"default:0" json:"riskSharingMechanismPPPs"`
-	RiskSharingMechanismHedgeInstruments        int       `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
-	RiskSharingMechanismCompletionGuarantees    int       `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
-	IndependentMonitoringList                   *string   `gorm:"null" json:"independentMonitoringList"`
-	ESGSafeguardsSusCerts                       int       `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
-	ESGSafeguardsCommEngPlans                   int       `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
-	SecurityMeasuresAccessControl               int       `gorm:"default:0" json:"securityMeasuresAccessControl"`
-	SecurityMeasuresSurveilanceSystems          int       `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
-	SecurityMeasuresOnSiteSecurityPersonnel     int       `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
-	SecurityMeasuresPerimeterSecurity           int       `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
-	SecurityMeasuresCriticalInfraProtections    int       `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
-	OtherAssetProtection                        *string   `gorm:"null" json:"otherAssetProtection"`
-	LegalAdvisor                                *string   `gorm:"null" json:"legalAdvisor"`
-	FinancialAdvisor                            *string   `gorm:"null" json:"financialAdvisor"`
-	UndertakingNoLien                           int       `gorm:"default:0" json:"undertakingNoLien"`
-	UndertakingNotCollateral                    int       `gorm:"default:0" json:"undertakingNotCollateral"`
-	UndertakingNoClaims                         int       `gorm:"default:0" json:"undertakingNoClaims"`
-	UndertakingNoForeclosure                    int       `gorm:"default:0" json:"undertakingNoForeclosure"`
-	ComplianceNoViolation                       int       `gorm:"default:0" json:"complianceNoViolation"`
-	ComplianceAllPermits                        int       `gorm:"default:0" json:"complianceAllPermits"`
-	OutstandingFinancialRespNoDebts             int       `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
-	OutstandingFinancialRespNoHiddenLiabilities int       `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
-	RiskManagementFullyInsured                  int       `gorm:"default:0" json:"riskManagementFullyInsured"`
-	RiskManagementDeclaredValue                 int       `gorm:"default:0" json:"riskManagementDeclaredValue"`
-	PhysicalConditionSound                      int       `gorm:"default:0" json:"physicalConditionSound"`
-	PhysicalConditionNolease                    int       `gorm:"default:0" json:"physicalConditionNolease"`
-	PhysicalConditionNoUndisclosedEasements     int       `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
-	DeepLink                                    *string   `gorm:"null" json:"deepLink"`
+	ID                                           string                          `json:"id"`
+	CreatedAt                                    time.Time                       `json:"createdAt"`
+	UpdatedAt                                    time.Time                       `json:"updatedAt"`
+	InitiatorUsername                            string                          `gorm:"size:50;not null" json:"initiatorUsername"`
+	AssetSector                                  *string                         `json:"assetSector"`
+	AssetSubSector                               *string                         `json:"assetSubSector"`
+	AssetType                                    *string                         `json:"assetType"`
+	AssetName                                    *string                         `json:"assetName"`
+	ApprovedAssetCustodianID                     uint64                          `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
+	OfferingType                                 *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID                                *string                         `gorm:"null" json:"closedGroupId"`
+	SecApproval                                  int                             `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber                          *string                         `json:"secApprovalIdNumber"`
+	IssuingWalletPublicKey                       *string                         `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAlias                           *string                         `gorm:"size:60" json:"issuingWalletAlias"`
+	MarketMakingWallet                           *string                         `json:"marketMakingWallet"`
+	AssetDescription                             *string                         `json:"assetDescription"`
+	AssetCountryLocation                         *string                         `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
+	AssetPhysicalAddress                         *string                         `json:"assetPhysicalAddress"`
+	AssetLongitude                               *string                         `json:"assetLongitude"`
+	AssetLatitude                                *string                         `json:"assetLatitude"`
+	OwnershipType                                *string                         `json:"ownershipType"` //DIRECT,THIRD-PARTY
+	OwnershipKind                                *string                         `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress           *string                         `json:"initialOwnerPreferredWalletAddress"`
+	AssetOwnerName                               *string                         `json:"assetOwnerName"`
+	AssetOwnerAddress                            *string                         `json:"assetOwnerAddress"`
+	AssetManagerID                               uint64                          `gorm:"default:0" json:"assetManagerId"`
+	AssetIssuingHouseID                          uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
+	LegalAndProfesionalPartnerID                 uint64                          `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
+	RatingAgencyID                               uint64                          `gorm:"not null;default:0" json:"ratingAgencyId"`
+	TrusteeID                                    uint64                          `gorm:"not null;default:0" json:"trusteeId"`
+	AssetQuoteCurrency                           *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
+	AssetCurrentValue                            float64                         `gorm:"default:0" json:"assetCurrentValue"`
+	AssetOwnerRetainedOrContributedValue         float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
+	AssetMscCostOutisdeOfValuation               float64                         `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
+	ValueOfTokenizedAsset                        float64                         `gorm:"default:0" json:"valueOfTokenizedAsset"`
+	ProtectionMethods                            *string                         `json:"protectionMethods"` //csv format
+	InsuranceCompanyName                         *string                         `json:"insuranceCompanyName"`
+	InsurancePolicyNumber                        *string                         `json:"insurancePolicyNumber"`
+	InsurancePolicyHolder                        *string                         `json:"insurancePolicyHolder"`
+	PercentageValueOfInsurance                   float64                         `gorm:"default:0" json:"percentageValueOfInsurance"`
+	IsFreeFromLiensAndEncumbrances               int                             `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
+	AssetAlreadyExists                           int                             `gorm:"default:0" json:"assetAlreadyExists"`
+	VettingStatus                                int                             `gorm:"default:0" json:"vettingStatus"`
+	DueDiligenceFail                             int                             `gorm:"default:0" json:"dueDiligenceFail"` //0=False(success/in-progress), 1= true (failed).
+	DueDiligenceFailureReason                    *string                         `json:"dueDiligenceFailureReason"`
+	AssetCode                                    *string                         `gorm:"size:12; index:idx_unique_tokenized_asset_code,unique" json:"assetCode"`
+	AssetLogo                                    *string                         `json:"assetLogo"`
+	AssetWebsite                                 *string                         `gorm:"default:'trovotech.io'" json:"assetWebsite"`
+	InitialValueOfTokenizedAsset                 float64                         `gorm:"default:0" json:"initialValueOfTokenizedAsset"`
+	NumberOfTokenToBeIssued                      float64                         `gorm:"default:0" json:"numberOfTokenToBeIssued"`
+	MaxNumberOfTokenAvailableForSale             float64                         `gorm:"default:0" json:"maxNumberOfTokenAvailableForSale"`
+	FeeInAsset                                   float64                         `gorm:"default:0" json:"feeInAsset"`
+	FeeInAssetPercent                            float64                         `gorm:"default:0" json:"feeInAssetPercent"`
+	FeeInFiat                                    float64                         `gorm:"default:0" json:"feeInFiat"` //tokenization fee in fiat
+	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
+	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
+	WalletToHoldAssetsNotForSale                 *string                         `json:"walletToHoldAssetsNotForSale"`
+	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
+	SalesStart                                   time.Time                       `json:"salesStart"`
+	SalesEnd                                     time.Time                       `json:"salesEnd"`
+	CapOnPurchase                                float64                             `gorm:"default:0" json:"capOnPurchase"`
+	CapQuantity                                  float64                         `gorm:"default:0" json:"capQuantity"`
+	CapAmountInFiat                              float64                         `gorm:"default:0" json:"capAmountInFiat"`
+	CapDurationInDays                            int                             `gorm:"default:0" json:"capDurationInDays"`
+	ProceedCycle                                 *string                         `gorm:"size:50" json:"proceedCycle"`
+	TokenizationFeeID                            *uint64                         `gorm:"default:0" json:"tokenizationFeeId"`
+	ExcludeSecFee                                int                             `gorm:"default:0" json:"excludeSecFee"`
+	SECTokenizationFeePercent                    float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
+	SECTokenizationFeeFixed                      float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
+	SECTokenizationFeeValue                      float64                         `gorm:"default:0" json:"SECTokenizationFeeValue"`
+	CustodianFeePercent                          float64                         `gorm:"default:0" json:"custodianFeePercent"`
+	CustodianFeeFixed                            float64                         `gorm:"default:0" json:"custodianFeeFixed"`
+	CustodianFeeValue                            float64                         `gorm:"default:0" json:"custodianFeeValue"`
+	AssetManagerFeeValue                         float64                         `gorm:"default:0" json:"assetManagerFeeValue"`
+	AssetManagerFeePercent                       float64                         `gorm:"default:0" json:"assetManagerFeePercent"`
+	AssetManagerFeeFixed                         float64                         `gorm:"default:0" json:"assetManagerFeeFixed"`
+	IssuingHouseFeeValue                         float64                         `gorm:"default:0" json:"issuingHouseFeeValue"`
+	IssuingHouseFeePercent                       float64                         `gorm:"default:0" json:"issuingHouseFeePercent"`
+	IssuingHouseFeeFixed                         float64                         `gorm:"default:0" json:"issuingHouseFeeFixed"`
+	LegalAndProfessionalFeePercent               float64                         `gorm:"default:0" json:"legalAndProfessionalFeePercent"`
+	LegalAndProfessionalFeeFixed                 float64                         `gorm:"default:0" json:"legalAndProfessionalFeeFixed"`
+	LegalAndProfessionalFeeValue                 float64                         `gorm:"default:0" json:"legalAndProfessionalFeeValue"`
+	RatingAgencyFeePercent                       float64                         `gorm:"default:0" json:"ratingAgencyFeePercent"`
+	RatingAgencyFeeFixed                         float64                         `gorm:"default:0" json:"ratingAgencyFeeFixed"`
+	RatingAgencyFeeValue                         float64                         `gorm:"default:0" json:"ratingAgencyFeeValue"`
+	TrusteeFeePercent                            float64                         `gorm:"default:0" json:"trusteeFeePercent"`
+	TrusteeFeeFixed                              float64                         `gorm:"default:0" json:"trusteeFeeFixed"`
+	TrusteeFeeValue                              float64                         `gorm:"default:0" json:"trusteeFeeValue"`
+	VATPercent                                   float64                         `gorm:"default:0" json:"vatPercent"`
+	VATValue                                     float64                         `gorm:"default:0" json:"vatValue"`
+	VATInAsset                                   float64                         `gorm:"default:0" json:"vatInAsset"`
+	ProceedPayoutCurrency                        *string                         `json:"proceedPayoutCurrency"`
+	ProceedPayoutType                            int                             `gorm:"default:0" json:"proceedPayoutType"` // FIAT=1, CRYPTO=0
+	ExemptedCountries                            *string                         `json:"exemptedCountries"`
+	HasAdditionalKYCRequirements                 int                             `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
+	AdditionalKYCRequirements                    *string                         `json:"additionalKYCRequirements"`
+	InvestorAccreditationRequired                int                             `gorm:"default:0" json:"investorAccreditationRequired"`
+	AssetTokenizationStatus                      int                             `gorm:"default:0" json:"assetTokenizationStatus"`
+	LastUpdatedBy                                *string                         `gorm:"null" json:"lastUpdatedBy"`
+	TokenizationTransaction                      *string                         `gorm:"null" json:"-"`
+	AgreeTransferTitleToCustodian                int                             `gorm:"default:0" json:"agreeTransferTitleToCustodian"`
+	ContractualProtectionRevGuarantees           int                             `gorm:"default:0" json:"contractualProtectionRevGuarantees"`
+	ContractualProtectionPerfBond                int                             `gorm:"default:0" json:"contractualProtectionPerfBond"`
+	ContractualProtectionSLA                     int                             `gorm:"default:0" json:"contractualProtectionSLA"`
+	RiskSharingMechanismPPPs                     int                             `gorm:"default:0" json:"riskSharingMechanismPPPs"`
+	RiskSharingMechanismHedgeInstruments         int                             `gorm:"default:0" json:"riskSharingMechanismHedgeInstruments"`
+	RiskSharingMechanismCompletionGuarantees     int                             `gorm:"default:0" json:"riskSharingMechanismCompletionGuarantees"`
+	IndependentMonitoringList                    *string                         `gorm:"null" json:"independentMonitoringList"`
+	ESGSafeguardsSusCerts                        int                             `gorm:"default:0" json:"eSGSafeguardsSusCerts"`
+	ESGSafeguardsCommEngPlans                    int                             `gorm:"default:0" json:"eSGSafeguardsCommEngPlans"`
+	SecurityMeasuresAccessControl                int                             `gorm:"default:0" json:"securityMeasuresAccessControl"`
+	SecurityMeasuresSurveilanceSystems           int                             `gorm:"default:0" json:"securityMeasuresSurveilanceSystems"`
+	SecurityMeasuresOnSiteSecurityPersonnel      int                             `gorm:"default:0" json:"securityMeasuresOnSiteSecurityPersonnel"`
+	SecurityMeasuresPerimeterSecurity            int                             `gorm:"default:0" json:"securityMeasuresPerimeterSecurity"`
+	SecurityMeasuresCriticalInfraProtections     int                             `gorm:"default:0" json:"securityMeasuresCriticalInfraProtections"`
+	OtherAssetProtection                         *string                         `gorm:"null" json:"otherAssetProtection"`
+	LegalAdvisor                                 *string                         `gorm:"null" json:"legalAdvisor"`
+	FinancialAdvisor                             *string                         `gorm:"null" json:"financialAdvisor"`
+	UndertakingNoLien                            int                             `gorm:"default:0" json:"undertakingNoLien"`
+	UndertakingNotCollateral                     int                             `gorm:"default:0" json:"undertakingNotCollateral"`
+	UndertakingNoClaims                          int                             `gorm:"default:0" json:"undertakingNoClaims"`
+	UndertakingNoForeclosure                     int                             `gorm:"default:0" json:"undertakingNoForeclosure"`
+	ComplianceNoViolation                        int                             `gorm:"default:0" json:"complianceNoViolation"`
+	ComplianceAllPermits                         int                             `gorm:"default:0" json:"complianceAllPermits"`
+	OutstandingFinancialRespNoDebts              int                             `gorm:"default:0" json:"outstandingFinancialRespNoDebts"`
+	OutstandingFinancialRespNoHiddenLiabilities  int                             `gorm:"default:0" json:"outstandingFinancialRespNoHiddenLiabilities"`
+	RiskManagementFullyInsured                   int                             `gorm:"default:0" json:"riskManagementFullyInsured"`
+	RiskManagementDeclaredValue                  int                             `gorm:"default:0" json:"riskManagementDeclaredValue"`
+	PhysicalConditionSound                       int                             `gorm:"default:0" json:"physicalConditionSound"`
+	PhysicalConditionNolease                     int                             `gorm:"default:0" json:"physicalConditionNolease"`
+	PhysicalConditionNoUndisclosedEasements      int                             `gorm:"default:0" json:"physicalConditionNoUndisclosedEasements"`
+	MintingInitators                             *string                         `gorm:"null" json:"mintingInitators"` //CSV of approvers
+	MintingApprovers                             *string                         `gorm:"null" json:"mintingApprovers"` //csv of initators
+	BankID                                       *uint64                         `gorm:"null" json:"bankId"`
+	AccountNumber                                *string                         `gorm:"null" json:"accountNumber"`
+	BeneficiaryName                              *string                         `gorm:"null" json:"beneficiaryName"`
+	TokenizationApplicationFee                   float64                         `gorm:"default:0" json:"tokenizationApplicationFee"`
+	TokenizationApplicationFeeAsset              string                          `gorm:"not null;default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	ProjectStrategicObjectives                   *string                         `json:"projectStrategicObjectives"`
+	ProjectDevelopmentTimeline                   *string                         `json:"projectDevelopmentTimeline"`
+	ProjectKeyMilestoneAndDates                  *string                         `json:"projectKeyMilestoneAndDates"`
+	ProjectScope                                 *string                         `json:"projectScope"`
+	ProjectEconomicBenefits                      *string                         `json:"projectEconomicBenefits"`
+	ProjectExpectedNoOfJobs                      int                             `json:"projectExpectedNoOfJobs"`
+	ProjectIntendedSocialBenefits                *string                         `json:"projectIntendedSocialBenefits"`
+	ProjectTechnicalPartners                     *string                         `json:"projectTechnicalPartners"`
+	ProjectFinancialPartners                     *string                         `json:"projectFinancialPartners"`
+	EstimatedProjectIRR                          float64                         `json:"estimatedProjectIRR"`
+	EstimatedProjectROI                          float64                         `json:"estimatedProjectROI"`
+	EstimatedProjectNPV                          float64                         `json:"estimatedProjectNPV"`
+	EstimatedProjectPaybackPeriodsInMonths       int                             `json:"estimatedProjectPaybackPeriodsInMonths"`
+	KeyAssumptionsList                           *string                         `json:"keyAssumptionsList"`
+	ProjectIdentifiedLegalRisks                  *string                         `json:"projectIdentifiedLegalRisks"`
+	ProjectIdentifiedRegulatoryRisks             *string                         `json:"projectIdentifiedRegulatoryRisks"`
+	ProjectIdentifiedOperationalOrExecutionRisks *string                         `json:"projectIdentifiedOperationalOrExecutionRisks"`
+	ProjectIdentifiedMarketRisks                 *string                         `json:"projectIdentifiedMarketRisks"`
+	ProjectIdentifiedOtherRelevantRisks          *string                         `json:"projectIdentifiedOtherRelevantRisks"`
+	DeepLink                                     *string                         `gorm:"null" json:"deepLink"`
+	IsinOrSerialNumber                           *string                         `json:"isinOrSerialNumber"` /// begin the mutual fund fields
+	InstrumentName                               *string                         `json:"instrumentName"`
+	InstrumentType                               *string                         `json:"instrumentType"`
+	TotalIssueSize                               float64                         `gorm:"default:0" json:"totalIssueSize"`
+	IssueDate                                    time.Time                       `json:"issueDate"`
+	MaturityDate                                 time.Time                       `json:"maturityDate"`
+	FaceValuePerUnit                             float64                         `gorm:"default:0" json:"faceValuePerUnit"`
+	CouponOrInterestRateType                     *string                         `json:"couponOrInterestRateType"`
+	CouponOrInterestRate                         float64                         `json:"couponOrInterestRate"`
+	ReferenceIndex                               *string                         `json:"referenceIndex"`
+	ExpectedYield                                float64                         `gorm:"default:0" json:"expectedYield"`
+	EarlyRedemptionOptionInvestor                *string                         `json:"earlyRedemptionOptionInvestor"`
+	MinimumInvestmentAmount                      float64                         `json:"minimumInvestmentAmount"`
+	TaxTreatmentTokenHolders                     *string                         `json:"taxTreatmentTokenHolders"`
+	PaymentStructureToTokenHolders               *string                         `json:"paymentStructureToTokenHolders"`
+	RedemptionMethod                             *string                         `json:"redemptionMethod"`
+	PaymentStructure                             *string                         `json:"paymentStructure"`
+	RepaymentMethod                              *string                         `json:"repaymentMethod"`
+	PaymentCycle                                 *string                         `json:"paymentCycle"`
+	WeightedAverageLife                          float64                         `json:"weightedAverageLife"`
+	UnderlyingAssetPoolSize                      float64                         `json:"underlyingAssetPoolSize"`
+	PoolComposition                              *string                         `json:"poolComposition"`
+	CreditEnhancementMethod                      *string                         `json:"creditEnhancementMethod"`
+	SummaryOfUseOfProceeds                       *string                         `json:"summaryOfUseOfProceeds"`
+	CreditRatingIfAny                            *string                         `json:"creditRatingIfAny"`
+	IssuerName                                   *string                         `json:"issuerName"`
+	IssuerType                                   *string                         `json:"issuerType"`
+	IssuerContactPerson                          *string                         `json:"issuerContactPerson"`
+	ContactEmail                                 *string                         `json:"contactEmail"`
+	ContactPhoneNumber                           *string                         `json:"contactPhoneNumber"`
+	BriefCompanyOverview                         *string                         `json:"briefCompanyOverview"`
+	MortgageOriginators                          *string                         `json:"mortgageOriginators"`
+	Servicer                                     *string                         `json:"servicer"`
+	InstrumentTrustee                            *string                         `json:"instrumentTrustee"`
+	InstrumentCustodians                         *string                         `json:"instrumentCustodian"`
+	InstrumentLegalAdvisor                       *string                         `json:"instrumentLegalAdvisor"`
+	SpecialPurposeVehicle                        *string                         `json:"specialPurposeVehicle"`
+	InstrumentAssetManagerOrAdministrator        *string                         `json:"instrumentAssetManagerOrAdministrator"`
+	UnderwriterIfAny                             *string                         `json:"underwriterIfAny"`
+	InstrumentCreditRatingAgency                 *string                         `json:"instrumentCreditRatingAgency"`
+	AuditorOrVerifier                            *string                         `json:"auditorOrVerifier"`
+	CreditRiskAssessment                         *string                         `json:"creditRiskAssessment"`
+	CreditRating                                 *string                         `json:"creditRating"`
+	PrepaymentRisk                               *string                         `json:"prepaymentRisk"`
+	InterestRateRisk                             *string                         `json:"interestRateRisk"`
+	StructuralComplexityRisk                     *string                         `json:"structuralComplexityRisk"`
+	LegalOrRegulatoryRisk                        *string                         `json:"legalOrRegulatoryRisk"`
+	OperationalRisk                              *string                         `json:"operationalRisk"`
+	MarketRisk                                   *string                         `json:"marketRisk"`
+	EsgRisk                                      *string                         `json:"esgRisk"`
+	MitigationMeasures                           *string                         `json:"mitigationMeasures"`
+	IssuingAuthority                             *string                         `json:"issuingAuthority"`
+	RegulatoryApprovalId                         *string                         `json:"regulatoryApprovalId"`
+	LicenseApprovalReferenceNumber               *string                         `json:"licenseApprovalReferenceNumber"`
+	ListingStatus                                *string                         `json:"listingStatus"`
+	CurrencyOfIssuance                           *string                         `json:"currencyOfIssuance"`
+	CouponRateType                               *string                         `json:"couponRateType"`
+	CouponRate                                   float64                         `gorm:"default:0" json:"couponRate"`
+	SpreadOrMargin                               float64                         `gorm:"default:0" json:"spreadOrMargin"`
+	ResetFrequency                               *string                         `json:"resetFrequency"`
+	CouponPaymentFrequency                       *string                         `json:"couponPaymentFrequency"`
+	RedemptionStructure                          *string                         `json:"redemptionStructure"`
+	EarlyRedemptionOption                        *string                         `json:"earlyRedemptionOption"`
+	EarlyRedemptionPenalty                       *string                         `json:"earlyRedemptionPenalty"`
+	TaxTreatment                                 *string                         `json:"taxTreatment"`
+	NavOrMarketValueUpdates                      *string                         `json:"navOrMarketValueUpdates"`
+	ImpactMetrics                                *string                         `json:"impactMetrics"`
+	LegalBacking                                 *string                         `json:"legalBacking"`
+	DefaultHistory                               *string                         `json:"defaultHistory"`
+	RiskFactorsSummary                           *string                         `json:"riskFactorsSummary"`
+	PayingAgent                                  *string                         `json:"payingAgent"`
+	Auditor                                      *string                         `json:"auditor"`
+	RegistrarOrCSCSAgent                         *string                         `json:"registrarOrCSCSAgent"`
+	FundStructure                                *string                         `json:"fundStructure"`
+	AssetManagementCompanyName                   *string                         `json:"assetManagementCompanyName"`
+	FundManagers                                 *string                         `json:"fundManagers"`
+	RegulatoryLicenseNumber                      *string                         `json:"regulatoryLicenseNumber"`
+	FundLaunchDate                               *time.Time                      `json:"fundLaunchDate"`
+	TotalExpenseRatio                            float64                         `gorm:"default:0" json:"totalExpenseRatio"`
+	ExitLoadRedemptionFee                        float64                         `json:"exitLoadRedemptionFee"`
+	Tenure                                       int                             `gorm:"default:0" json:"tenure"`
+	InitialNetAssetValue                         float64                         `json:"initialNetAssetValue"`
+	NavUpdateFrequency                           *string                         `json:"navUpdateFrequency"`
+	NavCalculationMethod                         *string                         `json:"navCalculationMethod"`
+	RedemptionRules                              *string                         `json:"redemptionRules"`
+	LockInPeriod                                 int                             `gorm:"default:0" json:"lockInPeriod"`
+	EntryLoad                                    float64                         `gorm:"default:0" json:"entryLoad"`
+	PerformanceFee                               float64                         `gorm:"default:0" json:"performanceFee"`
+	DividendPolicy                               *string                         `json:"dividendPolicy"`
+	LiquidityProfile                             *string                         `json:"liquidityProfile"`
+	DistributionFrequency                        *string                         `json:"distributionFrequency"`
+	DistributionMethod                           *string                         `json:"distributionMethod"`
+	BenchmarkComparisonMethod                    *string                         `json:"benchmarkComparisonMethod"`
+	FeeBreakdownSummary                          *string                         `json:"feeBreakdownSummary"`
+	InvestmentObjective                          *string                         `json:"investmentObjective"`
+	EquityStrategy                               *string                         `json:"equityStrategy"`
+	MarketCapitalizationFocus                    *string                         `json:"marketCapitalizationFocus"`
+	BenchmarkIndex                               *string                         `json:"benchmarkIndex"`
+	SectorExposureLimits                         *string                         `json:"sectorExposureLimits"`
+	TopHoldings                                  *string                         `json:"topHoldings"`
+	GeographicExposure                           *string                         `json:"geographicExposure"`
+	RiskProfile                                  *string                         `json:"riskProfile"`
+	VolatilityEstimate                           float64                         `gorm:"default:0" json:"volatilityEstimate"`
+	DividendYield                                float64                         `gorm:"default:0" json:"dividendYield"`
+	TrusteeName                                  *string                         `json:"trusteeName"`
+	FundAdministrator                            *string                         `json:"fundAdministrator"`
+	InvestmentCommitteeMembers                   *string                         `json:"investmentCommitteeMembers"`
+	IsinOrSecFundCode                            *string                         `json:"isinOrSecFundCode"`
+	ExitLoadOrRedemptionFee                      float64                         `json:"exitLoadOrRedemptionFee"`
+	FundRiskRating                               *string                         `json:"fundRiskRating"`
+	AssetAllocation                              *string                         `json:"assetAllocation"`
+	AverageMaturity                              float64                         `gorm:"default:0" json:"averageMaturity"`
+	YieldToMaturity                              float64                         `gorm:"default:0" json:"yieldToMaturity"`
+	CreditRatingProfile                          *string                         `json:"creditRatingProfile"`
+	LockInPeriodPortfolio                        int                             `gorm:"default:0" json:"lockInPeriodPortfolio"`
+	PerformanceFeeIfAny                          float64                         `json:"performanceFeeIfAny"`
+	TopEquityHoldings                            *string                         `json:"topEquityHoldings"`
+	TargetAllocation                             *string                         `json:"targetAllocation"`
+	AllowedAllocationRange                       *string                         `json:"allowedAllocationRange"`
+	AssetClassesIncluded                         *string                         `json:"assetClassesIncluded"`
+	RebalancingFrequency                         *string                         `json:"rebalancingFrequency"`
+	BenchmarkIndexComposite                      *string                         `json:"benchmarkIndexComposite"`
+	TopEquityHoldingsList                        *string                         `json:"topEquityHoldingsList"`
+	TopDebtHoldings                              *string                         `json:"topDebtHoldings"`
+	CreditRatingDistribution                     *string                         `json:"creditRatingDistribution"`
+	AverageMaturityHybrid                        float64                         `json:"averageMaturityHybrid"`
+	YieldToMaturityHybrid                        float64                         `json:"yieldToMaturityHybrid"`
+	TitleOfIssuance                              *string                         `json:"titleOfIssuance"`
+	TypeOfCommercialPaper                        *string                         `json:"typeOfCommercialPaper"`
+	PricingYield                                 float64                         `gorm:"default:0" json:"pricingYield"`
+	UseOfProceeds                                *string                         `json:"useOfProceeds"`
+	Ranking                                      *string                         `json:"ranking"`
+	BackingSecurity                              *string                         `json:"backingSecurity"`
+	IssuerRegistrationNumber                     *string                         `json:"issuerRegistrationNumber"`
+	IncorporationDate                            *time.Time                      `json:"incorporationDate"`
+	RcNumber                                     *string                         `json:"rcNumber"`
+	TaxIdNumber                                  *string                         `json:"taxIdNumber"`
+	OfficeAddress                                *string                         `json:"officeAddress"`
+	Rating                                       *string                         `json:"rating"`
+	PartiesInvolvedIssuer                        *string                         `json:"partiesInvolvedIssuer"`
+	PartiesInvolvedArranger                      *string                         `json:"partiesInvolvedArranger"`
+	PartiesInvolvedLegalAdviser                  *string                         `json:"partiesInvolvedLegalAdviser"`
+	PartiesInvolvedAuditor                       *string                         `json:"partiesInvolvedAuditor"`
+	PartiesInvolvedRatingAgency                  *string                         `json:"partiesInvolvedRatingAgency"`
+	PartiesInvolvedCustodian                     *string                         `json:"partiesInvolvedCustodian"`
+	PartiesInvolvedTrustee                       *string                         `json:"partiesInvolvedTrustee"`
+	PartiesInvolvedAuditorVerifier               *string                         `json:"partiesInvolvedAuditorVerifier"`
+	SecurityRiskLegalBacking                     *string                         `json:"securityRiskLegalBacking"`
+	SecurityRiskCollateral                       *string                         `json:"securityRiskCollateral"`
+	SecurityRiskDefaultHistory                   *string                         `json:"securityRiskDefaultHistory"`
+	SecurityRiskCreditRating                     *string                         `json:"securityRiskCreditRating"`
+	SecurityRiskRiskFactorsSummary               *string                         `json:"securityRiskRiskFactorsSummary"`
+	SecurityRiskBusinessRisk                     *string                         `json:"securityRiskBusinessRisk"`
+	SecurityRiskDefaultRisk                      *string                         `json:"securityRiskDefaultRisk"`
+	SecurityRiskLiquidityRisk                    *string                         `json:"securityRiskLiquidityRisk"`
+	SecurityRiskRegulatoryRisk                   *string                         `json:"securityRiskRegulatoryRisk"`
+	SecurityRiskMarketRisk                       *string                         `json:"securityRiskMarketRisk"`
+	SecurityRiskOperationalRisk                  *string                         `json:"securityRiskOperationalRisk"`
+	SecurityRiskMitigationMeasures               *string                         `json:"securityRiskMitigationMeasures"`
+	CommodityType                                *string                         `json:"commodityType"`
+	CommodityDescription                         *string                         `json:"commodityDescription"`
+	Quantity                                     int                             `gorm:"default:0" json:"quantity"`
+	QualityGrade                                 *string                         `json:"qualityGrade"`
+	IssuerContactInfo                            *string                         `json:"issuerContactInfo"`
+	WarehouseName                                *string                         `json:"warehouseName"`
+	WarehouseOperatorName                        *string                         `json:"warehouseOperatorName"`
+	WarehouseLicenseNumber                       *string                         `json:"warehouseLicenseNumber"`
+	WarehouseLocation                            *string                         `json:"warehouseLocation"`
+	WrNumber                                     *string                         `json:"wrNumber"`
+	WrIssueDate                                  *time.Time                      `json:"wrIssueDate"`
+	WrExpiryDate                                 *time.Time                      `json:"wrExpiryDate"`
+	WrSystemRegistration                         *string                         `json:"wrSystemRegistration"`
+	WrRegistrationNumber                         *string                         `json:"wrRegistrationNumber"`
+	WrVerifier                                   *string                         `json:"wrVerifier"`
+	StorageCondition                             *string                         `json:"storageCondition"`
+	WarehouseAccreditationBody                   *string                         `json:"warehouseAccreditationBody"`
+	MinimumPurchaseAmount                        float64                         `json:"minimumPurchaseAmount"`
+	AutoRollover                                 *string                         `json:"autoRollover"`
+	CurrentBeneficialOwner                       *string                         `json:"currentBeneficialOwner"`
+	WrCustodianName                              *string                         `json:"wrCustodianName"`
+	OwnershipRightsRepresented                   *string                         `json:"ownershipRightsRepresented"`
+	TrusteeOrThirdPartyOversight                 *string                         `json:"trusteeOrThirdPartyOversight"`
+	LienOrEncumbrances                           *string                         `json:"lienOrEncumbrances"`
+	AssetValuation                               float64                         `gorm:"default:0" json:"assetValuation"`
+	ValuationDate                                *time.Time                      `json:"valuationDate"`
+	ValuationMethodology                         *string                         `json:"valuationMethodology"`
+	TokenizationObjective                        *string                         `json:"tokenizationObjective"`
+	HoldingPeriod                                int                             `gorm:"default:0" json:"holdingPeriod"`
+	RedemptionMechanism                          *string                         `json:"redemptionMechanism"`
+	PartiesInvolvedUnderwriter                   *string                         `json:"partiesInvolvedUnderwriter"`
+	PartiesInvolvedAssetManager                  *string                         `json:"partiesInvolvedAssetManager"`
+	PartiesInvolvedLegalAdvisor                  *string                         `json:"partiesInvolvedLegalAdvisor"`
+	PartiesInvolvedRegulator                     *string                         `json:"partiesInvolvedRegulator"`
+	RisksMarketRisk                              *string                         `json:"risksMarketRisk"`
+	RisksStorageRisk                             *string                         `json:"risksStorageRisk"`
+	RisksTitleRisk                               *string                         `json:"risksTitleRisk"`
+	RisksFraudRisk                               *string                         `json:"risksFraudRisk"`
+	RisksInsuranceRisk                           *string                         `json:"risksInsuranceRisk"`
+	RisksOperationalRisk                         *string                         `json:"risksOperationalRisk"`
+	RisksRegulatoryRisk                          *string                         `json:"risksRegulatoryRisk"`
+	RisksLiquidityRisk                           *string                         `json:"risksLiquidityRisk"`
+	RisksForceMajeureRisk                        *string                         `json:"risksForceMajeureRisk"`
+	RisksEarlyRedemptionRisk                     *string                         `json:"risksEarlyRedemptionRisk"`
+	RisksMitigationMeasures                      *string                         `json:"risksMitigationMeasures"`
+	RisksInsuranceCoverageSummary                *string                         `json:"risksInsuranceCoverageSummary"`
+	RisksInsuranceProvider                       *string                         `json:"risksInsuranceProvider"`
+	RisksCoverageValue                           float64                         `json:"risksCoverageValue"`
+	QuanlityStandard                             *string                         `json:"quanlityStandard"`
+	IssuerContactInformation                     *string                         `json:"issuerContactInformation"`
+	VaultCustodianName                           *string                         `json:"vaultCustodianName"`
+	VaultOperator                                *string                         `json:"vaultOperator"`
+	VaultLicenseNumber                           *string                         `json:"vaultLicenseNumber"`
+	VaultLocation                                *string                         `json:"vaultLocation"`
+	Number                                       *string                         `json:"number"`
+	IssuerDate                                   *time.Time                      `json:"issuerDate"`
+	ExpiryDate                                   *time.Time                      `json:"expiryDate"`
+	RegistryRecord                               *string                         `json:"registryRecord"`
+	Verifier                                     *string                         `json:"verifier"`
+	StorageConditions                            *string                         `json:"storageConditions"`
+	VaultAccreditationBody                       *string                         `json:"vaultAccreditationBody"`
+	OwnershipLegalHolder                         *string                         `json:"ownershipLegalHolder"`
+	OwnershipCustodianName                       *string                         `json:"ownershipCustodianName"`
+	OwnershipTrustee                             *string                         `json:"ownershipTrustee"`
+	OwnershipLienOrEncumbrances                  *string                         `json:"ownershipLienOrEncumbrances"`
+	ValuationAssetValuation                      *string                         `json:"valuationAssetValuation"`
+	HoldingLockinPeriod                          int                             `gorm:"default:0" json:"holdingLockinPeriod"`
+	InsuranceMarketRisk                          *string                         `json:"insuranceMarketRisk"`
+	InsuranceStorageRisk                         *string                         `json:"insuranceStorageRisk"`
+	InsuranceTitleRisk                           *string                         `json:"insuranceTitleRisk"`
+	InsuranceFraudRisk                           *string                         `json:"insuranceFraudRisk"`
+	InsuranceInsuranceRisk                       *string                         `json:"insuranceInsuranceRisk"`
+	InsuranceOperationalRisk                     *string                         `json:"insuranceOperationalRisk"`
+	InsuranceRegulatoryRisk                      *string                         `json:"insuranceRegulatoryRisk"`
+	InsuranceLiquidityRisk                       *string                         `json:"insuranceLiquidityRisk"`
+	InsuranceForceMajeureRisk                    *string                         `json:"insuranceForceMajeureRisk"`
+	InsuranceEarlyRedemptionRisk                 *string                         `json:"insuranceEarlyRedemptionRisk"`
+	InsuranceMitigationMeasures                  *string                         `json:"insuranceMitigationMeasures"`
+	InsuranceInsuranceCoverageSummary            *string                         `json:"insuranceInsuranceCoverageSummary"`
+	InsuranceInsuranceProvider                   *string                         `json:"insuranceInsuranceProvider"`
+	InsuranceCoverageValue                       *string                         `json:"insuranceCoverageValue"`
+	IssuerRegistrationNo                         *string                         `json:"issuerRegistrationNo"`
+	SectorAndIndustry                            *string                         `json:"sectorAndIndustry"`
+	LicenseOrPermitNumber                        *string                         `json:"licenseOrPermitNumber"`
+	IssuerAdditionalInfo                         *string                         `json:"issuerAdditionalInfo"`
+	IsinSerialNumber                             *string                         `json:"isinSerialNumber"`
+	EsgOrImpactMetrics                           *string                         `json:"esgOrImpactMetrics"`
+	InstrumentAdditionalInfo                     *string                         `json:"instrumentAdditionalInfo"`
+	SecurityType                                 *string                         `json:"securityType"`
+	CollateralDescription                        *string                         `json:"collateralDescription"`
+	CovenantSummary                              *string                         `json:"covenantSummary"`
+	CovenantTestingFrequency                     *string                         `json:"covenantTestingFrequency"`
+	EventOfDefaultClauses                        *string                         `json:"eventOfDefaultClauses"`
+	LegalEnforcementMechanism                    *string                         `json:"legalEnforcementMechanism"`
+	Guarantee                                    *string                         `json:"guarantee"`
+	RecoveryEstimate                             float64                         `gorm:"default:0" json:"recoveryEstimate"`
+	RiskProfileAdditionalInfo                    *string                         `json:"riskProfileAdditionalInfo"`
+	LicenseNumber                                *string                         `json:"licenseNumber"`
+	ExitLoadFee                                  float64                         `gorm:"default:0" json:"exitLoadFee"`
+	EntryLoadFee                                 float64                         `gorm:"default:0" json:"entryLoadFee"`
+	PortfolioLockInPeriod                        int                             `gorm:"default:0" json:"portfolioLockInPeriod"`
+	PortfolioPerformanceFee                      float64                         `gorm:"default:0" json:"portfolioPerformanceFee"`
+	FundingStructure                             int                             `gorm:"default:0" json:"fundingStructure"` //0=equity, 1= debt, 2= hybrid
+	EquityPercentage                             float64                         `gorm:"default:0" json:"equityPercentage"`
+	DebtPercentage                               float64                         `gorm:"default:0" json:"debtPercentage"`
+	DebtInstrumentType                           *string                         `json:"debtInstrumentType"`
+	PrincipalPaymentMethod                       *string                         `json:"principalPaymentMethod"`
+	DebtInstrumentRepaymentSource                *string                         `json:"debtInstrumentRepaymentSource"`
+	DebtInstrumentGuaranteesOrEnhancements       *string                         `json:"debtInstrumentGuaranteesOrEnhancements"`
+	DebtInstrumentDefaultAndRecoveryTerms        *string                         `json:"debtInstrumentDefaultAndRecoveryTerms"`
+	DebtInstrumentRepaymentFrequency             *string                         `json:"debtInstrumentRepaymentFrequency"`
+	InterestRepaymentFrequency                   *string                         `json:"interestRepaymentFrequency"`
+	DcsrDetails                                  *string                         `json:"dcsrDetails"`
+	SinkingFundStructure                         *string                         `json:"sinkingFundStructure"`
+	CovenantMonitoringAgent                      *string                         `json:"covenantMonitoringAgent"`
+	RightOfRecourse                              *string                         `json:"rightOfRecourse"`
+	DebtInstrumentInterestRate                   float64                         `gorm:"default:0" json:"debtInstrumentInterestRate"`
+	DcsrRatio                                    float64                         `gorm:"default:0" json:"dcsrRatio"`
+	LtvRatio                                     float64                         `gorm:"default:0" json:"ltvRatio"`
+	InterestCoverageRatio                        float64                         `gorm:"default:0" json:"interestCoverageRatio"`
+	MaximumLeverageRatio                         float64                         `gorm:"default:0" json:"maximumLeverageRatio"`
+	GracePeriod                                  int                             `gorm:"default:0" json:"gracePeriod"`
+	TrusteeAppointed                             int                             `gorm:"default:0" json:"trusteeAppointed"`
+	ReserveFundInPlace                           int                             `gorm:"default:0" json:"reserveFundInPlace"`
+	SecurityOrCollateralOffered                  *string                         `json:"securityOrCollateralOffered"`
+	FundInstrumentType                           *string                         `json:"fundInstrumentType"`
+	InstrumentRatingAgency                       *string                         `json:"instrumentRatingAgency"`
+	PortfolioTopHoldings                         *string                         `json:"portfolioTopHoldings"`
+	CreditRatingAgency                           *string                         `json:"CreditRatingAgency"`
+	TrusteeRegNumber                             *string                         `json:"trusteeRegNumber"`
+	CreditEnhancerOrGuarantor                    *string                         `json:"creditEnhancerOrGuarantor"`
+	BondStructuringAdvisor                       *string                         `json:"bondStructuringAdvisor"`
+	EntitiesAdditionalInfo                       *string                         `json:"entitiesAdditionalInfo"`
+	AuthorizedRepresentativeName                 *string                         `json:"authorizedRepresentativeName"`
+	AuthorizedRepresentativeTitleOrPosition      *string                         `json:"authorizedRepresentativeTitleOrPosition"`
+	AuthorizedRepresentativeEmail                *string                         `json:"authorizedRepresentativeEmail"`
+	AcceptTokenizationTermsAndAgreement          int                             `gorm:"default:0" json:"acceptTokenizationTermsAndAgreement"`
+	AttestInformationAccurateAndVerifiable       int                             `gorm:"default:0" json:"attestInformationAccurateAndVerifiable"`
+	AcknowledgedSuitabilityCriteria              int                             `gorm:"default:0" json:"acknowledgedSuitabilityCriteria"`
+	MinimumKycTier                               *string                         `json:"minimumKycTier"`
+	InvestorCategory                             *string                         `json:"investorCategory"`
+	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
+	ExitWithFiat                                 int                             `gorm:"default:0" json:"exitWithFiat"`
 }
 
 type TokenizedAssetJSON struct {

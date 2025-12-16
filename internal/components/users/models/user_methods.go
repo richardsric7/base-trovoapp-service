@@ -296,23 +296,28 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			}
 			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImage(gc)
 			var quoteCurrency string
-			var tokenizedAsset int
+			var tokenizedAsset, fundingStructure, exitWithFiat int
 			if gc.IsValidTokenizedAsset(bal.Code) {
 				t := gc.GetTokenizedAssetByCode(bal.Code)
 				assetNativePrice = decimal.NewFromFloat(t.PricePerToken).String()
 				assetUsdPrice = decimal.NewFromFloat(t.PricePerToken).String()
 				quoteCurrency = *t.AssetQuoteCurrency
 				tokenizedAsset = 1
+				fundingStructure = t.FundingStructure
+				exitWithFiat = t.ExitWithFiat
+
 			}
 			balance := Balance{AssetIssuer: bal.Issuer,
-				AssetCode:      bal.Code,
-				Amount:         availableBalance,
-				QRCode:         qrCode,
-				ImageURL:       imageUrl,
-				UsdPrice:       assetUsdPrice,
-				NativePrice:    assetNativePrice,
-				QuoteCurrency:  quoteCurrency,
-				TokenizedAsset: tokenizedAsset,
+				AssetCode:        bal.Code,
+				Amount:           availableBalance,
+				QRCode:           qrCode,
+				ImageURL:         imageUrl,
+				UsdPrice:         assetUsdPrice,
+				NativePrice:      assetNativePrice,
+				QuoteCurrency:    quoteCurrency,
+				TokenizedAsset:   tokenizedAsset,
+				FundingStructure: fundingStructure,
+				ExitWithFiat:     exitWithFiat,
 				InTrade: TradeLiabilties{
 					SellingLiabilities: bal.SellingLiabilities,
 					BuyingLiabilities:  bal.BuyingLiabilities,

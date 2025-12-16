@@ -16,6 +16,8 @@ type Balance struct {
 	ClosedGroup                  string                       `json:"closedGroup"`
 	QuoteCurrency                string                       `json:"quoteCurrency"`
 	TokenizedAsset               int                          `json:"tokenizedAsset"`
+	FundingStructure             int                          `json:"fundingStructure"`
+	ExitWithFiat                 int                          `json:"exitWithFiat"`
 }
 
 type TradeLiabilties struct {
