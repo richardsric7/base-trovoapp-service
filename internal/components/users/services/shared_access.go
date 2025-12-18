@@ -2093,7 +2093,7 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
 		if !wallet.SignerIsValidWA(approver.PrimarySigner, walletSourceAccount) {
 
-			if walletOwner.PrimarySigner != wallet.Signer {
+			if approver.PrimarySigner != wallet.Signer {
 
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
@@ -2219,7 +2219,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			//account exists, check if it already it a signer in the wallet
 
 			//remove signer if already a signer
-			if wallet.SignerIsValidWA(user3p.PrimarySigner, walletSourceAccount) && walletOwner.PrimarySigner != wallet.Signer {
+			if wallet.SignerIsValidWA(user3p.PrimarySigner, walletSourceAccount) && user3p.PrimarySigner != wallet.Signer {
 
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
