@@ -49,7 +49,8 @@ class TrovoWebViewState extends State<TrovoWebView> {
           onPageStarted: (String url) {
             isLoading = true;
           },
-          onPageFinished: (String url) {
+          onPageFinished: (String url) async {
+            print('===========> running javascript');
             isLoading = false;
             hideLoader(context);
           },

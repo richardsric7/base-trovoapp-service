@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/announcement.dart';
 import 'package:trovo_app/network/requests.dart';
@@ -24,7 +26,7 @@ Future<void> updateUserInfo(
     secretKey: secretKey, // the primary wallet secret key
     publicKey: publicKey!,
   );
-
+  inspect(responseData['data']);
   if (responseData['statusCode'] == 200) {
     await storeUserInfo(responseData['data'], appState);
     await fetchCuratedSwapList(appState);
@@ -95,6 +97,7 @@ Future<void> getFiatRates(appState) async {
 
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
+    inspect(responseData['data']);
     await StoreData().storeInsertData('fiatRate', responseData['data']);
   }
 }

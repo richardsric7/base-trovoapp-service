@@ -37,7 +37,8 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with TickerProviderStateMixin {
+class _HomeState extends State<Home>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late ColorNotifier notifier;
   late RefreshController _refreshController;
   late DataProvider appState;
@@ -61,6 +62,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   };
   final Authenticator _authenticator = Authenticator();
   bool showNewUserView = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -115,6 +119,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
@@ -126,6 +131,32 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return Scaffold(
       key: key,
       resizeToAvoidBottomInset: false,
+      floatingActionButton: Container(
+        // width: 110,
+        child: FloatingActionButton(
+          onPressed: () {
+            showQuickBuyPopup(context);
+            setState(() {});
+          },
+          backgroundColor: Colors.green,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 10,
+            children: [
+              Image.asset('assets/images/quick-buy.png', width: 30),
+              // Text(
+              //   'Quick Buy',
+              //   style: TextStyle(
+              //     fontSize: 13,
+              //     fontWeight: FontWeight.bold,
+              //     fontFamily: fontsemibold,
+              //     color: wihitecolor,
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
       backgroundColor: notifier.getwihitecolor,
       drawer: getDrawer(context, appState, notifier),
       body: SmartRefresher(
@@ -1213,14 +1244,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
             calculateFiatValue(
               asset.amount.toString(),
               asset.usdPrice.toString(),
-              appState.defaultCurrency,
+              asset.tokenizedAsset ? 'NGN' : appState.defaultCurrency,
               appState,
             ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }
@@ -1236,14 +1269,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var wallet in userInfo.allWallets) {
       if (wallet.claimedAssets!.length > 0) {
         for (var asset in wallet.claimedAssets!) {
+          // if (!asset.tokenizedAsset) {
           balance += double.parse(
-            calculateFiatValue(
-              asset.amount.toString(),
-              asset.usdPrice.toString(),
-              'USD',
-              appState,
-            ).replaceAll(',', ''),
+            asset.tokenizedAsset
+                ? ((asset.usdPrice! * asset.amount!) / appState.fiatRate['NGN'])
+                      .toString()
+                : calculateFiatValue(
+                    asset.amount.toString(),
+                    asset.usdPrice.toString(),
+                    'USD',
+                    appState,
+                  ).replaceAll(',', ''),
           );
+          // }
         }
       }
     }
@@ -1254,26 +1292,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> fetchTokenizationData() async {
-    var uri = '/v1/tokenization';
-
-    Map responseData = await makeGetRequest(
-      uri: Uri.encodeFull(uri),
-      signer: appState.primaryWallet.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
-    );
-    if (responseData['statusCode'] == 200) {
-      appState.tokenizationData = responseData['data'];
-    }
-  }
-
   Future<List<TokenizedAsset>> fetchTokenizationList({
     required int status,
   }) async {
     try {
       Future.wait([
-        if (appState.tokenizationData.isEmpty) fetchTokenizationData(),
+        if (appState.tokenizationData.isEmpty) appState.fetchTokenizationData(),
         if (appState.expressedInterests.isEmpty) fetchExpressedInterests(),
         if (appState.expressedInterests.isEmpty) fetchSubscriptions(),
       ]);

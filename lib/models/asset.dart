@@ -13,6 +13,9 @@ class Asset {
   Map? inTrade;
   List<CryptoWalletDepositAddress>? cryptoWalletDepositAddresses;
   int? assetClassId;
+  bool tokenizedAsset;
+  int? fundingStructure;
+  int? exitWithFiat;
 
   Asset({
     this.assetCode,
@@ -25,20 +28,27 @@ class Asset {
     this.nativePrice,
     this.cryptoWalletDepositAddresses,
     this.assetClassId,
+    this.tokenizedAsset = false,
+    this.fundingStructure,
+    this.exitWithFiat,
   });
 
   Asset deserializeJson(Map<String, dynamic> m) {
     return Asset(
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
+      tokenizedAsset: m["tokenizedAsset"] == 1,
       amount: double.parse(m["amount"]),
       qrCode: m["qrCode"],
       imageUrl: m["imageUrl"],
       usdPrice: double.parse(m["usdPrice"]),
       inTrade: m["inTrade"],
       nativePrice: double.parse(m["nativePrice"]),
-      cryptoWalletDepositAddresses:
-          deserializeDepositAddresses(m['cryptoWalletDepositAddresses']),
+      cryptoWalletDepositAddresses: deserializeDepositAddresses(
+        m['cryptoWalletDepositAddresses'],
+      ),
+      fundingStructure: m["fundingStructure"],
+      exitWithFiat: m["exitWithFiat"],
     );
   }
 
@@ -51,4 +61,6 @@ class Asset {
     }
     return addresses;
   }
+
+  bool get isExitWithFiat => exitWithFiat == 1;
 }

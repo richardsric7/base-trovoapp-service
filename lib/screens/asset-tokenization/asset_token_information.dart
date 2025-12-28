@@ -55,7 +55,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late String additionalKYCRequirements;
   late bool investorAccreditationRequired;
   late bool capOnPurchase;
+  late bool attestInformationAccurateAndVerifiable;
+  late bool acknowledgedSuitabilityCriteria;
+  late bool withholdingTaxDisclosure;
   late String walletToHoldAssetsNotForSale;
+  late String authorizedRepresentativeName;
+  late String authorizedRepresentativeTitleOrPosition;
+  late String authorizedRepresentativeEmail;
+  late String minimumKycTier;
+  late String investorCategory;
   late int bankId;
   late String accountNumber;
   late String beneficiaryName;
@@ -210,11 +218,35 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     return cycles;
   }
 
+  List<DropdownMenuItem<String>> get getInvestorCategory {
+    List<DropdownMenuItem<String>> categories = [];
+    ["Retail", "Qualified", "Institutional"].forEach((item) {
+      categories.add(
+        DropdownMenuItem(
+          child: Text(item, overflow: TextOverflow.ellipsis),
+          value: item,
+        ),
+      );
+    });
+    return categories;
+  }
+
+  List<DropdownMenuItem<String>> get getKYCTiers {
+    List<DropdownMenuItem<String>> tiers = [];
+    ["Tier 1", "Tier 2", "Tier 3"].forEach((item) {
+      tiers.add(
+        DropdownMenuItem(
+          child: Text(item, overflow: TextOverflow.ellipsis),
+          value: item,
+        ),
+      );
+    });
+    return tiers;
+  }
+
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    inspect(appState.viewData);
-    inspect(appState.tokenizationData);
     data = appState.viewData;
 
     for (
@@ -245,6 +277,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         data['walletToHoldAssetsNotForSale'].toString().isEmpty
         ? ''
         : data['walletToHoldAssetsNotForSale'].toString();
+
+    authorizedRepresentativeName = data['authorizedRepresentativeName'] ?? '';
+
+    authorizedRepresentativeTitleOrPosition =
+        data['authorizedRepresentativeTitleOrPosition'] ?? '';
+    authorizedRepresentativeEmail = data['authorizedRepresentativeEmail'] ?? '';
+
+    minimumKycTier = data['minimumKycTier'] ?? '';
+    investorCategory = data['investorCategory'] ?? '';
+
     assetCode = data['assetCode'];
     assetName = data['assetName'];
     accountNumber = data['accountNumber'];
@@ -259,6 +301,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? null
         : parsedSalesEnd;
     capOnPurchase = data['capOnPurchase'] == 1;
+    attestInformationAccurateAndVerifiable =
+        data['acceptTokenizationTermsAndAgreement'] == 1;
+    acknowledgedSuitabilityCriteria =
+        data['acceptTokenizationTermsAndAgreement'] == 1;
     capQuantity = double.parse(data['capQuantity'].toString());
     capAmountInFiat = double.parse(data['capAmountInFiat'].toString());
     capDurationInDays = data['capDurationInDays'];
@@ -268,6 +314,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         ? []
         : data['exemptedCountries'].toString().split(',');
     hasAdditionalKYCRequirements = data['hasAdditionalKYCRequirements'] == 1;
+    withholdingTaxDisclosure = data['withholdingTaxDisclosure'] == 1;
     proceedPayoutCurrency = data['proceedPayoutCurrency'];
     proceedPayoutType = data['proceedPayoutType'];
     assetQuoteCurrency = data['assetQuoteCurrency'];
@@ -933,57 +980,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               ),
               SizedBox(height: height / 50),
               if (capOnPurchase) ...[
-                // Row(
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //       child: Text(
-                //         "capquantity".tr(),
-                //         style: TextStyle(
-                //           fontSize: 12,
-                //           fontFamily: fontsemibold,
-                //           color: notifier.getbluewhitecolor,
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // SizedBox(
-                //   height: height / 50,
-                // ),
-                // Row(
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //       child: CustomTextFormField.textField(
-                //         "quantity".tr(),
-                //         notifier.getbluecolor,
-                //         null,
-                //         notifier.getgrey,
-                //         null,
-                //         notifier.getblck,
-                //         notifier.getgrey,
-                //         85,
-                //         300.sp,
-                //         controller: capQuantityController,
-                //         validator: (value) {
-                //           if (value.isEmpty) {
-                //             return "fieldcannotbeempty".tr();
-                //           }
-                //           return null;
-                //         },
-                //         onSaved: (value) {
-                //           setState(() {
-                //             capQuantity = double.parse(value!);
-                //           });
-                //         },
-                //         autoFormatNumber: true,
-                //         keyboardtype:
-                //             TextInputType.numberWithOptions(decimal: true),
-                //       ),
-                //     ),
-                //   ],
-                // ),
                 Row(
                   children: [
                     Padding(
@@ -1173,6 +1169,23 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     return null;
                   },
                 ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Container(
+                    width: width / 1.09,
+                    child: checkBoxItem(
+                      text: "Withholding Tax Disclosure",
+                      value: withholdingTaxDisclosure,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          withholdingTaxDisclosure = !withholdingTaxDisclosure;
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: height / 30),
               Row(
@@ -1584,12 +1597,15 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Text(
-                            "listrequirements".tr(),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
+                          child: Container(
+                            width: 340,
+                            child: Text(
+                              "Describe additional KYC requirements (Describe specific documents or identity checks required)",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
                             ),
                           ),
                         ),
@@ -1630,22 +1646,352 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   ],
                 ],
               ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Investor Category Eligibilty (Define categories of eligible investors)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      investorCategory = value.toString();
+                    });
+                  },
+                  getInvestorCategory,
+                  investorCategory.isEmpty ? null : investorCategory,
+                  'Select option',
+                  context,
+                  null,
+                  validator: (value) {
+                    if (value == null || value.toString().isEmpty) {
+                      return "fieldcannotbeempty".tr();
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Minimum KYC Tier Required (Select platform verification tier requred to invest)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: dropdown(
+                  (value) {
+                    setState(() {
+                      minimumKycTier = value.toString();
+                    });
+                  },
+                  getKYCTiers,
+                  minimumKycTier.isEmpty ? null : minimumKycTier,
+                  'Select option',
+                  context,
+                  null,
+                  validator: (value) {
+                    // if (value == null || value.toString().isEmpty) {
+                    //   return "fieldcannotbeempty".tr();
+                    // }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: 340,
+                      child: Text(
+                        "Investment Suitability Disclaimer",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   Container(
                     width: width / 1.09,
                     child: checkBoxItem(
-                      text: "investormustbeaccredited".tr(),
-                      value: investorAccreditationRequired,
+                      text:
+                          "I acknowledge that I have reviewed the suitability criteria",
+                      value: acknowledgedSuitabilityCriteria,
                       onChanged: (bool? value) {
                         setState(() {
-                          investorAccreditationRequired =
-                              !investorAccreditationRequired;
+                          acknowledgedSuitabilityCriteria =
+                              !acknowledgedSuitabilityCriteria;
                         });
                       },
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: height / 30),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Final Declaration and Attestation",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Authorized representative name",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: authorizedRepresentativeName,
+                      onChanged: (value) {
+                        setState(() {
+                          authorizedRepresentativeName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          authorizedRepresentativeName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Position/Title of authorized Representative",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: authorizedRepresentativeTitleOrPosition,
+                      onChanged: (value) {
+                        setState(() {
+                          authorizedRepresentativeTitleOrPosition = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          authorizedRepresentativeTitleOrPosition = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Contact email of authorized representative",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "",
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      85,
+                      300.sp,
+                      initialValue: authorizedRepresentativeEmail,
+                      onChanged: (value) {
+                        setState(() {
+                          authorizedRepresentativeEmail = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          authorizedRepresentativeEmail = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 70),
+              FormField(
+                builder: (state) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Transform.scale(
+                        scale: 1,
+                        child: Checkbox(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          ),
+                          activeColor: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                          side: BorderSide(
+                            color: notifier.isDark
+                                ? notifier.getbluecolor50
+                                : notifier.getbluecolor90,
+                          ),
+                          value: attestInformationAccurateAndVerifiable,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              attestInformationAccurateAndVerifiable = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: width / 1.2,
+                        child: RichText(
+                          text: TextSpan(
+                            text:
+                                "I attest that the information provided is accurate and verifiable",
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontFamily: fontbody,
+                              color:
+                                  state.hasError &&
+                                      !attestInformationAccurateAndVerifiable
+                                  ? Colors.red
+                                  : notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                validator: (value) {
+                  if (!attestInformationAccurateAndVerifiable) {
+                    return '';
+                  }
+
+                  return null;
+                },
               ),
               SizedBox(height: height / 30),
               Button(
@@ -1727,6 +2073,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['proceedCycle'] = proceedCycle;
       newData['walletToHoldAssetsNotForSale'] = walletToHoldAssetsNotForSale;
       newData['assetLogo'] = assetLogo;
+      newData['minimumKycTier'] = minimumKycTier;
+      newData['investorCategory'] = investorCategory;
       newData['exemptedCountries'] = exemptedCountries.join(',');
       newData['hasAdditionalKYCRequirements'] = hasAdditionalKYCRequirements
           ? 1
@@ -1738,7 +2086,16 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['investorAccreditationRequired'] = investorAccreditationRequired
           ? 1
           : 0;
+      newData['attestInformationAccurateAndVerifiable'] =
+          attestInformationAccurateAndVerifiable ? 0 : 1;
+      newData['acknowledgedSuitabilityCriteria'] =
+          acknowledgedSuitabilityCriteria ? 0 : 1;
+      newData['withholdingTaxDisclosure'] = withholdingTaxDisclosure ? 1 : 0;
       newData['tokenizationFeeId'] = tokenizationFeeId;
+      newData['authorizedRepresentativeName'] = authorizedRepresentativeName;
+      newData['authorizedRepresentativeTitleOrPosition'] =
+          authorizedRepresentativeTitleOrPosition;
+      newData['authorizedRepresentativeEmail'] = authorizedRepresentativeEmail;
 
       inspect(newData);
 

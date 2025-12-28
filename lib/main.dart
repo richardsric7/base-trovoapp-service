@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -7,17 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
-import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/back_dispatcher.dart';
 import 'package:trovo_app/router/route_parser.dart';
 import 'package:trovo_app/router/router_delegate.dart';
 import 'package:trovo_app/router/ui_pages.dart';
-import 'package:trovo_app/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_app/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 import 'custom_bloc_observer/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
@@ -26,24 +27,16 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    // name: await StoreData().storeGetData('walletMode') ?? "Testnet",
-    options: DefaultFirebaseOptions.currentPlatform(
-      await StoreData().storeGetData('walletMode') ?? "Testnet",
-    ),
+  TerminateRestart.instance.initialize();
+  var options = DefaultFirebaseOptions.currentPlatform(
+    await StoreData().storeGetData('walletMode') ?? "Testnet",
   );
+  inspect(options);
+  await Firebase.initializeApp(options: options);
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
-  if (dynamicLink != null) {
-    await StoreData().storeInsertData(
-      'initialDynamicLink',
-      dynamicLink.link.toString(),
-    );
-  }
-
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   NotificationSettings settings = await messaging.requestPermission(
@@ -106,32 +99,13 @@ class _AppState extends State<App> {
 
     // Subscribe to all events (initial link and further)
     appLinks.uriLinkStream.listen((uri) {
-      print('this is the uri =========> $uri');
-      print('this is the path =========> ${uri.path.replaceAll('/', '')}');
       appState.linkId = uri.path.replaceAll('/', '');
 
       if (appState.appIsOpen) {
-        processShortlink(appState.linkId);
+        appState.setPage(page: SplashPageConfig, state: PageState.replaceAll);
       }
     });
     initAppNotification(context, appState);
-  }
-
-  Future<void> processShortlink(String linkId) async {
-    var uri = '/v1/shortlinks/$linkId';
-
-    Map responseData = await makeGetRequest(
-      uri: Uri.encodeFull(uri),
-      signer: appState.primaryWallet.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
-    );
-    if (responseData['statusCode'] == 200) {
-      appState.processDeepLink(
-        context,
-        Uri.parse(responseData['data'].toString()),
-      );
-    }
   }
 
   @override
@@ -178,6 +152,7 @@ class _AppState extends State<App> {
       Duration(minutes: timeOut == null ? 5 : timeOut),
       () => _handleInactivity(),
     );
+    setSystemChrome(notifier.isDark);
   }
 
   void _handleInactivity() async {

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -50,21 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     appState.appVersion = packageInfo.version;
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: notifier.isDark ? Color(0xFF00225A) : Colors.white,
-        statusBarIconBrightness: notifier.isDark
-            ? Brightness.light
-            : Brightness.dark,
-        systemNavigationBarColor: notifier.isDark
-            ? Color(0xFF00225A)
-            : Colors.white,
-        systemNavigationBarIconBrightness: notifier.isDark
-            ? Brightness.light
-            : Brightness.dark,
-        systemNavigationBarContrastEnforced: true,
-      ),
-    );
+    setSystemChrome(notifier.isDark);
   }
 
   @override
@@ -84,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     controller.repeat();
-    Timer(const Duration(seconds: 4), () {
+    Timer(Duration(seconds: appState.appIsOpen ? 1 : 4), () {
       timerIsDone = true;
     });
   }
@@ -115,8 +101,6 @@ class _SplashScreenState extends State<SplashScreen>
       appState.setDefaultLanguage =
           await StoreData().storeGetData('defaultLanguage') ?? 'en';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);
-
-      if (!appState.appIsOpen) appState.initFirebaseListener(context);
 
       if (appState.isFirstTime) {
         Timer.periodic(Duration(milliseconds: 200), (timer) {
@@ -201,8 +185,8 @@ class _SplashScreenState extends State<SplashScreen>
               }
 
               fetchNotifications(appState);
+              getFiatRates(appState);
               fetchCuratedSwapList(appState);
-              print('=============> appstate linkId ${appState.linkId}');
               if (appState.linkId.isNotEmpty) {
                 initialDynamicLink = await resolveShortlink(appState.linkId);
               }
@@ -431,6 +415,7 @@ class _SplashScreenState extends State<SplashScreen>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
+    inspect(responseData);
     if (responseData['statusCode'] == 200) {
       return responseData['data'].toString();
     }

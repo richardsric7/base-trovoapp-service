@@ -47,12 +47,16 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   double tokenizationApplicationFee = 0;
   String tokenizationApplicationFeeAsset = '';
   final Authenticator _authenticator = Authenticator();
+  bool isFinancialAssetType = false;
 
   @override
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     tokenizedAsset = TokenizedAsset().deserializeJson(appState.viewData!);
+    isFinancialAssetType =
+        tokenizedAsset.assetSector!.toLowerCase() ==
+        'finance and investment markets';
     for (var asset in appState.primaryWallet.claimedAssets!) {
       if (asset.assetCode!.toUpperCase() == 'TROV') {
         trovUsdPrice = asset.usdPrice!;
@@ -182,24 +186,28 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                       SizedBox(height: height / 90),
                       if (tokenizedAsset.assetAlreadyExists == 1) ...[
                         item(
-                          "originalassetvalue".tr(),
+                          isFinancialAssetType
+                              ? "Net Asset Value"
+                              : "originalassetvalue".tr(),
                           '${truncateToDecimalPlaces(tokenizedAsset.assetCurrentValue!, decimalPlaces: 2)} ${fiatCurrency}',
                         ),
                         SizedBox(height: height / 90),
-                        item(
-                          "Percentage Retained",
-                          '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%',
-                        ),
-                        SizedBox(height: height / 90),
-                        item(
-                          "Value Retained",
-                          '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}',
-                        ),
-                        SizedBox(height: height / 90),
-                        item(
-                          "Additional Cost",
-                          '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}',
-                        ),
+                        if (!isFinancialAssetType) ...{
+                          item(
+                            "Percentage Retained",
+                            '${formatNumber(((tokenizedAsset.assetOwnerRetainedOrContributedValue! / tokenizedAsset.assetCurrentValue!) * 100))}%',
+                          ),
+                          SizedBox(height: height / 90),
+                          item(
+                            "Value Retained",
+                            '${(truncateToDecimalPlaces(tokenizedAsset.assetOwnerRetainedOrContributedValue!, decimalPlaces: 2))} ${fiatCurrency}',
+                          ),
+                          SizedBox(height: height / 90),
+                          item(
+                            "Additional Cost",
+                            '${truncateToDecimalPlaces(tokenizedAsset.assetMscCostOutisdeOfValuation!, decimalPlaces: 2)} ${fiatCurrency}',
+                          ),
+                        },
                       ] else ...[
                         item(
                           "Project Budget",
@@ -442,7 +450,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                   ),
                 ),
               ),
-              if (isVetted) ...[
+              if (isVetted && tokenizedAsset.feeInAsset! > 0) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(

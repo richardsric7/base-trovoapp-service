@@ -225,15 +225,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
         );
         responseData['transactionSignature'] = signature;
 
-        String req = jsonEncode(responseData);
-
-        Map res = await makeDeleteRequest(
-          uri: '/v1/users',
-          body: req,
-          signer: appState.primaryWallet.signer!,
-          secretKey: appState.secretKeys[0],
-          publicKey: appState.primaryWallet.publicKey!,
-        );
+        jsonEncode(responseData);
 
         if (responseData['statusCode'] == 200) {
           StoreData().storeDeleteData();

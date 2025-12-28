@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
-import 'package:restart_app/restart_app.dart';
+import 'package:terminate_restart/terminate_restart.dart';
 import 'package:trovo_app/models/curated_asset.dart';
 import 'package:trovo_app/models/deposit_transaction_model.dart';
 import 'package:trovo_app/models/tokenizedAsset.dart';
@@ -133,9 +132,11 @@ class DataProvider with ChangeNotifier {
         state: PageState.addPage,
         page: SplashPageConfig,
       );
-      Timer(const Duration(seconds: 4), () {
+      Timer(const Duration(seconds: 4), () async {
         StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
-        Restart.restartApp();
+        await TerminateRestart.instance.restartApp(
+          options: const TerminateRestartOptions(terminate: true),
+        );
       });
       notifyListeners();
     } catch (e) {}
@@ -326,6 +327,7 @@ class DataProvider with ChangeNotifier {
   String initialUrl = "";
   goToWebView(url) {
     initialUrl = url;
+    print('initialUrl: =====> $initialUrl');
     currentAction = PageAction(
       state: PageState.addPage,
       page: WebViewPageConfig,
@@ -490,15 +492,17 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
-      await updateUserInfo(
-        userInfo!.wallets![0].signer,
-        secretKeys[0],
-        userInfo!.wallets![0].publicKey,
-        userInfo!.username,
-        this,
-        forceRefresh: true,
-      );
-      await getFiatRates(this);
+      await Future.wait([
+        updateUserInfo(
+          userInfo!.wallets![0].signer,
+          secretKeys[0],
+          userInfo!.wallets![0].publicKey,
+          userInfo!.username,
+          this,
+          forceRefresh: true,
+        ),
+        getFiatRates(this),
+      ]);
 
       notifyListeners();
     } catch (e) {}
@@ -580,7 +584,7 @@ class DataProvider with ChangeNotifier {
     }
   }
 
-  getApprovals({void Function()? onDone}) {
+  getApprovals() {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
   }
 
@@ -716,28 +720,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void initFirebaseListener(BuildContext context) {
-    FirebaseDynamicLinks.instance.onLink
-        .listen((dynamicLinkData) async {
-          try {
-            await StoreData().storeInsertData(
-              'initialDynamicLink',
-              dynamicLinkData.link.toString(),
-            );
-            processDeepLink(context, dynamicLinkData.link);
-          } catch (e) {}
-        })
-        .onError((error) {
-          // Handle errors
-        });
-  }
-
   void processDeepLink(
     BuildContext context,
     Uri initialDynamicLink, {
     String? rel,
     void Function()? onCancel,
-  }) {
+  }) async {
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
       setSplashFinished();
@@ -856,6 +844,67 @@ class DataProvider with ChangeNotifier {
         state: PageState.addAll,
         pages: [LoginPageConfig, CreatePasswordPageConfig],
       );
+    } else if (initialDynamicLink.queryParameters['action'] ==
+        'tokenizedAsset') {
+      try {
+        var assetCode = initialDynamicLink.queryParameters['assetCode'];
+        tokenizedAsset = await fetchTokenizedAsset(assetCode: assetCode!);
+        setSplashFinished();
+
+        currentAction = PageAction(
+          state: PageState.addAll,
+          pages: isLoggedIn
+              ? [BottomHomePageConfig, TokenizedAssetDetailViewPageConfig]
+              : [LoginPageConfig, TokenizedAssetDetailViewPageConfig],
+        );
+        notifyListeners;
+      } catch (e) {
+        setSplashFinished();
+      }
+    }
+  }
+
+  Future<void> fetchTokenizationData() async {
+    var uri = '/v1/tokenization';
+
+    Map responseData = await makeGetRequest(
+      uri: Uri.encodeFull(uri),
+      signer: primaryWallet.signer!,
+      secretKey: secretKeys[0], // the primary wallet secret key
+      publicKey: primaryWallet.signer!,
+    );
+    if (responseData['statusCode'] == 200) {
+      tokenizationData = responseData['data'];
+    }
+  }
+
+  Future<TokenizedAsset> fetchTokenizedAsset({
+    required String assetCode,
+  }) async {
+    try {
+      await Future.wait([
+        if (tokenizationData.isEmpty) fetchTokenizationData(),
+      ]);
+      var uri =
+          '/v1/tokenization/list?onlyWithUserPermission=0&assetCode=$assetCode';
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: primaryWallet.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: primaryWallet.signer!,
+      );
+
+      inspect(responseData['data']);
+
+      if (responseData['statusCode'] == 200) {
+        return TokenizedAsset().deserializeJson(
+          responseData['data']['records'][0],
+        );
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
     }
   }
 

@@ -142,6 +142,7 @@ class CustomTextFormField {
             helperText: helperText,
             helperStyle: TextStyle(fontSize: 12, fontFamily: fontbody),
             hintText: hintText,
+            hintStyle: TextStyle(color: Colors.grey[500]),
             label: labletext != null ? Text(labletext) : null,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
@@ -298,7 +299,7 @@ Widget multilineInput(
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: labletext,
-        hintStyle: TextStyle(color: lablecolor),
+        hintStyle: TextStyle(color: Colors.grey[500]),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
         ),

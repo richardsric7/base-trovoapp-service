@@ -37,6 +37,7 @@ class TokenizedAsset {
   int? vettingStatus;
   double? numberOfTokenToBeSold;
   double? feeInAsset;
+  double? vatInAsset;
   double? feeInAssetPercent;
   double? numberOfTokenToBeIssued;
   String? walletToHoldAssetsNotForSale;
@@ -52,6 +53,7 @@ class TokenizedAsset {
   String? assetLogo;
   bool? expressedInterest;
   double? expressedInterestAmount;
+  double? purchaseCommitments;
   bool? isSubscribed;
   double? subscriptionAmount;
   String? exemptedCountries;
@@ -154,8 +156,12 @@ class TokenizedAsset {
   int? numberOfExpressedInterests;
   int? numberOfSubscribers;
   double? quantityOfTokensSold;
+  double? quantityOfTokensSoldInFiat;
+  String deepLink;
+  Map<String, dynamic>? asMapData;
 
   TokenizedAsset({
+    this.asMapData,
     this.id,
     this.shadowId,
     this.assetCode,
@@ -225,6 +231,7 @@ class TokenizedAsset {
     this.subscriptionAmount,
     this.expressedInterest,
     this.expressedInterestAmount,
+    this.purchaseCommitments,
     this.proofOfPaymentDocuments,
     this.agreeTransferTitleToCustodian,
     this.contractualProtectionRevGuarantees,
@@ -302,14 +309,18 @@ class TokenizedAsset {
     this.projectIdentifiedMarketRisks,
     this.projectIdentifiedOtherRelevantRisks,
     this.feeInAsset,
+    this.vatInAsset,
     this.feeInAssetPercent,
     this.numberOfExpressedInterests,
     this.numberOfSubscribers,
     this.quantityOfTokensSold,
+    this.quantityOfTokensSoldInFiat,
+    this.deepLink = '',
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
     return TokenizedAsset(
+      asMapData: m,
       id: m["id"],
       shadowId: m["shadowId"],
       assetCode: m["assetCode"],
@@ -375,6 +386,7 @@ class TokenizedAsset {
       exemptedCountries: m["exemptedCountries"],
       hasAdditionalKYCRequirements: m["hasAdditionalKYCRequirements"],
       proceedPayoutCurrency: m["proceedPayoutCurrency"],
+      purchaseCommitments: double.parse(m["purchaseCommitments"].toString()),
       additionalKYCRequirements: m["additionalKYCRequirements"],
       investorAccreditationRequired: m["investorAccreditationRequired"],
       lastUpdatedBy: m["lastUpdatedBy"],
@@ -520,6 +532,7 @@ class TokenizedAsset {
       projectIdentifiedOtherRelevantRisks:
           m["projectIdentifiedOtherRelevantRisks"].toString(),
       feeInAsset: double.tryParse(m["feeInAsset"].toString()),
+      vatInAsset: double.tryParse(m["vatInAsset"].toString()),
       feeInAssetPercent: double.tryParse(m["feeInAssetPercent"].toString()),
       numberOfExpressedInterests: int.tryParse(
         m["numberOfExpressedInterests"].toString(),
@@ -528,6 +541,10 @@ class TokenizedAsset {
       quantityOfTokensSold: double.tryParse(
         m["quantityOfTokensSold"].toString(),
       ),
+      quantityOfTokensSoldInFiat: double.tryParse(
+        m["quantityOfTokensSoldInFiat"].toString(),
+      ),
+      deepLink: m["deepLink"].toString(),
     );
   }
 

@@ -342,19 +342,19 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       ),
                     ),
                     SizedBox(height: height / 10),
-                    ButtonOutlined(
-                      "cancelsubscription".tr(),
-                      notifier.getwihitecolor,
-                      notifier.getbluewhitecolor,
-                      borderColor: notifier.getbluewhitecolor,
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: CreatePasswordPageConfig,
-                        );
-                      },
-                    ),
-                    SizedBox(height: height / 50),
+                    // ButtonOutlined(
+                    //   "cancelsubscription".tr(),
+                    //   notifier.getwihitecolor,
+                    //   notifier.getbluewhitecolor,
+                    //   borderColor: notifier.getbluewhitecolor,
+                    //   onTap: () {
+                    //     appState.currentAction = PageAction(
+                    //       state: PageState.addPage,
+                    //       page: CreatePasswordPageConfig,
+                    //     );
+                    //   },
+                    // ),
+                    // SizedBox(height: height / 50),
                     Button(
                       "viewpatronplans".tr(),
                       notifier.getbluecolor,

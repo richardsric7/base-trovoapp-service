@@ -3537,6 +3537,90 @@ void showChooseWalletPopup(
     return walletsList;
   }
 
+  if (walletDropdownItems(false).isEmpty) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          scrollable: true,
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          content: Container(
+            decoration: BoxDecoration(
+              color: notifier.getwihitecolor,
+              borderRadius: BorderRadius.all(Radius.circular(23)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      'You currently do not have the $assetCode token on any of your wallets.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 18,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: height / 50),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      onCancel();
+                    },
+                    // dismiss dialog,
+                    style: ButtonStyle(
+                      fixedSize: WidgetStateProperty.all(
+                        Size(width / 1.5, height / 20),
+                      ),
+                      overlayColor: WidgetStateProperty.all<Color>(
+                        notifier.getsplashgrey,
+                      ),
+                      elevation: WidgetStateProperty.all<double>(0),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        notifier.getwihitecolor!,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: notifier.getgrey,
+                          width: 1,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "close".tr(),
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: height / 50),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    return;
+  }
+
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -4444,7 +4528,7 @@ showDocumentUploadPopup(
 Future<PlatformFile?>? getFile() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
-    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
+    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'csv'],
     withData: true,
   );
 
@@ -5049,50 +5133,70 @@ showSwitchEnvironmentPopup(
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                      child: Text(
-                        "appwillrestart".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: 15,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: height / 50),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
-                        onProceed();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: WidgetStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: WidgetStateProperty.all<Color>(
-                          notifier.getbluecolor,
-                        ),
-                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                  if (toEnvironment == 'Mainnet') ...[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "Mainnet is out of service at the moment. We will let you know as soon as Mainnet goes live.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
                           ),
                         ),
                       ),
-                      child: Text(
-                        "switchto".tr(args: [toEnvironment]),
-                        style: TextStyle(
-                          color: wihitecolor,
-                          fontFamily: fontbody,
+                    ),
+                  ] else ...[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "appwillrestart".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    SizedBox(height: height / 50),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onProceed();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: WidgetStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                            notifier.getbluecolor,
+                          ),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                        ),
+                        child: Text(
+                          "switchto".tr(args: [toEnvironment]),
+                          style: TextStyle(
+                            color: wihitecolor,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: OutlinedButton(
@@ -6339,6 +6443,174 @@ addSubWalletPopup(context) async {
   return show;
 }
 
+showQuickBuyPopup(context) async {
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  Widget buyOption({
+    required String iconUrl,
+    required String text,
+    required void Function() onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 3),
+        child: Container(
+          width: width,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              spacing: 10,
+              children: [
+                Image.asset(iconUrl, height: 40, width: 40),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(1),
+            content: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(Radius.circular(23)),
+                ),
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Quick Buy",
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(
+                              fontSize: 16,
+                              height: 1.4,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Icon(Icons.cancel_outlined, size: 20),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              alignment: Alignment.centerLeft,
+                              foregroundColor: notifier.getbluewhitecolor,
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      buyOption(
+                        iconUrl: 'assets/images/cngn-logo.png',
+                        text: 'Buy CNGN',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == 'CNGN',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 5),
+                      buyOption(
+                        iconUrl: 'assets/images/xbn-logo.png',
+                        text: 'Buy XBN',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == '',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      SizedBox(height: 5),
+                      buyOption(
+                        iconUrl: 'assets/images/trov-icon.png',
+                        text: 'Buy TROV',
+                        onTap: () {
+                          var asset = appState
+                              .userInfo
+                              ?.wallets
+                              ?.first
+                              .claimedAssets
+                              ?.firstWhere(
+                                (a) => a.assetCode?.toUpperCase() == 'TROV',
+                              );
+                          appState.viewData = {'asset': asset};
+                          appState.setPage(page: QuickBuyViewPageConfig);
+                        },
+                      ),
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 showCreateTokenizationWalletPopup(context) async {
   var appState = Provider.of<DataProvider>(context, listen: false);
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
@@ -6670,6 +6942,108 @@ confirmAccountDeletionPopup(
                         children: [
                           ButtonOutlined(
                             "close".tr(),
+                            notifier.getwihitecolor,
+                            notifier.getbluewhitecolor,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            width: width / 1.5,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+confirmVerificationDocumentDeletePopup(
+  context, {
+  required String fileName,
+  required void Function() onConfirmationSuccess,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setStateForDialog) {
+          return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(Radius.circular(23)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: height / 50),
+                      Text(
+                        "Confirm File Delete",
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        "Are you sure you want to delete this file?",
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Text(
+                        fileName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                      Button(
+                        "yesdelete".tr(),
+                        Colors.red,
+                        wihitecolor,
+                        width: width / 1.5,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          onConfirmationSuccess();
+                        },
+                      ),
+                      SizedBox(height: height / 90),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ButtonOutlined(
+                            "nocancel".tr(),
                             notifier.getwihitecolor,
                             notifier.getbluewhitecolor,
                             onTap: () {

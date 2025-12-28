@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_app/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/network/requests.dart';
@@ -31,14 +34,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late ColorNotifier notifier;
   late DataProvider appState;
   String selectedCountry = '';
-  // bool hasCustodianAgreement = true;
+  final equityPercentageController = TextEditingController();
+  final debtPercentageController = TextEditingController();
   bool hasSecApproval = false;
   bool hasSecApprovalId = false;
   bool agreeTransferTitleToCustodian = false;
   bool hasAllRequiredCustodianDocuments = false;
   bool hasAllRequiredManagerDocuments = false;
   int offeringType = 0;
+  double equityPercentage = 0;
+  double debtPercentage = 0;
   bool assetExisting = false;
+  int fundingStructure = 0;
   String proceedPayoutCurrency = '';
   String assetQuoteCurrency = '';
   String selectedAssetSectorId = '';
@@ -54,6 +61,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
+  late bool acceptTokenizationTermsAndAgreement = false;
+  bool isFinanceAndInvestmentMarketsSector = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,6 +87,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetTypeId = data!["assetType"];
       assetExisting = data!['assetAlreadyExists'] == 1;
       offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
+      fundingStructure = data['fundingStructure'] ?? 0;
+      equityPercentage =
+          double.tryParse(data['equityPercentage'].toString()) ?? 0;
+      debtPercentage = double.tryParse(data['debtPercentage'].toString()) ?? 0;
       secApprovalId = data!["secApprovalIdNumber"];
       hasSecApproval = data!["secApproval"] == 1;
       selectedCountry = data!["assetCountryLocation"];
@@ -85,8 +98,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       selectedAssetManager = data!["assetManagerId"].toString();
       hasAllRequiredCustodianDocuments = data!["approvedAssetCustodianId"] != 0;
       hasAllRequiredManagerDocuments = data!["assetManagerId"] != 0;
+      acceptTokenizationTermsAndAgreement =
+          data['acceptTokenizationTermsAndAgreement'] == 1;
+      equityPercentageController.text = equityPercentage.toString();
+      debtPercentageController.text = debtPercentage.toString();
       agreeTransferTitleToCustodian =
           data!["agreeTransferTitleToCustodian"] != 0;
+      isFinanceAndInvestmentMarketsSector =
+          selectedAssetSectorId.toLowerCase() ==
+          'finance and investment markets';
       for (
         var i = 0;
         i < appState.tokenizationData['countryConfigs'].length;
@@ -233,7 +253,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetclassification".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -248,7 +268,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "pleaseselectclassification".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -264,7 +284,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   textAlign: TextAlign.left,
                   "assetsector".tr(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14.sp,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -283,7 +303,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       selectedAssetSectorId,
                     );
                     selectedAssetSubSectorId = '';
+                    isFinanceAndInvestmentMarketsSector =
+                        selectedAssetSectorId.toLowerCase() ==
+                        'finance and investment markets';
                   });
+
+                  assetExisting = isFinanceAndInvestmentMarketsSector;
                 },
                 assetSectors,
                 selectedAssetSectorId.isEmpty ? null : selectedAssetSectorId,
@@ -307,7 +332,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetsubsector".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -353,7 +378,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assettype".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -368,6 +393,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetTypeId = value.toString();
+                    var data = appState.tokenizationData;
+                    for (var i = 0; i < data['assetTypes'].length; i++) {
+                      if (data['assetTypes'][i]['id'].toString() ==
+                          appState.viewData!['assetType'].toString()) {
+                        appState.viewData!['assetFormName'] =
+                            data['assetTypes'][i]['assetType'];
+
+                        break;
+                      }
+                    }
                   });
                 },
                 assetTypes,
@@ -383,106 +418,356 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 },
               ),
             ),
-            SizedBox(height: height / 50),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Row(
-                children: [
-                  Text(
-                    "assetstatus".tr(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Container(
-                width: width,
-                child: Text(
-                  "selectwhatappliestoasset".tr(),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: height / 50),
-            Column(
-              children: [
-                Row(
+            if (!isFinanceAndInvestmentMarketsSector) ...[
+              SizedBox(height: height / 50),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Row(
                   children: [
-                    SizedBox(
-                      height: 20,
-                      child: Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: true,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: WidgetStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor,
-                          ),
-                          groupValue: assetExisting,
-                          onChanged: (value) => {
-                            setState(() {
-                              assetExisting = value!;
-                            }),
-                          },
-                        ),
-                      ),
-                    ),
                     Text(
-                      "assetexisting".tr(),
+                      "assetstatus".tr(),
                       style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontbody,
+                        fontSize: 18.sp,
+                        fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: height / 70),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    "selectwhatappliestoasset".tr(),
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: true,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            groupValue: assetExisting,
+                            onChanged: (value) => {
+                              setState(() {
+                                assetExisting = value!;
+                              }),
+                            },
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "assetexisting".tr(),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: height / 70),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: false,
+                            groupValue: assetExisting,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            onChanged: (value) => {
+                              setState(() {
+                                assetExisting = value!;
+                              }),
+                            },
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "assetnotyetexisting".tr(),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Row(
+                  children: [
+                    Text(
+                      "Funding Structure",
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Container(
+                  width: width,
+                  child: Text(
+                    "Select funding structure",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Transform.scale(
+                          scale: 1,
+                          child: Radio<int>(
+                            value: 0,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            groupValue: fundingStructure,
+                            onChanged: (value) => {
+                              setState(() {
+                                fundingStructure = value!;
+                              }),
+                            },
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "Equity",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: height / 70),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Transform.scale(
+                          scale: 1,
+                          child: Radio<int>(
+                            value: 1,
+                            groupValue: fundingStructure,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            onChanged: (value) => {
+                              setState(() {
+                                fundingStructure = value!;
+                              }),
+                            },
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "Debt",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: height / 70),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Transform.scale(
+                          scale: 1,
+                          child: Radio<int>(
+                            value: 2,
+                            groupValue: fundingStructure,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: WidgetStateColor.resolveWith(
+                              (states) => notifier.getbluewhitecolor,
+                            ),
+                            onChanged: (value) => {
+                              setState(() {
+                                fundingStructure = value!;
+                              }),
+                            },
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "Hybrid",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontbody,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              if (fundingStructure == 2) ...[
                 Row(
                   children: [
-                    SizedBox(
-                      height: 20,
-                      child: Transform.scale(
-                        scale: 1,
-                        child: Radio<bool>(
-                          value: false,
-                          groupValue: assetExisting,
-                          activeColor: notifier.getbluewhitecolor,
-                          fillColor: WidgetStateColor.resolveWith(
-                            (states) => notifier.getbluewhitecolor,
-                          ),
-                          onChanged: (value) => {
-                            setState(() {
-                              assetExisting = value!;
-                            }),
-                          },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'What is the equity percentage (%)',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                     ),
-                    Text(
-                      "assetnotyetexisting".tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "How much (%)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            equityPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            equityPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        autoFormatNumber: true,
+                        isFiat: true,
+                        controller: equityPercentageController,
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
-            ),
-            SizedBox(height: height / 30),
+              if (fundingStructure == 2) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'What is the debt percentage (%)',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "How much (%)",
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        85,
+                        width / 1.12,
+                        onChanged: (value) {
+                          setState(() {
+                            debtPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "fieldcannotbeempty".tr();
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            debtPercentage = double.tryParse(value!) ?? 0;
+                          });
+                        },
+                        autoFormatNumber: true,
+                        isFiat: true,
+                        controller: debtPercentageController,
+                        keyboardtype: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+            SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
@@ -490,7 +775,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "assetlocation".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -506,7 +791,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "pleaseselectcountry".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -522,7 +807,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "country".tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -545,7 +830,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   child: TextButton(
                     onPressed: showCountryListPopup,
                     style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0),
+                      elevation: WidgetStateProperty.all<double>(0),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -579,7 +864,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     child: Text(
                       "pleaseselectcountrylocation".tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontFamily: fontbody,
                         color: Colors.red,
                       ),
@@ -596,7 +881,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "offeringtype".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -612,7 +897,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   "selectofferingtype".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.sp,
                     fontFamily: fontbody,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -669,7 +954,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Text(
                     "requireddocuments".tr(),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -691,15 +976,16 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     return;
                   }
 
-                  var url =
-                      '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
+                  var url = isFinanceAndInvestmentMarketsSector
+                      ? '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${appState.viewData!['assetFormName'].toString().toLowerCase().replaceAll(' ', '-')}'
+                      : '$tokenizationRequirementsUrl/#/${selectedAssetSectorId.replaceAll(' ', '-').toLowerCase()}/${assetExisting ? '' : 'non-'}existing-assets';
                   appState.goToWebView(url);
                 },
                 child: Text(
                   "doyouhaverequiredmanagerdocs".tr(),
                   style: TextStyle(
                     decoration: TextDecoration.underline,
-                    fontSize: 13,
+                    fontSize: 14.sp,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
                   ),
@@ -729,7 +1015,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "yes".tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -757,7 +1043,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     Text(
                       "no".tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -809,14 +1095,92 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 Container(
                   width: width / 1.2,
                   child: Text(
-                    "Tokenizing your asset requires ownership transfer of the asset to a licensed nominee/trustee/custodian. Agree?",
+                    "Tokenizing your asset requires ownership transfer of the asset to a licensed trustee. Agree?",
                     overflow: TextOverflow.visible,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14.sp,
                       color: formHasError && !agreeTransferTitleToCustodian
                           ? Colors.red
                           : notifier.getbluewhitecolor,
                       fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Transform.scale(
+                  scale: 1,
+                  child: FormField(
+                    builder: (state) {
+                      return Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                        ),
+                        activeColor: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor90,
+                        side: BorderSide(
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
+                        value: acceptTokenizationTermsAndAgreement,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            acceptTokenizationTermsAndAgreement = value!;
+                          });
+                        },
+                      );
+                    },
+                    validator: (value) {
+                      if (!acceptTokenizationTermsAndAgreement) {
+                        setState(() {
+                          formHasError = true;
+                        });
+                        return '';
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  width: width / 1.2,
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'I agree to the Trovotech ',
+                      children: [
+                        TextSpan(
+                          text: 'Tokenization Terms and Conditions',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color:
+                                formHasError &&
+                                    !acceptTokenizationTermsAndAgreement
+                                ? Colors.red
+                                : notifier.getbluewhitecolor,
+                            fontVariations: [FontVariation('wght', 700)],
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              var url =
+                                  '$tokenizationRequirementsUrl/#/terms-and-conditions';
+                              appState.goToWebView(url);
+                            },
+                        ),
+                      ],
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontFamily: fontbody,
+                        color:
+                            formHasError && !acceptTokenizationTermsAndAgreement
+                            ? Colors.red
+                            : notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),
@@ -882,7 +1246,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     try {
       showLoader(context);
-
+      data = appState.viewData;
       data["assetSector"] = selectedAssetSectorId;
       data["assetSubSector"] = selectedAssetSubSectorId;
       data["assetType"] = selectedAssetTypeId;
@@ -902,6 +1266,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       data["assetCountryLocation"] = selectedCountry;
       data['proceedPayoutCurrency'] = proceedPayoutCurrency;
       data['assetQuoteCurrency'] = assetQuoteCurrency;
+      data['fundingStructure'] = fundingStructure;
+      data['equityPercentage'] = equityPercentage;
+      data['debtPercentage'] = debtPercentage;
+      data['acceptTokenizationTermsAndAgreement'] =
+          acceptTokenizationTermsAndAgreement ? 1 : 0;
 
       String requestBody = jsonEncode(data);
 
@@ -912,10 +1281,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
+        await refreshCurrentTokenizationInfo(appState);
         await fetchBanksList();
         appState.currentAction = PageAction(
           state: PageState.addPage,
@@ -928,6 +1297,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
           message: responseData['data']['message'],
         );
       }
+      hideLoader(context);
     } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());

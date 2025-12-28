@@ -180,80 +180,77 @@ class _ImportWalletState extends State<ImportWallet> {
                           onSaved: storeUsernameOrEmail,
                           keyboardtype: TextInputType.emailAddress,
                         ),
-                        Row(
-                          children: [
-                            Container(
-                              width: width / 1.2,
-                              child: checkUsePassphrase(),
-                            ),
-                          ],
-                        ),
-                        if (usePassPhrase) ...[
-                          // Pass phrase/Mnemonic
-                          passPhraseInput(
-                            "passphrase".tr(),
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            100.sp,
-                            300.sp,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return "enterpassphraseempty".tr();
-                              }
-                            },
-                            onSaved: (value) {
-                              passPhrase = value;
-                            },
-                            minLines: 3,
-                            maxLines: null,
-                            keyboardtype: TextInputType.multiline,
-                            focusNode: passPhraseFocusNode,
-                          ),
-                        ] else ...[
-                          // Secret Key
-                          CustomPasswordFormField(
-                            "secretkey".tr(),
-                            notifier.getbluecolor,
-                            Icons.lock,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            70.sp,
-                            300.sp,
-                            onChanged: (value) async {
-                              if (value != null && value.length == 56) {
-                                setState(() {
-                                  info = parseKey(context, value)!;
-                                });
-                              } else {
-                                setState(() {
-                                  info = null;
-                                });
-                              }
-                            },
-                            validator: (value) {
-                              var trimmedVal = value!.trim().replaceAll(
-                                ' ',
-                                '',
-                              );
-                              if (trimmedVal.isEmpty) {
-                                return "entersecretkeyempty".tr();
-                              }
+                        // Row(
+                        //   children: [
+                        //     Container(
+                        //       width: width / 1.2,
+                        //       child: checkUsePassphrase(),
+                        //     ),
+                        //   ],
+                        // ),
+                        // if (usePassPhrase) ...[
+                        //   // Pass phrase/Mnemonic
+                        //   passPhraseInput(
+                        //     "passphrase".tr(),
+                        //     notifier.getbluecolor,
+                        //     notifier.getgrey,
+                        //     notifier.getblck,
+                        //     notifier.getgrey,
+                        //     100.sp,
+                        //     300.sp,
+                        //     validator: (value) {
+                        //       if (value.isEmpty) {
+                        //         return "enterpassphraseempty".tr();
+                        //       }
+                        //     },
+                        //     onSaved: (value) {
+                        //       passPhrase = value;
+                        //     },
+                        //     minLines: 3,
+                        //     maxLines: null,
+                        //     keyboardtype: TextInputType.multiline,
+                        //     focusNode: passPhraseFocusNode,
+                        //   ),
+                        // ] else ...[
+                        // Secret Key
+                        CustomPasswordFormField(
+                          "secretkey".tr(),
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          70.sp,
+                          300.sp,
+                          onChanged: (value) async {
+                            if (value != null && value.length == 56) {
+                              setState(() {
+                                info = parseKey(context, value)!;
+                              });
+                            } else {
+                              setState(() {
+                                info = null;
+                              });
+                            }
+                          },
+                          validator: (value) {
+                            var trimmedVal = value!.trim().replaceAll(' ', '');
+                            if (trimmedVal.isEmpty) {
+                              return "entersecretkeyempty".tr();
+                            }
 
-                              if (trimmedVal.length < 56) {
-                                return "secretkeyinvalid".tr();
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              secretKey = value!.trim().replaceAll(' ', '');
-                            },
-                            maxLength: 56,
-                            focusNode: secretKeyFocusNode,
-                          ),
-                        ],
+                            if (trimmedVal.length < 56) {
+                              return "secretkeyinvalid".tr();
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            secretKey = value!.trim().replaceAll(' ', '');
+                          },
+                          maxLength: 56,
+                          focusNode: secretKeyFocusNode,
+                        ),
+                        // ],
                         if (info != null) ...[
                           SizedBox(height: height / 90),
                           Container(

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -25,7 +27,7 @@ class TokenizationWelcome extends StatefulWidget {
 }
 
 class _TokenizationWelcomeState extends State<TokenizationWelcome>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
@@ -195,6 +197,9 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     }
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   void refreshData() async {
     try {
       listOfTokenizations = fetchTokenizationList();
@@ -251,6 +256,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
@@ -459,7 +465,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 style: ButtonStyle(
                                   backgroundColor:
                                       WidgetStateProperty.all<Color>(
-                                        notifier.getbluecolor!,
+                                        wihitecolor,
                                       ),
                                 ),
                                 child: Text(
@@ -834,6 +840,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
+    inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
       appState.tokenizationData = responseData['data'];
 
@@ -867,6 +874,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
+      // inspect(responseData);
       if (responseData['statusCode'] == 200) {
         await fetchTokenizationData();
         List<TokenizedAsset> assets = [];

@@ -61,29 +61,31 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
             children: [
               SizedBox(height: height / 20),
               Center(
-                child: Image.asset("assets/images/success.gif",
-                    height: height / 10),
+                child: Image.asset(
+                  "assets/images/success.gif",
+                  height: height / 10,
+                ),
               ),
               SizedBox(height: height / 50),
               Text(
                 "yourtransactionwassuccessful".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 22.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 22.sp,
+                ),
               ),
               SizedBox(height: height / 30),
               Text(
-                '+ ${formatNumber(double.parse(quantity))}',
+                '+ ${formatNumber(double.parse(quantity))} ${tokenizedAsset?.assetCode?.toUpperCase()}',
                 style: TextStyle(
-                    color: Colors.green,
-                    fontFamily: fontsemibold,
-                    fontSize: 20.sp),
+                  color: Colors.green,
+                  fontFamily: fontsemibold,
+                  fontSize: 20.sp,
+                ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -108,9 +110,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -129,12 +129,11 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                                       fontFamily: fontbody,
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Text(
                                     truncatePublicKey(
-                                        appState.activeWallet!.publicKey),
+                                      appState.activeWallet!.publicKey,
+                                    ),
                                     style: TextStyle(
                                       color: notifier.getbluewhitecolor,
                                       fontSize: 12.sp,
@@ -144,22 +143,18 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                                   ),
                                 ],
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 90),
+                      Divider(height: 5),
+                      SizedBox(height: height / 90),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
+                          horizontal: 20.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           "Amount".tr(),
                           style: TextStyle(
@@ -170,9 +165,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
@@ -185,18 +178,14 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 90),
+                      Divider(height: 5),
+                      SizedBox(height: height / 90),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
+                          horizontal: 20.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           "blockchainproof".tr(),
                           style: TextStyle(
@@ -207,9 +196,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -218,8 +205,9 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    getExplorerBaseUrl(appState.walletMode) +
-                                        transactionId),
+                                  getExplorerBaseUrl(appState.walletMode) +
+                                      transactionId,
+                                ),
                                 child: Text(
                                   transactionId,
                                   style: TextStyle(
@@ -237,9 +225,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                               child: IconButton(
                                 onPressed: () => {
                                   Clipboard.setData(
-                                    ClipboardData(
-                                      text: transactionId,
-                                    ),
+                                    ClipboardData(text: transactionId),
                                   ),
                                   showSnackBar("transactionid".tr(), context),
                                 },
@@ -250,18 +236,14 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 90),
+                      Divider(height: 5),
+                      SizedBox(height: height / 90),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
+                          horizontal: 20.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           "Date".tr(),
                           style: TextStyle(
@@ -272,16 +254,13 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: GestureDetector(
                           // onTap: () => appState.goToWebView(
                           //     getExplorerBaseUrl(appState.walletMode) +
                           //         viewData['transactionId']),
-
                           child: Text(
                             DateFormat('MMMM dd, yyyy hh:mm a').format(date),
                             style: TextStyle(
@@ -294,16 +273,12 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "generatereceipt".tr(),
                 notifier.getbluecolor,
@@ -322,9 +297,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                   );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "dashboard".tr(),
                 notifier.getwihitecolor,
@@ -336,9 +309,7 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                   );
                 },
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
             ],
           ),
         ),

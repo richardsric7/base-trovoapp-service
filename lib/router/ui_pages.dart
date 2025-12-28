@@ -114,7 +114,35 @@ const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
 const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
 const String KycScreenViewPath = '/KycScreenView';
 const String FlutterwaveWebViewPath = '/FlutterwaveWebView';
-const String AboutTrovoViewPath = '/FlutterwaveWebView';
+const String AboutTrovoViewPath = '/AboutTrovoView';
+const String UpcomingAssetInformationViewPath = '/UpcomingAssetInformationView';
+const String AssetVerificationDocumentOptionsViewPath =
+    '/AssetVerificationDocumentOptionsView';
+const String DebtMutualFundsAssetInformationViewPath =
+    '/DebtMutualFundsAssetInformationView';
+const String EquityMutualFundsAssetInformationViewPath =
+    '/EquityMutualFundsAssetInformationView';
+const String HybridMutualFundsAssetInformationViewPath =
+    '/HybridMutualFundsAssetInformationView';
+const String BondAssetInformationViewPath = '/BondAssetInformationView';
+const String CorporateBondAssetInformationViewPath =
+    '/CorporateBondAssetInformationView';
+const String CommodityAssetInformationViewPath =
+    '/CommodityAssetInformationView';
+const String CommoditySKRAssetInformationViewPath =
+    '/CommoditySKRAssetInformationView';
+const String MBSAssetInformationViewPath = '/MBSAssetInformationView';
+const String CommercialPapersAssetInformationViewPath =
+    '/CommercialPapersAssetInformationView';
+const String QuickBuyViewPath = '/QuickBuyView';
+const String ConfirmQuickBuyViewPath = '/ConfirmQuickBuyView';
+const String DividendAndYieldViewPath = '/DividendAndYieldView';
+const String DividendHistoryViewPath = '/DividendHistoryView';
+const String YieldHistoryViewPath = '/YieldHistoryView';
+const String DividendPaymentDetailsViewPath = '/DividendPaymentDetailsView';
+const String RequestEarlyExitViewPath = '/RequestEarlyExitView';
+const String EarlyExitSummaryViewPath = '/EarlyExitSummaryView';
+const String AppImageViewerPath = '/AppImageViewer';
 
 enum Pages {
   Splash,
@@ -232,6 +260,26 @@ enum Pages {
   KycScreenView,
   FlutterwaveWebView,
   AboutTrovoView,
+  UpcomingAssetInformationView,
+  AssetVerificationDocumentOptionsView,
+  DebtMutualFundsAssetInformationView,
+  EquityMutualFundsAssetInformationView,
+  HybridMutualFundsAssetInformationView,
+  BondAssetInformationView,
+  CorporateBondAssetInformationView,
+  CommodityAssetInformationView,
+  CommoditySKRAssetInformationView,
+  MBSAssetInformationView,
+  CommercialPapersAssetInformationView,
+  QuickBuyView,
+  ConfirmQuickBuyView,
+  DividendAndYieldView,
+  DividendHistoryView,
+  YieldHistoryView,
+  DividendPaymentDetailsView,
+  RequestEarlyExitView,
+  EarlyExitSummaryView,
+  AppImageViewer,
 }
 
 class PageConfiguration {
@@ -890,5 +938,132 @@ PageConfiguration AboutTrovoViewPageConfig = PageConfiguration(
   key: 'AboutTrovoView',
   path: AboutTrovoViewPath,
   uiPage: Pages.AboutTrovoView,
+  currentPageAction: null,
+);
+PageConfiguration UpcomingAssetInformationViewPageConfig = PageConfiguration(
+  key: 'UpcomingAssetInformationView',
+  path: UpcomingAssetInformationViewPath,
+  uiPage: Pages.UpcomingAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration AssetVerificationDocumentOptionsViewPageConfig =
+    PageConfiguration(
+      key: 'AssetVerificationDocumentOptionsView',
+      path: AssetVerificationDocumentOptionsViewPath,
+      uiPage: Pages.AssetVerificationDocumentOptionsView,
+      currentPageAction: null,
+    );
+PageConfiguration DebtMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'DebtMutualFundsAssetInformationView',
+      path: DebtMutualFundsAssetInformationViewPath,
+      uiPage: Pages.DebtMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration EquityMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'EquityMutualFundsAssetInformationView',
+      path: EquityMutualFundsAssetInformationViewPath,
+      uiPage: Pages.EquityMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration HybridMutualFundsAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'HybridMutualFundsAssetInformationView',
+      path: HybridMutualFundsAssetInformationViewPath,
+      uiPage: Pages.HybridMutualFundsAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration BondAssetInformationViewPageConfig = PageConfiguration(
+  key: 'BondAssetInformationView',
+  path: BondAssetInformationViewPath,
+  uiPage: Pages.BondAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration CorporateBondAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'CorporateBondAssetInformationView',
+      path: CorporateBondAssetInformationViewPath,
+      uiPage: Pages.CorporateBondAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration CommodityAssetInformationViewPageConfig = PageConfiguration(
+  key: 'CommodityAssetInformationView',
+  path: CommodityAssetInformationViewPath,
+  uiPage: Pages.CommodityAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration CommoditySKRAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'CommoditySKRAssetInformationView',
+      path: CommoditySKRAssetInformationViewPath,
+      uiPage: Pages.CommoditySKRAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration MBSAssetInformationViewPageConfig = PageConfiguration(
+  key: 'MBSAssetInformationView',
+  path: MBSAssetInformationViewPath,
+  uiPage: Pages.MBSAssetInformationView,
+  currentPageAction: null,
+);
+PageConfiguration CommercialPapersAssetInformationViewPageConfig =
+    PageConfiguration(
+      key: 'CommercialPapersAssetInformationView',
+      path: CommercialPapersAssetInformationViewPath,
+      uiPage: Pages.CommercialPapersAssetInformationView,
+      currentPageAction: null,
+    );
+PageConfiguration QuickBuyViewPageConfig = PageConfiguration(
+  key: 'QuickBuyView',
+  path: QuickBuyViewPath,
+  uiPage: Pages.QuickBuyView,
+  currentPageAction: null,
+);
+PageConfiguration ConfirmQuickBuyViewPageConfig = PageConfiguration(
+  key: 'ConfirmQuickBuyView',
+  path: ConfirmQuickBuyViewPath,
+  uiPage: Pages.ConfirmQuickBuyView,
+  currentPageAction: null,
+);
+PageConfiguration DividendAndYieldViewPageConfig = PageConfiguration(
+  key: 'DividendAndYieldView',
+  path: DividendAndYieldViewPath,
+  uiPage: Pages.DividendAndYieldView,
+  currentPageAction: null,
+);
+PageConfiguration DividendHistoryViewPageConfig = PageConfiguration(
+  key: 'DividendHistoryView',
+  path: DividendHistoryViewPath,
+  uiPage: Pages.DividendHistoryView,
+  currentPageAction: null,
+);
+PageConfiguration YieldHistoryViewPageConfig = PageConfiguration(
+  key: 'YieldHistoryView',
+  path: YieldHistoryViewPath,
+  uiPage: Pages.YieldHistoryView,
+  currentPageAction: null,
+);
+PageConfiguration DividendPaymentDetailsViewPageConfig = PageConfiguration(
+  key: 'DividendPaymentDetailsView',
+  path: DividendPaymentDetailsViewPath,
+  uiPage: Pages.DividendPaymentDetailsView,
+  currentPageAction: null,
+);
+PageConfiguration RequestEarlyExitViewPageConfig = PageConfiguration(
+  key: 'RequestEarlyExitView',
+  path: RequestEarlyExitViewPath,
+  uiPage: Pages.RequestEarlyExitView,
+  currentPageAction: null,
+);
+PageConfiguration EarlyExitSummaryViewPageConfig = PageConfiguration(
+  key: 'EarlyExitSummaryView',
+  path: EarlyExitSummaryViewPath,
+  uiPage: Pages.EarlyExitSummaryView,
+  currentPageAction: null,
+);
+PageConfiguration AppImageViewerPageConfig = PageConfiguration(
+  key: 'AppImageViewer',
+  path: AppImageViewerPath,
+  uiPage: Pages.AppImageViewer,
   currentPageAction: null,
 );

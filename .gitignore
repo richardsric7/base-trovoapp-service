@@ -129,3 +129,4 @@ build
 
 # FVM Version Cache
 .fvm/
+lib/screens/asset-tokenization/commodity_skr.txt

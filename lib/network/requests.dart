@@ -114,6 +114,7 @@ Future<Map> makeGetRequest({
     http.Response response = await http
         .get(Uri.parse(await getTrovoAppBaseURL() + uri), headers: headers)
         .timeout(Duration(seconds: 60));
+    inspect(response);
 
     return {
       'statusCode': response.statusCode,
