@@ -362,7 +362,7 @@ class _SharedAccessState extends State<SharedAccess>
                 ),
               ),
               Container(
-                height: height / 1.22,
+                height: height / 1.23,
                 child: TabBarView(
                   controller: appState.sharedAccesstabController,
                   children: [

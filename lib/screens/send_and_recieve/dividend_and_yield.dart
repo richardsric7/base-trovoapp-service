@@ -96,166 +96,182 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
                 ],
               ),
               SizedBox(height: height / 50),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                    color: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10.0,
-                          horizontal: 15,
-                        ),
-                        child: Text(
-                          "Dividend Details",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15.sp,
-                            fontFamily: fontsemibold,
+              if (asset?.fundingStructure == 0 ||
+                  asset?.fundingStructure == 2) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10.0,
+                            horizontal: 15,
+                          ),
+                          child: Text(
+                            "Dividend Details",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
-                      ),
-                      item("Dividend frequency", 'Quarterly'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Total dividends received", 'N45,000'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Last dividend amount", 'N7,500'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Last dividend date", '20th May, 2024'),
-                      SizedBox(height: height / 50),
-                      Button(
-                        "View Dividend History",
-                        notifier.getbluecolor,
-                        wihitecolor,
-                        onTap: () {
-                          appState.setPage(page: DividendHistoryViewPageConfig);
-                        },
-                        width: 300.w,
-                      ),
-                      SizedBox(height: height / 50),
-                    ],
+                        item("Dividend frequency", 'Quarterly'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Total dividends received", 'N45,000'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Last dividend amount", 'N7,500'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Last dividend date", '20th May, 2024'),
+                        SizedBox(height: height / 50),
+                        Button(
+                          "View Dividend History",
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            appState.setPage(
+                              page: DividendHistoryViewPageConfig,
+                            );
+                          },
+                          width: 300.w,
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                    color: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10.0,
-                          horizontal: 15,
-                        ),
-                        child: Text(
-                          "Interest Details",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15.sp,
-                            fontFamily: fontsemibold,
+              ],
+              if (asset?.fundingStructure == 1 ||
+                  asset?.fundingStructure == 2) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10.0,
+                            horizontal: 15,
+                          ),
+                          child: Text(
+                            "Interest Details",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
-                      ),
-                      item("Interest frequency", 'Quarterly'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Total interest earned", 'N45,000'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Last payment date", '20th May, 2024'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Accrued interest (unpaid)", 'N45,000'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Next payment date", '20th May, 2024'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("YTD effective yield", '9.20%'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Expected annual yield", '9.20%'),
-                      SizedBox(height: height / 50),
-                      Button(
-                        "View Yield History",
-                        notifier.getbluecolor,
-                        wihitecolor,
-                        onTap: () {
-                          appState.setPage(page: YieldHistoryViewPageConfig);
-                        },
-                        width: 300.w,
-                      ),
-                      SizedBox(height: height / 50),
-                    ],
+                        item("Interest frequency", 'Quarterly'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Total interest earned", 'N45,000'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Last payment date", '20th May, 2024'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Accrued interest (unpaid)", 'N45,000'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Next payment date", '20th May, 2024'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("YTD effective yield", '9.20%'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Expected annual yield", '9.20%'),
+                        SizedBox(height: height / 50),
+                        Button(
+                          "View Yield History",
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            appState.setPage(page: YieldHistoryViewPageConfig);
+                          },
+                          width: 300.w,
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                    color: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10.0,
-                          horizontal: 15,
-                        ),
-                        child: Text(
-                          "Early Exit",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15.sp,
-                            fontFamily: fontsemibold,
+              ],
+              if (asset!.isExitWithFiat) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10.0,
+                            horizontal: 15,
+                          ),
+                          child: Text(
+                            "Early Exit",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
-                      ),
-                      item("Eligible for early exit", 'Yes'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Current buyback NAV", 'N450/token'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Exit charges or penalty", '2% early exit fee'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Estimated payout (Net)", 'N450/token'),
-                      Divider(color: notifier.getsplashgrey, thickness: 1),
-                      item("Processing time", '3 business days'),
-                      SizedBox(height: height / 50),
-                      Button(
-                        "Request Early Exit",
-                        notifier.getbluecolor,
-                        wihitecolor,
-                        onTap: () {
-                          appState.setPage(
-                            page: RequestEarlyExitViewPageConfig,
-                          );
-                        },
-                        width: 300.w,
-                      ),
-                      SizedBox(height: height / 50),
-                    ],
+                        item("Eligible for early exit", 'Yes'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Current buyback NAV", 'N450/token'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Exit charges or penalty", '2% early exit fee'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Estimated payout (Net)", 'N450/token'),
+                        Divider(color: notifier.getsplashgrey, thickness: 1),
+                        item("Processing time", '3 business days'),
+                        SizedBox(height: height / 50),
+                        Button(
+                          "Request Early Exit",
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            appState.setPage(
+                              page: RequestEarlyExitViewPageConfig,
+                            );
+                          },
+                          width: 300.w,
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
               SizedBox(height: height / 20),
               Padding(
                 padding: EdgeInsets.only(

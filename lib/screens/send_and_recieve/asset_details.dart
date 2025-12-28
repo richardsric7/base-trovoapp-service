@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +60,7 @@ class _AssetDetailsState extends State<AssetDetails>
 
     // free the memory..... lol
     appState.viewData = {};
+    inspect(asset);
   }
 
   @override
