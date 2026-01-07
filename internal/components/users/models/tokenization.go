@@ -1079,7 +1079,7 @@ type TokenizedAssetJSON struct {
 	ProceedCycle                                 string                          `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID                            uint64                          `json:"tokenizationFeeId"`
 	TokenizationFee                              TokenizationFee                 `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
-	CountryConfig                                Country                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"countryConfig"`
+	CountryConfig                                CountryConfig                   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"countryConfig"`
 	ExcludeSecFee                                int                             `gorm:"default:0" json:"excludeSecFee"`
 	SECTokenizationFeePercent                    float64                         `gorm:"default:0" json:"SECTokenizationFeePercent"`
 	SECTokenizationFeeFixed                      float64                         `gorm:"default:0" json:"SECTokenizationFeeFixed"`
@@ -2391,7 +2391,7 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	var feeInAsset, VATAsset float64
 
 	// /////
-	var cConfig Country
+	var cConfig CountryConfig
 	var custodyFee, assetMgtFee float64
 	var secFee float64
 	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat, trusteeFee float64
@@ -4315,7 +4315,7 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 	t.FinalValueOfTokenizedAsset = (t.NumberOfTokenToBeIssued * t.PricePerToken) – *This is what is shown on the App*
 		**/
-	var cConfig Country
+	var cConfig CountryConfig
 	var custodyFee, assetMgtFee float64
 	var secFee float64
 	var vat, issuingHouseFeeValue, legalAndProfessionalFee, ratingAgencyFee, totalChargedFeesForVat, trusteeFee float64

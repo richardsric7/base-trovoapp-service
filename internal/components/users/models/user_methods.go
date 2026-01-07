@@ -1762,6 +1762,13 @@ func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee Servi
 
 	return
 }
+
+func (u *UserWallet) GetVATValue(serviceFee decimal.Decimal, gc *sharedconfig.GlobalConfig) (vat float64) {
+	// var serviceFee ServiceFee
+	vat = gc.GetVATValue(serviceFee)
+	return
+}
+
 func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 	if u.SharedAccessEnabled == 0 {

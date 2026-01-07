@@ -3127,12 +3127,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		apc := userServices.GetAssetProceedCycle(gc.DB)
 		ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
 		fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
-		countries := userServices.GetCountryConfigs(gc.DB)
+		countries := userServices.GetCountries(gc.DB)
+		countryConfigs := userServices.GetCountryConfigs(gc.DB)
 
 		c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
 			"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
 			"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
-			"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countries})
+			"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countryConfigs, "countries": countries})
 
 	})
 

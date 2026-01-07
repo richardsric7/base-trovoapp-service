@@ -155,6 +155,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Country: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.CountryConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CountryConfig: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.KYCConfig{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating KYCConfig: ", errMigrate)
