@@ -76,8 +76,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
-        tokenizationApplicationFee = appState
-            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
+        tokenizationApplicationFee =
+            double.tryParse(
+              appState
+                  .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee']
+                  .toString(),
+            ) ??
+            0.0;
         tokenizationApplicationFeeAsset = appState
             .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
             .toString()
@@ -883,8 +888,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   }
 
   double getFeeInfo(int index) {
-    var fiatPercentage = appState
-        .tokenizationData["tokenizationFees"][index]['feeFiatPercentage'];
+    var fiatPercentage = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatPercentage']
+          .toString(),
+    );
     var fiatFeeCap = double.parse(
       appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
           .toString(),
