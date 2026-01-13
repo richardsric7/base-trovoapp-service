@@ -3,6 +3,7 @@ package sharedconfig
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -1333,4 +1334,54 @@ func (gc *GlobalConfig) GetVATValue(serviceFee decimal.Decimal) (vat float64) {
 	cc := gc.GetConfig("NG")
 	vat = serviceFee.Mul(decimal.NewFromFloat((cc.VATPercent / 100))).Truncate(7).InexactFloat64()
 	return
+}
+
+// ServiceLinkServiceFee holds fee data model
+type ServiceLinkServiceFee struct {
+	ApiKey       string `gorm:"size:100;primaryKey"`
+	CreatedAt    time.Time
+	ExpiresAt    time.Time `gorm:"default:now()"`
+	UpdatedAt    time.Time
+	PaymentFee   int `json:"-" gorm:"type:integer;not null;default:0"`
+	SwapFee      int `json:"-" gorm:"type:integer;not null;default:0"`
+	SubwalletFee int `json:"-" gorm:"type:integer;not null;default:0"`
+}
+
+type FeeCollection struct {
+	CreatedAt                  time.Time `json:"createdAt"`
+	UpdatedAt                  time.Time `json:"updatedAt"`
+	ID                         string    `gorm:"size:100;primaryKey" json:"id"`
+	FromUsername               string    `json:"fromUsername"`
+	FromWalletPublicKey        string    `json:"fromWalletPublicKey"`
+	FromWalletAlias            string    `json:"fromWalletAlias"`
+	BelongsToEnterpriseProfile *string   `gorm:"null" json:"belongsToEnterpriseProfile"` //enterprise profile username if this user belongs to an enterprise profile
+	FeeType                    string    `gorm:"not null" json:"feeType"`
+	Amount                     float64   `gorm:"default:0.0" json:"amount"`
+	AssetCode                  string    `gorm:"not null" json:"assetCode"`
+	AssetIssuer                *string   `gorm:"null" json:"assetIssuer"`
+	DestinationWallet          string    `gorm:"not null" json:"destinationWallet"`
+	TransactionHash            *string   `gorm:"null" json:"transactionHash"`
+	Processed                  int       `json:"processed" gorm:"type:integer;not null;default:0"` // if the fee split has been processed or not
+}
+
+func (gc *GlobalConfig) GetServiceLinkFees(serviceLinkApiKey string) (s ServiceLinkServiceFee, exists bool, err error) {
+	e := gc.DB.Where("api_key = ?", serviceLinkApiKey).First(&s).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			exists = false
+			err = nil
+			return
+		}
+
+		err = errors.New("error retrieving the service fees")
+		log.Printf("[GC:GetServiceLinkFees] Error retreiving service fees: %v", e)
+		return
+	}
+	// fees retreived
+	return s, true, nil
+}
+
+func (gc *GlobalConfig) GenerateUUIDString() (s string) {
+	s = uuid.NewString()
+	return s
 }

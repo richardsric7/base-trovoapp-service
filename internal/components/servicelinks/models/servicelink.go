@@ -76,6 +76,7 @@ type ServiceLinkEvent struct {
 	CallbackURL   *string `gorm:"null"`
 }
 
+
 type ServiceLinkRequestInput struct {
 	AuthDescription   string `json:"authDescription,omitempty"`
 	DeviceInfo        string `json:"deviceInfo,omitempty"`

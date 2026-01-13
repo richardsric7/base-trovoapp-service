@@ -15,6 +15,7 @@ import (
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/dynamiclinks"
+	sharedConfig "trovo-wallet-api/internal/sharedconfig"
 	SMS "trovo-wallet-api/internal/sms"
 
 	"github.com/ecnepsnai/discord"
@@ -566,6 +567,16 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.ActivationAmount{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ActivationAmount: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&sharedConfig.ServiceLinkServiceFee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ServiceLinkServiceFee: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&sharedConfig.FeeCollection{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FeeCollection: ", errMigrate)
 		}
 
 		// errMigrate = UserTriggers(gormDB)
