@@ -89,6 +89,8 @@ type SwapSendInfo struct {
 	SHash                  string   `json:"sHash"`
 	Fee                    string   `json:"fee"`
 	FeeAmount              string   `json:"feeAmount"`
+	Vat                    string   `json:"vat"`
+	VatAmount              string   `json:"vatAmount"`
 	SwapAmount             string   `json:"swapAmount"`
 	ReturnedDescription    string   `json:"-"`
 }

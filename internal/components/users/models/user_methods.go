@@ -1763,6 +1763,23 @@ func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee Servi
 	return
 }
 
+func (u *UserWallet) GetPaymentFeeWallet(gc *sharedconfig.GlobalConfig) (wallet string) {
+	var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", "PAYMENT_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero swap fees and modify the swap fee
+
+	}
+
+	return serviceFee.FeeWalletSecretKey
+}
+
+func (u *UserWallet) GetVATWallet(gc *sharedconfig.GlobalConfig) string {
+
+	return gc.GetVATWallet()
+}
+
 func (u *UserWallet) GetVATValue(serviceFee decimal.Decimal, gc *sharedconfig.GlobalConfig) (vat float64) {
 	// var serviceFee ServiceFee
 	vat = gc.GetVATValue(serviceFee)
@@ -2762,6 +2779,15 @@ func (u *User) IsEnterpriseProfile(gc *sharedconfig.GlobalConfig) bool {
 		gc.LogDiscordFailedRequest(fmt.Sprintf("[IsEnterpriseProfile] Error verifying if %v is enterprise profile: %v", u.Username, e))
 	}
 	return len(result) > 0
+
+}
+func (u *User) BelongsToAnEnterpriseProfile() bool {
+	if u.CreatedByServiceLinkID != nil {
+		if len(*u.CreatedByServiceLinkID) > 5 {
+			return true
+		}
+	}
+	return false
 
 }
 

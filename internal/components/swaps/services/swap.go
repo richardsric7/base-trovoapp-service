@@ -35,12 +35,33 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		swapInfo.Multiparty = 1
 	}
 
-	serviceFee := wallet.GetSwapFee(gc)
-	fee := decimal.NewFromFloat(serviceFee.FeePercent)
+	var feePercent float64
+	if walletOwner.BelongsToAnEnterpriseProfile() {
+		slf, exists, e := gc.GetServiceLinkFees(*walletOwner.CreatedByServiceLinkID)
+		if e != nil {
+			//error occured
+			return e
+		}
+		if !exists {
+			//no service fee is configured, use standard fee
+			feePercent = wallet.GetSwapFee(gc).FeePercent
+		} else {
+			//get the enterprise config fee
+			feePercent = float64(slf.SwapFee)
+		}
+	} else {
+
+		feePercent = wallet.GetSwapFee(gc).FeePercent
+	}
+	fee := decimal.NewFromFloat(feePercent)
 
 	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.SourceAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
-
-	swapAmount := decimal.RequireFromString(swapInfo.SourceAmount).Sub(feeAmount)
+	//calculate VAT on the fee amount.
+	vatFee := gc.GetVATValue(feeAmount)
+	vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
+	swapInfo.Vat = vatRate
+	swapInfo.VatAmount = decimal.NewFromFloat(vatFee).String()
+	swapAmount := decimal.RequireFromString(swapInfo.SourceAmount).Sub(feeAmount.Add(decimal.NewFromFloat(vatFee)))
 	swapInfo.SwapAmount = swapAmount.String()
 	swapInfo.Fee = fee.String()
 	swapInfo.FeeAmount = feeAmount.String()
@@ -106,6 +127,64 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	//no need to check this since offer can change, therefore changing the transaction
 
 	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
+
+		var dbAssetIssuer *string
+		dbAssetCode := swapInfo.SourceAssetCode
+		if len(swapInfo.SourceAssetIssuer) > 0 {
+			dbAssetIssuer = &swapInfo.SourceAssetIssuer
+		} else {
+			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+
+		swapFee := sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        wallet.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "SWAP",
+			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.ID,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+		vatFeeCollection := sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        walletOwner.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "VAT",
+			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.ID,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+		//start transaction for the fee collection
+		dbTX := gc.DB.Begin()
+		defer dbTX.Rollback()
+		//save  this to database
+		e := dbTX.Omit(clause.Associations).Create(&swapFee).Error
+		if e != nil {
+
+			log.Printf("[SwapSend] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
+		//save vat to database
+		e = dbTX.Omit(clause.Associations).Create(&vatFeeCollection).Error
+		if e != nil {
+
+			log.Printf("[SwapSend] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
 		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, swapInfo.Transaction, swapInfo.TransactionSignature)
 		if err != nil {
 			logDiscordFailedSwap(fmt.Sprintf("Error submitting swap [%+v] transaction: %s", swapInfo, err.Error()))
@@ -131,6 +210,29 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 					ErrMessage: emsg,
 				}
 			}
+		}
+		if err == nil {
+			//update fee swap and vat
+			swapFee.TransactionHash = &txnHash
+			vatFeeCollection.TransactionHash = &txnHash
+			e = dbTX.Save(&swapFee).Error
+			if e != nil {
+
+				log.Printf("[SwapSend] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
+			}
+			e = dbTX.Save(&vatFeeCollection).Error
+			if e != nil {
+
+				log.Printf("[SwapSend] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
+			}
+			//commit the database transaction
+			dbTX.Commit()
 		}
 		swapInfo.TransactionID = txnHash
 		wallet.InvalidateUserCache(gc)
@@ -521,6 +623,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	})
 	serviceFee := wallet.GetSwapFee(gc)
 	swapFee := decimal.RequireFromString(swapInfo.FeeAmount)
+	vatFee := decimal.RequireFromString(swapInfo.VatAmount)
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
 	signForFeeTrustLine := 0
@@ -580,7 +683,60 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		messages = append(messages, "Service fee will apply.")
 
 	}
+	//VAT remittance
+	if vatFee.IsPositive() && serviceFee.Inactive == 0 {
+		//process vat
 
+		feeKeypair, e := keypair.ParseFull(gc.GetVATWallet())
+		if e != nil {
+			log.Println("[generateSwapXdr] error parsing vat wallet secret key", e)
+			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing vat wallet secret key")
+
+			return "", &tErrors.CustomError{
+				Err:        "error-parsing-swap-vat-wallet-key",
+				Param:      "feeAmont",
+				ErrMessage: "Failed to parse VAT Fee Wallet. Fee Wallet is Invalid",
+			}
+		}
+		feeAddress := feeKeypair.Address()
+
+		if !sourceAsset.IsNative() {
+
+			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
+			if !feeAccountTrustsAsset {
+				signForFeeTrustLine = 1
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+					Limit:         "900000000000",
+					SourceAccount: feeAddress,
+				})
+
+				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+					tokenizedAssetIssuerMustSign = true
+
+					// allow trust from issuer to destination wallet
+					ops = append(ops, &txnbuild.SetTrustLineFlags{
+						Trustor:       feeAddress,
+						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						SourceAccount: swapInfo.DestinationAssetIssuer,
+					})
+				}
+
+			}
+		}
+
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   feeAddress,
+			Amount:        vatFee.String(),
+			SourceAccount: wallet.ID,
+			Asset:         sourceAsset,
+		})
+
+		messages = append(messages, "VAT will apply.")
+
+	}
 	// Construct the transaction that holds the operations to execute on the network
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode

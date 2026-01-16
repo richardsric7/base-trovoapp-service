@@ -1336,15 +1336,47 @@ func (gc *GlobalConfig) GetVATValue(serviceFee decimal.Decimal) (vat float64) {
 	return
 }
 
+func (gc *GlobalConfig) GetVATRate() (vat float64) {
+	// var serviceFee ServiceFee
+	cc := gc.GetConfig("NG")
+
+	return cc.VATPercent
+}
+
+type ServiceFee struct {
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+	LastUpdatedBy      string    `json:"lastUpdatedBy"`
+	ID                 string    `json:"id"`
+	FeeWalletSecretKey string    `json:"feeWalletSecretKey"` //Secret key
+	FeePercent         float64   `gorm:"default:0" json:"feePercent"`
+	FeeFixed           float64   `gorm:"default:0" json:"feeFixed"`
+	FeeAssetCode       string    `gorm:"default:''" json:"feeAssetCode"`
+	FeeAssetIssuer     string    `gorm:"default:''" json:"feeAssetIssuer"`
+	Inactive           int       `gorm:"default:0" json:"inactive"`
+	Remarks            string    `gorm:"default:''" json:"remarks"`
+}
+
+func (gc *GlobalConfig) GetVATWallet() string {
+	var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", "VAT").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero swap fees and modify the swap fee
+
+	}
+
+	return serviceFee.FeeWalletSecretKey
+}
+
 // ServiceLinkServiceFee holds fee data model
 type ServiceLinkServiceFee struct {
-	ApiKey       string `gorm:"size:100;primaryKey"`
-	CreatedAt    time.Time
-	ExpiresAt    time.Time `gorm:"default:now()"`
-	UpdatedAt    time.Time
-	PaymentFee   int `json:"-" gorm:"type:integer;not null;default:0"`
-	SwapFee      int `json:"-" gorm:"type:integer;not null;default:0"`
-	SubwalletFee int `json:"-" gorm:"type:integer;not null;default:0"`
+	ServiceLinkID string `gorm:"size:100;primaryKey" json:"serviceLinkId"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	PaymentFee    float64 `json:"-" gorm:"not null;default:0.0"`
+	SwapFee       float64 `json:"-" gorm:"not null;default:0.0"`
+	SubwalletFee  float64 `json:"-" gorm:"not null;default:0.0"`
 }
 
 type FeeCollection struct {
@@ -1360,17 +1392,18 @@ type FeeCollection struct {
 	AssetCode                  string    `gorm:"not null" json:"assetCode"`
 	AssetIssuer                *string   `gorm:"null" json:"assetIssuer"`
 	DestinationWallet          string    `gorm:"not null" json:"destinationWallet"`
+	SharedAccessOperation      int       `json:"sharedAccessOperation" gorm:"type:integer;not null;default:0"`
 	TransactionHash            *string   `gorm:"null" json:"transactionHash"`
 	Processed                  int       `json:"processed" gorm:"type:integer;not null;default:0"` // if the fee split has been processed or not
 }
 
-func (gc *GlobalConfig) GetServiceLinkFees(serviceLinkApiKey string) (s ServiceLinkServiceFee, exists bool, err error) {
-	e := gc.DB.Where("api_key = ?", serviceLinkApiKey).First(&s).Error
+func (gc *GlobalConfig) GetServiceLinkFees(serviceLinkID string) (s ServiceLinkServiceFee, exists bool, err error) {
+	e := gc.DB.Where("service_link_id = ?", serviceLinkID).First(&s).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			exists = false
 			err = nil
-			return
+			return s, false, nil
 		}
 
 		err = errors.New("error retrieving the service fees")

@@ -12,6 +12,7 @@ import (
 	"time"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -214,12 +215,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var hasLinkedWallet bool
 	var linkedWallet userModels.UserWallet
 	var paymentInfo paymentModels.PaymentInfo
+	var swapInfo swapModels.SwapSendInfo
 	var marketOffer userModels.MarketOffer
 	var wdlInput userModels.WithdrawalRequestInput
 	var tkInput userModels.TokenMinting
 	var assetSubscription userModels.TokenizedAssetSubscriptionInput
 	var wdlRequest userModels.WithdrawalRequest
+	var paymentFee, swapFee, vatFeeCollection sharedconfig.FeeCollection
 	sendPushNotificationToApprover := true
+	rollback := false
 	// var swapInfo swapModels.SwapSendInfo
 	// var pendingAssetClaim userModels.PendingAssetToClaim
 
@@ -294,6 +298,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		// p.TransactionXdr = ts.Transaction
 
 	} else if p.TransactionType == "PAYMENT" {
+
 		tbyte := []byte(*p.TransactionInfoStr)
 
 		e = json.Unmarshal(tbyte, &paymentInfo)
@@ -301,6 +306,126 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
+
+		var dbAssetIssuer *string
+		dbAssetCode := paymentInfo.AssetCode
+		if len(paymentInfo.AssetIssuer) > 0 {
+			dbAssetIssuer = &paymentInfo.AssetIssuer
+		} else {
+			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+
+		paymentFee = sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        wallet.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "PAYMENT",
+			Amount:                     decimal.RequireFromString(paymentInfo.FeeAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          paymentInfo.Destination,
+			SharedAccessOperation:      1,
+		}
+		vatFeeCollection = sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        wallet.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "VAT",
+			Amount:                     decimal.RequireFromString(paymentInfo.VatAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          paymentInfo.Destination,
+			SharedAccessOperation:      1,
+		}
+		//save  this to database
+		e := dbTX.Omit(clause.Associations).Create(&paymentFee).Error
+		if e != nil {
+
+			log.Printf("[ApproveTransaction] Error saving payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error()))
+			err = &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
+		//save vat to database
+		e = dbTX.Omit(clause.Associations).Create(&vatFeeCollection).Error
+		if e != nil {
+
+			log.Printf("[ApproveTransaction] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+			err = &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
+	} else if p.TransactionType == "SWAP" {
+		dbTX.SavePoint("SWAP")
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &swapInfo)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for shared access swap")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		var dbAssetIssuer *string
+		dbAssetCode := swapInfo.SourceAssetCode
+		if len(swapInfo.SourceAssetIssuer) > 0 {
+			dbAssetIssuer = &swapInfo.SourceAssetIssuer
+		} else {
+			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+
+		swapFee = sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        wallet.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "SWAP",
+			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.ID,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+		vatFeeCollection = sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        walletOwner.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "VAT",
+			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.ID,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+
+		//save  this to database
+		e := dbTX.Omit(clause.Associations).Create(&swapFee).Error
+		if e != nil {
+
+			log.Printf("[ApproveTransaction] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
+		//save vat to database
+		e = dbTX.Omit(clause.Associations).Create(&vatFeeCollection).Error
+		if e != nil {
+
+			log.Printf("[ApproveTransaction] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
 	} else if p.TransactionType == "MAKE MARKET OFFER" {
 		tbyte := []byte(*p.TransactionInfoStr)
 
@@ -591,6 +716,30 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return nil
 
 		} else if p.TransactionType == "PAYMENT" {
+			dbTX.SavePoint("PAYMENT")
+			//update fee paynment and vat
+			paymentFee.TransactionHash = p.TransactionID
+			vatFeeCollection.TransactionHash = p.TransactionID
+			e = dbTX.Save(&paymentFee).Error
+			if e != nil {
+				rollback = true
+				log.Printf("[ApproveTransaction] Error saving transaction hash for payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving transaction hash for payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error()))
+
+			}
+			e = dbTX.Save(&vatFeeCollection).Error
+			if e != nil {
+				rollback = true
+				log.Printf("[ApproveTransaction] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+
+			}
+			if rollback {
+
+				dbTX.RollbackTo("PAYMENT")
+			}
+			//commit the database transaction
+
 			dbTX.Commit()
 			accessList := wallet.GetPermissionList(gc.DB)
 			// send push notifications
@@ -977,6 +1126,62 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			return nil
 
+		} else if p.TransactionType == "SWAP" {
+			dbTX.SavePoint("SWAP")
+			//update fee swap and vat
+			swapFee.TransactionHash = p.TransactionID
+			vatFeeCollection.TransactionHash = p.TransactionID
+			e = dbTX.Save(&swapFee).Error
+
+			if e != nil {
+
+				log.Printf("[ApproveTransaction] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+				rollback = true
+			}
+			e = dbTX.Save(&vatFeeCollection).Error
+			if e != nil {
+
+				log.Printf("[ApproveTransaction] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ApproveTransaction] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+				rollback = true
+			}
+			if rollback {
+
+				dbTX.RollbackTo("SWAP")
+			}
+			//commit the database transaction
+			dbTX.Commit()
+
+			accessList := wallet.GetPermissionList(gc.DB)
+			notificationList := make(map[string]string)
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingApproval"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+				if v.TargetUsername == signerUser.Username {
+					sendPushNotificationToApprover = false
+				}
+				if u.PushNotificationToken != nil {
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+					u.InvalidateUserCache(gc)
+				}
+				if sendPushNotificationToApprover {
+
+					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					signerUser.InvalidateUserCache(gc)
+				}
+			}
+			return nil
 		} else {
 
 			dbTX.Commit()

@@ -89,16 +89,44 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	paymentInfo.AmountToPay = paymentInfo.Amount
 	paymentInfo.FeeAmount = "0"
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
+	sourceWalletOwner, _ := sourceWallet.GetWalletOwner(gc.DB, gc)
+	var serviceFee userModels.ServiceFee
+	var feePercent float64
 	if !walletHasViewOnlyAccess {
 		paymentInfo.Multiparty = 1
 		{
 			//calculate fees
-			serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
-			fee := decimal.NewFromFloat(serviceFee.FeePercent)
+			//if wallet owner is an enterprise user, get the enterprise  and fetch their fee.
+			if sourceWalletOwner.BelongsToAnEnterpriseProfile() {
+				//if belongs to an enterprise api user, then get the enterprise and get their fees
+				slf, exists, e := gc.GetServiceLinkFees(*sourceWalletOwner.CreatedByServiceLinkID)
+				if e != nil {
+					//error occured
+					return paymentInfo, nil, e
+				}
+				if !exists {
+					//no service fee is configured, use standard fee
+					serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
+					feePercent = serviceFee.FeePercent
+				} else {
+					//get the enterprise config fee
+					feePercent = float64(slf.PaymentFee)
+				}
+			} else {
+				serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
+				feePercent = serviceFee.FeePercent
+			}
+
+			fee := decimal.NewFromFloat(feePercent)
 			paymentInfo.Fee = fee.String()
 			feeAmount := ((decimal.RequireFromString(paymentInfo.Amount).Mul(fee)).Div(decimal.NewFromInt(100))).Truncate(7)
 			paymentInfo.FeeAmount = feeAmount.String()
-			amountToPay := decimal.RequireFromString(paymentInfo.Amount).Add(feeAmount)
+			//calculate VAT on the fee amount.
+			vatFee := gc.GetVATValue(feeAmount)
+			vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
+			paymentInfo.Vat = vatRate
+			paymentInfo.VatAmount = decimal.NewFromFloat(vatFee).String()
+			amountToPay := decimal.RequireFromString(paymentInfo.Amount).Add(feeAmount).Add(decimal.NewFromFloat(vatFee))
 			paymentInfo.AmountToPay = amountToPay.String()
 
 		}
@@ -163,10 +191,91 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 			}
 		} else {
+
+			var dbAssetIssuer *string
+			dbAssetCode := paymentInfo.AssetCode
+			if len(paymentInfo.AssetIssuer) > 0 {
+				dbAssetIssuer = &paymentInfo.AssetIssuer
+			} else {
+				dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+			}
+
+			paymentFee := sharedconfig.FeeCollection{
+				ID:                         gc.GenerateUUIDString(),
+				FromUsername:               sourceWalletOwner.Username,
+				FromWalletPublicKey:        sourceWallet.ID,
+				FromWalletAlias:            sourceWallet.Alias,
+				BelongsToEnterpriseProfile: sourceWalletOwner.CreatedByServiceLinkID,
+				FeeType:                    "PAYMENT",
+				Amount:                     decimal.RequireFromString(paymentInfo.FeeAmount).InexactFloat64(),
+				AssetCode:                  dbAssetCode,
+				AssetIssuer:                dbAssetIssuer,
+				DestinationWallet:          paymentInfo.Destination,
+				SharedAccessOperation:      paymentInfo.Multiparty,
+			}
+			vatFeeCollection := sharedconfig.FeeCollection{
+				ID:                         gc.GenerateUUIDString(),
+				FromUsername:               sourceWalletOwner.Username,
+				FromWalletPublicKey:        sourceWallet.ID,
+				FromWalletAlias:            sourceWallet.Alias,
+				BelongsToEnterpriseProfile: sourceWalletOwner.CreatedByServiceLinkID,
+				FeeType:                    "VAT",
+				Amount:                     decimal.RequireFromString(paymentInfo.VatAmount).InexactFloat64(),
+				AssetCode:                  dbAssetCode,
+				AssetIssuer:                dbAssetIssuer,
+				DestinationWallet:          paymentInfo.Destination,
+				SharedAccessOperation:      paymentInfo.Multiparty,
+			}
+			//start transaction for the fee collection
+			dbTX := gc.DB.Begin()
+			defer dbTX.Rollback()
+			//save  this to database
+			e := dbTX.Omit(clause.Associations).Create(&paymentFee).Error
+			if e != nil {
+
+				log.Printf("[Pay] Error saving payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[Pay] Error saving payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return paymentInfo, destinationUser, err
+			}
+
+			//save vat to database
+			e = dbTX.Omit(clause.Associations).Create(&vatFeeCollection).Error
+			if e != nil {
+
+				log.Printf("[Pay] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[Pay] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return paymentInfo, destinationUser, err
+			}
+
 			// txnHash, err = network.SubmitXdrWithSignature(client, sourceWallet.Signer, xdrBase64, paymentInfo.TransactionSignature)
 			txnHash, err = network.SubmitXdrWithSignature(client, sourceWallet.Signer, paymentInfo.Transaction, paymentInfo.TransactionSignature)
 			if err != nil {
 				log.Printf("[Pay] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", sourceWallet.Alias, paymentInfo.Destination, err)
+			}
+			if err == nil {
+				//update fee paynment and vat
+				paymentFee.TransactionHash = &txnHash
+				vatFeeCollection.TransactionHash = &txnHash
+				e = dbTX.Save(&paymentFee).Error
+				if e != nil {
+
+					log.Printf("[Pay] Error saving transaction hash for payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error())
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[Pay] Error saving transaction hash for payment fee [%+v] transaction on fee collections table table: %s\n", paymentFee, e.Error()))
+					err = &tErrors.ErrorTemporaryServerError{}
+					return paymentInfo, destinationUser, err
+				}
+				e = dbTX.Save(&vatFeeCollection).Error
+				if e != nil {
+
+					log.Printf("[Pay] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[Pay] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+					err = &tErrors.ErrorTemporaryServerError{}
+					return paymentInfo, destinationUser, err
+				}
+				//commit the database transaction
+				dbTX.Commit()
 			}
 		}
 		paymentInfo.TransactionID = txnHash
@@ -240,7 +349,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
-	paymentInfo.FeeAmount = "0"
+	// paymentInfo.FeeAmount = "0"
 	var tokenizedAssetIssuerMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
@@ -590,9 +699,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	// if e != nil {
 	// 	serviceFee = decimal.Zero
 	// }
+	sourceWalletOwner, _ := sourceWallet.GetWalletOwner(gc.DB, gc)
 	if (decimal.RequireFromString(paymentInfo.FeeAmount)).IsPositive() && serviceFee.Inactive == 0 {
-		if paymentInfo.Multiparty == 1 {
-			//process service fee
+		if paymentInfo.Multiparty == 1 && !sourceWalletOwner.BelongsToAnEnterpriseProfile() {
+			//process service fee for normal shared access user
 			feeLabel := paymentInfo.Fee + "%"
 			// assetCode := os.Getenv("NATIVE_ASSET_CODE")
 			// if !asset.IsNative() {
@@ -604,7 +714,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing fee wallet secret key")
 				return "", nil, &tErrors.CustomError{
 					Err:        "error-parsing-fee-wallet-secret-key",
-					Param:      "feeAmont",
+					Param:      "feeAmount",
 					ErrMessage: "Failed to parse Shared Access Fee Wallet. Fee Wallet is Invalid",
 				}
 			}
@@ -646,6 +756,112 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v will be added from wallet %v as service fee.", feeLabel, sourceWallet.Alias))
 
 		}
+		if sourceWalletOwner.BelongsToAnEnterpriseProfile() {
+			//process service fee for enterprise customer
+			feeLabel := paymentInfo.Fee + "%"
+			// assetCode := os.Getenv("NATIVE_ASSET_CODE")
+			// if !asset.IsNative() {
+			// 	assetCode = asset.GetCode()
+			// }
+			feeKeypair, e := keypair.ParseFull(sourceWallet.GetPaymentFeeWallet(gc))
+			if e != nil {
+				log.Println("[generatePaymentXdr] error parsing payment fee wallet secret key", e)
+				gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing payment fee wallet secret key")
+				return "", nil, &tErrors.CustomError{
+					Err:        "error-parsing-wallet",
+					Param:      "feeAmount",
+					ErrMessage: "Failed to parse payment fee wallet. Fee wallet is invalid",
+				}
+			}
+			feeAddress := feeKeypair.Address()
+
+			if !asset.IsNative() {
+
+				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
+				if !feeAccountTrustsAsset {
+					signForFeeTrustLine = 1
+					//establish trustline automatically
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+						Limit:         "900000000000",
+						SourceAccount: feeAddress,
+					})
+
+					if gc.IsValidTokenizedAsset(asset.GetCode()) {
+						//check if it is a tokenized asset
+						// allow trust from issuer to destination wallet
+						ops = append(ops, &txnbuild.SetTrustLineFlags{
+							Trustor:       feeAddress,
+							Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+							SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+							SourceAccount: asset.GetIssuer(),
+						})
+						tokenizedAssetIssuerMustSign = true
+					}
+
+				}
+			}
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   feeAddress,
+				Amount:        paymentInfo.FeeAmount,
+				SourceAccount: sourceWallet.ID,
+				Asset:         asset,
+			})
+			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
+			paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v will be added from wallet %v as service fee.", feeLabel, sourceWallet.Alias))
+
+		}
+		//process VAT remittance.
+
+		//process service fee
+		vatLabel := paymentInfo.Vat + "%"
+
+		feeKeypair, e := keypair.ParseFull(gc.GetVATWallet())
+		if e != nil {
+			log.Println("[generatePaymentXdr] error parsing vat wallet secret key", e)
+			gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing vat wallet secret key")
+			return "", nil, &tErrors.CustomError{
+				Err:        "error-parsing-vat-wallet-secret-key",
+				Param:      "feeAmont",
+				ErrMessage: "Failed to parse VAT Wallet. VAT Wallet is Invalid",
+			}
+		}
+		vatAddress := feeKeypair.Address()
+
+		if !asset.IsNative() {
+
+			_, vatAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, vatAddress, asset)
+			if !vatAccountTrustsAsset {
+				signForFeeTrustLine = 1
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+					Limit:         "900000000000",
+					SourceAccount: vatAddress,
+				})
+
+				if gc.IsValidTokenizedAsset(asset.GetCode()) {
+					//check if it is a tokenized asset
+					// allow trust from issuer to destination wallet
+					ops = append(ops, &txnbuild.SetTrustLineFlags{
+						Trustor:       vatAddress,
+						Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						SourceAccount: asset.GetIssuer(),
+					})
+					tokenizedAssetIssuerMustSign = true
+				}
+
+			}
+		}
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   vatAddress,
+			Amount:        paymentInfo.VatAmount,
+			SourceAccount: sourceWallet.ID,
+			Asset:         asset,
+		})
+		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v will be added from wallet %v as VAT.", vatLabel, sourceWallet.Alias))
+
 	}
 
 	var tx *txnbuild.Transaction
