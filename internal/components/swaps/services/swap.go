@@ -146,7 +146,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
 			AssetIssuer:                dbAssetIssuer,
-			DestinationWallet:          wallet.ID,
+			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
 		vatFeeCollection := sharedconfig.FeeCollection{
@@ -159,7 +159,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
 			AssetIssuer:                dbAssetIssuer,
-			DestinationWallet:          wallet.ID,
+			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
 		//start transaction for the fee collection
