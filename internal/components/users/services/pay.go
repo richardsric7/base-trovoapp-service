@@ -111,10 +111,12 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				feePercent = serviceFee.FeePercent
 			} else {
 				//get the enterprise config fee
+				// log.Printf("[Pay] ENTERPRISE SERVICE FEE: %+v", slf)
 				feePercent = float64(slf.PaymentFee)
 			}
 		} else {
 			serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
+			// log.Printf("[Pay] SHARED ACCESS SERVICE FEE: %+v\n", serviceFee)
 			feePercent = serviceFee.FeePercent
 		}
 
