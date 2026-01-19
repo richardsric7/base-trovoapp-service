@@ -94,44 +94,44 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	var feePercent float64
 	if !walletHasViewOnlyAccess {
 		paymentInfo.Multiparty = 1
-		{
-			//calculate fees
-			//if wallet owner is an enterprise user, get the enterprise  and fetch their fee.
-			if sourceWalletOwner.BelongsToAnEnterpriseProfile() {
-				//if belongs to an enterprise api user, then get the enterprise and get their fees
-				slf, exists, e := gc.GetServiceLinkFees(*sourceWalletOwner.CreatedByServiceLinkID)
-				if e != nil {
-					//error occured
-					return paymentInfo, nil, e
-				}
-				if !exists {
-					//no service fee is configured, use standard fee
-					serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
-					feePercent = serviceFee.FeePercent
-				} else {
-					//get the enterprise config fee
-					feePercent = float64(slf.PaymentFee)
-				}
-			} else {
+	}
+	{
+		//calculate fees
+		//if wallet owner is an enterprise user, get the enterprise  and fetch their fee.
+		if sourceWalletOwner.BelongsToAnEnterpriseProfile() {
+			//if belongs to an enterprise api user, then get the enterprise and get their fees
+			slf, exists, e := gc.GetServiceLinkFees(*sourceWalletOwner.CreatedByServiceLinkID)
+			if e != nil {
+				//error occured
+				return paymentInfo, nil, e
+			}
+			if !exists {
+				//no service fee is configured, use standard fee
 				serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
 				feePercent = serviceFee.FeePercent
+			} else {
+				//get the enterprise config fee
+				feePercent = float64(slf.PaymentFee)
 			}
-
-			fee := decimal.NewFromFloat(feePercent)
-			paymentInfo.Fee = fee.String()
-			feeAmount := ((decimal.RequireFromString(paymentInfo.Amount).Mul(fee)).Div(decimal.NewFromInt(100))).Truncate(7)
-			paymentInfo.FeeAmount = feeAmount.String()
-			//calculate VAT on the fee amount.
-			vatFee := gc.GetVATValue(feeAmount)
-			vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
-			paymentInfo.Vat = vatRate
-			paymentInfo.VatAmount = decimal.NewFromFloat(vatFee).String()
-			amountToPay := decimal.RequireFromString(paymentInfo.Amount).Add(feeAmount).Add(decimal.NewFromFloat(vatFee))
-			paymentInfo.AmountToPay = amountToPay.String()
-
+		} else {
+			serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
+			feePercent = serviceFee.FeePercent
 		}
 
+		fee := decimal.NewFromFloat(feePercent)
+		paymentInfo.Fee = fee.String()
+		feeAmount := ((decimal.RequireFromString(paymentInfo.Amount).Mul(fee)).Div(decimal.NewFromInt(100))).Truncate(7)
+		paymentInfo.FeeAmount = feeAmount.String()
+		//calculate VAT on the fee amount.
+		vatFee := gc.GetVATValue(feeAmount)
+		vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
+		paymentInfo.Vat = vatRate
+		paymentInfo.VatAmount = decimal.NewFromFloat(vatFee).String()
+		amountToPay := decimal.RequireFromString(paymentInfo.Amount).Add(feeAmount).Add(decimal.NewFromFloat(vatFee))
+		paymentInfo.AmountToPay = amountToPay.String()
+
 	}
+
 	if walletHasViewOnlyAccess {
 		paymentInfo.SignatureRequired = 1
 
@@ -220,11 +220,20 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				FromWalletAlias:            sourceWallet.Alias,
 				BelongsToEnterpriseProfile: sourceWalletOwner.CreatedByServiceLinkID,
 				FeeType:                    "VAT",
-				Amount:                     decimal.RequireFromString(paymentInfo.VatAmount).InexactFloat64(),
-				AssetCode:                  dbAssetCode,
-				AssetIssuer:                dbAssetIssuer,
-				DestinationWallet:          paymentInfo.Destination,
-				SharedAccessOperation:      paymentInfo.Multiparty,
+				Amount: func() float64 {
+
+					d, e := decimal.NewFromString(paymentInfo.VatAmount)
+					if e != nil {
+						return 0.00
+					}
+
+					return d.InexactFloat64()
+
+				}(),
+				AssetCode:             dbAssetCode,
+				AssetIssuer:           dbAssetIssuer,
+				DestinationWallet:     paymentInfo.Destination,
+				SharedAccessOperation: paymentInfo.Multiparty,
 			}
 			//start transaction for the fee collection
 			dbTX := gc.DB.Begin()
