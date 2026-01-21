@@ -152,7 +152,7 @@ class _ConfirmQuickBuyView extends State<ConfirmQuickBuyView>
                           children: [
                             SizedBox(height: height / 50),
                             Text(
-                              '${formatNumber(double.tryParse(amount) ?? 0.0)} ${getAssetCode(asset.assetCode)}',
+                              '${formatNumber(appState.viewData!['assetValue'] ?? 0.0)} ${getAssetCode(asset.assetCode)}',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

@@ -172,7 +172,6 @@ class _QrScannerState extends State<QrScanner> {
       secretKey: appState!.secretKeys[0], // the primary wallet secret key
       publicKey: appState!.primaryWallet.signer!,
     );
-    inspect(responseData);
     if (responseData['statusCode'] == 200) {
       appState!.processDeepLink(
         context,

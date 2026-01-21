@@ -83,7 +83,7 @@ class CustomTextFormField {
 
     return Container(
       color: Colors.transparent,
-      height: double.parse(h.toString()),
+      height: h > 0 ? double.parse(h.toString()) : null,
       width: double.parse(w.toString()),
       child: Focus(
         onFocusChange: (hasFocus) {

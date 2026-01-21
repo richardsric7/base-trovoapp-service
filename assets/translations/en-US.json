@@ -836,6 +836,8 @@
     "descriptionmemo": "Description/Memo",
     "amount": "Amount",
     "free": "Fee",
+    "vat": "VAT",
+    "vatamount": "VAT Amount",
     "other": "Other",
     "remove": "Remove",
     "removefile": "Remove file",

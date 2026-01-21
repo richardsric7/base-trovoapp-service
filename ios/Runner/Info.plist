@@ -65,6 +65,8 @@
 	<string>This app requires access to Biometrics for authentication</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Please provide us with your geolocation data to prove your current location.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Please provide us with your geolocation data to prove your current location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Time to record a video.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

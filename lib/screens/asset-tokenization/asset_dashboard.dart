@@ -37,6 +37,8 @@ class _AssetDashboardState extends State<AssetDashboard>
   double tokenFee = 0;
   late Future<dynamic> formJsonFuture;
   bool isFinancialAssetType = false;
+  double tokenizationApplicationFee = 0;
+  String tokenizationApplicationFeeAsset = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,6 +65,29 @@ class _AssetDashboardState extends State<AssetDashboard>
     for (var i = 0; i < assetTypes.length; i++) {
       if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
         assetType = assetTypes[i]['assetType'];
+      }
+    }
+
+    for (
+      var i = 0;
+      i < appState.tokenizationData['countryConfigs'].length;
+      i++
+    ) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        tokenizationApplicationFee =
+            double.tryParse(
+              appState
+                  .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee']
+                  .toString(),
+            ) ??
+            0.0;
+        tokenizationApplicationFeeAsset = appState
+            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
+            .toString()
+            .split(':')[0];
       }
     }
 
@@ -726,6 +751,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                                               tokenizedAsset.assetSubSector ??
                                               '',
                                           'Type': assetType,
+                                          'Asset Original Value':
+                                              '${getFiatValue(tokenizedAsset.assetCurrentValue!)} ${fiatCurrency}',
                                           'Asset Country':
                                               iso2Countries[tokenizedAsset
                                                   .assetCountryLocation] ??
@@ -1045,6 +1072,71 @@ class _AssetDashboardState extends State<AssetDashboard>
                                         );
                                       },
                                     ),
+                                    SizedBox(height: 10),
+                                    if (tokenizedAsset.vettingStatus == 1) ...[
+                                      categoryTile(
+                                        notifier,
+                                        label: "Financial Details",
+                                        imageUrl: 'assets/images/proof.png',
+                                        onTap: () {
+                                          var details = {
+                                            "Application Fee":
+                                                '${formatNumberShort(tokenizationApplicationFee)} ${tokenizationApplicationFeeAsset}',
+                                            "Tokenization Fee (Fiat)":
+                                                '${formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!))} ${fiatCurrency}',
+                                            "SEC Fee":
+                                                '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}',
+                                            "Custody Fee":
+                                                '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}',
+                                            "Management Fee":
+                                                '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}',
+                                          };
+
+                                          if (tokenizedAsset
+                                                  .issuingHouseFeeValue! >
+                                              0) {
+                                            details["Issuing House Fee"] =
+                                                '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}';
+                                          }
+
+                                          if (tokenizedAsset
+                                                  .legalAndProfessionalFeeValue! >
+                                              0) {
+                                            details["Legal/Professional Fee"] =
+                                                '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}';
+                                          }
+
+                                          if (tokenizedAsset
+                                                  .ratingAgencyFeeValue! >
+                                              0) {
+                                            details["Rating Agency Fee"] =
+                                                '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}';
+                                          }
+                                          details["VAT (Fiat)"] =
+                                              '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}';
+
+                                          details["Total Fee (Fiat)"] =
+                                              '${getTotalFee()} ${fiatCurrency}';
+
+                                          if (tokenizedAsset.feeInAsset! > 0) {
+                                            details["Tokenization Fee (Asset)"] =
+                                                '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}';
+
+                                            details["VAT (Asset)"] =
+                                                '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}';
+
+                                            details["Total Fee (Asset)"] =
+                                                '${formatNumberShort((tokenizedAsset.feeInAsset! * 0.075) + tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}';
+                                          }
+
+                                          displayDetails(
+                                            "Tokenization Fee",
+                                            details,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                    SizedBox(height: 10),
                                   ],
                                 ),
                               ),
@@ -1072,6 +1164,33 @@ class _AssetDashboardState extends State<AssetDashboard>
         ),
       ),
     );
+  }
+
+  String getTotalFee() {
+    var total =
+        tokenizedAsset.SECTokenizationFeeValue! +
+        tokenizedAsset.custodianFeeValue! +
+        tokenizedAsset.assetManagerFeeValue! +
+        tokenizedAsset.issuingHouseFeeValue! +
+        tokenizedAsset.legalAndProfessionalFeeValue! +
+        tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.vatValue! +
+        getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+
+    return "${formatNumberShort(total)}";
+  }
+
+  double getFeeInfo(int index) {
+    var fiatPercentage = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatPercentage']
+          .toString(),
+    );
+    var fiatFeeCap = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
+          .toString(),
+    );
+    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
+    return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }
 
   void displayDetails(String label, Map<String, dynamic> items) {

@@ -197,25 +197,34 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: height / 50),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: [
+                          SizedBox(height: height / 50),
+                          myKeyValueRow(
+                            "${"fee".tr()}: ",
+                            transactionData['fee'] + '%',
+                          ),
+                          myKeyValueRow(
+                            "${"amountcalculated".tr()}: ",
+                            "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
+                          ),
+                          if (transactionData['vatAmount']
+                              .toString()
+                              .isNotEmpty) ...[
                             myKeyValueRow(
-                              "${"fee".tr()}: ",
-                              transactionData['fee'] + '%',
+                              "${"vat".tr()}: ",
+                              "${transactionData['vat']}%",
                             ),
                             myKeyValueRow(
-                              "${"amountcalculated".tr()}: ",
-                              "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
+                              "${"vatamount".tr()}: ",
+                              "${transactionData['vatAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
                             ),
-                            SizedBox(height: height / 50),
                           ],
-                        ),
-                      ],
+                          SizedBox(height: height / 50),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -272,20 +281,26 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   Widget myKeyValueRow(String key, String value) {
     return Row(
       children: [
-        Text(
-          key,
-          style: TextStyle(
-            fontSize: 15,
-            color: notifier.getbluewhitecolor,
-            fontFamily: fontsemibold,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            color: notifier.getbluewhitecolor,
-            fontFamily: fontbody,
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              text: key,
+              style: TextStyle(
+                fontSize: 15,
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontsemibold,
+              ),
+              children: [
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

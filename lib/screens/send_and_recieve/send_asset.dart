@@ -241,7 +241,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     notifier.getprefixicon,
                     notifier.getblck,
                     notifier.getgrey,
-                    75.sp,
+                    0.sp,
                     300.sp,
                     onChanged: (value) {
                       setState(() {
@@ -267,7 +267,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         amount = value.trim().replaceAll(' ', ''),
                   ),
                   if (!appState.hideBalances) ...[availableBalance()],
-                  SizedBox(height: height / 50),
+                  SizedBox(height: height / 30),
                   CustomTextFormField.textField(
                     "memo".tr(),
                     notifier.getbluecolor,

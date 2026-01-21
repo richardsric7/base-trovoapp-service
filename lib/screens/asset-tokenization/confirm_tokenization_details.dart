@@ -412,7 +412,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         SizedBox(height: height / 90),
                         if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
                           item(
-                            "Issuing house Fee",
+                            "Issuing House Fee",
                             '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}',
                           ),
                           SizedBox(height: height / 90),
@@ -427,7 +427,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ],
                         if (tokenizedAsset.ratingAgencyFeeValue! > 0) ...[
                           item(
-                            "Rating agency Fee",
+                            "Rating Agency Fee",
                             '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}',
                           ),
                           SizedBox(height: height / 90),

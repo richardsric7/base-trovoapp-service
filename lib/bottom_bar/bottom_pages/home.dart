@@ -1427,7 +1427,6 @@ class _HomeState extends State<Home>
   }
 
   Future<void> fetchFiatAmountForActivation() async {
-    ;
     try {
       showLoader(context);
       var uri = '/v1/users/activate/fiat';

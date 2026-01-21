@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:mime/mime.dart';
@@ -114,7 +113,6 @@ Future<Map> makeGetRequest({
     http.Response response = await http
         .get(Uri.parse(await getTrovoAppBaseURL() + uri), headers: headers)
         .timeout(Duration(seconds: 60));
-    inspect(response);
 
     return {
       'statusCode': response.statusCode,
@@ -562,7 +560,6 @@ Future<Map> makePutRequestForFeeRecieptUpload({
       "tokenizationFeePaymentMethodID": tokenizationFeePaymentMethodID,
       "transactionReference": transactionReference.toString(),
     };
-    print('mappppppppppp $map');
     request.headers.addAll(headers);
     request.fields.addAll(map);
     if (file != null) {
@@ -575,7 +572,6 @@ Future<Map> makePutRequestForFeeRecieptUpload({
           contentType: contentType,
         ),
       );
-      inspect(request);
     }
     var response = await request.send();
     var responseString = await response.stream.bytesToString();
