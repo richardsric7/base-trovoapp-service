@@ -126,6 +126,9 @@ class TokenizedAsset {
   double? ratingAgencyFeeValue;
   double? ratingAgencyFeePercent;
   double? ratingAgencyFeeFixed;
+  double? trusteeFeePercent;
+  double? trusteeFeeFixed;
+  double? trusteeFeeValue;
   double? tokenizationApplicationFee;
   double? vatValue;
   double? vatPercent;
@@ -284,6 +287,9 @@ class TokenizedAsset {
     this.ratingAgencyFeePercent,
     this.ratingAgencyFeeValue,
     this.ratingAgencyFeeFixed,
+    this.trusteeFeePercent,
+    this.trusteeFeeFixed,
+    this.trusteeFeeValue,
     this.tokenizationApplicationFee,
     this.tokenizationApplicationFeeAsset,
     this.vatValue,
@@ -498,6 +504,9 @@ class TokenizedAsset {
       ratingAgencyFeeFixed: double.tryParse(
         m["ratingAgencyFeeFixed"].toString(),
       ),
+      trusteeFeePercent: double.tryParse(m["trusteeFeePercent"].toString()),
+      trusteeFeeValue: double.tryParse(m["trusteeFeeValue"].toString()),
+      trusteeFeeFixed: double.tryParse(m["trusteeFeeFixed"].toString()),
       tokenizationApplicationFee: double.tryParse(
         m["tokenizationApplicationFee"].toString(),
       ),

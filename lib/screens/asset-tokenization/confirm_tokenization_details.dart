@@ -116,7 +116,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     width = MediaQuery.of(context).size.width;
     var isAlreadySubmitted = tokenizedAsset.tokenizationStatus! >= 1;
     var isVetted = tokenizedAsset.vettingStatus == 1;
-    inspect(appState.tokenizationData);
+    inspect(tokenizedAsset);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -429,6 +429,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                           item(
                             "Rating Agency Fee",
                             '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}',
+                          ),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.trusteeFeeValue! > 0) ...[
+                          item(
+                            "Trustee Fee",
+                            '${formatNumberShort(tokenizedAsset.trusteeFeeValue!)} ${fiatCurrency}',
                           ),
                           SizedBox(height: height / 90),
                         ],
@@ -881,6 +888,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         tokenizedAsset.issuingHouseFeeValue! +
         tokenizedAsset.legalAndProfessionalFeeValue! +
         tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.trusteeFeeValue! +
         tokenizedAsset.vatValue! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
