@@ -357,6 +357,58 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 	if len(patronSubInput.Transaction) > 0 && len(patronSubInput.TransactionSignature) > 0 {
 		//transaction signed
+
+		var dbAssetIssuer *string
+		serviceFee := owner.UserWallets[0].GetPatronFee(gc)
+		patronFeeKP, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+		if e != nil {
+			log.Println("[SubscribeToPatronPackage] error fetching account fee wallet for patron fee ", e)
+			logDiscordFailedSubscription("[SubscribeToPatronPackage] error fetching account fee wallet for patron fee")
+			return subscriptionLog, &tErrors.ErrorTemporaryServerError{}
+		}
+		assetLabel := os.Getenv("NATIVE_ASSET_CODE")
+		if len(patronSubInput.PaymentAssetCode) > 0 {
+			assetLabel = patronSubInput.PaymentAssetCode
+		}
+
+		dbAssetCode := assetLabel
+		if len(patronSubInput.PaymentAssetIssuer) > 0 {
+			dbAssetIssuer = &patronSubInput.PaymentAssetIssuer
+		}
+
+		vatFeeCollection := sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               owner.Username,
+			FromWalletPublicKey:        owner.PublicKey,
+			FromWalletAlias:            owner.Username,
+			BelongsToEnterpriseProfile: owner.CreatedByServiceLinkID,
+			FeeType:                    "VAT",
+			Amount: func() float64 {
+
+				d, e := decimal.NewFromString(patronSubInput.VatAmount)
+				if e != nil {
+					return 0.00
+				}
+
+				return d.InexactFloat64()
+
+			}(),
+			AssetCode:             dbAssetCode,
+			AssetIssuer:           dbAssetIssuer,
+			DestinationWallet:     patronFeeKP.Address(),
+			SharedAccessOperation: 0,
+		}
+
+		//save vat to database
+		e = tx.Omit(clause.Associations).Create(&vatFeeCollection).Error
+		if e != nil {
+
+			log.Printf("[SubscribeToPatronPackage] Error saving vat [%+v] transaction on fee collections table: %s\n", vatFeeCollection, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[Pay] Error saving vat [%+v] transaction on fee collections table: %s\n", vatFeeCollection, e.Error()))
+			err = &tErrors.ErrorTemporaryServerError{}
+			return subscriptionLog, err
+		}
+
 		txnHash, err = network.SubmitXdrWithSignature(gc.BantuExpansionClient, owner.PrimarySigner, patronSubInput.Transaction, patronSubInput.TransactionSignature)
 		if err != nil {
 			logDiscordFailedSubscription(fmt.Sprintf("Error submitting patron subscription [%+v] transaction: %s", patronSubInput, err.Error()))
@@ -520,13 +572,31 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 			SourceAccount: owner.PublicKey, //primary wallet
 		})
 	}
-	if len(patronSubInput.PaymentAssetIssuer) == 0 {
-		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, nativeAssetCode, owner.Username))
 
-	} else {
+	//calculate vat here
 
-		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, patronSubInput.PaymentAssetCode, owner.Username))
+	assetLabel := os.Getenv("NATIVE_ASSET_CODE")
+	if len(patronSubInput.PaymentAssetCode) > 0 {
+		assetLabel = patronSubInput.PaymentAssetCode
 	}
+
+	//calculate VAT on the fee amount.
+	feeAmount := decimal.RequireFromString(requiredUsdWorth)
+	vatFee := gc.GetVATValue(feeAmount)
+	vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
+	patronSubInput.Vat = vatRate
+	patronSubInput.VatAmount = decimal.NewFromFloat(vatFee).String()
+	amountToPay := feeAmount.Add(decimal.NewFromFloat(vatFee))
+	patronSubInput.AmountToPay = amountToPay.String()
+	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription. This is inclusive of VAT (%v %v)", patronSubInput.AmountToPay, assetLabel, owner.Username, patronSubInput.VatAmount, assetLabel))
+
+	// if len(patronSubInput.PaymentAssetIssuer) == 0 {
+	// 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, nativeAssetCode, owner.Username))
+
+	// } else {
+
+	// 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, patronSubInput.PaymentAssetCode, owner.Username))
+	// }
 
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{

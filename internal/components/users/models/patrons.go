@@ -61,6 +61,7 @@ type PatronSubscriptionInput struct {
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
 	Vat                     string   `json:"vat"`
 	VatAmount               string   `json:"vatAmount"`
+	AmountToPay             string   `json:"amountToPay"`
 	Messages                []string `json:"messages"`
 }
 

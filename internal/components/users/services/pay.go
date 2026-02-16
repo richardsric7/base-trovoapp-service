@@ -871,7 +871,13 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			SourceAccount: sourceWallet.ID,
 			Asset:         asset,
 		})
-		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v will be added from wallet %v as VAT.", vatLabel, sourceWallet.Alias))
+		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v of the transaction fee -> (% %) will be added from wallet %v as VAT.", vatLabel, paymentInfo.VatAmount, func() string {
+			if len(paymentInfo.AssetCode) == 0 {
+				return os.Getenv("NATIVE_ASSET_CODE")
+			} else {
+				return paymentInfo.AssetCode
+			}
+		}(), sourceWallet.Alias))
 
 	}
 

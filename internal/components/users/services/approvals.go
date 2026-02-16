@@ -1028,7 +1028,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				AssetLimit:      ta.NumberOfTokenToBeIssued,
 				AssetConditions: "Requires KYC to purchase and to hold it.",
 			}
+			// update date of minting
+			ta.MintingDate = time.Now()
 
+			e = dbTX.Omit(clause.Associations).Save(&ta).Error
+			if e != nil {
+				log.Println("[ApproveTransaction]error saving minting date on tokenized asset object:", e, cAsset)
+			}
 			e = dbTX.Omit(clause.Associations).Create(&cAsset).Error
 			if e != nil {
 				log.Println("[ApproveTransaction]error creating curated asset:", e, cAsset)

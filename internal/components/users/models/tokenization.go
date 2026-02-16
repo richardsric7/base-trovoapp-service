@@ -76,6 +76,9 @@ type TokenizedAsset struct {
 	ID                                           string                          `json:"id"`
 	CreatedAt                                    time.Time                       `json:"createdAt"`
 	UpdatedAt                                    time.Time                       `json:"updatedAt"`
+	DateSubmitted                                time.Time                       `json:"dateSubmitted"`
+	DateOfApproval                               time.Time                       `json:"dateOfApproval"`
+	MintingDate                                  time.Time                       `json:"mintingDate"`
 	InitiatorUsername                            string                          `gorm:"size:50;not null" json:"initiatorUsername"`
 	AssetSector                                  *string                         `json:"assetSector"`
 	AssetSubSector                               *string                         `json:"assetSubSector"`
@@ -1006,6 +1009,9 @@ type TokenizedAssetJSON struct {
 	ID                                           string                          `json:"id"`
 	CreatedAt                                    time.Time                       `json:"createdAt"`
 	UpdatedAt                                    time.Time                       `json:"updatedAt"`
+	DateSubmitted                                time.Time                       `json:"dateSubmitted"`
+	DateOfApproval                               time.Time                       `json:"dateOfApproval"`
+	MintingDate                                  time.Time                       `json:"mintingDate"`
 	InitiatorUsername                            string                          `gorm:"size:50;not null" json:"initiatorUsername"`
 	AssetSector                                  string                          `json:"assetSector"`
 	AssetSubSector                               string                          `json:"assetSubSector"`
@@ -4485,6 +4491,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.ID = ti.ID
 	t.CreatedAt = ti.CreatedAt
 	t.UpdatedAt = ti.UpdatedAt
+	t.DateOfApproval = ti.DateOfApproval
+	t.DateSubmitted = ti.DateSubmitted
+	t.MintingDate = ti.MintingDate
 	t.InitiatorUsername = ti.InitiatorUsername
 	t.FeeInAsset = ti.FeeInAsset
 	t.FeeInFiat = ti.FeeInFiat

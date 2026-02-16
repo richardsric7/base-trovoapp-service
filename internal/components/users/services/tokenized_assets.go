@@ -1802,6 +1802,7 @@ func ConfirmTokenizationApplicationInfoByInitiator(initiator *userModels.User, t
 		return
 
 	}
+	ato.DateSubmitted = time.Now()
 	//save again because fee value has been added to object
 	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
@@ -3614,6 +3615,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 	}
 	ato.AssetTokenizationStatus = 4
+	ato.DateOfApproval = time.Now()
 	// ato.TokenizationTransaction = &xdrBase64
 	e = dbTX.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
