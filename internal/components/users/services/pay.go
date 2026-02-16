@@ -114,7 +114,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				// log.Printf("[Pay] ENTERPRISE SERVICE FEE: %+v", slf)
 				feePercent = float64(slf.PaymentFee)
 			}
-		} else {
+		} else if paymentInfo.Multiparty == 1 {
 			serviceFee = sourceWallet.GetSharedAccessPaymentFee(gc)
 			// log.Printf("[Pay] SHARED ACCESS SERVICE FEE: %+v\n", serviceFee)
 			feePercent = serviceFee.FeePercent
@@ -921,7 +921,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 
-	if signForFeeTrustLine == 1 && !asset.IsNative() && paymentInfo.Multiparty == 1 {
+	// if signForFeeTrustLine == 1 && !asset.IsNative() && paymentInfo.Multiparty == 1 {
+	if signForFeeTrustLine == 1 && !asset.IsNative() {
 		serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
 		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)

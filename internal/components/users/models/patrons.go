@@ -26,6 +26,7 @@ type UserPatronMembership struct {
 	PatronTierID    string        `json:"patronTierId"`
 	PatronTier      PatronTier    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	ValidTill       time.Time     `gorm:"not null" json:"validTill"` //lifetime is represented by year '9999'
+
 }
 
 type PatronMembershipGrade struct {
@@ -42,10 +43,12 @@ type UserPatronSubscriptionLog struct {
 	Username              string    `json:"username"`
 	PatronPackageID       string    `json:"patronPackageId"`
 	PatronTierID          string    `json:"patronTierId"`
-	ActivePatronPackageID *string   `gorm:"null" json:"activePatronPackageId"` //valid and used only when effectiveDate is future
-	ActivePatronTierID    *string   `gorm:"null" json:"activePatronTierId"`    //valid and used only when effectiveDate is future
-	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`     //Holds when this subscription becomes effective.
-	ValidTill             time.Time `gorm:"not null" json:"validTill"`         //lifetime is represented by year '9999'
+	ActivePatronPackageID *string   `gorm:"null" json:"activePatronPackageId"`    //valid and used only when effectiveDate is future
+	ActivePatronTierID    *string   `gorm:"null" json:"activePatronTierId"`       //valid and used only when effectiveDate is future
+	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`        //Holds when this subscription becomes effective.
+	ValidTill             time.Time `gorm:"not null" json:"validTill"`            //lifetime is represented by year '9999'
+	VatPaid               float64   `gorm:"not null;default:0.00" json:"vatPaid"` //vat paid
+
 }
 
 type PatronSubscriptionInput struct {
@@ -56,6 +59,8 @@ type PatronSubscriptionInput struct {
 	TransactionSignature    string   `json:"transactionSignature"`
 	TransactionID           string   `json:"transactionId"`
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
+	Vat                     string   `json:"vat"`
+	VatAmount               string   `json:"vatAmount"`
 	Messages                []string `json:"messages"`
 }
 
