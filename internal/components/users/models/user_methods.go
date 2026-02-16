@@ -1759,6 +1759,7 @@ func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee Servi
 		//TODO: check if user has zero swap fees and modify the swap fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("SWAP_FEE_WALLET")
 
 	return
 }
@@ -1771,6 +1772,7 @@ func (u *UserWallet) GetPaymentFeeWallet(gc *sharedconfig.GlobalConfig) (wallet 
 		//TODO: check if user has zero swap fees and modify the swap fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("PAYMENT_FEE_WALLET")
 
 	return serviceFee.FeeWalletSecretKey
 }
@@ -1797,6 +1799,7 @@ func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (s
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("SHARED_ACCESS_PAYMENT_FEE_WALLET")
 
 	return
 }
@@ -1810,6 +1813,7 @@ func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee Ser
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("PATRON_FEE_WALLET")
 
 	return
 }
@@ -1823,6 +1827,7 @@ func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (servi
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET")
 
 	return
 }
@@ -1836,7 +1841,8 @@ func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (ser
 		//TODO: check if user has zero fees and modify the fee
 
 	}
-
+	// SUBWALLET_CREATION_FEE_WALLET
+	serviceFee.FeeWalletSecretKey = os.Getenv("SUBWALLET_CREATION_FEE_WALLET")
 	return
 }
 
@@ -1849,6 +1855,7 @@ func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
 
 	return
 }
@@ -1862,6 +1869,7 @@ func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig)
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_FEE_WALLET")
 
 	return
 }
@@ -1875,6 +1883,7 @@ func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFe
 		//TODO: check if user has zero fees and modify the fee
 
 	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("CLOSED_GROUP_FEE_WALLET")
 
 	return
 }

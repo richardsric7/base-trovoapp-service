@@ -1365,7 +1365,8 @@ func (gc *GlobalConfig) GetVATWallet() string {
 		//TODO: check if user has zero swap fees and modify the swap fee
 
 	}
-
+	// set the VAT FEE WALLET IN ENV
+	serviceFee.FeeWalletSecretKey = os.Getenv("VAT_WALLET")
 	return serviceFee.FeeWalletSecretKey
 }
 
