@@ -1890,6 +1890,215 @@ func ConfirmTokenizationFeePaymentByInitiator(initiator *userModels.User, tokeni
 	return ato, err
 }
 
+func GetTMTokenizationStat(gc *sharedconfig.GlobalConfig) (data userModels.TokenizationStatForTM) {
+	var s userModels.SummaryCat
+	data.Message = "tokenized asset statistics fetched successfully"
+	totalSql := `WITH total as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status > 2)
+
+select total.count, total.total_current_value, 
+total.total_tokenized_value, 
+total.total_tokens_to_be_issued,
+total.total_tokens_to_be_sold,
+total.total_price_per_token,
+total.average_price_per_token
+from total`
+
+	unsubmittedSql := `WITH unsubmitted as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=0)
+
+select unsubmitted.count, 
+unsubmitted.total_current_value, 
+unsubmitted.total_tokenized_value, 
+unsubmitted.total_tokens_to_be_issued,
+unsubmitted.total_tokens_to_be_sold,
+unsubmitted.total_price_per_token,
+unsubmitted.average_price_per_token
+from unsubmitted`
+
+	submittedSql := `WITH submitted as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status >0 AND asset_tokenization_status < 3)
+
+select submitted.count, 
+submitted.total_current_value, 
+submitted.total_tokenized_value, 
+submitted.total_tokens_to_be_issued,
+submitted.total_tokens_to_be_sold,
+submitted.total_price_per_token,
+submitted.average_price_per_token
+from submitted`
+
+	pendingSql := `WITH pending as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 3)
+
+select pending.count, 
+pending.total_current_value, 
+pending.total_tokenized_value, 
+pending.total_tokens_to_be_issued,
+pending.total_tokens_to_be_sold,
+pending.total_price_per_token,
+pending.average_price_per_token
+from pending`
+
+	rejectedSql := `WITH rejected as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=1)
+
+select rejected.count, 
+rejected.total_current_value, 
+rejected.total_tokenized_value, 
+rejected.total_tokens_to_be_issued,
+rejected.total_tokens_to_be_sold,
+rejected.total_price_per_token,
+rejected.average_price_per_token
+from rejected`
+
+	approvedSql := `WITH approved as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status > 3 AND asset_tokenization_status < 8)
+
+select approved.count, 
+approved.total_current_value, 
+approved.total_tokenized_value, 
+approved.total_tokens_to_be_issued,
+approved.total_tokens_to_be_sold,
+approved.total_price_per_token,
+approved.average_price_per_token
+from approved`
+
+	liquidatedSql := `WITH liquidated as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 7)
+
+select liquidated.count, 
+liquidated.total_current_value, 
+liquidated.total_tokenized_value, 
+liquidated.total_tokens_to_be_issued,
+liquidated.total_tokens_to_be_sold,
+liquidated.total_price_per_token,
+liquidated.average_price_per_token
+from liquidated`
+
+	refundedSql := `WITH refunded as (SELECT count(0) as count, 
+sum(asset_current_value) as total_current_value,
+sum(value_of_tokenized_asset) as total_tokenized_value,
+sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
+sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
+sum(price_per_token) as total_price_per_token,
+avg(price_per_token)::numeric(13,?) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 7)
+
+select refunded.count, 
+refunded.total_current_value, 
+refunded.total_tokenized_value, 
+refunded.total_tokens_to_be_issued,
+refunded.total_tokens_to_be_sold,
+refunded.total_price_per_token,
+refunded.average_price_per_token
+from refunded`
+
+	e := gc.DB.Raw(totalSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving total category info"
+	}
+	data.Data.Total = s
+
+	e = gc.DB.Raw(approvedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving approved category info"
+	}
+	data.Data.Approved = s
+
+	e = gc.DB.Raw(submittedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving submitted category info"
+	}
+	data.Data.Submitted = s
+
+	e = gc.DB.Raw(unsubmittedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving unsubmitted category info"
+	}
+	data.Data.Unsubmitted = s
+
+	e = gc.DB.Raw(pendingSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving pending category info"
+	}
+	data.Data.Pending = s
+
+	e = gc.DB.Raw(rejectedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving rejected category info"
+
+	}
+	data.Data.Rejected = s
+
+	e = gc.DB.Raw(refundedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving refunded category info"
+
+	}
+	data.Data.Refunded = s
+
+	e = gc.DB.Raw(liquidatedSql, 7).Scan(&s).Error
+	if e != nil {
+		log.Println("[GetTMTokenizationStat]error:", e)
+		data.Message = "error retrieving liquidated category info"
+
+	}
+	data.Data.Liquidated = s
+	data.Status = "OK"
+	data.Timestamp = time.Now().String()
+	return
+}
+
 func GetTokenizationList(user *userModels.User, adminList bool, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedTokenizedAssets) {
 	var err error
 	var tokenizedAssetList []userModels.TokenizedAsset

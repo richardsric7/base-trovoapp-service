@@ -2535,7 +2535,14 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 					maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager - VATAsset)
 
 					t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
+
+					if t.MaxNumberOfTokenAvailableForSale < 0 {
+						t.MaxNumberOfTokenAvailableForSale = 0
+					}
 					t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+					if t.NumberOfTokenToBeSold < 0 {
+						t.NumberOfTokenToBeSold = 0
+					}
 					log.Printf("[UpdateTokenizedAssetFromInput] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), decimal.NewFromFloat(t.NumberOfTokenToBeSold).String())
 
 				}
@@ -4437,7 +4444,13 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 			maxTokenToBeSold := decimal.NewFromFloat(t.NumberOfTokenToBeIssued - feeInAsset - t.TotalTokenHeldByManager - VATAsset)
 
 			t.MaxNumberOfTokenAvailableForSale = maxTokenToBeSold.Truncate(7).InexactFloat64()
+			if t.MaxNumberOfTokenAvailableForSale < 0 {
+				t.MaxNumberOfTokenAvailableForSale = 0
+			}
 			t.NumberOfTokenToBeSold = t.MaxNumberOfTokenAvailableForSale
+			if t.NumberOfTokenToBeSold < 0 {
+				t.NumberOfTokenToBeSold = 0
+			}
 			log.Printf("[UpdateCalculation] Calculated Max Token to be sold:= %v, Truncated 7DP Value:= %v\n", maxTokenToBeSold.String(), decimal.NewFromFloat(t.NumberOfTokenToBeSold).String())
 
 		}
@@ -5984,4 +5997,29 @@ func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketO
 	}
 
 	return marketOffers, nil
+}
+
+type SummaryCat struct {
+	Count                 int     `json:"count"`
+	TotalCurrentValue     int64   `json:"totalCurrentValue"`
+	TotalTokenizedValue   int64   `json:"totalTokenizedValue"`
+	TotalTokensToBeIssued int64   `json:"totalTokensToBeIssued"`
+	TotalTokensToBeSold   float64 `json:"totalTokensToBeSold"`
+	TotalPricePerToken    float64 `json:"totalPricePerToken"`
+	AveragePricePerToken  float64 `json:"averagePricePerToken"`
+}
+type TokenizationStatForTM struct {
+	Message string `json:"message"`
+	Data    struct {
+		Total       SummaryCat `json:"total"`
+		Approved    SummaryCat `json:"approved"`
+		Submitted   SummaryCat `json:"submitted"`
+		Unsubmitted SummaryCat `json:"unsubmitted"`
+		Pending     SummaryCat `json:"pending"`
+		Rejected    SummaryCat `json:"rejected"`
+		Refunded    SummaryCat `json:"refunded"`
+		Liquidated  SummaryCat `json:"liquidated"`
+	} `json:"data"`
+	Timestamp string `json:"timestamp"`
+	Status    string `json:"status"`
 }
