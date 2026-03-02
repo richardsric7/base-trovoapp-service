@@ -174,18 +174,53 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
               SizedBox(height: height / 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  "payto".tr(
-                    args: [
-                      "${getTotalFee()} ${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency!.replaceAll(' ', '') : fiatCurrency}",
-                    ],
-                  ),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 5.sp,
+                  children: [
+                    Text(
+                      "Pay",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
+                    ),
+                    Text(
+                      getTotalFee(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
+                    ),
+                    Text(
+                      "${preferredPaymentMethod == 'STABLE COIN' ? tokenizedAsset.proceedPayoutCurrency!.replaceAll(' ', '') : fiatCurrency}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: getTotalFee().replaceAll(',', ''),
+                          ),
+                        );
+                        showSnackBar("amount".tr(), context);
+                      },
+                      icon: Icon(
+                        Icons.copy,
+                        size: 20,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: height / 50),

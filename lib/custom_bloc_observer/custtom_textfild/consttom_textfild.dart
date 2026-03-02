@@ -163,7 +163,7 @@ class CustomTextFormField {
           ),
           inputFormatters: autoFormatNumber == true
               ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))]
-              : null,
+              : inputFormatters,
           keyboardType: keyboardtype,
           validator: (value) {
             if (validator != null) {
@@ -283,6 +283,10 @@ Widget multilineInput(
   keyboardtype,
   focusNode,
   initialValue,
+  inputFormatters,
+  controller,
+  maxWords,
+  buildCounter,
 }) {
   return Container(
     height: h,
@@ -317,6 +321,9 @@ Widget multilineInput(
       keyboardType: keyboardtype,
       validator: validator,
       onSaved: onSaved,
+      inputFormatters: inputFormatters,
+      buildCounter: buildCounter,
+      controller: controller,
     ),
   );
 }

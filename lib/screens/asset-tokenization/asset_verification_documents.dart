@@ -60,7 +60,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Asset Verification Documents',
+              'Asset Documents',
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),

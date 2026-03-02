@@ -62,6 +62,25 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> allowedCountries = {'NG': 'Nigeria'};
   late bool acceptTokenizationTermsAndAgreement = false;
+  List<String> availableFinancialAssetTypes = [
+    '1114',
+    '1115',
+    '1121',
+    '1122',
+    '1123',
+    '1124',
+    '1125',
+    '1174',
+    '1180',
+    '1182',
+  ];
+
+  List<String> availableFinancialAssetSubSectorIds = [
+    'Investment Funds / Collective Investment Schemes',
+    'Asset-Backed and Securitized Products',
+    'Capital Markets - Equity & Fixed Income',
+    'Commodity Markets',
+  ];
   bool isFinanceAndInvestmentMarketsSector = false;
 
   getdarkmodepreviousstate() async {
@@ -1313,7 +1332,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.primaryWallet.signer!,
     );
-    inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
       appState.tokenizationData['banks'] = responseData['data'];
     }
@@ -1326,15 +1344,20 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     List<DropdownMenuItem<String>> assetSubsectors = [];
     for (var i = 0; i < data!['assetSubSectors'].length; i++) {
       if (data!['assetSubSectors'][i]['assetSectorId'] == selectedSectorId) {
-        assetSubsectors.add(
-          DropdownMenuItem(
-            child: Text(
+        if (!isFinanceAndInvestmentMarketsSector ||
+            availableFinancialAssetSubSectorIds.contains(
               data!['assetSubSectors'][i]['subSector'],
-              overflow: TextOverflow.ellipsis,
+            )) {
+          assetSubsectors.add(
+            DropdownMenuItem(
+              child: Text(
+                data!['assetSubSectors'][i]['subSector'],
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: data!['assetSubSectors'][i]['subSector'],
             ),
-            value: data!['assetSubSectors'][i]['subSector'],
-          ),
-        );
+          );
+        }
       }
     }
     return assetSubsectors;
@@ -1344,15 +1367,20 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     List<DropdownMenuItem<String>> assetTypes = [];
     for (var i = 0; i < data!['assetTypes'].length; i++) {
       if (data!['assetTypes'][i]['assetSubSectorId'] == selectedSubsectorId) {
-        assetTypes.add(
-          DropdownMenuItem(
-            child: Text(
-              data!['assetTypes'][i]['assetType'],
-              overflow: TextOverflow.ellipsis,
+        if ((!isFinanceAndInvestmentMarketsSector ||
+            availableFinancialAssetTypes.contains(
+              data!['assetTypes'][i]['id'].toString(),
+            ))) {
+          assetTypes.add(
+            DropdownMenuItem(
+              child: Text(
+                data!['assetTypes'][i]['assetType'],
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: data!['assetTypes'][i]['id'].toString(),
             ),
-            value: data!['assetTypes'][i]['id'].toString(),
-          ),
-        );
+          );
+        }
       }
     }
     assetTypes.sort((a, b) {
@@ -1480,8 +1508,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       );
 
       hideLoader(context);
-
-      inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
         appState.currentAction = PageAction(

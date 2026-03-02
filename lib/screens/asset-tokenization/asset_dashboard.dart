@@ -371,7 +371,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     padding: const EdgeInsets.all(10.0),
                                     child: Text(
                                       tokenizedAsset.assetDescription!,
-                                      textAlign: TextAlign.center,
+                                      textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontSize: 14,
                                         height: 1.4,
@@ -805,6 +805,14 @@ class _AssetDashboardState extends State<AssetDashboard>
                                               tokenizedAsset
                                                   .projectFinancialPartners ??
                                               "",
+                                          'Date Submitted':
+                                              '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.dateSubmitted!)}',
+                                          'Approval Date':
+                                              tokenizedAsset
+                                                      .tokenizationStatus ==
+                                                  4
+                                              ? '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.dateOfApproval!)}'
+                                              : 'Nill',
                                         };
 
                                         details[tokenizedAsset
@@ -867,6 +875,13 @@ class _AssetDashboardState extends State<AssetDashboard>
                                       imageUrl: 'assets/images/token-info.png',
                                       onTap: () {
                                         var details = {
+                                          'Minting Date':
+                                              [5, 6].contains(
+                                                tokenizedAsset
+                                                    .tokenizationStatus,
+                                              )
+                                              ? '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.mintingDate!)}'
+                                              : 'Nill',
                                           'Sales Window':
                                               '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)} to ${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}',
                                           'Cap Amount':
@@ -996,11 +1011,20 @@ class _AssetDashboardState extends State<AssetDashboard>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Legal/Professional Advisor':
-                                              tokenizedAsset.legalAdvisor
-                                                  ?.toLowerCase()
-                                                  .capitalizeEachWord() ??
+                                              tokenizedAsset
+                                                  .assetLegalAndProfessionalPartnerInfo
+                                                  ?.partnerName ??
                                               '',
-                                          'Rating Agency': '',
+                                          'Rating Agency':
+                                              tokenizedAsset
+                                                  .assetRatingAgencyInfo
+                                                  ?.agencyName ??
+                                              '',
+                                          'Trustee':
+                                              tokenizedAsset
+                                                  .assetTrusteeInfo
+                                                  ?.trusteeName ??
+                                              "",
                                         };
                                         displayDetails(
                                           "Stakeholders Information",
@@ -1054,11 +1078,11 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     ],
                                     categoryTile(
                                       notifier,
-                                      label: 'Verification Documents',
+                                      label: 'Asset Documents',
                                       imageUrl: 'assets/images/documents.png',
                                       onTap: () {
                                         displayDocuments(
-                                          'Verification Documents',
+                                          'Asset Documents',
                                           tokenizedAsset
                                                   .assetTokenizationDocuments ??
                                               [],

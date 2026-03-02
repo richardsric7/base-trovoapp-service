@@ -31,6 +31,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -641,6 +642,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -1096,6 +1098,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Collateral Description",
+            "maxWords": 100,
             "placeholderText": "Backed by real estate portfolio",
             "value": null,
             "options": [],
@@ -1462,7 +1465,7 @@
       }
     }
   },
-  "1121": {
+  "1121/1174": {
     "fields": {
       "0": {
         "sectionName": "MBS Profile and Issuer Information",
@@ -1500,6 +1503,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -1750,6 +1754,17 @@
             "value": null,
             "options": [],
             "isFiat": true,
+            "public": true,
+            "required": true
+          },
+          "poolComposition": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Pool Composition",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
             "public": true,
             "required": true
           },
@@ -2143,6 +2158,14 @@
             "public": true
           },
           {
+            "name": "Pooling and Servicing Agreement",
+            "documentType": "poolingAndServicingAgreement",
+            "description": "Agreement on mortgage servicing terms",
+            "fileType": "file",
+            "required": true,
+            "public": true
+          },
+          {
             "name": "Financial Statements",
             "documentType": "FinancialStatements",
             "description": "Issuer’s last 2 years audited accounts",
@@ -2229,6 +2252,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -2862,6 +2886,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -3090,8 +3115,7 @@
             "value": null,
             "options": [
               "Growth",
-              "Income",
-              "Dummy Text2"
+              "Income"
             ],
             "isFiat": false,
             "required": true,
@@ -3117,8 +3141,7 @@
             "options": [
               "Monthly",
               "Quarterly",
-              "Annually",
-              "Dummy Text2"
+              "Annually"
             ],
             "isFiat": false,
             "required": true,
@@ -3137,8 +3160,7 @@
             "value": null,
             "options": [
               "Cash Transfer",
-              "Reinvested",
-              "Dummy Text2"
+              "Reinvested"
             ],
             "isFiat": false,
             "required": true,
@@ -3490,6 +3512,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the asset",
             "value": null,
             "options": [],
@@ -3517,8 +3540,7 @@
             "options": [
               "Open-ended",
               "Close-ended",
-              "Interval Fund",
-              "Dummy Text2"
+              "Interval Fund"
             ],
             "isFiat": false,
             "required": true,
@@ -3643,8 +3665,7 @@
             "options": [
               "Daily",
               "Weekly",
-              "Monthly",
-              "Dummy Text2"
+              "Monthly"
             ],
             "isFiat": false,
             "required": true,
@@ -3735,8 +3756,7 @@
             "value": null,
             "options": [
               "Growth",
-              "Income",
-              "Dummy Text2"
+              "Income"
             ],
             "isFiat": false,
             "required": true,
@@ -3762,8 +3782,7 @@
             "options": [
               "Monthly",
               "Quarterly",
-              "Annually",
-              "Dummy Text2"
+              "Annually"
             ],
             "isFiat": false,
             "required": true,
@@ -3782,8 +3801,7 @@
             "value": null,
             "options": [
               "Cash Transfer",
-              "Reinvested",
-              "Dummy Text2"
+              "Reinvested"
             ],
             "isFiat": false,
             "required": true,
@@ -4130,6 +4148,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Description",
+            "maxWords": 100,
             "placeholderText": "Describe the fund",
             "value": null,
             "options": [],
@@ -4369,9 +4388,7 @@
             "options": [
               "Monthly",
               "Quarterly",
-              "Annually",
-              "Dummy Text2",
-              " "
+              "Annually"
             ],
             "isFiat": false,
             "required": true,
@@ -4390,9 +4407,7 @@
             "value": null,
             "options": [
               "Cash Transfer",
-              "Reinvested",
-              "Dummy Text2",
-              " "
+              "Reinvested"
             ],
             "isFiat": false,
             "required": true,
@@ -4441,94 +4456,6 @@
             "isFiat": false,
             "required": true
           },
-          "assetAllocation": {
-            "type": "string",
-            "widgetType": "text",
-            "label": "Asset Allocation",
-            "placeholderText": "60% Equity, 40% Bonds",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "topHoldings": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Top Holdings (List of largest 5–10 debt instruments held)",
-            "placeholderText": "",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "averageMaturity": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Average Maturity (Years)",
-            "placeholderText": "7.2",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "yieldToMaturity": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Yield to Maturity (%)",
-            "placeholderText": "6.8",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "creditRatingProfile": {
-            "type": "string",
-            "widgetType": "text",
-            "label": "Credit Rating Profile",
-            "placeholderText": "AAA, AA",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "portfolioLockInPeriod": {
-            "type": "int",
-            "widgetType": "text",
-            "label": "Lock-in Period in Months (Portfolio)",
-            "placeholderText": "2",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": false
-          },
-          "portfolioPerformanceFee": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Performance Fee in % (Portfolio)",
-            "placeholderText": "20% of profits above benchmark",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": false,
-            "public": true
-          },
-          "equityStrategy": {
-            "type": "string",
-            "widgetType": "dropdown",
-            "label": "Equity Strategy",
-            "placeholderText": "Select equity strategy",
-            "value": null,
-            "options": [
-              "Value",
-              "Growth",
-              "Income",
-              "Thematic",
-              "Index"
-            ],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
           "marketCapitalizationFocus": {
             "type": "string",
             "widgetType": "dropdown",
@@ -4545,32 +4472,11 @@
             "required": true,
             "public": true
           },
-          "benchmarkIndex": {
-            "type": "string",
-            "widgetType": "text",
-            "label": "Benchmark Index (E.g., NGX ASI, MSCI Frontier Markets)",
-            "placeholderText": "NGX All Share Index",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
           "sectorExposureLimits": {
             "type": "string",
             "widgetType": "text",
             "label": "Sector Exposure Limits (Optional regulatory or internal limits)",
             "placeholderText": "Max 30% in Banking sector",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
-          "portfolioTopHoldings": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Top Holdings (5–10 key equities in portfolio)",
-            "placeholderText": "Dangote Cement, MTN Nigeria, Zenith Bank",
             "value": null,
             "options": [],
             "isFiat": false,
@@ -4595,16 +4501,6 @@
             "options": [],
             "isFiat": false,
             "required": true
-          },
-          "volatilityEstimate": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Volatility Estimate in % (Standard deviation or beta)",
-            "placeholderText": "15% annualized",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": false
           },
           "targetAllocation": {
             "type": "string",
@@ -4645,17 +4541,7 @@
             "options": ["Monthly", "Quarterly", "Annual", "As-needed"],
             "isFiat": false,
             "required": true
-          },
-          "benchmarkIndexComposite": {
-            "type": "string",
-            "widgetType": "text",
-            "label": "Benchmark Index Composite",
-            "placeholderText": "50% NSE, 50% MSCI World",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true
-          },
+          },          
           "topEquityHoldings": {
             "type": "string",
             "widgetType": "longtext",
@@ -4699,7 +4585,7 @@
           "averageMaturityHybrid": {
             "type": "double",
             "widgetType": "text",
-            "label": "Average Maturity (Hybrid)",
+            "label": "Average Maturity (Weighted avg. maturity of holdings)",
             "placeholderText": "5.5",
             "value": null,
             "options": [],
@@ -4708,7 +4594,7 @@
           "yieldToMaturityHybrid": {
             "type": "double",
             "widgetType": "text",
-            "label": "Yield to Maturity in % (Hybrid)",
+            "label": "Yield to Maturity in % (Expected yield if held to maturity)",
             "placeholderText": "7.1",
             "value": null,
             "options": [],
@@ -4933,6 +4819,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Asset Description",
+            "maxWords": 100,
             "placeholderText": "Physical gold bars stored in a secure vault",
             "value": null,
             "options": [],
@@ -5227,7 +5114,7 @@
           "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
-            "label": "Valuation - Asset Valuation",
+            "label": "Asset Valuation",
             "placeholderText": "₦1,200,000,000",
             "value": 0,
             "options": [],
@@ -5607,6 +5494,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Commodity Description",
+            "maxWords": 100,
             "placeholderText": "24K refined gold bars",
             "value": null,
             "options": [],
@@ -5994,40 +5882,40 @@
           "partiesInvolvedTrustee": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Trustee)",
+            "label": "Trustee (if applicable)",
             "placeholderText": "ABC Trustees",
             "value": null,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
           },
           "partiesInvolvedUnderwriter": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Underwriter)",
+            "label": "Underwriter (if any)",
             "placeholderText": "XYZ Underwriters",
             "value": null,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
           },
           "partiesInvolvedAssetManager": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Asset Manager)",
+            "label": "Asset Manager (optional)",
             "placeholderText": "DEF Asset Managers",
             "value": null,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
           },
           "partiesInvolvedLegalAdvisor": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Legal Advisor)",
+            "label": "Legal Advisor",
             "placeholderText": "GHI Law Firm",
             "value": null,
             "options": [],
@@ -6038,7 +5926,7 @@
           "partiesInvolvedAuditorVerifier": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Auditor/Verifier)",
+            "label": "Auditor/Verifier",
             "placeholderText": "JKL Auditors",
             "value": null,
             "options": [],
@@ -6049,7 +5937,7 @@
           "partiesInvolvedRegulator": {
             "type": "string",
             "widgetType": "text",
-            "label": "Parties Involved (Regulator)",
+            "label": "Regulator/Oversight Body",
             "placeholderText": "Securities & Exchange Commission",
             "value": null,
             "options": [],
@@ -6325,6 +6213,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Asset Description",
+            "maxWords": 100,
             "placeholderText": "24K refined gold bars",
             "value": null,
             "options": [],
@@ -7078,6 +6967,7 @@
             "type": "string",
             "widgetType": "longtext",
             "label": "Asset Description",
+            "maxWords": 100,
             "placeholderText": "24K refined gold bars",
             "value": null,
             "options": [],
@@ -7936,15 +7826,6 @@
             "name": "Proof of hidden liabilities or obligations that have not been disclosed.",
             "documentType": "ProofOfHiddenLiabilities",
             "description": "",
-            "requiredForDebtAndHybrid": false,
-            "fileType": "file",
-            "required": false,
-            "public": false
-          },
-          {
-            "name": "Upload Signed Declaration Form",
-            "documentType": "SignedDeclarationForm",
-            "description": "Signed copy of declaration and attestation (PDF)",
             "requiredForDebtAndHybrid": false,
             "fileType": "file",
             "required": false,
