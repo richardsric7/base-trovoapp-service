@@ -128,8 +128,8 @@ export default function ImportWallet() {
       guide.fieldState == FieldState.error
         ? 'text-red-500'
         : guide.fieldState == FieldState.ok
-        ? 'text-green-500'
-        : '';
+          ? 'text-green-500'
+          : '';
     return (
       <p
         key={`${new Date().getTime()}${guide.info.replace(' ', '')}`}
