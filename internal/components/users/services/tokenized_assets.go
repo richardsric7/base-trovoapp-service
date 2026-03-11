@@ -2096,6 +2096,7 @@ from refunded`
 	data.Data.Liquidated = s
 	data.Status = "OK"
 	data.Timestamp = time.Now().String()
+	//return the result
 	return
 }
 
