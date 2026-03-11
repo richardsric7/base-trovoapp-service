@@ -1899,8 +1899,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status > 2)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status > ?)
 
 select total.count, total.total_current_value, 
 total.total_tokenized_value, 
@@ -1916,8 +1916,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=0)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status < ? AND Due_Diligence_Fail=0)
 
 select unsubmitted.count, 
 unsubmitted.total_current_value, 
@@ -1934,8 +1934,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status >0 AND asset_tokenization_status < 3)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status >0 AND asset_tokenization_status < ?)
 
 select submitted.count, 
 submitted.total_current_value, 
@@ -1952,8 +1952,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status = 3)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = ?)
 
 select pending.count, 
 pending.total_current_value, 
@@ -1970,8 +1970,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=1)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=?)
 
 select rejected.count, 
 rejected.total_current_value, 
@@ -1988,8 +1988,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status > 3 AND asset_tokenization_status < 8)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status > ? AND asset_tokenization_status < 8)
 
 select approved.count, 
 approved.total_current_value, 
@@ -2006,8 +2006,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status = 7)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = ?)
 
 select liquidated.count, 
 liquidated.total_current_value, 
@@ -2024,8 +2024,8 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,?) as average_price_per_token
-FROM tokenized_assets where asset_tokenization_status = 7)
+avg(price_per_token)::numeric(13,7) as average_price_per_token
+FROM tokenized_assets where asset_tokenization_status = ?)
 
 select refunded.count, 
 refunded.total_current_value, 
@@ -2036,42 +2036,42 @@ refunded.total_price_per_token,
 refunded.average_price_per_token
 from refunded`
 
-	e := gc.DB.Raw(totalSql, 7).Scan(&s).Error
+	e := gc.DB.Raw(totalSql, 2).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving total category info"
 	}
 	data.Data.Total = s
 
-	e = gc.DB.Raw(approvedSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(approvedSql, 3).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving approved category info"
 	}
 	data.Data.Approved = s
 
-	e = gc.DB.Raw(submittedSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(submittedSql, 3).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving submitted category info"
 	}
 	data.Data.Submitted = s
 
-	e = gc.DB.Raw(unsubmittedSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(unsubmittedSql, 1).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving unsubmitted category info"
 	}
 	data.Data.Unsubmitted = s
 
-	e = gc.DB.Raw(pendingSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(pendingSql, 3).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving pending category info"
 	}
 	data.Data.Pending = s
 
-	e = gc.DB.Raw(rejectedSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(rejectedSql, 1).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving rejected category info"
@@ -2079,7 +2079,7 @@ from refunded`
 	}
 	data.Data.Rejected = s
 
-	e = gc.DB.Raw(refundedSql, 7).Scan(&s).Error
+	e = gc.DB.Raw(refundedSql, 8).Scan(&s).Error
 	if e != nil {
 		log.Println("[GetTMTokenizationStat]error:", e)
 		data.Message = "error retrieving refunded category info"
