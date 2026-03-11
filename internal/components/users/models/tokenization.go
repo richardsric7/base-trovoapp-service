@@ -6001,9 +6001,9 @@ func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketO
 
 type SummaryCat struct {
 	Count                 int     `json:"count"`
-	TotalCurrentValue     int64   `json:"totalCurrentValue"`
-	TotalTokenizedValue   int64   `json:"totalTokenizedValue"`
-	TotalTokensToBeIssued int64   `json:"totalTokensToBeIssued"`
+	TotalCurrentValue     float64 `json:"totalCurrentValue"`
+	TotalTokenizedValue   float64 `json:"totalTokenizedValue"`
+	TotalTokensToBeIssued float64 `json:"totalTokensToBeIssued"`
 	TotalTokensToBeSold   float64 `json:"totalTokensToBeSold"`
 	TotalPricePerToken    float64 `json:"totalPricePerToken"`
 	AveragePricePerToken  float64 `json:"averagePricePerToken"`
