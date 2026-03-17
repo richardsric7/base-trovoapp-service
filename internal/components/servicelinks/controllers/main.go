@@ -1491,7 +1491,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		if authData.Authorized == 0 {
 
-			//could not save login session
+			//authorixation not approved
 			response := gin.H{"error": "error-unauthorized-request", "data": "unauthorizedRequest", "message": "authorization awaiting approval"}
 			statusCode := http.StatusUnauthorized
 			c.JSON(statusCode, response)
