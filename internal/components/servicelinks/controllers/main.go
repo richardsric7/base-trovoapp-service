@@ -1396,14 +1396,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//service authorization verify url
-	router.GET("/v1/servicelinks/authorize/verify/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		authID := strings.TrimSpace(strings.ToLower(c.Query("authId")))
+		authID := strings.TrimSpace(strings.ToLower(c.Param("authId")))
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v %v/%v", trovoUser, ownerUsername, authID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v/%v/%v", ownerUsername, trovoUser, authID), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
