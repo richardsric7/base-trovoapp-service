@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -1418,4 +1419,131 @@ func (gc *GlobalConfig) GetServiceLinkFees(serviceLinkID string) (s ServiceLinkS
 func (gc *GlobalConfig) GenerateUUIDString() (s string) {
 	s = uuid.NewString()
 	return s
+}
+
+// Rates model
+type CurrencyRates struct {
+	ID        uint64    `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Rates     []byte    `gorm:"null" json:"rates"`
+}
+type CngnPriceResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		UsdToNgn       float64   `json:"usdToNgn"`
+		NgnToUsd       float64   `json:"ngnToUsd"`
+		FormattedPrice string    `json:"formattedPrice"`
+		ReversePrice   string    `json:"reversePrice"`
+		Decimals       int       `json:"decimals"`
+		Description    string    `json:"description"`
+		Timestamp      time.Time `json:"timestamp"`
+	} `json:"data"`
+}
+type fiatConversionResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		NgnAmount       int       `json:"ngnAmount"`
+		UsdAmount       float64   `json:"usdAmount"`
+		Rate            float64   `json:"rate"`
+		FormattedResult string    `json:"formattedResult"`
+		Timestamp       time.Time `json:"timestamp"`
+	} `json:"data"`
+}
+
+// GetRates is service to get rate
+func (gc *GlobalConfig) GetCngnUsdRate() (rate CngnPriceResponse) {
+	cacheKeyGetUSDRate := "cngnusdRate"
+
+	{
+
+		// search cache
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyGetUSDRate)
+
+		if ok {
+
+			json.Unmarshal(rawdata, &rate)
+			return
+		}
+
+	}
+	rates := &CurrencyRates{}
+	gc.DB.Where("id = ?", 2).First(&rates)
+	json.Unmarshal(rates.Rates, &rate)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyGetUSDRate, rate, 2000)
+	return
+}
+
+// ConvertCngnToUsd is service to get USD from cngn
+func (gc *GlobalConfig) ConvertCngnToUsd(cngnAmount float64) (result decimal.Decimal) {
+	result = decimal.Zero
+	if len(os.Getenv("CNGN_PRICE_API_URL")) == 0 {
+		fmt.Println("[ConvertCngnToUsd] CNGN_PRICE_API_URL ENV not Defined")
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%v/api/convert/ngn-to-usd/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(cngnAmount).String()))
+	if err != nil {
+		log.Println("[ConvertCngnToUsd] http get error", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("[ConvertCngnToUsd] read body error:", err)
+		return
+	}
+
+	fetchedConvertion := fiatConversionResponse{}
+	err = json.Unmarshal(body, &fetchedConvertion)
+	if err != nil {
+		log.Println("Error Fetching ConvertCngnToUsd\n\n", err)
+		return
+	}
+
+	// var a interface{}
+	if fetchedConvertion.Success {
+		result = decimal.NewFromFloat(fetchedConvertion.Data.UsdAmount)
+
+	}
+	return
+}
+
+// ConvertUsdToCngn is service to get cngn from USD
+func (gc *GlobalConfig) ConvertUsdToCngn(usdAmount float64) (result decimal.Decimal) {
+	result = decimal.Zero
+	if len(os.Getenv("CNGN_PRICE_API_URL")) == 0 {
+		fmt.Println("[ConvertUsdToCngn] CNGN_PRICE_API_URL ENV not Defined")
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%v/api/convert/usd-to-ngn/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(usdAmount).String()))
+	if err != nil {
+		log.Println("[ConvertUsdToCngn] http get error", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("[ConvertUsdToCngn] read body error:", err)
+		return
+	}
+
+	fetchedConvertion := fiatConversionResponse{}
+	err = json.Unmarshal(body, &fetchedConvertion)
+	if err != nil {
+		log.Println("Error Fetching ConvertUsdToCngn\n\n", err)
+		return
+	}
+
+	// var a interface{}
+	if fetchedConvertion.Success {
+		result = decimal.NewFromFloat(fetchedConvertion.Data.UsdAmount)
+
+	}
+	return
 }

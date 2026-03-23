@@ -334,6 +334,86 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	return usdPrice, priceType, nil
 }
 
+// GetNairaPrice dollar ask price using USDB
+func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nairaPrice, priceType string, err error) {
+	var priceCache PriceCache
+	var input OrderBookRequestInput
+	priceType = "ask"
+	nairaPrice = "0"
+	sellingAssetCode = strings.ToUpper(sellingAssetCode)
+	//sell main asset, buying currency (dollar)
+	var errAssetCode string
+	if sellingAssetCode == "" {
+		errAssetCode = "native"
+	} else {
+		errAssetCode = sellingAssetCode
+	}
+	cacheKey := fmt.Sprintf("%v.%v_naira", sellingAssetCode, sellingAssetIssuer)
+	if checkCacheFirst {
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetDollarPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
+		}
+	}
+
+	input.SellingAssetCode = sellingAssetCode
+	input.SellingAssetIssuer = sellingAssetIssuer
+	nairaAsset := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
+	if len(nairaAsset) != 2 {
+		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if strings.EqualFold(sellingAssetCode, nairaAsset[0]) && strings.EqualFold(sellingAssetIssuer, nairaAsset[1]) {
+		//it is dollar asset
+		return "1", priceType, nil
+	}
+
+	if strings.HasPrefix(sellingAssetCode, "NGN") || strings.HasSuffix(sellingAssetCode, "NGN") {
+		return "1", priceType, nil
+	}
+
+	input.BuyingAssetCode = nairaAsset[0]
+	input.BuyingAssetIssuer = nairaAsset[1]
+
+	orderBook, err := GetBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetNairaPrice] error getting order book summary: %v\n", err)
+		//fetch from last stored in cache
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetNairaPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
+		}
+
+		return
+
+	}
+
+	if len(orderBook.Asks) == 0 {
+		priceType = "bid"
+		if len(orderBook.Bids) == 0 {
+
+			log.Printf("[Error GetNairaAskPrice]: error fetching naira ASK price for asset %v, err: %v\n", errAssetCode, err)
+			return "0", priceType, &tErrors.ErrorTemporaryServerError{}
+		}
+		nairaPrice = orderBook.Bids[0].Price
+		priceCache.Price = nairaPrice
+		priceCache.PriceType = priceType
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
+		return nairaPrice, priceType, nil
+	}
+	nairaPrice = orderBook.Asks[0].Price
+	priceCache.Price = nairaPrice
+	priceCache.PriceType = priceType
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
+	return nairaPrice, priceType, nil
+}
+
 // GetNativeAskPrice native (XBN) ask price
 func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nativePrice string, err error) {
 	var priceCache PriceCache

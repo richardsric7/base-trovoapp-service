@@ -432,6 +432,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, priceConfig *userModels.PatronMembershipGrade, gc *sharedconfig.GlobalConfig) (string, error) {
 	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+	nairaAssetSlice := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 	serviceFee := owner.UserWallets[0].GetPatronFee(gc)
 	patronFeeKP, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
@@ -442,7 +443,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	}
 	sourceAssets := ""
 	var errGetEstimate error
-	var requiredUsdWorth, estimatedTrov string
+	var requiredSourceQuantity, estimatedTrov string
 	var path []txnbuild.Asset
 	if len(patronSubInput.PaymentAssetIssuer) == 56 {
 		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
@@ -484,35 +485,43 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	// 	DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
 	// 	DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	// }
-	//get the trov quantity/equivalent needed for the USD from the market.
+
+	//no USD market. get the USD conversion to CNGN. then fetch the TROV/CNGN price from DEX.
+	cngnAmount := gc.ConvertUsdToCngn(priceConfig.Price)
+	if !cngnAmount.IsPositive() {
+		log.Println("[generatePatronSubscriptionXdr] error getting USD-CNGN conversion estimate. Error ")
+
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	//get the source quantity/equivalent needed for the CNGN amount we now have from the market since there is CNGN offer of the asset.
 	pathInput := swapModel.SwapPathInput{
 		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   serviceFee.FeeAssetCode,
-		DestinationAssetIssuer: serviceFee.FeeAssetIssuer,
-		DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
+		DestinationAssetCode:   nairaAssetSlice[0],
+		DestinationAssetIssuer: nairaAssetSlice[1],
+		DestinationAmount:      cngnAmount.Truncate(7).String(),
 	}
-	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
-	// requiredTrovAssetEstimate = requiredUsdEstimate
+	_, requiredSourceQuantity, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 
-	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, serviceFee.FeeAssetCode)
-	if errGetEstimate != nil && requiredUsdWorth == "" {
-		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdWorth)
+	log.Printf("requires %v %v to convert to %v %v\n", requiredSourceQuantity, patronSubInput.PaymentAssetCode, priceConfig.Price, "USD")
+	if errGetEstimate != nil && requiredSourceQuantity == "" {
+		log.Println("[generatePatronSubscriptionXdr] error getting required source estimate. Error ", errGetEstimate, requiredSourceQuantity)
 
 		return "", errGetEstimate
 	}
 
 	if !asset.IsNative() {
 		// log.Println("[generatePatronSubscriptionXdr] error account does not exist on ledger. Error ")
-		if customBalance.LessThan(decimal.RequireFromString(requiredUsdWorth)) {
+		if customBalance.LessThan(decimal.RequireFromString(requiredSourceQuantity)) {
 			return "", &tErrors.ErrorUnderfundedAccount{
-				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdWorth).Sub(customBalance).String(), patronSubInput.PaymentAssetCode),
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredSourceQuantity).Sub(customBalance).String(), patronSubInput.PaymentAssetCode),
 			}
 		}
 
 	} else {
-		if nativeBalance.LessThan(decimal.RequireFromString(requiredUsdWorth)) {
+		if nativeBalance.LessThan(decimal.RequireFromString(requiredSourceQuantity)) {
 			return "", &tErrors.ErrorUnderfundedAccount{
-				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdWorth).Sub(nativeBalance).String(), nativeAssetCode),
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredSourceQuantity).Sub(nativeBalance).String(), nativeAssetCode),
 			}
 		}
 	}
@@ -534,11 +543,11 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 			DestinationAssets: "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 			SourceAssetCode:   patronSubInput.PaymentAssetCode,
 			SourceAssetIssuer: patronSubInput.PaymentAssetIssuer,
-			SourceAmount:      requiredUsdWorth,
+			SourceAmount:      requiredSourceQuantity,
 		}
 
 		path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc)
-		log.Printf(" %v %v converts to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, estimatedTrov, "TROV")
+		log.Printf(" %v %v converts to %v %v\n", requiredSourceQuantity, patronSubInput.PaymentAssetCode, estimatedTrov, "TROV")
 		if errGetEstimate != nil && estimatedTrov == "" {
 			log.Printf("[generatePatronSubscriptionXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)
 			return "", errGetEstimate
@@ -555,7 +564,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 			ops = append(ops, &txnbuild.PathPaymentStrictSend{
 				SendAsset:     sendAsset,
-				SendAmount:    requiredUsdWorth,
+				SendAmount:    estimatedTrov,
 				Destination:   patronFeeKP.Address(),
 				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 				DestMin:       "0.0000001",
@@ -567,7 +576,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   patronFeeKP.Address(),
-			Amount:        requiredUsdWorth,
+			Amount:        requiredSourceQuantity,
 			Asset:         txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 			SourceAccount: owner.PublicKey, //primary wallet
 		})
@@ -581,7 +590,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	}
 
 	//calculate VAT on the fee amount.
-	feeAmount := decimal.RequireFromString(requiredUsdWorth)
+	feeAmount := decimal.RequireFromString(requiredSourceQuantity)
 	vatFee := gc.GetVATValue(feeAmount)
 	vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
 	patronSubInput.Vat = vatRate
