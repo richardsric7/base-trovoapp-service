@@ -275,6 +275,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 						} else if strings.HasPrefix(bal.Code, "USD") || strings.HasSuffix(bal.Code, "USD") {
 							assetUsdPrice = "1"
+						} else if bal.Code == "CNGN" {
+							assetUsdPrice = decimal.NewFromFloat(cngnPrice.Data.UsdToNgn).Truncate(7).String()
+							assetNativePrice = "1"
 						} else {
 							nativeUsdPriceDec := decimal.RequireFromString(nativeUsdPrice)
 							nativePriceDec := decimal.RequireFromString(assetNativePrice)
