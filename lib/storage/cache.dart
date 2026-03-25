@@ -96,9 +96,10 @@ Future<void> getFiatRates(appState) async {
   Map responseData = await makeUnSecuredGetRequest('/v1/rates');
 
   if (responseData['statusCode'] == 200) {
-    appState.setFiatRate = responseData['data'];
-    inspect(responseData['data']);
-    await StoreData().storeInsertData('fiatRate', responseData['data']);
+    if (responseData['data'] != null) {
+      appState.setFiatRate = responseData['data'];
+      await StoreData().storeInsertData('fiatRate', responseData['data']);
+    }
   }
 }
 

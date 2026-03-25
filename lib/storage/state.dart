@@ -126,14 +126,14 @@ class DataProvider with ChangeNotifier {
 
   Future<void> changeWalletMode(String value, {bool isReversed = false}) async {
     try {
-      StoreData().storeInsertData('walletMode', value);
+      await StoreData().storeInsertData('walletMode', value);
       walletMode = value;
       currentAction = PageAction(
-        state: PageState.addPage,
+        state: PageState.replaceAll,
         page: SplashPageConfig,
       );
-      Timer(const Duration(seconds: 4), () async {
-        StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
+      Timer(const Duration(seconds: 2), () async {
+        await StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
         await TerminateRestart.instance.restartApp(
           options: const TerminateRestartOptions(terminate: true),
         );

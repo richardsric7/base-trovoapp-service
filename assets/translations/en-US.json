@@ -368,7 +368,7 @@
     "usernamevalidatenumber": "Username cannot contain only numbers!",
     "entervalidmobilenumber": "Please enter a valid phone number",
     "accountnotfound": "Account not found. Do you want to create an account with the provided secret key?",
-    "accountnotfoundafterswitch": "You currently do not have an account setup on {}. Would you like to setup an account with your existing credentials?",
+    "accountnotfoundafterswitch": "You currently do not have an account on {}. Would you like to setup a new account?",
     "oops": "Oops!",
     "uploadreceipt": "Upload payment receipt",
     "entertransactionid": "Enter transaction ID",
