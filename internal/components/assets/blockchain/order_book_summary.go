@@ -398,7 +398,7 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 		priceType = "bid"
 		if len(orderBook.Bids) == 0 {
 
-			log.Printf("[Error GetNairaAskPrice]: error fetching naira ASK price for asset %v, err: %v\n", errAssetCode, err)
+			log.Printf("[Error GetNairaAskPrice]: error fetching naira ASK price for asset %v/%v, err: NO Markets\n", errAssetCode, input.BuyingAssetCode)
 			return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 		}
 		nairaPrice = orderBook.Bids[0].Price
