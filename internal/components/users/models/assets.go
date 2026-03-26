@@ -144,6 +144,31 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 	return *url
 }
 
+func (i BantuAsset) IsEnabled(gc *sharedconfig.GlobalConfig) bool {
+	cacheKey := fmt.Sprintf("isenabled%v_%v", i.AssetCode, i.AssetIssuer)
+	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+	if ok {
+		return response.(bool)
+	}
+	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+		return true
+	}
+
+	casset, err := assetsDB.GetCuratedAssetByCodeAndIssuer(i.AssetCode, i.AssetIssuer, false, gc)
+
+	if err != nil {
+		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets")
+		return false
+	}
+	if casset.Inactive == 0 {
+		log.Printf("[GetAssetImage] <<<<<<< curated asset is not enabled")
+		return false
+	}
+
+	gc.RedisCache.StoreResultToCache(cacheKey, true, 120)
+	return true
+}
+
 func (i BantuAsset) CanDeposit(gc *sharedconfig.GlobalConfig) bool {
 
 	cassets := assetsDB.GetCuratedAssets(false, gc)

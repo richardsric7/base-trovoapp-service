@@ -81,6 +81,42 @@ func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (asse
 	return assets
 }
 
+// GetCuratedAssetByCodeAndIssuer returns list of Curated Assets
+func GetCuratedAssetByCodeAndIssuer(assetCode, assetIssuer string, includeInactive bool, gc *sharedconfig.GlobalConfig) (asset models.CuratedAsset, err error) {
+
+	cacheKeyInfo := "curatedAssetsByCodeAndIssuer_"
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			// log.Printf("[GetCuratedAssets] %v, served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &asset)
+			return
+		}
+
+	}
+
+	var dberr error
+	if !includeInactive {
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ? AND asset_code = ? AND asset_issuer = ?", 0, assetCode, assetIssuer).Find(&asset).Error
+
+	} else {
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("asset_code = ? AND asset_issuer = ?", assetCode, assetIssuer).Find(&asset).Error
+	}
+
+	if dberr != nil {
+		log.Printf("[GetCuratedAssetByCodeAndIssuer]error getting assets: %v\n", dberr)
+		return asset, dberr
+	}
+
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, asset, 120)
+
+	return asset, nil
+}
+
 // GetAssetClasses returns list of Curated Assets
 func GetAssetClasses(db *gorm.DB) (assetClassesOutput []models.AssetClassOutput, err error) {
 

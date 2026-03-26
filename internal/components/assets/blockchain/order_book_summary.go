@@ -335,11 +335,15 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 }
 
 // GetNairaPrice dollar ask price using USDB
-func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nairaPrice, priceType string, err error) {
+func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, enabledAsset bool) (nairaPrice, priceType string, err error) {
 	var priceCache PriceCache
+
 	var input OrderBookRequestInput
 	priceType = "ask"
 	nairaPrice = "0"
+	if !enabledAsset {
+		return
+	}
 	sellingAssetCode = strings.ToUpper(sellingAssetCode)
 	//sell main asset, buying currency (dollar)
 	var errAssetCode string
@@ -415,9 +419,12 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 }
 
 // GetNativeAskPrice native (XBN) ask price
-func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nativePrice string, err error) {
+func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, isEnabled bool) (nativePrice string, err error) {
 	var priceCache PriceCache
 	var nativeCode, nativeIssuer string
+	if !isEnabled {
+		return "0", nil
+	}
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
 	if len(nv) == 2 {
 		nativeCode = nv[0]

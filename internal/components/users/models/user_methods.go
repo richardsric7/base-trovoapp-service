@@ -138,6 +138,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		nativeCode = nv[0]
 		nativeIssuer = nv[1]
 	}
+
 	// get the ngn to usd rate. then get XBN naira price.
 	cngnPrice := gc.GetCngnUsdRate()
 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
@@ -210,7 +211,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		if nativeCode != "CNGN" {
 			checkCacheFirst = true
 		}
-		nairaAssetPrice, _, _ := blockchain.GetNairaPrice(nativeCode, nativeIssuer, gc, checkCacheFirst)
+		nairaAssetPrice, _, _ := blockchain.GetNairaPrice(nativeCode, nativeIssuer, gc, checkCacheFirst, true)
 		if len(nairaAssetPrice) > 0 && nairaAssetPrice != "0" {
 			// convert it to USD using current rate of naira
 			nativeUsdPrice = decimal.RequireFromString(nairaAssetPrice).Mul(decimal.NewFromFloat(cngnPrice.Data.NgnToUsd)).Truncate(7).String()
@@ -228,6 +229,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	for _, v := range account.Balances {
 		wg.Add(1)
 		go func(bal horizon.Balance) {
+			bantuAsset := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}
 			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(bal.Balance)
@@ -261,12 +263,12 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 						checkCacheFirst = true
 					}
 					///////////////////////////////////////////////////////////////////////////////////////////////////
-					nairaAssetPrice, _, _ := blockchain.GetNairaPrice(bal.Code, bal.Issuer, gc, checkCacheFirst)
+					nairaAssetPrice, _, _ := blockchain.GetNairaPrice(bal.Code, bal.Issuer, gc, checkCacheFirst, bantuAsset.IsEnabled(gc))
 					if len(nairaAssetPrice) > 0 && nairaAssetPrice != "0" {
 						// convert it to USD using current rate of naira
 						nativeUsdPrice = decimal.RequireFromString(nairaAssetPrice).Mul(decimal.NewFromFloat(cngnPrice.Data.NgnToUsd)).Truncate(7).String()
 					}
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, checkCacheFirst)
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, checkCacheFirst, bantuAsset.IsEnabled(gc))
 					dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 					if len(dollarAsset) == 2 {
 						if strings.EqualFold(bal.Code, dollarAsset[0]) && strings.EqualFold(bal.Issuer, dollarAsset[1]) {
@@ -298,7 +300,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetNativePrice = xbnNativePrice
 				} else {
 					assetUsdPrice = nativeUsdPrice
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true, bantuAsset.IsEnabled(gc))
 				}
 
 			}
