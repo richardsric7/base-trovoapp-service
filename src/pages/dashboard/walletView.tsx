@@ -1,10 +1,15 @@
 import Button from '../../components/button';
 import Header from '../../components/header';
 import Tabs from '../../components/tabs';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import WalletCard from '../../components/walletCard';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
+import {
+  setActiveWallet as setActiveWalletToStore,
+  setActiveAsset as setActiveAssetToStore,
+} from '../../store/appStateSlice';
 import React from 'react';
 import {
   calculateFiatValue,
@@ -16,7 +21,6 @@ import {
   totalWalletBalanceInCurrency,
 } from '../../utils/utilities';
 import { Wallet } from '../../types/wallet';
-import AssetTokenItem from '../../components/assetTokenListItem';
 import {
   TEDropdown,
   TEDropdownItem,
@@ -24,7 +28,6 @@ import {
   TEDropdownToggle,
   TERipple,
 } from 'tw-elements-react';
-import AssetListItem from '../../components/assetListItem';
 import Dropdown from '../../components/dropdown';
 import TextInput from '../../components/textInput';
 import { Asset } from '../../types/asset';
@@ -42,18 +45,21 @@ import ButtonSecondary from '../../components/buttonSecondary';
 import { TransactionDirection } from '../../types/transactionInfo';
 import WalletDropdown from '../../components/walletDropdown';
 import AssetDropdown from '../../components/assettDropdown';
+import AssetItem from '../../components/assetItem';
 
 export default function WalletView() {
   const ref = useRef<HTMLDivElement>(null);
+  const dispatch = useDispatch();
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const appState = useSelector((state: RootState) => state.appState!);
+  const navigate = useNavigate();
   let mutableWalletArray = [...appUser.userWallets];
   const [wallets, setWallets] = useState(
     mutableWalletArray.sort((w) => (w.primaryWallet ? 0 : 1)),
   );
   const [activeWalletIndex, setActiveWalletIndex] = useState(0);
   const [activeWallet, setActiveWallet] = useState<Wallet>(wallets[0]);
-  const [assetFilterMode, setAssetFilterMode] = useState('Asset Tokens');
+  const [assetFilterMode, setAssetFilterMode] = useState(0);
   const [walletActionMode, setWalletActionMode] = useState(1);
   const itemRefs = useRef<HTMLDivElement[]>([]);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
@@ -530,16 +536,18 @@ export default function WalletView() {
     />
   ));
 
-  const dropdownItems = [
+  const assetClassOptions = [
     {
       text: 'Asset Tokens',
-      value: 'Asset Tokens',
+      value: 0,
     },
     {
       text: 'Other Tokens',
-      value: 'Other Tokens',
+      value: 1,
     },
-  ].map((item) => (
+  ];
+
+  const dropdownItems = assetClassOptions.map((item) => (
     <TEDropdownItem
       key={`${new Date().getTime()}${item.text.replace(' ', '')}`}
       id={`${new Date().getTime()}${item.text.replace(' ', '')}`}
@@ -596,9 +604,10 @@ export default function WalletView() {
                     if (!canInitiate(wallets[activeWalletIndex - 1])) {
                       setWalletActionMode(1);
                     }
-                    console.log(
-                      'can initiate',
-                      canInitiate(wallets[activeWalletIndex - 1]),
+                    setSelectedAsset(
+                      activeWallet?.claimedAssets.find(
+                        (a) => a.assetCode === '' && a.assetIssuer === '',
+                      )!,
                     );
                     const ref = itemRefs.current[activeWalletIndex - 1];
                     if (ref) {
@@ -622,9 +631,16 @@ export default function WalletView() {
                     activeWalletIndex <= itemRefs.current.length &&
                       setActiveWalletIndex(activeWalletIndex + 1);
                     setActiveWallet(wallets[activeWalletIndex + 1]);
+                    setSelectedAsset(
+                      activeWallet?.claimedAssets.find(
+                        (a) => a.assetCode === '' && a.assetIssuer === '',
+                      )!,
+                    );
+
                     if (!canInitiate(wallets[activeWalletIndex + 1])) {
                       setWalletActionMode(1);
                     }
+                    resetForm();
 
                     const ref = itemRefs.current[activeWalletIndex + 1];
                     if (ref) {
@@ -676,31 +692,36 @@ export default function WalletView() {
               <p>
                 <span>Sort by:</span>{' '}
                 <span className="font-bold font-montserratSemiBold">
-                  {assetFilterMode}
+                  {assetClassOptions[assetFilterMode].text}
                 </span>
               </p>
             </div>
             <div className="w-full mt-4 space-y-4">
-              {activeWallet.claimedAssets.length > 1 ? ( // since every wallet must have an XBN asset check length greater than 1
+              {activeWallet.claimedAssets.filter((a) => {
+                if (assetFilterMode === 0) return a.tokenizedAsset;
+                else return !a.tokenizedAsset;
+              }).length > 1 ? ( // since every wallet must have an XBN asset check length greater than 1
                 // if filter is set on other tokens
-                assetFilterMode === 'Other Tokens' ? (
+                assetFilterMode === 0 ? (
                   activeWallet.claimedAssets.map(
-                    (asset) =>
-                      asset.assetCode !== '' && (
-                        <AssetTokenItem
+                    (asset, index) =>
+                      asset.tokenizedAsset == true && (
+                        <AssetItem
+                          key={index}
                           image={asset.imageUrl}
                           assetCode={asset.assetCode}
-                          usdPrice={asset.usdPrice.toString()}
                           amount={asset.amount.toString()}
-                          valueInFiat={`${calculateFiatValue(
-                            asset.amount,
-                            (fiatRates as Record<string, number>)[
-                              appUser.currency.toUpperCase()
-                            ] || 0,
-                            asset.usdPrice,
-                          )} ${appUser.currency.toUpperCase()}`}
+                          usdPrice={asset.usdPrice.toString()}
+                          nativePrice={asset.nativePrice.toString()}
+                          currency={appUser.currency}
                           onclick={() => {
-                            // navigate('/dashboard/tokenized-asset');
+                            dispatch(setActiveWalletToStore(activeWallet));
+                            dispatch(
+                              setActiveAssetToStore(
+                                `${asset.assetCode}|${asset.assetIssuer}`,
+                              ),
+                            );
+                            navigate('/dashboard/asset-details');
                           }}
                         />
                       ),
@@ -708,15 +729,24 @@ export default function WalletView() {
                 ) : (
                   activeWallet.claimedAssets.map(
                     (asset, index) =>
-                      asset.assetCode !== '' && (
-                        <AssetListItem
+                      !asset.tokenizedAsset && (
+                        <AssetItem
                           key={index}
-                          image="/images/avatar.png"
-                          assetName="Atlantis 1"
-                          assetClass="Real Estate"
-                          isSubscribed
+                          image={asset.imageUrl}
+                          assetCode={asset.assetCode}
+                          amount={asset.amount.toString()}
+                          usdPrice={asset.usdPrice.toString()}
+                          nativePrice={asset.nativePrice.toString()}
+                          currency={appUser.currency}
                           onclick={() => {
-                            // navigate('/dashboard/tokenized-asset');
+                            dispatch(setActiveWalletToStore(activeWallet));
+                            dispatch(
+                              setActiveAssetToStore(
+                                `${asset.assetCode}|${asset.assetIssuer}`,
+                              ),
+                            );
+                            console.log(appState);
+                            navigate('/dashboard/asset-details');
                           }}
                         />
                       ),
@@ -816,6 +846,7 @@ export default function WalletView() {
                               });
                             }
                           }}
+                          key={`${activeWallet.publicKey}-${activeWalletIndex}`}
                         />
                       </div>
                       <div className="space-y-3 w-full">
@@ -950,6 +981,13 @@ export default function WalletView() {
                                   console.log(selectedItem);
                                   setActiveWallet(selectedItem.value);
                                   setActiveWalletIndex(selectedItem.index);
+                                  setSelectedAsset(
+                                    activeWallet?.claimedAssets.find(
+                                      (a) =>
+                                        a.assetCode === '' &&
+                                        a.assetIssuer === '',
+                                    )!,
+                                  );
                                   const ref =
                                     itemRefs.current[selectedItem.index];
                                   if (ref) {
@@ -961,6 +999,7 @@ export default function WalletView() {
                                     });
                                   }
                                 }}
+                                key={`${activeWallet.publicKey}-${activeWalletIndex}`}
                               />
                             </div>
                             <div className="w-2/6 self-end">
@@ -1171,6 +1210,7 @@ export default function WalletView() {
                                 });
                               }
                             }}
+                            key={`${activeWallet.publicKey}-${activeWalletIndex}`}
                           />
                         </div>
                         <div className="w-full space-y-2">
@@ -1379,6 +1419,23 @@ export default function WalletView() {
                     {getAssetCode(selectedAsset.assetCode)}
                   </span>
                 </p>
+                {formData.transactionData.vatAmount > 0 && (
+                  <>
+                    <p className="space-x-1">
+                      <span className="font-montserratSemiBold">VAT:</span>
+                      <span>{formData.transactionData?.vat}%</span>
+                    </p>
+                    <p className="space-x-1">
+                      <span className="font-montserratSemiBold">
+                        VAT Amount:
+                      </span>
+                      <span>
+                        {formData.transactionData?.vatAmount}{' '}
+                        {getAssetCode(selectedAsset.assetCode)}
+                      </span>
+                    </p>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -1600,23 +1657,20 @@ export default function WalletView() {
         }}
       >
         {!showSwapSuccess ? (
-          <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
-            <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
+          <div className="flex flex-col items-center overflow-y-auto w-full px-5 md:px-20 space-y-5 py-5 justify-center rounded-md">
+            <p className="text-primary-800 w-full text-lg md:text-xl font-montserratSemiBold">
               Confirm swap
             </p>
             {formData.transactionData?.messages.length > 0 && (
-              <div className="flex flex-col ">
-                <span className="font-montserratSemiBold">Note:</span>
+              <div className="flex flex-col text-center">
+                <p className="font-montserratSemiBold">Note:</p>
                 {formData.transactionData?.messages.map((message: string) => (
-                  <p className="text-red-500">
-                    {'=> '}
-                    {message}
-                  </p>
+                  <p className="text-red-500">{message}</p>
                 ))}
               </div>
             )}
             <p>You are swapping</p>
-            <div className="w-full bg-primary-100 rounded-xl py-5 space-y-2 text-center">
+            <div className="w-full bg-primary-100 rounded-xl py-20 space-y-2 text-center">
               <p className="font-montserratSemiBold">
                 {formData.amount} {getAssetCode(selectedAsset.assetCode)}
               </p>
@@ -1667,6 +1721,23 @@ export default function WalletView() {
                       {getAssetCode(selectedAsset.assetCode)}
                     </span>
                   </p>
+                  {formData.transactionData.vatAmount > 0 && (
+                    <>
+                      <p className="space-x-1">
+                        <span className="font-montserratSemiBold">VAT:</span>
+                        <span>{formData.transactionData?.vat}%</span>
+                      </p>
+                      <p className="space-x-1">
+                        <span className="font-montserratSemiBold">
+                          VAT Amount:
+                        </span>
+                        <span>
+                          {formData.transactionData?.vatAmount}{' '}
+                          {getAssetCode(selectedAsset.assetCode)}
+                        </span>
+                      </p>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -1811,7 +1882,6 @@ export default function WalletView() {
                   )}
                   {formData.transactionData?.fee && (
                     <>
-                      <hr className="border-1" />
                       <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
                         Fee
                       </p>
@@ -1821,6 +1891,19 @@ export default function WalletView() {
                         {formData.transactionData?.fee}%)
                       </p>
                       <hr className="border-1" />
+                      {formData.transactionData.vatAmount > 0 && (
+                        <>
+                          <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                            VAT
+                          </p>
+                          <p>
+                            {formData.transactionData?.vatAmount}{' '}
+                            {getAssetCode(selectedAsset.assetCode)} (
+                            {formData.transactionData?.vat}%)
+                          </p>
+                          <hr className="border-1" />
+                        </>
+                      )}
                     </>
                   )}
                   <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">

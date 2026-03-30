@@ -6,6 +6,7 @@ export const FIAT_RATES = 'FIAT_RATES';
 export const APP_VERSION = 'APP_VERSION';
 export const HIDEBALANCES = 'HIDE_BALANCES';
 export const WALLETMODE = 'WALLETMODE';
+export const ACTIVEWALLET = 'ACTIVEWALLET';
 export const ANNOUNCEMENTS = 'ANNOUNCEMENTS';
 export const IGODO = 'IGODO';
 export const BANTUBLOCKCHAINEXPLORERTESTNETBASEURL = 'https://explorer-testnet.bantu.network/tx/';

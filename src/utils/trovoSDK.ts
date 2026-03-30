@@ -49,8 +49,8 @@ const signBase64Txn = (secretKey: string, transactionXDR: string, networkPassphr
         
         const signedData = keypair.sign(bytes);
         console.log('bytes', bytes);
-        const signedBase64Str = Buffer.from(signedData).toString('base64');
-console.log('btoa result', signedBase64Str);
+        const signedBase64Str = signedData.toString('base64');
+        console.log('btoa result', signedBase64Str);
         return signedBase64Str;
     }catch(error: any){
         console.log('error signing request', error);
@@ -67,7 +67,8 @@ const parseSecretKey = (secretKey: string): Account => {
 const getCredsFromPassPhrase = (passphrase: string): Account | null => {
     try {    
         const seed = mnemonicToSeedSync(passphrase);
-        const keypair = StellarSdk.Keypair.fromRawEd25519Seed(Buffer.alloc(32, seed));
+        // const keypair = StellarSdk.Keypair.fromRawEd25519Seed(Buffer.alloc(32, seed));
+        const keypair = StellarSdk.Keypair.fromRawEd25519Seed(seed);
 
         return {publicKey: keypair.publicKey(), secretKey: keypair.secret()};
     } catch (error: any) {

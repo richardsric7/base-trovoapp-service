@@ -12,5 +12,9 @@ export type Asset = {
     nativePrice: number,
     cryptoWalletDepositAddresses: string,
     closedGroup: string,
+    tokenizedAsset: boolean,
+    assetClassId : number,
+    fundingStructure : number,
+    exitWithFiat : number,
 }
   
