@@ -10,6 +10,7 @@ type Props = {
   alias: string;
   isSharedAccess: boolean;
   walletType: number;
+  isWalletDetailsPage?: boolean;
 };
 
 const WalletCard = forwardRef<HTMLDivElement, Props>(
@@ -21,6 +22,7 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
       currency,
       isSharedAccess,
       walletType,
+      isWalletDetailsPage = false,
     }: Props,
     ref,
   ) => {
@@ -28,8 +30,12 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
     const [hideBalance, setHideBalance] = useState(appState.hideBalances === 1);
     return (
       <div
-        className="min-w-[900px] flex text-white font-matahariRegular
-     rounded-2xl bg-primary-800 items-center justify-between space-x-3 md:mt-5 md:mb-10 py-5 px-5"
+        className={[
+          'flex text-white font-matahariRegular rounded-2xl bg-primary-800 items-center justify-between space-x-3 md:mt-5 py-5 px-5',
+          isWalletDetailsPage
+            ? 'md:min-w-[200px] xl:min-w-[450px]'
+            : 'min-w-[900px] md:mb-10',
+        ].join(' ')}
         ref={ref}
       >
         <div className="flex flex-col space-y-2">
@@ -57,7 +63,7 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
               />
             </button>
           </div>
-          <p className="text-xl md:text-2xl font-semibold">
+          <p className="text-xl md:text-2xl font-bold">
             {hideBalance ? '**********' : `${localCurrencyBalance} ${currency}`}
           </p>
           {currency.toLowerCase().includes('usd') ? (
