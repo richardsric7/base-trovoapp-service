@@ -19,11 +19,13 @@ import { ProtectedRoutes } from './routeGuard';
 import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
 import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAccount';
-import WalletView from '../pages/dashboard/walletView';
+import WalletView from '../pages/dashboard/wallet/walletView';
 import SendAssetReceipt from '../pages/pdfPages/sendAssetReceipt';
 import { History } from '../pages/dashboard/history';
 import { Tokenize, TokenizeAssetForm } from '../pages/dashboard';
-import AssetDetail from '../pages/dashboard/assetDetails';
+import AssetDetail from '../pages/dashboard/wallet/assetDetails';
+import YieldView from '../pages/dashboard/wallet/yield';
+import EarlyExitView from '../pages/dashboard/wallet/earlyExit';
 
 export default function AppRouter() {
   return (
@@ -60,6 +62,8 @@ export default function AppRouter() {
           <Route path="/backup" element={<Backup />} />
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
+            <Route path="yield" element={<YieldView />} />
+            <Route path="early-exit" element={<EarlyExitView />} />
             <Route path="asset-details" element={<AssetDetail />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
             <Route path="wallet" element={<WalletView />} />

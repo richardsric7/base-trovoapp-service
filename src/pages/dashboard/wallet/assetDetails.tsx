@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ButtonSecondary from '../../components/buttonSecondary';
-import Button from '../../components/button';
-import Dropdown from '../../components/dropdown';
-import TextInput from '../../components/textInput';
-import Modal from '../../components/modal';
-import Header from '../../components/header';
-import { Asset } from '../../types/asset';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import ButtonSecondary from '../../../components/buttonSecondary';
+import Button from '../../../components/button';
+import Dropdown from '../../../components/dropdown';
+import TextInput from '../../../components/textInput';
+import Modal from '../../../components/modal';
+import Header from '../../../components/header';
+import { Asset } from '../../../types/asset';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/reduxStore';
-import { formatToDecimal, getAssetCode } from '../../utils/utilities';
-import { truncatePublicKey } from '../../utils/truncateValues';
-import { showNotification } from '../../utils/showToaster';
-import WalletOperations from '../../components/walletOperations';
-import { Wallet } from '../../types/wallet';
+import { RootState } from '../../../store/reduxStore';
+import { formatToDecimal, getAssetCode } from '../../../utils/utilities';
+import { truncatePublicKey } from '../../../utils/truncateValues';
+import { showNotification } from '../../../utils/showToaster';
+import WalletOperations from '../../../components/walletOperations';
+import { Wallet } from '../../../types/wallet';
 
 type AssetDetailItemProps = {
   asset: Asset;
@@ -36,17 +36,20 @@ AssetDetailItem.defaultProps = { asset: '' };
 
 export default function AssetDetail() {
   const navigate = useNavigate();
-  const appState = useSelector((state: RootState) => state.appState);
-  const [wallet, setWallet] = useState<Wallet>(appState.activeWallet!);
-  const activeAssetString = appState.activeAsset;
+  const [searchParams] = useSearchParams();
+
+  const appUser = useSelector((state: RootState) => state.auth.user!);
+
+  const [wallet, setWallet] = useState<Wallet>(
+    appUser.userWallets.find((w) => w.publicKey == searchParams.get('wallet'))!,
+  );
   const [asset, setAsset] = useState<Asset>(
     wallet?.claimedAssets.find(
       (a) =>
-        a.assetCode == activeAssetString?.split('|')[0] &&
-        a.assetIssuer == activeAssetString?.split('|')[1],
+        a.assetCode == searchParams.get('assetCode') &&
+        a.assetIssuer == searchParams?.get('assetIssuer'),
     )!,
   );
-  const appUser = useSelector((state: RootState) => state.auth.user!);
   let mutableWalletArray = [...appUser.userWallets];
   const [wallets] = useState(
     mutableWalletArray.sort((w) => (w.primaryWallet ? 0 : 1)),
@@ -56,8 +59,8 @@ export default function AssetDetail() {
     (fiatRates as Record<string, number>)[appUser.currency.toUpperCase()] || 0;
   const curatedAsset = appUser.curatedSwapList.find(
     (a) =>
-      a.assetCode == activeAssetString?.split('|')[0] &&
-      a.assetIssuer == activeAssetString?.split('|')[1],
+      a.assetCode == searchParams.get('assetCode') &&
+      a.assetIssuer == searchParams?.get('assetIssuer'),
   );
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -79,18 +82,21 @@ export default function AssetDetail() {
               </div>
               <div className="flex w-full md:w-2/6 space-x-5">
                 <ButtonSecondary
-                  label="Dividend & Yield"
+                  label="Yield"
                   additionalClasses="bg-primary-600 text-white font-montserratSemiBold"
                   onclick={() => {
-                    // setShowBuyTokenModal(true);
+                    navigate(
+                      `/dashboard/yield?wallet=${wallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                    );
                   }}
                 />
                 <ButtonSecondary
                   label="Early Exit"
                   additionalClasses="font-montserratSemiBold"
                   onclick={() => {
-                    // setShowSubscribeModal(true);
-                    console.log(appUser);
+                    navigate(
+                      `/dashboard/early-exit?wallet=${wallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                    );
                   }}
                 />
               </div>

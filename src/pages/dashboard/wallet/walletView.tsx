@@ -1,22 +1,18 @@
-import Button from '../../components/button';
-import Header from '../../components/header';
-import Tabs from '../../components/tabs';
+import Button from '../../../components/button';
+import Header from '../../../components/header';
+import Tabs from '../../../components/tabs';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import WalletCard from '../../components/walletCard';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store/reduxStore';
-import {
-  setActiveWallet as setActiveWalletToStore,
-  setActiveAsset as setActiveAssetToStore,
-} from '../../store/appStateSlice';
+import WalletCard from '../../../components/walletCard';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store/reduxStore';
 import React from 'react';
 import {
   formatToDecimal,
   canInitiate,
   totalWalletBalanceInCurrency,
-} from '../../utils/utilities';
-import { Wallet } from '../../types/wallet';
+} from '../../../utils/utilities';
+import { Wallet } from '../../../types/wallet';
 import {
   TEDropdown,
   TEDropdownItem,
@@ -24,15 +20,13 @@ import {
   TEDropdownToggle,
   TERipple,
 } from 'tw-elements-react';
-import { Asset } from '../../types/asset';
-import AssetItem from '../../components/assetItem';
-import WalletOperations from '../../components/walletOperations';
+import { Asset } from '../../../types/asset';
+import AssetItem from '../../../components/assetItem';
+import WalletOperations from '../../../components/walletOperations';
 
 export default function WalletView() {
   const ref = useRef<HTMLDivElement>(null);
-  const dispatch = useDispatch();
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  const appState = useSelector((state: RootState) => state.appState!);
   const navigate = useNavigate();
   let mutableWalletArray = [...appUser.userWallets];
   const [wallets, setWallets] = useState(
@@ -313,13 +307,9 @@ export default function WalletView() {
                           nativePrice={asset.nativePrice.toString()}
                           currency={appUser.currency}
                           onclick={() => {
-                            dispatch(setActiveWalletToStore(activeWallet));
-                            dispatch(
-                              setActiveAssetToStore(
-                                `${asset.assetCode}|${asset.assetIssuer}`,
-                              ),
+                            navigate(
+                              `/dashboard/asset-details?wallet=${activeWallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                             );
-                            navigate('/dashboard/asset-details');
                           }}
                         />
                       ),
@@ -337,14 +327,9 @@ export default function WalletView() {
                           nativePrice={asset.nativePrice.toString()}
                           currency={appUser.currency}
                           onclick={() => {
-                            dispatch(setActiveWalletToStore(activeWallet));
-                            dispatch(
-                              setActiveAssetToStore(
-                                `${asset.assetCode}|${asset.assetIssuer}`,
-                              ),
+                            navigate(
+                              `/dashboard/asset-details?wallet=${activeWallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                             );
-                            console.log(appState);
-                            navigate('/dashboard/asset-details');
                           }}
                         />
                       ),
