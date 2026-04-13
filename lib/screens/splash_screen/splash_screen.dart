@@ -335,7 +335,18 @@ class _SplashScreenState extends State<SplashScreen>
       accountNotFoundAfterSwitchPopup(
         context,
         message: responseData['data']['message'],
-        onCreateNewAccount: () {},
+        onCreateNewAccount: () {
+          var account = TrovoWalletSDK().createAccount();
+          appState.setTempPassword = appState.password;
+          appState.setTempPublicKey = account.publicKey;
+          appState.setTempSecretKey = account.secretKey;
+          appState.setTempSigner = account.publicKey;
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: SignupPageConfig,
+          );
+          appState.viewData = {'rel': 'afterSwitch'};
+        },
         onImportNewCredential: () => {
           appState.currentAction = PageAction(
             state: PageState.addPage,

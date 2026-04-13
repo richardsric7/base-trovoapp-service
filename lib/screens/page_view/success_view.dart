@@ -127,7 +127,7 @@ class _SuccessView extends State<SuccessView> {
               SizedBox(height: height / 30),
               SizedBox(height: height / 20),
               Button(
-                appState.viewData![SuccessViewPageConfig.key]['buttonText'] ??
+                appState.viewData![SuccessViewPageConfig.key]?['buttonText'] ??
                     "done".tr(),
                 notifier.getbluecolor,
                 wihitecolor,

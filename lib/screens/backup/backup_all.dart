@@ -54,9 +54,10 @@ class _BackupAllState extends State<BackupAll> {
               Text(
                 "backupwallets".tr(),
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -64,9 +65,10 @@ class _BackupAllState extends State<BackupAll> {
                 child: Text(
                   "writeitdown".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               // display only for subwallets
@@ -77,9 +79,10 @@ class _BackupAllState extends State<BackupAll> {
                   child: Text(
                     "maynotbedisplayedagain".tr(),
                     style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 15.sp,
-                        fontFamily: fontbody),
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody,
+                    ),
                   ),
                 ),
               ],
@@ -89,14 +92,15 @@ class _BackupAllState extends State<BackupAll> {
                 child: Text(
                   "writeitasfollows".tr(),
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 15.sp,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 20),
               for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!)
+                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!),
               ],
               SizedBox(height: height / 20),
               Button(
@@ -109,8 +113,10 @@ class _BackupAllState extends State<BackupAll> {
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -122,13 +128,13 @@ class _BackupAllState extends State<BackupAll> {
     var wallets = <Wallet>[];
     secrets.forEach((secret) {
       Account account = TrovoWalletSDK().parseSecretKey(secret);
-      var wlt = user.wallets!
-          .firstWhereOrNull((wallet) => wallet.publicKey == account.publicKey);
-      if (wlt == null) {
-        wlt = state.primaryWallet;
+      var wlt = user.wallets!.firstWhereOrNull(
+        (wallet) => wallet.publicKey == account.publicKey,
+      );
+      if (wlt != null) {
+        wlt.secretKey = secret;
+        wallets.add(wlt);
       }
-      wlt.secretKey = secret;
-      wallets.add(wlt);
     });
     return wallets;
   }
@@ -136,11 +142,15 @@ class _BackupAllState extends State<BackupAll> {
   gotoNext() async {
     var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
     if (isFirstTime) {
-      state.currentAction =
-          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+      state.currentAction = PageAction(
+        state: PageState.addPage,
+        page: FingerprintPageConfig,
+      );
     } else {
-      state.currentAction =
-          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+      state.currentAction = PageAction(
+        state: PageState.replaceAll,
+        page: BottomHomePageConfig,
+      );
     }
     state.viewData![EnsurePrivacyPageConfig.key] = null;
   }

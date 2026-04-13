@@ -42,7 +42,7 @@ Future<Map> makePostRequest({
           body: body,
           headers: headers,
         )
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
     return {
       'statusCode': response.statusCode,
       'data': json.decode(response.body),
@@ -112,7 +112,7 @@ Future<Map> makeGetRequest({
   try {
     http.Response response = await http
         .get(Uri.parse(await getTrovoAppBaseURL() + uri), headers: headers)
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
 
     return {
       'statusCode': response.statusCode,
@@ -187,7 +187,7 @@ Future<Map> makePutRequest({
           body: body,
           headers: headers,
         )
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
 
     return {
       'statusCode': response.statusCode,
@@ -245,7 +245,7 @@ Future<Map> makeUnSecuredGetRequest(String path) async {
   try {
     http.Response response = await http
         .get(Uri.parse(await getTrovoAppBaseURL() + path))
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
 
     return {
       'statusCode': response.statusCode,
@@ -311,7 +311,7 @@ Future<Map> makeUnSecuredPostRequest({
           body: body,
           headers: headers,
         )
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
     return {
       'statusCode': response.statusCode,
       'data': json.decode(response.body),
@@ -648,7 +648,7 @@ Future<Map> makeDeleteRequest({
           body: body,
           headers: headers,
         )
-        .timeout(Duration(seconds: 60));
+        .timeout(Duration(seconds: 120));
     return {
       'statusCode': response.statusCode,
       'data': json.decode(response.body),

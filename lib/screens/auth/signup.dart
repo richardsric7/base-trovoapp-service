@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -64,6 +65,7 @@ class _SignUpState extends State<SignUp> {
   String secretKey = '';
   bool importMode = false;
   String errorText = '';
+  Account? creds = null;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -345,6 +347,25 @@ class _SignUpState extends State<SignUp> {
                               }
                               return null;
                             },
+                            onChanged: (value) {
+                              if (value != null && value.length == 56) {
+                                try {
+                                  setState(() {
+                                    creds = parseKey(value)!;
+                                  });
+                                } catch (e) {
+                                  popup(
+                                    context,
+                                    title: "error".tr(),
+                                    message: "invalidcredentials".tr(),
+                                  );
+                                }
+                              } else {
+                                setState(() {
+                                  creds = null;
+                                });
+                              }
+                            },
                             onSaved: (value) {
                               secretKey = value!.trim().replaceAll(' ', '');
                             },
@@ -352,15 +373,65 @@ class _SignUpState extends State<SignUp> {
                             maxLength: 56,
                             focusNode: secretKeyFocusNode,
                           ),
-                          // ],
-                          // Row(
-                          //   children: [
-                          //     Container(
-                          //       width: width / 1.2,
-                          //       child: checkUsePassphrase(),
-                          //     ),
-                          //   ],
-                          // ),
+                          if (creds != null) ...[
+                            SizedBox(height: height / 90),
+                            Container(
+                              constraints: BoxConstraints(
+                                maxWidth: width / 1.2,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'publickey'.tr(),
+                                    overflow: TextOverflow.visible,
+                                    style: TextStyle(
+                                      color: notifier.getblck,
+                                      fontSize: 15,
+                                      fontFamily: fontbody,
+                                    ),
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: width / 1.4,
+                                        ),
+                                        child: Text(
+                                          creds?.publicKey ?? '',
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                            color: notifier.getblck,
+                                            fontSize: 13,
+                                            fontFamily: fontbody,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          onPressed: () => {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: creds!.publicKey,
+                                              ),
+                                            ),
+                                            showSnackBar(
+                                              "publickey".tr(),
+                                              context,
+                                            ),
+                                          },
+                                          icon: Icon(Icons.copy, size: 20),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                         SizedBox(height: height / 50),
                         // Terms of Service
@@ -534,6 +605,8 @@ class _SignUpState extends State<SignUp> {
                 if (usePassPhrase) {
                   passPhraseFocusNode.requestFocus();
                 } else {
+                  secretKey = '';
+                  secretKeyController.text = '';
                   secretKeyFocusNode.requestFocus();
                 }
               });
@@ -933,7 +1006,6 @@ class _SignUpState extends State<SignUp> {
       };
 
       String jsonBody = jsonEncode(map);
-      Account? creds = null;
 
       if (!usePassPhrase && secretKey.isNotEmpty) {
         creds = parseKey(secretKey)!;
@@ -942,8 +1014,9 @@ class _SignUpState extends State<SignUp> {
       }
 
       if (creds != null) {
-        state.tempPublicKey = creds.publicKey;
-        state.tempSecretKey = creds.secretKey;
+        state.tempPublicKey = creds!.publicKey;
+        state.tempSigner = creds!.publicKey;
+        state.tempSecretKey = creds!.secretKey;
       }
 
       Map responseData = await makePostRequest(
