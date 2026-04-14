@@ -1396,7 +1396,112 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//service authorization verify url
-	router.GET("/v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+		// var err error
+
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		authID := strings.TrimSpace(strings.ToLower(c.Param("authId")))
+
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v/%v/%v", ownerUsername, trovoUser, authID), gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+			c.JSON(statusCode, response)
+			return
+		}
+		// log.Printf("service Info: %+v\n", mInfo)
+		if mInfo.AuthorizationPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		authData, err := servicelinkServices.GetUserAuthorizationData(ownerUsername, userInfo.Username, authID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+
+		}
+		if authData.Authorized == 0 {
+
+			//authorixation not approved
+			response := gin.H{"error": "error-unauthorized-request", "data": "unauthorizedRequest", "message": "authorization awaiting approval"}
+			statusCode := http.StatusUnauthorized
+			c.JSON(statusCode, response)
+			return
+
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+	//app authorization verify url
+	router.GET("/v1/servicelinks/app/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
@@ -1502,7 +1607,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//service payment request
-	router.GET("/v1/servicelinks/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1612,7 +1717,118 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//service payment request
+	//api service payment request
+	router.GET("/v1/trovo-api/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
+		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
+		if len(paymentDestination) == 56 {
+			paymentDestination = strings.ToUpper(paymentDestination)
+		}
+		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
+		assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
+		amount := strings.TrimSpace(c.Query("amount"))
+		memo := strings.TrimSpace(c.Query("memo"))
+
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/payment/request/%v %v", trovoUser, ownerUsername)
+		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
+
+		{
+			//search cache
+
+			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+			if ok {
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				c.JSON(status, response)
+				return
+			}
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET SERVICE PAYMENT DATA] error for SERVICE:", ownerUsername, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
+		// log.Printf("service Infor: %+v\n", mInfo)
+		if mInfo.PaymentPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		_, err = servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//generate payment data
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, gc)
+		if err != nil {
+			//could not create login session
+			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
+			statusCode := http.StatusServiceUnavailable
+			c.JSON(statusCode, response)
+			return
+		}
+		{
+			cacheDurationInSeconds := 20 * 60 //2 minutes
+
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, data, cacheDurationInSeconds)
+		}
+		c.JSON(http.StatusOK, data)
+
+	})
+
+	//service tokenized asset request
 	router.GET("/v1/servicelinks/tokenized-asset/:assetCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		assetCode := strings.TrimSpace(strings.ToLower(c.Param("assetCode")))
