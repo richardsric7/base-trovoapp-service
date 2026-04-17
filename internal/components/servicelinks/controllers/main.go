@@ -1427,14 +1427,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-		// 	//wrong access
-		// 	statusCode := http.StatusUnauthorized
-		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-		// 	c.JSON(statusCode, response)
-		// 	return
-		// }
-		// log.Printf("service Info: %+v\n", mInfo)
+	
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
