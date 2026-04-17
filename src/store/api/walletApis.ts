@@ -33,9 +33,9 @@ export const authApi = baseApi.injectEndpoints({
       },
     }),
     swapAsset: builder.mutation({
-      query: (payload: Payload) => ({        
+      query: (payload: Payload) => ({
         url: payload.body.isSharedWallet ? '/v1/users/swap' : '/v1/users/swap',
-        method: 'POST',        
+        method: 'POST',
         data: {
           payload: payload.body,
           creds: {
@@ -43,9 +43,22 @@ export const authApi = baseApi.injectEndpoints({
             publicKey: payload.publicKey,
             secretKey: payload.secretKey,
           }
-        }, 
+        },
       }),
-    }),    
+    }),
+    fetchFiatPayments: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/users/payments/${payload.publicKey}?limit=${payload.body.limit ?? 50}${payload.body.query ?? ''}`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
@@ -53,4 +66,5 @@ export const {
   useSendAssetMutation,
   useSwapAssetMutation,
   useLazyReceiveAssetQuery,
+  useFetchFiatPaymentsQuery,
 } = authApi;
