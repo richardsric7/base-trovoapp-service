@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TextInput from '../../components/textInput';
 import WidgetCard from '../../components/widgetCard';
@@ -15,7 +15,31 @@ import capitalizeFirstLetter from '../../utils/capitalizeFirst';
 import {
   totalAccountBalanceInCurrency,
   formatToDecimal,
+  getBytesLength,
 } from '../../utils/utilities';
+import { Encryptor } from '../../utils/encryptor';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
+import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import {
+  useLazyReceiveAssetQuery,
+  useLazyFetchFiatAmountForActivationQuery,
+  useFetchFiatPaymentsQuery,
+  useFetchTokenizedAssetsQuery,
+  useFetchExpressedInterestsQuery,
+  useFetchSubscriptionsQuery,
+} from '../../store/api/walletApis';
+import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
+import {
+  formatAmount,
+  formatRelativeTime,
+  getTransactionAssetCode,
+  normalizeTransactionType,
+  parseAmountValue,
+  parseDate,
+} from '../../utils/transactionUtils';
+import { truncatePublicKey } from '../../utils/truncateValues';
+import { TokenizedAsset } from '../../types/tokenizedAsset';
+import { json } from 'stream/consumers';
 
 export default function Home() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
@@ -33,6 +57,26 @@ export default function Home() {
     primaryWallet.claimedAssets.length > 0,
   );
 
+  const config = {
+    public_key: 'FLWPUBK-**************************-X',
+    tx_ref: Date.now().toString(),
+    amount: 100,
+    currency: 'NGN',
+    payment_options: 'card,mobilemoney,ussd',
+    customer: {
+      email: 'user@gmail.com',
+      phone_number: '070********',
+      name: 'john doe',
+    },
+    customizations: {
+      title: 'Activate Trovo Account',
+      description: 'Buy XBN and TROV with fiat',
+      logo: 'https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg',
+    },
+  };
+
+  const handleFlutterPayment = useFlutterwave(config);
+
   const getImage = (patronPackageId: string): string => {
     switch (patronPackageId.toLowerCase()) {
       case 'platinum':
@@ -44,302 +88,259 @@ export default function Home() {
     }
   };
 
-  // const totalAccountBalanceInLocalCurrency = () => {
-  //   let balance = 0;
-  //   for (let wallet of appUser.userWallets) {
-  //     for (var asset of wallet.claimedAssets) {
-  //       balance += asset.amount;
-  //     }
-  //   }
-  // };
+  const [showCopiedModal, setShowCopiedModal] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [showRequestXBNModal, setShowRequestXBNModal] = useState(false);
+  const [showBuyXBNWithFiatModal, setShowBuyXBNWithFiatModal] = useState(false);
+  const [activationAmount, setActivationAmount] = useState(0);
+  const [gasPercent, setGasPercent] = useState(0);
+  const [confirmRequestXBNModal, setConfirmRequestXBNModal] = useState(false);
+  const [qrCodeLink, setQrCodeLink] = useState('');
+  const [receiveAsset] = useLazyReceiveAssetQuery();
+  const [fetchFiatAmounts] = useLazyFetchFiatAmountForActivationQuery();
+  const [formData, setFormData] = useState({
+    sendTo: '',
+    amount: '',
+    memo: '',
+  });
+  const [errorObj, setErrorObj] = useState({
+    amount: '',
+    memo: '',
+  });
+  const [secretKey, setSecretKey] = useState('');
 
-  function ActivateWalletView() {
-    const [showCopiedModal, setShowCopiedModal] = useState(false);
-    const [showRequestXBNModal, setShowRequestXBNModal] = useState(false);
-    const [confirmRequestXBNModal, setConfirmRequestXBNModal] = useState(false);
+  const validateRecieveForm = (): boolean => {
+    let isValid = true;
+    let newObj = errorObj;
 
-    return (
-      <div className="w-full">
-        <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
-          Wallet Activation
-        </p>
-        <div className="md:px-5 w-full">
-          <div className="w-full flex flex-col items-center justify-center space-y-5 md:mb-10">
-            <img
-              className="self-center"
-              src="/images/activateWallet.png"
-              alt=""
-            />
-            <p className="font-montserratSemiBold text-md text-center">
-              Your Wallet is ready!
-            </p>
-            <div className="space-y-2">
-              <p className="text-md text-center">
-                But you cannot use it for any transaction just yet until it is
-                activated with atleast 10 Bantu tokens (XBN)
-              </p>
-              <p className="text-md text-center">
-                You can get Bantu tokens (XBN) for your wallet using either of
-                the 3 easy ways displayed below
-              </p>
-            </div>
-            <div className="md:w-2/4 px-3 pb-5 space-y-3">
-              <Button
-                label="Request XBN from Trovo User"
-                additionalClasses="font-montserratSemiBold"
-                onclick={() => {
-                  setShowRequestXBNModal(true);
-                }}
-              />
-              <ButtonSecondary
-                label="Send XBN to your wallet"
-                additionalClasses="bg-primary-600 text-white font-montserratSemiBold ring-primary-600"
-                onclick={() => {
-                  setShowCopiedModal(true);
-                }}
-              />
-              <ButtonSecondary
-                label="Buy XBN on TrovoP2P"
-                additionalClasses="font-montserratSemiBold"
-                onclick={() => {
-                  // navigate('/import');
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        {/* Public key copied modal */}
-        <Modal
-          showModal={showCopiedModal}
-          onClose={() => {
-            setShowCopiedModal(false);
-          }}
-        >
-          <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
-            <img src="/images/success.png" alt="success" />
-            <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
-              <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-                Public Key Copied Successfully!
-              </p>
-            </div>
-          </div>
-        </Modal>
-        {/* Request XBN modal */}
-        <Modal
-          showModal={showRequestXBNModal}
-          onClose={() => {
-            setShowRequestXBNModal(false);
-          }}
-        >
-          <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
-            <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
-              Request XBN
-            </p>
-            <div className="w-full">
-              <TextInput
-                inputType="text"
-                label="Receiving Wallet"
-                placeholder="Efizee"
-                onInputChange={() => {
-                  // console.log('input has changed', newValue);
-                }}
-              />
-            </div>
-            <div className="w-full">
-              <TextInput
-                inputType="text"
-                label="Amount"
-                placeholder="100"
-                onInputChange={() => {
-                  // console.log('input has changed', newValue);
-                }}
-              />
-              <div className="flex justify-between text-primary-700 mt-2">
-                <span>0.0000 XBN</span>
-                <span>2,300,320.3214 XBN</span>
-              </div>
-            </div>
-            <div className="w-full">
-              <TextInput
-                inputType="text"
-                label="Add memo (optional)"
-                placeholder=""
-                onInputChange={() => {
-                  // console.log('input has changed', newValue);
-                }}
-              />
-              <div className="flex justify-end text-primary-700 mt-2">
-                <span>0/28</span>
-              </div>
-            </div>
-            <div className="w-full md:w-2/4 space-y-3">
-              <Button
-                label="Proceed"
-                additionalClasses="font-montserratSemiBold"
-                onclick={() => {
-                  setConfirmRequestXBNModal(true);
-                  setShowRequestXBNModal(false);
-                }}
-              />
-            </div>
-            <div />
-          </div>
-        </Modal>
-        <Modal
-          showModal={confirmRequestXBNModal}
-          onClose={() => {
-            setConfirmRequestXBNModal(false);
-          }}
-        >
-          <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
-            <p className="text-primary-800 w-full mb-5 text-lg text-center">
-              You are requesting for
-            </p>
-            <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
-              <div className="flex flex-col space-y-2 items-center w-full justify-between">
-                <p className="font-montserratSemiBold">45.0000 xbn</p>
-                <p className="text-xs text-primary-400">~3400 NGN</p>
-              </div>
-            </div>
-            <p className="text-primary-800 w-full mb-5 text-center">
-              Receiving Wallet
-            </p>
-            <div className="flex w-full py-3 px-2 xl:px-10 xl:space-y-5 rounded-xl justify-center items-center bg-primary-100">
-              <div className="flex flex-col space-y-2 items-center w-full justify-between">
-                <p className="font-montserratSemiBold">Obi</p>
-                <p className="text-xs text-primary-400">
-                  0x71C7656EC7ab88b098defB751B7401B5f6d8976F
-                </p>
-              </div>
-              <button type="button">
-                <img src="/images/copy.png" alt="copy" />
-              </button>
-            </div>
-            <p className="text-primary-800 w-full mb-5 text-center">
-              Description/Memo
-            </p>
-            <div className="flex w-full py-5 px-2 xl:px-10 xl:space-y-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
-              <div className="flex flex-col space-y-2 items-center w-full justify-between">
-                <p className="text-xs text-primary-400">test</p>
-              </div>
-            </div>
-            <div className="flex w-full py-5 px-2 xl:px-10 xl:space-y-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
-              <div className="flex flex-col space-y-2 items-center w-full justify-between">
-                <img className="w-2/5" src="/images/qrcode.png" alt="QR Code" />
-              </div>
-            </div>
-            <div className="w-full flex space-x-3 pt-5">
-              <Button
-                label="Share"
-                additionalClasses="font-montserratSemiBold"
-                onclick={() => {
-                  setConfirmRequestXBNModal(false);
-                }}
-              />
-              <ButtonSecondary
-                label="Back"
-                additionalClasses="font-montserratSemiBold"
-                onclick={() => {
-                  setShowRequestXBNModal(true);
-                  setConfirmRequestXBNModal(false);
-                }}
-              />
-            </div>
-            <div />
-          </div>
-        </Modal>
-      </div>
-    );
-  }
-
-  function WalletView() {
-    if (!hasAssets) {
-      return (
-        <div className="w-full">
-          <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
-            Asset Offering
-          </p>
-          <div className="md:px-5 w-full">
-            <div className="w-full flex flex-col justify-center space-y-5 md:mb-10">
-              <img className="self-center" src="/images/empty.png" alt="" />
-              <p className="font-montserratSemiBold text-md text-center">
-                No Assets Yet
-              </p>
-            </div>
-          </div>
-        </div>
-      );
+    if (!formData.amount) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter amount to recieve',
+      };
+      isValid = false;
+    } else if (isNaN(Number(formData.amount))) {
+      newObj = {
+        ...newObj,
+        amount: 'Please enter a valid amount',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        amount: '',
+      };
     }
 
-    return (
-      <div className="w-full">
-        <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
-          Asset Offering
-        </p>
-        <div className="md:px-5 w-full">
-          <Tabs tabList={['Primary Listing', 'Secondary Listing']}>
-            <div className="tab-1 flex flex-col space-y-3">
-              <AssetListItem
-                image="/images/avatar.png"
-                assetName="Atlantis 1"
-                assetClass="Real Estate"
-                isSubscribed
-                onclick={() => {
-                  navigate('/dashboard/tokenized-asset');
-                }}
-              />
-              <AssetListItem
-                image="/images/avatar.png"
-                assetName="Orchard Estate"
-                assetClass="Real Estate"
-                onclick={() => {
-                  /* */
-                }}
-              />
-              <AssetListItem
-                image="/images/avatar.png"
-                assetName="Atlantis 1"
-                assetClass="Real Estate"
-                isSubscribed
-                onclick={() => {
-                  /* */
-                }}
-              />
-              <AssetListItem
-                image="/images/avatar.png"
-                assetName="Orchard Estate"
-                assetClass="Real Estate"
-                onclick={() => {
-                  /* */
-                }}
-              />
-            </div>
-            <div className="tab-2">
-              <div className="flex flex-col space-y-3">
-                <AssetListItem
-                  image="/images/avatar.png"
-                  assetName="Metro Railings"
-                  assetClass="Infrastructure"
-                  isSubscribed
-                  onclick={() => {
-                    /* */
-                  }}
-                />
-                <AssetListItem
-                  image="/images/avatar.png"
-                  assetName="Mount"
-                  assetClass="Infrastructure"
-                  onclick={() => {
-                    /* */
-                  }}
-                />
-              </div>
-            </div>
-          </Tabs>
-        </div>
-      </div>
+    if (formData.memo && getBytesLength(formData.memo) > 28) {
+      newObj = {
+        ...newObj,
+        memo: 'Memo length cannot be more than 28 bytes',
+      };
+    } else {
+      newObj = {
+        ...newObj,
+        memo: '',
+      };
+    }
+
+    setErrorObj({ ...newObj });
+    return isValid;
+  };
+
+  useEffect(() => {
+    (async () => {
+      const encryptor = new Encryptor();
+      setSecretKey(await encryptor.getSecretKey(appUser));
+    })();
+  }, []);
+
+  const handleRecieve = async () => {
+    if (!validateRecieveForm()) {
+      return;
+    }
+
+    const payload = {
+      signer: primaryWallet.signer,
+      publicKey: primaryWallet.publicKey,
+      secretKey: secretKey,
+      body: {
+        destination: formData.sendTo,
+        memo: formData.memo,
+        amount: formData.amount,
+        publicKey: primaryWallet.publicKey,
+        alias: primaryWallet.alias,
+        assetCode: '',
+        assetIssuer: '',
+      },
+    };
+
+    toggleLoader();
+    const res = await receiveAsset(payload);
+    console.log('response', res);
+
+    if ('data' in res) {
+      console.log('response', res);
+      setQrCodeLink(res.data.qrCode);
+      setConfirmRequestXBNModal(true);
+      setShowRequestXBNModal(false);
+    } else if ('error' in res) {
+      const errorResponse = res.error as ErrorResponse;
+      showNotification(
+        'error',
+        errorResponse.data.message ?? 'Something went wrong. Please try again.',
+      );
+    }
+    toggleLoader();
+  };
+
+  const handleBuyWithFiat = async () => {
+    const payload = {
+      signer: primaryWallet.signer,
+      publicKey: primaryWallet.publicKey,
+      secretKey: secretKey,
+      body: {},
+    };
+
+    toggleLoader();
+    const res = await fetchFiatAmounts(payload);
+    if ('data' in res) {
+      console.log('response', res.data);
+      setActivationAmount(res.data.activationAmount);
+      setGasPercent(res.data.gasPercent);
+      setShowBuyXBNWithFiatModal(true);
+    } else if ('error' in res) {
+      const errorResponse = res.error as ErrorResponse;
+      showNotification(
+        'error',
+        errorResponse.data.message ?? 'Something went wrong. Please try again.',
+      );
+    }
+    toggleLoader();
+  };
+
+  const getPercentageValue = (percentage: number, amount: number): number =>
+    (percentage * amount) / 100;
+
+  const { data, isLoading } = useFetchFiatPaymentsQuery(
+    {
+      signer: primaryWallet?.signer ?? '',
+      publicKey: primaryWallet.publicKey,
+      secretKey,
+      body: { limit: 5 },
+    },
+    { skip: !secretKey || !primaryWallet },
+  );
+
+  const rawRecords = data?.data?.records ?? data?.records ?? [];
+
+  const rows: HistoryRow[] = rawRecords.map(
+    (item: Record<string, any>, index: number) => {
+      const type = normalizeTransactionType(
+        item.transactionType ?? item.type,
+        item,
+        primaryWallet.publicKey,
+      );
+      const amountValue = parseAmountValue(item.amount);
+      const assetCode = getTransactionAssetCode(item);
+      const amountPrefix =
+        type === 'Sent' ? '-' : type === 'Received' ? '+' : '+';
+      const amountText =
+        typeof item.amount === 'string' && item.amount.trim().length > 0
+          ? item.amount
+          : formatAmount(amountValue, assetCode);
+      const createdAt = parseDate(
+        item.transactionDate ?? item.createdAt ?? item.date,
+      );
+      const description =
+        item.description ??
+        item.narration ??
+        item.memo ??
+        (type === 'Received'
+          ? `Received ${assetCode}`
+          : type === 'Sent'
+            ? `Sent ${assetCode}`
+            : `Swapped asset to ${assetCode}`);
+
+      const walletMatch =
+        appUser.userWallets.find(
+          (wallet) =>
+            wallet.publicKey === item.publicKey ||
+            wallet.publicKey === item.walletPublicKey ||
+            wallet.alias === item.walletAlias,
+        ) ?? primaryWallet;
+
+      return {
+        id: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? index}`,
+        type,
+        assetCode,
+        amountValue,
+        price: `${amountPrefix}${amountText}`,
+        description,
+        dateLabel: formatRelativeTime(createdAt),
+        dateValue: createdAt,
+        walletKey: walletMatch?.publicKey ?? 'unknown',
+        walletLabel: walletMatch?.alias ?? 'Primary wallet',
+        username: `${item.username ?? item.fullName ?? item.name ?? ''}`.trim(),
+        fromUsername: item.from,
+        toUsername: item.to,
+        fromPublicKey: `${item.fromPublicKey ?? item.senderPublicKey ?? ''}`,
+        toPublicKey: `${item.toPublicKey ?? item.receiverPublicKey ?? ''}`,
+        memo: `${item.memo ?? item.narration ?? ''}`.trim(),
+      };
+    },
+  );
+
+  const { data: primaryOffers, isLoading: isLoadingPrimaryOffers } =
+    useFetchTokenizedAssetsQuery(
+      {
+        signer: primaryWallet?.signer ?? '',
+        publicKey: primaryWallet.publicKey,
+        secretKey,
+        body: { status: 0 },
+      },
+      { skip: !secretKey || !primaryWallet },
     );
-  }
+
+  var typedPrimaryOffers =
+    primaryOffers?.records == undefined
+      ? []
+      : (primaryOffers?.records as TokenizedAsset[]);
+  console.log('typed primary offers', typedPrimaryOffers);
+
+  const { data: secondaryListing, isLoading: isLoadingSecondaryListing } =
+    useFetchTokenizedAssetsQuery(
+      {
+        signer: primaryWallet?.signer ?? '',
+        publicKey: primaryWallet.publicKey,
+        secretKey,
+        body: { status: 1 },
+      },
+      { skip: !secretKey || !primaryWallet },
+    );
+
+  var typedSecondaryListing =
+    secondaryListing?.records == undefined
+      ? []
+      : (secondaryListing?.records as TokenizedAsset[]);
+  console.log('typed primary offers', typedSecondaryListing);
+
+  const { data: expressedInterest, isLoading: isLoadingExpressedInterest } =
+    useFetchExpressedInterestsQuery(
+      {
+        signer: primaryWallet?.signer ?? '',
+        publicKey: primaryWallet.publicKey,
+        secretKey,
+        body: { status: 1 },
+      },
+      { skip: !secretKey || !primaryWallet },
+    );
+
+  var typedExpressedInterests =
+    expressedInterest?.records == undefined
+      ? []
+      : (expressedInterest?.records as TokenizedAsset[]);
+
+  console.log('expressed interests', typedExpressedInterests);
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
@@ -404,7 +405,485 @@ export default function Home() {
                 currency={appUser.currency.toUpperCase()}
               />
             </div>
-            {isActivated ? <WalletView /> : <ActivateWalletView />}
+            {isActivated ? (
+              <div className="w-full">
+                <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+                  Tokenized Assets
+                </p>
+                <div className="md:px-5 pb-10 w-full space-y-5">
+                  <div className="flex items-center w-full justify-between">
+                    <p className="font-montserratSemiBold text-md">
+                      PRIMARY OFFERS
+                    </p>
+                    <Link
+                      className="flex space-x-5 items-center"
+                      to={'history'}
+                    >
+                      <p className="test-xs text-primary-400 underline">
+                        View all
+                      </p>
+                    </Link>
+                  </div>
+                  {isLoadingPrimaryOffers ? (
+                    <p className="text-center">Loading primary offers...</p>
+                  ) : typedPrimaryOffers.length == 0 ? (
+                    <div className="w-full">
+                      <div className="md:px-5 w-full">
+                        <div className="w-full flex flex-col justify-center space-y-5 md:mb-10">
+                          <img
+                            className="self-center"
+                            src="/images/empty.png"
+                            alt=""
+                          />
+                          <p className="font-montserratSemiBold text-md text-center">
+                            No Assets Yet
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {typedPrimaryOffers.map((asset) => (
+                        <AssetListItem
+                          asset={asset}
+                          isSubscribed={
+                            typedExpressedInterests.find(
+                              (a) => a.assetCode == asset.assetCode,
+                            ) != null
+                          }
+                          onclick={() => {
+                            // navigate('/dashboard/tokenized-asset');
+                            navigator.clipboard
+                              .writeText(
+                                JSON.stringify(expressedInterest.records[0]),
+                              )
+                              .then(() => {
+                                showNotification(
+                                  'success',
+                                  'Public key copied!',
+                                );
+                              });
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="md:px-5 pb-10 w-full space-y-5">
+                  <div className="flex items-center w-full justify-between">
+                    <p className="font-montserratSemiBold text-md">
+                      SECONDARY LISTING
+                    </p>
+                    <Link
+                      className="flex space-x-5 items-center"
+                      to={'history'}
+                    >
+                      <p className="test-xs text-primary-400 underline">
+                        View all
+                      </p>
+                    </Link>
+                  </div>
+                  {isLoadingSecondaryListing ? (
+                    <p className="text-center">Loading secondary listing...</p>
+                  ) : typedSecondaryListing.length == 0 ? (
+                    <div className="w-full">
+                      <div className="md:px-5 w-full">
+                        <div className="w-full flex flex-col justify-center space-y-5 md:mb-10">
+                          <img
+                            className="self-center"
+                            src="/images/empty.png"
+                            alt=""
+                          />
+                          <p className="font-montserratSemiBold text-md text-center">
+                            No Assets Yet
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-5">
+                      {typedSecondaryListing.map((asset) => (
+                        <AssetListItem
+                          asset={asset}
+                          isSecondary={true}
+                          onclick={() => {
+                            navigate('/dashboard/tokenized-asset');
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="w-full">
+                <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+                  Wallet Activation
+                </p>
+                <div className="md:px-5 w-full">
+                  <div className="w-full flex flex-col items-center justify-center space-y-5 md:mb-10">
+                    <img
+                      className="self-center"
+                      src="/images/activateWallet.png"
+                      alt=""
+                    />
+                    <p className="font-montserratSemiBold text-md text-center">
+                      Your Wallet is ready!
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-md text-center">
+                        But you cannot use it for any transaction just yet until
+                        it is activated with atleast 10 Bantu tokens (XBN)
+                      </p>
+                      <p className="text-md text-center">
+                        You can get Bantu tokens (XBN) for your wallet using
+                        either of the 3 easy ways displayed below
+                      </p>
+                    </div>
+                    <div className="px-3 pb-5 space-y-3">
+                      <div className="flex space-x-5 ">
+                        <Button
+                          label="Buy XBN with Fiat"
+                          additionalClasses="font-montserratSemiBold py-10 px-5"
+                          onclick={handleBuyWithFiat}
+                          leftIcon={
+                            <img
+                              src="/images/buy_with_fiat.png"
+                              height={40}
+                              width={40}
+                              alt="filter"
+                            />
+                          }
+                        />
+                        <Button
+                          label="Buy XBN on TrovoP2P"
+                          additionalClasses="font-montserratSemiBold py-10 px-5"
+                          onclick={() => {
+                            // navigate('/import');
+                            setShowComingSoonModal(true);
+                          }}
+                          leftIcon={
+                            <img
+                              src="/images/buy_from_trovop2p.png"
+                              height={40}
+                              width={40}
+                              alt="Buy XBN on TrovoP2P"
+                            />
+                          }
+                        />
+                      </div>
+                      <div className="flex space-x-5 ">
+                        <Button
+                          label="Request XBN from Trovo User"
+                          additionalClasses="font-montserratSemiBold py-10 px-5"
+                          onclick={() => {
+                            setShowRequestXBNModal(true);
+                          }}
+                          leftIcon={
+                            <img
+                              src="/images/request_from_user.png"
+                              height={40}
+                              width={40}
+                              alt="Request from Trovo User"
+                            />
+                          }
+                        />
+                        <Button
+                          label="Send XBN to your Wallet"
+                          additionalClasses="font-montserratSemiBold py-10 px-5"
+                          onclick={() => {
+                            navigator.clipboard
+                              .writeText(primaryWallet.alias)
+                              .then(() => {
+                                showNotification(
+                                  'success',
+                                  'Public key copied!',
+                                );
+                              });
+                          }}
+                          leftIcon={
+                            <img
+                              src="/images/send_to_wallet.png"
+                              height={40}
+                              width={40}
+                              alt="Send XBN to your Wallet"
+                            />
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Public key copied modal */}
+                <Modal
+                  showModal={showCopiedModal}
+                  onClose={() => {
+                    setShowCopiedModal(false);
+                  }}
+                >
+                  <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
+                    <img src="/images/success.png" alt="success" />
+                    <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
+                      <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                        Public Key Copied Successfully!
+                      </p>
+                    </div>
+                  </div>
+                </Modal>
+                {/* P2P coming soon modal */}
+                <Modal
+                  showModal={showComingSoonModal}
+                  onClose={() => {
+                    setShowComingSoonModal(false);
+                  }}
+                >
+                  <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
+                    <p className="text-primary-800 text-md xl:text-xl font-montserratSemiBold">
+                      Coming soon!
+                    </p>
+                    <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
+                      <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+                        P2P will be launching soon.
+                      </p>
+                    </div>
+                  </div>
+                </Modal>
+                {/* Request XBN modal */}
+                <Modal
+                  showModal={showRequestXBNModal}
+                  onClose={() => {
+                    setShowRequestXBNModal(false);
+                  }}
+                >
+                  <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+                    <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
+                      Request XBN
+                    </p>
+                    <div className="w-full">
+                      <TextInput
+                        defaultValue={primaryWallet.alias}
+                        inputType="text"
+                        readonly={true}
+                        label="Receiving Wallet"
+                        placeholder="Efizee"
+                        onInputChange={() => {
+                          // console.log('input has changed', newValue);
+                        }}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <TextInput
+                        inputType="text"
+                        label="Amount"
+                        placeholder="100"
+                        defaultValue={formData.amount}
+                        onInputChange={(value) => {
+                          setFormData({ ...formData, amount: value });
+                        }}
+                      />
+                      <div
+                        className={`w-full flex items-center ${
+                          errorObj.amount ? 'justify-between' : 'justify-end'
+                        }`}
+                      >
+                        {errorObj.amount && (
+                          <span className="text-red-500 text-sm mt-1">
+                            {errorObj.amount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 w-full">
+                      <TextInput
+                        inputType="text"
+                        label="Add memo (optional)"
+                        defaultValue={formData.memo}
+                        onInputChange={(value) => {
+                          console.log('value', value);
+                          setFormData({ ...formData, memo: value });
+                        }}
+                      />
+                      <div
+                        className={`w-full flex items-center ${
+                          errorObj.memo ? 'justify-between' : 'justify-end'
+                        }`}
+                      >
+                        {errorObj.memo && (
+                          <span className="text-red-500 text-sm mt-1">
+                            {errorObj.memo}
+                          </span>
+                        )}
+                        <span
+                          className={
+                            formData.memo && getBytesLength(formData.memo) > 28
+                              ? 'text-red-500'
+                              : ''
+                          }
+                        >
+                          {formData.memo ? getBytesLength(formData.memo) : 0}
+                          /28
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-2/4 space-y-3">
+                      <Button
+                        label="Proceed"
+                        additionalClasses="font-montserratSemiBold"
+                        onclick={handleRecieve}
+                      />
+                    </div>
+                    <div />
+                  </div>
+                </Modal>
+                <Modal
+                  showModal={confirmRequestXBNModal}
+                  onClose={() => {
+                    setConfirmRequestXBNModal(false);
+                  }}
+                >
+                  <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+                    <p className="text-primary-800 w-full mb-5 text-lg font-montserratSemiBold">
+                      Receive {formData.amount} XBN
+                    </p>
+                    <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
+                      <div className="flex flex-col space-y-2 w-full justify-between">
+                        <p className="font-montserratSemiBold">
+                          Receiving Wallet
+                        </p>
+                        <div className="flex w-full py-3  rounded-xl justify-start">
+                          <div className="flex flex-col space-y-2 w-full justify-between">
+                            <p className="font-montserratSemiBold">
+                              {primaryWallet.alias}
+                            </p>
+                            <p className="text-xs text-primary-400">
+                              {primaryWallet.publicKey}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard
+                                .writeText(primaryWallet.publicKey)
+                                .then(() => {
+                                  showNotification(
+                                    'success',
+                                    'Public key copied!',
+                                  );
+                                });
+                            }}
+                          >
+                            <img src="/images/copy.png" alt="copy" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {formData.memo ? (
+                      <div className="flex w-full py-5 px-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
+                        <div className="flex flex-col space-y-2 w-full justify-between">
+                          <p className="font-montserratSemiBold">For</p>
+                          <p className="font-montserratSemiBold">
+                            {formData.memo}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                    <div className="flex w-full py-5 px-2 xl:px-10 xl:space-y-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
+                      <div className="flex flex-col space-y-2 items-center w-full justify-between">
+                        <img className="w-3/5" src={qrCodeLink} alt="QR Code" />
+                      </div>
+                    </div>
+                    <div className="w-full flex space-x-3 pt-5">
+                      <Button
+                        label="Share"
+                        additionalClasses="font-montserratSemiBold"
+                        onclick={() => {
+                          setConfirmRequestXBNModal(false);
+                        }}
+                      />
+                      <ButtonSecondary
+                        label="Back"
+                        additionalClasses="font-montserratSemiBold"
+                        onclick={() => {
+                          setShowRequestXBNModal(true);
+                          setConfirmRequestXBNModal(false);
+                        }}
+                      />
+                    </div>
+                    <div />
+                  </div>
+                </Modal>
+                {/* Buy XBN with FIAT */}
+                <Modal
+                  showModal={showBuyXBNWithFiatModal}
+                  onClose={() => {
+                    setShowBuyXBNWithFiatModal(false);
+                  }}
+                >
+                  <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+                    <p className="text-primary-800 w-full mb-5 text-lg font-montserratSemiBold">
+                      Activate Account
+                    </p>
+                    <div className="flex w-full py-10 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
+                      <img
+                        className="self-center"
+                        src="/images/activateWallet.png"
+                        alt=""
+                      />
+                      <div className="flex flex-col space-y-2 w-full justify-between">
+                        <p className="text-center">
+                          An easy option to quickly activate your account and
+                          buy your first virtual asset on the Trovo App. You
+                          will get XBN as well as TROV when you send fiat.
+                        </p>
+                      </div>
+                    </div>
+                    <p>You Pay</p>
+                    <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
+                      <div className="flex flex-col space-y-2 w-full justify-between">
+                        <p className="font-montserratSemiBold text-center">
+                          NGN {activationAmount}
+                        </p>
+                      </div>
+                    </div>
+                    <p>You Get</p>
+                    <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
+                      <div className="flex flex-col space-y-2 w-full justify-between">
+                        <p className="font-montserratSemiBold text-center">
+                          NGN {getPercentageValue(gasPercent, activationAmount)}{' '}
+                          worth of Gas and NGN{' '}
+                          {activationAmount -
+                            getPercentageValue(
+                              gasPercent,
+                              activationAmount,
+                            )}{' '}
+                          worth of TROV
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-full flex space-x-3 pt-5">
+                      <Button
+                        label="Make Payment"
+                        additionalClasses="font-montserratSemiBold"
+                        onclick={() => {
+                          // setConfirmRequestXBNModal(false);
+                          handleFlutterPayment({
+                            callback: (response) => {
+                              console.log(response);
+                              closePaymentModal(); // this will close the modal programmatically
+                            },
+                            onClose: () => {},
+                          });
+                        }}
+                      />
+                    </div>
+                    <div />
+                  </div>
+                </Modal>
+              </div>
+            )}
           </div>
         </div>
         <div className="hidden md:block w-3/6 flex flex-col space-y-5 h-full py-3 lg:px-3">
@@ -454,48 +933,36 @@ export default function Home() {
           <div className="flex w-full space-y-3 py-7 px-2 xl:px-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
             <div className="flex items-center w-full justify-between">
               <p className="font-semibold">Recent Transactions</p>
-              <p className="test-xs text-primary-400">view all</p>
+              <Link className="flex space-x-5 items-center" to={'history'}>
+                <p className="test-xs text-primary-400">View all</p>
+              </Link>
             </div>
-            <TransactionItem
-              addressOrUsername="Tom"
-              transactionType={1}
-              amount="3,000.000"
-              assetCode="XBN"
-              date={new Date().toLocaleString()}
-              onclick={() => {
-                setHasAssets(!hasAssets);
-              }}
-            />
-            <TransactionItem
-              addressOrUsername="GH3Y8...ZX89O"
-              transactionType={0}
-              amount="0.5000"
-              assetCode="TROV"
-              date={new Date().toLocaleString()}
-              onclick={() => {
-                /* */
-              }}
-            />
-            <TransactionItem
-              addressOrUsername="Tom"
-              transactionType={1}
-              amount="3,000.000"
-              assetCode="XBN"
-              date={new Date().toLocaleString()}
-              onclick={() => {
-                /* */
-              }}
-            />
-            <TransactionItem
-              addressOrUsername="GH3Y8...ZX89O"
-              transactionType={0}
-              amount="0.5000"
-              assetCode="TROV"
-              date={new Date().toLocaleString()}
-              onclick={() => {
-                /* */
-              }}
-            />
+            {isLoading ? (
+              <div>Loading transaction history...</div>
+            ) : rows.length > 0 ? (
+              rows.map((item) => (
+                <TransactionItem
+                  addressOrUsername={
+                    item.type == 'Sent'
+                      ? item.toUsername?.length == 0
+                        ? truncatePublicKey(item.toPublicKey)
+                        : (item.toUsername ?? '')
+                      : item.fromUsername?.length == 0
+                        ? truncatePublicKey(item.fromPublicKey)
+                        : (item.fromUsername ?? '')
+                  }
+                  transactionType={item.type == 'Sent' ? 0 : 1}
+                  amount={item.amountValue.toString()}
+                  assetCode={item.assetCode}
+                  date={item.dateLabel}
+                  onclick={() => {
+                    setHasAssets(!hasAssets);
+                  }}
+                />
+              ))
+            ) : (
+              <div>No recent transactions.</div>
+            )}
           </div>
           <div className="flex w-full space-y-3 py-7 px-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
             <img src="/images/bankNotes.png" alt="bank notes" />

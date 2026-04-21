@@ -18,7 +18,7 @@ export default function EarlyExitView() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
 
   const [password, setPassword] = useState('');
-  const [passwordErr, setPasswordErr] = useState('');
+  const [passwordErr] = useState('');
   const [showSummary, setShowSummary] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [agreesToTerms, setAgreesToTerms] = useState(false);
@@ -32,7 +32,7 @@ export default function EarlyExitView() {
         a.assetIssuer == searchParams?.get('assetIssuer'),
     )!,
   );
-  const [errorObj, setErrorObj] = useState({
+  const [errorObj] = useState({
     terms: '',
   });
 
@@ -204,7 +204,7 @@ export default function EarlyExitView() {
                   <TextInput
                     inputType="text"
                     label="No of tokens to exit"
-                    onInputChange={(value) => {}}
+                    onInputChange={() => {}}
                     error={''}
                   />
                   <Dropdown
@@ -220,7 +220,7 @@ export default function EarlyExitView() {
                   <TextInput
                     inputType="text"
                     label="Wallet username/address"
-                    onInputChange={(value) => {}}
+                    onInputChange={() => {}}
                     error={''}
                   />
                   <Button type="submit" label="Proceed" onclick={() => {}} />

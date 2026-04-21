@@ -59,6 +59,58 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    fetchFiatAmountForActivation: builder.query({
+      query: (payload: Payload) => ({
+        url: '/v1/users/activate/fiat',
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchTokenizedAssets: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/list?onlyWithUserPermission=0&salesList=${payload.body.status}`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchExpressedInterests: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/expressed-interests`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchSubscriptions: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/subscriptions`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
@@ -67,4 +119,8 @@ export const {
   useSwapAssetMutation,
   useLazyReceiveAssetQuery,
   useFetchFiatPaymentsQuery,
+  useFetchTokenizedAssetsQuery,
+  useFetchExpressedInterestsQuery,
+  useFetchSubscriptionsQuery,
+  useLazyFetchFiatAmountForActivationQuery,
 } = authApi;
