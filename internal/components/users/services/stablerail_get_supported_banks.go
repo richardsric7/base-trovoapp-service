@@ -68,3 +68,9 @@ func StablerailSaveSupportedBanks(gc *sharedconfig.GlobalConfig) (*userModels.St
 
 	return &result, nil
 }
+
+func GetStablerailBanks(gc *sharedconfig.GlobalConfig) (banks []userModels.StablerailBank) {
+	banks = make([]userModels.StablerailBank, 0)
+	gc.DB.Order("bank_name ASC").Find(&banks)
+	return
+}
