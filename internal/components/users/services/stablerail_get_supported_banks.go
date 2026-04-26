@@ -59,10 +59,17 @@ func StablerailSaveSupportedBanks(gc *sharedconfig.GlobalConfig) (*userModels.St
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
+	log.Printf("[StablerailSaveSupportedBanks] Stablerail Supported banks %+v\n", result)
+	countryCode := result.Data.CountryCode
 	//save bank codes to DB
-	for _, bank := range result.Data {
-		gc.DB.Save(&bank)
-		log.Printf("[StablerailSaveSupportedBanks] Saved Stablerail Supported bank %+v\n", bank)
+	for _, bank := range result.Data.Banks {
+		b := userModels.StablerailBank{
+			BankCode:    bank.BankCode,
+			BankName:    bank.BankName,
+			CountryCode: countryCode,
+		}
+		gc.DB.Save(&b)
+		log.Printf("[StablerailSaveSupportedBanks] Saved Stablerail Supported bank %+v\n", b)
 
 	}
 

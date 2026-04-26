@@ -784,7 +784,10 @@ func main() {
 		go func() {
 
 			for {
-				userServices.StablerailSaveSupportedBanks(&globalConfig)
+				_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
+				if e != nil {
+					log.Printf("[Error Fetching stablerail banks] %v\n", e)
+				}
 				time.Sleep(10 * time.Minute)
 			}
 		}()

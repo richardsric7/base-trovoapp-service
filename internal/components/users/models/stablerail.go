@@ -88,14 +88,21 @@ type StablerailCheckOnboardingResponse struct {
 
 // Structs to match the API response
 type StablerailBank struct {
-	BankCode string `gorm:"primaryKey" json:"bankCode"`
-	BankName string `json:"bankName"`
+	BankCode    string `gorm:"primaryKey" json:"bank_code"`
+	BankName    string `json:"bank_name"`
+	CountryCode string `json:""`
 }
 
 type StablerailGetBanksResponse struct {
-	Status       string           `json:"status"`
-	ResponseCode string           `json:"response_code"`
-	Data         []StablerailBank `json:"data"`
+	Status       string `json:"status"`
+	ResponseCode string `json:"response_code"`
+	Data         struct {
+		CountryCode string `json:"countryCode"`
+		Banks       []struct {
+			BankCode string `gorm:"primaryKey" json:"bank_code"`
+			BankName string `json:"bank_name"`
+		} `json:"banks"`
+	} `json:"data"`
 }
 
 // Request payload struct
