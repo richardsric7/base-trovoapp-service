@@ -779,6 +779,16 @@ func main() {
 			}
 		}()
 	}
+	{
+		//Start fetching Stablertail supported bank codes
+		go func() {
+
+			for {
+				userServices.StablerailSaveSupportedBanks(&globalConfig)
+				time.Sleep(10 * time.Minute)
+			}
+		}()
+	}
 
 	//setup router
 

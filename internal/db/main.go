@@ -579,6 +579,36 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating FeeCollection: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.StablerailConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailBank{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailBank: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailUser{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailUser: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailRequest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailOnramp{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailOnramp: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailOfframp{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailOfframp: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)
