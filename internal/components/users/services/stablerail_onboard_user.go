@@ -13,13 +13,13 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.GlobalConfig) (err error) {
+func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.GlobalConfig) (msg string, err error) {
 	//check if username already exists
 	var stablerailUser userModels.StablerailUser
 	gc.DB.Where("trovo_username = ?", trovoUsername).First(&stablerailUser)
 	if len(stablerailUser.ID) > 0 {
 		//alrready registered
-		return
+		return "registration already done", nil
 	}
 	//initiate onboarding
 	// tx := gc.DB.Begin()
@@ -27,12 +27,12 @@ func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.G
 	var stablerailRequest userModels.StablerailRequest
 	r, err := StablerailOnboardUser(bvn, gc)
 	if err != nil {
-		return err
+		return "", err
 	}
 	//begin user registration
-	if !strings.EqualFold(r.Status, "success") {
+	if !strings.EqualFold(r.ResponseCode, "00") {
 		// was not successful
-		return fmt.Errorf("could not onboard user %s", trovoUsername)
+		return "", fmt.Errorf("could not onboard user %s", trovoUsername)
 	}
 	stablerailRequest = userModels.StablerailRequest{
 		ID:            r.Data.RequestID,
@@ -42,10 +42,10 @@ func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.G
 	}
 	e := gc.DB.Save(&stablerailRequest).Error
 	if e != nil {
-		log.Printf("[StablerailInitiateOnboardUser]Error saving onboarding for username %v: %v", trovoUsername, e)
-		return fmt.Errorf("could not onboard user %s", trovoUsername)
+		log.Printf("[StablerailInitiateOnboardUser]Error saving onboarding for username %v: %v\n", trovoUsername, e)
+		return "", fmt.Errorf("could not onboard user %s", trovoUsername)
 	}
-	return nil
+	return r.Data.Message, nil
 
 }
 
@@ -117,4 +117,30 @@ func StablerailOnboardUser(bvn string, gc *sharedconfig.GlobalConfig) (*userMode
 	}
 
 	return &result, nil
+}
+
+func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sharedconfig.GlobalConfig) (err error) {
+
+	//initiate onboarding
+	// tx := gc.DB.Begin()
+	// defer tx.Rollback()
+	// var stablerailRequest userModels.StablerailRequest
+	res, err := StablerailCheckOnboardingStatus(r.ID, gc)
+	if err != nil {
+		return err
+	}
+	//begin user registration
+	if !strings.EqualFold(res.ResponseCode, "00") {
+		// was not successful
+		return fmt.Errorf("could not check onboarding status user %s", r.TrovoUsername)
+	}
+
+	r.Status = res.Data.Status
+	e := gc.DB.Save(&r).Error
+	if e != nil {
+		log.Printf("[UpdateStablerailUserOnboardingStatus]Error saving onboarding status for username %v: %v\n", r.TrovoUsername, e)
+		return fmt.Errorf("could not onboard user %s", r.TrovoUsername)
+	}
+	return nil
+
 }

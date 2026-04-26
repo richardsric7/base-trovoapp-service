@@ -62,27 +62,36 @@ type StablerailOnboardRequest struct {
 	BVN string `json:"bvn"`
 }
 
+// Request payload
+type StablerailOnboardStatus struct {
+	RequestId string `json:"requestId"`
+}
+
 // Response structure
 type StablerailOnboardResponse struct {
 	Status       string `json:"status"`
 	ResponseCode string `json:"response_code"`
 	Message      string `json:"message"`
 	Data         struct {
-		UserID    string `json:"userId"`
-		Status    string `json:"status"`
-		RequestID string `json:"requestId"`
+		RequestID               string `json:"requestId"`
+		Status                  string `json:"status"`
+		UserHash                string `json:"userHash"`
+		Message                 string `json:"message"`
+		EstimatedCompletionTime string `json:"estimatedCompletionTime"`
 	} `json:"data"`
 }
 
 // Response structs
-type StablerailCheckOnboardingResponse struct {
+type StablerailCheckOnboardingResponse  struct {
 	Status       string `json:"status"`
 	ResponseCode string `json:"response_code"`
+	Message      string `json:"message"`
 	Data         struct {
-		UserID      string    `json:"userId"`
-		Status      string    `json:"status"`
-		BvnVerified bool      `json:"bvnVerified"`
-		CreatedAt   time.Time `json:"createdAt"`
+		Type      string    `json:"type"`
+		UserID    string    `json:"userId"`
+		Status    string    `json:"status"`
+		CreatedAt time.Time `json:"createdAt"`
+		Message   string    `json:"message"`
 	} `json:"data"`
 }
 
