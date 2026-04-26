@@ -16,7 +16,7 @@ type StablerailUser struct {
 	UpdatedAt     time.Time
 	ID            string
 	TrovoUsername string
-	BVN           string // xx...xxx
+	// BVN           string // xx...xxx
 
 }
 

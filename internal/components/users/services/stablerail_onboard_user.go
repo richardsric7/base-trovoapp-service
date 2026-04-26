@@ -7,10 +7,47 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/sharedconfig"
 )
+
+func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.GlobalConfig) (err error) {
+	//check if username already exists
+	var stablerailUser userModels.StablerailUser
+	gc.DB.Where("trovo_username = ?", trovoUsername).First(&stablerailUser)
+	if len(stablerailUser.ID) > 0 {
+		//alrready registered
+		return
+	}
+	//initiate onboarding
+	// tx := gc.DB.Begin()
+	// defer tx.Rollback()
+	var stablerailRequest userModels.StablerailRequest
+	r, err := StablerailOnboardUser(bvn, gc)
+	if err != nil {
+		return err
+	}
+	//begin user registration
+	if !strings.EqualFold(r.Status, "success") {
+		// was not successful
+		return fmt.Errorf("could not onboard user %s", trovoUsername)
+	}
+	stablerailRequest = userModels.StablerailRequest{
+		ID:            r.Data.RequestID,
+		RequestType:   "Onboarding",
+		Status:        r.Data.Status,
+		TrovoUsername: trovoUsername,
+	}
+	e := gc.DB.Save(&stablerailRequest).Error
+	if e != nil {
+		log.Printf("[StablerailInitiateOnboardUser]Error saving onboarding for username %v: %v", trovoUsername, e)
+		return fmt.Errorf("could not onboard user %s", trovoUsername)
+	}
+	return nil
+
+}
 
 // Function to onboard user
 func StablerailOnboardUser(bvn string, gc *sharedconfig.GlobalConfig) (*userModels.StablerailOnboardResponse, error) {
