@@ -35,8 +35,8 @@ type StablerailOnramp struct {
 	UpdatedAt       time.Time
 	ID              string
 	WalletAddress   string
-	BaseAmount      float64
-	Fee             float64
+	// BaseAmount      float64
+	// Fee             float64
 	TotalAmount     float64
 	TargetAsset     string //USDT
 	Status          string
@@ -82,7 +82,7 @@ type StablerailOnboardResponse struct {
 }
 
 // Response structs
-type StablerailCheckOnboardingResponse  struct {
+type StablerailCheckOnboardingResponse struct {
 	Status       string `json:"status"`
 	ResponseCode string `json:"response_code"`
 	Message      string `json:"message"`
@@ -176,4 +176,171 @@ type StablerailPayout struct {
 	TransactionID string    `json:"transactionId"`
 	Timestamp     time.Time `json:"timestamp"`
 	Attempts      int       `json:"attempts"`
+}
+
+// Request payload
+type CNGNOnrampRequest struct {
+	Owner          string `json:"owner"`
+	Amount         int    `json:"amount"`
+	AssetSwap      string `json:"assetSwap"`
+	AutoSwap       bool   `json:"autoSwap"`
+	UserID         string `json:"userId"`
+	SweepToOfframp bool   `json:"sweepToOfframp"`
+}
+
+// Response structures
+type CNGNOnrampResponse struct {
+	Status       string           `json:"status"`
+	ResponseCode string           `json:"response_code"`
+	Message      string           `json:"message"`
+	Data         CNGNResponseData `json:"data"`
+}
+
+type CNGNResponseData struct {
+	RequestID             string           `json:"requestId"`
+	WalletAddress         string           `json:"walletAddress"`
+	Status                string           `json:"status"`
+	Version               string           `json:"version"`
+	Message               string           `json:"message"`
+	AutoSwapEnabled       bool             `json:"autoSwapEnabled"`
+	SweepToOfframpEnabled bool             `json:"sweepToOfframpEnabled"`
+	TargetAsset           string           `json:"targetAsset"`
+	FeeBreakdown          CNGNFeeBreakdown `json:"feeBreakdown"`
+}
+
+type CNGNFeeBreakdown struct {
+	BaseAmount     int       `json:"baseAmount"`
+	FintechFee     int       `json:"fintechFee"`
+	GatewayFee     int       `json:"gatewayFee"`
+	StablesRailFee int       `json:"stablesRailFee"`
+	TotalFee       int       `json:"totalFee"`
+	TotalAmount    int       `json:"totalAmount"`
+	Breakdown      Breakdown `json:"breakdown"`
+}
+
+type Breakdown struct {
+	UserRequestedAmount      int     `json:"userRequestedAmount"`
+	FintechFeeAmount         int     `json:"fintechFeeAmount"`
+	FintechFeePercentage     float64 `json:"fintechFeePercentage"`
+	FintechFeeCapped         bool    `json:"fintechFeeCapped"`
+	GatewayFeeAmount         int     `json:"gatewayFeeAmount"`
+	GatewayFeePercentage     float64 `json:"gatewayFeePercentage"`
+	StablesRailFeeAmount     int     `json:"stablesRailFeeAmount"`
+	StablesRailFeePercentage float64 `json:"stablesRailFeePercentage"`
+	StablesRailFeeCapped     bool    `json:"stablesRailFeeCapped"`
+	TotalFeeAmount           int     `json:"totalFeeAmount"`
+	FinalAmount              int     `json:"finalAmount"`
+	AmountToWallet           int     `json:"amountToWallet"`
+}
+
+// Request payload
+type GetVirtualAccountRequest struct {
+	RequestID string `json:"requestId"`
+}
+
+// Response structs
+type VirtualAccountFeeBreakdown struct {
+	UserRequestedAmount      float64 `json:"userRequestedAmount"`
+	FintechFeeAmount         float64 `json:"fintechFeeAmount"`
+	FintechFeePercentage     float64 `json:"fintechFeePercentage"`
+	FintechFeeCapped         bool    `json:"fintechFeeCapped"`
+	GatewayFeeAmount         float64 `json:"gatewayFeeAmount"`
+	GatewayFeePercentage     float64 `json:"gatewayFeePercentage"`
+	StablesRailFeeAmount     float64 `json:"stablesRailFeeAmount"`
+	StablesRailFeePercentage float64 `json:"stablesRailFeePercentage"`
+	StablesRailFeeCapped     bool    `json:"stablesRailFeeCapped"`
+	TotalFeeAmount           float64 `json:"totalFeeAmount"`
+	FinalAmount              float64 `json:"finalAmount"`
+	AmountToWallet           float64 `json:"amountToWallet"`
+}
+
+type VirtualAccount struct {
+	AccountNumber      string                     `json:"accountNumber"`
+	BankName           string                     `json:"bankName"`
+	AccountName        string                     `json:"accountName"`
+	Amount             float64                    `json:"amount"`
+	CreatedAt          time.Time                  `json:"createdAt"`
+	BaseAmount         float64                    `json:"baseAmount"`
+	FeeAmount          float64                    `json:"feeAmount"`
+	TotalAmountWithFee float64                    `json:"totalAmountWithFee"`
+	FeePercentage      float64                    `json:"feePercentage"`
+	FeeBreakdown       VirtualAccountFeeBreakdown `json:"feeBreakdown"`
+}
+
+type VirtualAccountData struct {
+	RequestID      string         `json:"requestId"`
+	VirtualAccount VirtualAccount `json:"virtualAccount"`
+	Status         string         `json:"status"`
+	WalletAddress  string         `json:"walletAddress"`
+	Version        string         `json:"version"`
+}
+
+type GetVirtualAccountResponse struct {
+	Status       string             `json:"status"`
+	ResponseCode string             `json:"response_code"`
+	Message      string             `json:"message"`
+	Data         VirtualAccountData `json:"data"`
+}
+
+// Request payload
+type CNGNOnrampStatusRequest struct {
+	RequestID string `json:"requestId"`
+}
+
+// Response structures
+type CNGNOnrampStatusAPIResponse struct {
+	Status       string `json:"status"`
+	ResponseCode string `json:"response_code"`
+	Message      string `json:"message"`
+	Data         CNGNOnrampStatusData   `json:"data"`
+}
+
+type CNGNOnrampStatusData struct {
+	Status    string   `json:"status"`
+	RequestID string   `json:"requestId"`
+	Version   string   `json:"version"`
+	Metadata  CNGNOnrampStatusMetadata `json:"metadata"`
+	Wallet    CNGNOnrampStatusWallet   `json:"wallet"`
+	FXQuote   CNGNOnrmpStatusFXQuote  `json:"fxQuote"`
+}
+
+type CNGNOnrampStatusMetadata struct {
+	TokenBuy        string `json:"tokenBuy"`
+	AutoSwap        bool   `json:"autoSwap"`
+	SweepToOfframp  bool   `json:"sweepToOfframp"`
+}
+
+type CNGNOnrampStatusWallet struct {
+	WalletAddress        string                `json:"walletAddress"`
+	Owner                string                `json:"owner"`
+	TokenBuy             string                `json:"tokenBuy"`
+	AutoSwap             bool                  `json:"autoSwap"`
+	SweepToOfframp       bool                  `json:"sweepToOfframp"`
+	Amount               string                `json:"amount"`
+	CreatedAt            time.Time             `json:"createdAt"`
+	FundingRequestedAt   time.Time             `json:"fundingRequestedAt"`
+	FundedAt             time.Time             `json:"fundedAt"`
+	TransactionHash      string                `json:"transactionHash"`
+	VirtualAccount       CNGNOnrampStatusVirtualAccountDetails `json:"virtualAccountDetails"`
+	VirtualAccountStatus string                `json:"virtualAccountStatus"`
+}
+
+type CNGNOnrampStatusVirtualAccountDetails struct {
+	VAID          string    `json:"vaId"`
+	AccountNumber string    `json:"accountNumber"`
+	BankName      string    `json:"bankName"`
+	AccountName   string    `json:"accountName"`
+	Amount        float64   `json:"amount"`
+	CreatedAt     time.Time `json:"createdAt"`
+}
+
+type CNGNOnrmpStatusFXQuote struct {
+	Available     bool      `json:"available"`
+	Pair          string    `json:"pair"`
+	CNGNAmount    string    `json:"cngnAmount"`
+	TokenAmount   string    `json:"tokenAmount"`
+	AveragePrice  string    `json:"averagePrice"`
+	AverageSpread float64   `json:"averageSpread"`
+	ExpiresAt     time.Time `json:"expiresAt"`
+	Note          string    `json:"note"`
 }

@@ -139,7 +139,28 @@ func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sh
 	e := gc.DB.Save(&r).Error
 	if e != nil {
 		log.Printf("[UpdateStablerailUserOnboardingStatus]Error saving onboarding status for username %v: %v\n", r.TrovoUsername, e)
+		gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateStablerailUserOnboardingStatus]Error saving onboarding status for username %v: %v\n", r.TrovoUsername, e))
 		return fmt.Errorf("could not onboard user %s", r.TrovoUsername)
+	}
+	//if the response is successful, then we insert into user table
+	if strings.EqualFold(res.Data.Status, "completed") {
+		// it has been completed
+		su := userModels.StablerailUser{
+			ID:            res.Data.UserID,
+			TrovoUsername: r.TrovoUsername,
+		}
+		e := gc.DB.Save(&su).Error
+		if e != nil {
+			log.Printf("[UpdateStablerailUserOnboardingStatus]Error saving stablerail user record for username %v: %v\n", r.TrovoUsername, e)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateStablerailUserOnboardingStatus]Error saving stablerail user record for username %v: %v\n", r.TrovoUsername, e))
+
+			return fmt.Errorf("could not onboard user %s", r.TrovoUsername)
+		}
+		//send PN
+		user, _ := userModels.Username(r.TrovoUsername).GetSimpleUser(gc.DB, gc)
+		dataPayload := make(map[string]string)
+		dataPayload["route"] = ""
+		user.SendPushMessage("BNV verified for fiat operations", "your BVN has now been verified for fiat operations. You can now go ahead to deposit or make withdrawals", "", dataPayload, gc)
 	}
 	return nil
 
