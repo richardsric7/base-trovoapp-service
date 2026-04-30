@@ -19,6 +19,9 @@ func StablerailSaveSupportedBanks(gc *sharedconfig.GlobalConfig) (*userModels.St
 		log.Println("[StablerailSaveSupportedBanks] Stablerail configuration not found.")
 		return nil, fmt.Errorf("no stablerail config found: %v", 404)
 	}
+	if config.EnableStablerail == 0 {
+		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
+	}
 	apiKey, baseUrl := config.ApiKey, config.BaseUrl
 	log.Println("[StablerailSaveSupportedBanks] Fetching Stablerail Supported banks")
 
@@ -77,7 +80,18 @@ func StablerailSaveSupportedBanks(gc *sharedconfig.GlobalConfig) (*userModels.St
 }
 
 func GetStablerailBanks(gc *sharedconfig.GlobalConfig) (banks []userModels.StablerailBank) {
+
 	banks = make([]userModels.StablerailBank, 0)
+	var config userModels.StablerailConfig
+	gc.DB.First(&config)
+	if len(config.ApiKey) == 0 {
+		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
+		return
+	}
+	if config.EnableStablerail == 0 {
+		return
+	}
+
 	gc.DB.Order("bank_name ASC").Find(&banks)
 	return
 }

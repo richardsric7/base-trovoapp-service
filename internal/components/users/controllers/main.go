@@ -1002,9 +1002,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		c.JSON(http.StatusOK, url)
 	})
-	{
-		//STABLERAIL ENDPOINTS
 
+	// get config
+	var config userModels.StablerailConfig
+	gc.DB.First(&config)
+
+	if len(config.ApiKey) == 1 && config.EnableStablerail == 1 {
+		//STABLERAIL ENDPOINTS
+		log.Println("<<<<<<<< STABLERAIL ENDPOINTS ACTIVATED >>>>>>>>>")
 		router.GET("/v1/users/stablerail/banks", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			var err error
 

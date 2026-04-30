@@ -22,6 +22,9 @@ func GetVirtualAccount(requestID string, gc *sharedconfig.GlobalConfig) (*userMo
 		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
 		return nil, fmt.Errorf("no stablerail config found: %v", 404)
 	}
+	if config.EnableStablerail == 0 {
+		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
+	}
 	apiKey, baseUrl := config.ApiKey, config.BaseUrl
 
 	if len(baseUrl) == 0 {

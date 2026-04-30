@@ -24,6 +24,9 @@ func CreateCNGNRequest(payload userModels.CNGNOnrampRequest, gc *sharedconfig.Gl
 		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
 		return nil, fmt.Errorf("no stablerail config found: %v", 404)
 	}
+	if config.EnableStablerail == 0 {
+		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
+	}
 	apiKey, baseUrl := config.ApiKey, config.BaseUrl
 
 	if len(baseUrl) == 0 {
@@ -67,6 +70,15 @@ func CreateCNGNRequest(payload userModels.CNGNOnrampRequest, gc *sharedconfig.Gl
 
 func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *sharedconfig.GlobalConfig) (err error) {
 
+	var config userModels.StablerailConfig
+	gc.DB.First(&config)
+	if len(config.ApiKey) == 0 {
+		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
+		return fmt.Errorf("no stablerail config found: %v", 404)
+	}
+	if config.EnableStablerail == 0 {
+		return fmt.Errorf("stablerail not enabled: %v", 202)
+	}
 	//initiate onboarding
 	// tx := gc.DB.Begin()
 	// defer tx.Rollback()

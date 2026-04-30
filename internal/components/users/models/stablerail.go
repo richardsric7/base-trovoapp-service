@@ -3,12 +3,13 @@ package users
 import "time"
 
 type StablerailConfig struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ID        uint64
-	ApiKey    string
-	FintechID string
-	BaseUrl   string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	ID               uint64
+	ApiKey           string
+	FintechID        string
+	BaseUrl          string
+	EnableStablerail int `gorm:"default:0" json:"enableStablerail"`
 }
 
 type StablerailUser struct {
@@ -31,10 +32,10 @@ type StablerailRequest struct {
 }
 
 type StablerailOnramp struct {
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	ID              string
-	WalletAddress   string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	ID            string
+	WalletAddress string
 	// BaseAmount      float64
 	// Fee             float64
 	TotalAmount     float64
@@ -289,40 +290,40 @@ type CNGNOnrampStatusRequest struct {
 
 // Response structures
 type CNGNOnrampStatusAPIResponse struct {
-	Status       string `json:"status"`
-	ResponseCode string `json:"response_code"`
-	Message      string `json:"message"`
-	Data         CNGNOnrampStatusData   `json:"data"`
+	Status       string               `json:"status"`
+	ResponseCode string               `json:"response_code"`
+	Message      string               `json:"message"`
+	Data         CNGNOnrampStatusData `json:"data"`
 }
 
 type CNGNOnrampStatusData struct {
-	Status    string   `json:"status"`
-	RequestID string   `json:"requestId"`
-	Version   string   `json:"version"`
+	Status    string                   `json:"status"`
+	RequestID string                   `json:"requestId"`
+	Version   string                   `json:"version"`
 	Metadata  CNGNOnrampStatusMetadata `json:"metadata"`
 	Wallet    CNGNOnrampStatusWallet   `json:"wallet"`
-	FXQuote   CNGNOnrmpStatusFXQuote  `json:"fxQuote"`
+	FXQuote   CNGNOnrmpStatusFXQuote   `json:"fxQuote"`
 }
 
 type CNGNOnrampStatusMetadata struct {
-	TokenBuy        string `json:"tokenBuy"`
-	AutoSwap        bool   `json:"autoSwap"`
-	SweepToOfframp  bool   `json:"sweepToOfframp"`
+	TokenBuy       string `json:"tokenBuy"`
+	AutoSwap       bool   `json:"autoSwap"`
+	SweepToOfframp bool   `json:"sweepToOfframp"`
 }
 
 type CNGNOnrampStatusWallet struct {
-	WalletAddress        string                `json:"walletAddress"`
-	Owner                string                `json:"owner"`
-	TokenBuy             string                `json:"tokenBuy"`
-	AutoSwap             bool                  `json:"autoSwap"`
-	SweepToOfframp       bool                  `json:"sweepToOfframp"`
-	Amount               string                `json:"amount"`
-	CreatedAt            time.Time             `json:"createdAt"`
-	FundingRequestedAt   time.Time             `json:"fundingRequestedAt"`
-	FundedAt             time.Time             `json:"fundedAt"`
-	TransactionHash      string                `json:"transactionHash"`
+	WalletAddress        string                                `json:"walletAddress"`
+	Owner                string                                `json:"owner"`
+	TokenBuy             string                                `json:"tokenBuy"`
+	AutoSwap             bool                                  `json:"autoSwap"`
+	SweepToOfframp       bool                                  `json:"sweepToOfframp"`
+	Amount               string                                `json:"amount"`
+	CreatedAt            time.Time                             `json:"createdAt"`
+	FundingRequestedAt   time.Time                             `json:"fundingRequestedAt"`
+	FundedAt             time.Time                             `json:"fundedAt"`
+	TransactionHash      string                                `json:"transactionHash"`
 	VirtualAccount       CNGNOnrampStatusVirtualAccountDetails `json:"virtualAccountDetails"`
-	VirtualAccountStatus string                `json:"virtualAccountStatus"`
+	VirtualAccountStatus string                                `json:"virtualAccountStatus"`
 }
 
 type CNGNOnrampStatusVirtualAccountDetails struct {

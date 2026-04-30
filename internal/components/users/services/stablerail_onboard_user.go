@@ -14,6 +14,16 @@ import (
 )
 
 func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.GlobalConfig) (msg string, err error) {
+	var config userModels.StablerailConfig
+	gc.DB.First(&config)
+	if len(config.ApiKey) == 0 {
+		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
+		return "", fmt.Errorf("no stablerail config found: %v", 404)
+	}
+	if config.EnableStablerail == 0 {
+		return "", fmt.Errorf("stablerail not enabled: %v", 202)
+	}
+
 	//check if username already exists
 	var stablerailUser userModels.StablerailUser
 	gc.DB.Where("trovo_username = ?", trovoUsername).First(&stablerailUser)
@@ -57,6 +67,9 @@ func StablerailOnboardUser(bvn string, gc *sharedconfig.GlobalConfig) (*userMode
 	if len(config.ApiKey) == 0 {
 		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
 		return nil, fmt.Errorf("no stablerail config found: %v", 404)
+	}
+	if config.EnableStablerail == 0 {
+		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
 	}
 	apiKey, baseUrl := config.ApiKey, config.BaseUrl
 
@@ -120,7 +133,15 @@ func StablerailOnboardUser(bvn string, gc *sharedconfig.GlobalConfig) (*userMode
 }
 
 func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sharedconfig.GlobalConfig) (err error) {
-
+	var config userModels.StablerailConfig
+	gc.DB.First(&config)
+	if len(config.ApiKey) == 0 {
+		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
+		return fmt.Errorf("no stablerail config found: %v", 404)
+	}
+	if config.EnableStablerail == 0 {
+		return fmt.Errorf("stablerail not enabled: %v", 202)
+	}
 	//initiate onboarding
 	// tx := gc.DB.Begin()
 	// defer tx.Rollback()
