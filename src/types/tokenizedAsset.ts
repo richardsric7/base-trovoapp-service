@@ -149,6 +149,7 @@ export interface TokenizedAsset {
   initialOwnerPreferredWalletAddress: string;
   assetOwnerName: string;
   assetOwnerRetainedOrContributedValue: number;
+  expressedInterestAmount: number;
   assetOwnerAddress: string;
   assetManagerId: number;
   assetManagerInfo: AssetManagerInfo;

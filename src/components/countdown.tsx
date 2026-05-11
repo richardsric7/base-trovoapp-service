@@ -68,7 +68,7 @@ export default function Countdown({
 
         <div className="h-[5px]" />
 
-        <span className="text-[15px] text-blue-500">days to primary sale</span>
+        <span className="text-[15px] text-blue-500">days left</span>
       </div>
     ) : (
       <div className="flex items-center">
@@ -117,12 +117,12 @@ export default function Countdown({
     ));
 
   return isColumn ? (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-center">
       <div className="flex items-center">{renderTime()}</div>
 
       <div className="h-[5px]" />
 
-      <span className="text-[15px] text-blue-500">hours to primary sale</span>
+      <span className="text-[15px] text-blue-500">hours left</span>
     </div>
   ) : (
     <div className="flex items-center">

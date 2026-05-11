@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TextInput from '../../components/textInput';
 import WidgetCard from '../../components/widgetCard';
-import Tabs from '../../components/tabs';
 import AssetListItem from '../../components/assetListItem';
 import TransactionItem from '../../components/transactionItem';
 import Button from '../../components/button';
 import ButtonSecondary from '../../components/buttonSecondary';
 import Header from '../../components/header';
 import Modal from '../../components/modal';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 import capitalizeFirstLetter from '../../utils/capitalizeFirst';
 import {
@@ -26,7 +25,7 @@ import {
   useFetchFiatPaymentsQuery,
   useFetchTokenizedAssetsQuery,
   useFetchExpressedInterestsQuery,
-  useFetchSubscriptionsQuery,
+  useFetchTokenizationDataQuery,
 } from '../../store/api/walletApis';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import {
@@ -39,11 +38,24 @@ import {
 } from '../../utils/transactionUtils';
 import { truncatePublicKey } from '../../utils/truncateValues';
 import { TokenizedAsset } from '../../types/tokenizedAsset';
-import { json } from 'stream/consumers';
+import {
+  setActiveTokenizedAsset,
+  setTokenizationData,
+} from '../../store/appStateSlice';
+import { TokenizationData } from '../../types/tokenizationData';
+import { ExpressedInterest } from '../../types/expressedInterest';
+import {
+  BuyTokenModal,
+  ExpressInterestModal,
+  KycUnverifiedModal,
+  P2pComingSoonModal,
+  SoldOutModal,
+} from '../../components/tokenizedAssetActionModals';
 
 export default function Home() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
+  const dispatch = useDispatch();
 
   const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet)!;
   const navigate = useNavigate();
@@ -88,6 +100,11 @@ export default function Home() {
     }
   };
 
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showSoldOutModal, setShowSoldOutModal] = useState(false);
+  const [showKycUnverifiedModal, setShowKycUnverifiedModal] = useState(false);
+  const [showBuyTokenModal, setShowBuyTokenModal] = useState(false);
+  const [showP2pComingSoonModal, setShowP2pComingSoonModal] = useState(false);
   const [showCopiedModal, setShowCopiedModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [showRequestXBNModal, setShowRequestXBNModal] = useState(false);
@@ -108,6 +125,9 @@ export default function Home() {
     memo: '',
   });
   const [secretKey, setSecretKey] = useState('');
+  const [asset, setAsset] = useState(
+    useSelector((state: RootState) => state.appState.activeTokenizedAsset),
+  );
 
   const validateRecieveForm = (): boolean => {
     let isValid = true;
@@ -301,11 +321,17 @@ export default function Home() {
       { skip: !secretKey || !primaryWallet },
     );
 
-  var typedPrimaryOffers =
-    primaryOffers?.records == undefined
-      ? []
-      : (primaryOffers?.records as TokenizedAsset[]);
-  console.log('typed primary offers', typedPrimaryOffers);
+  const { data: expressedInterests } = useFetchExpressedInterestsQuery(
+    {
+      signer: primaryWallet?.signer ?? '',
+      publicKey: primaryWallet.publicKey,
+      secretKey,
+      body: {},
+    },
+    { skip: !secretKey || !primaryWallet },
+  );
+
+  var typedPrimaryOffers: TokenizedAsset[] = [];
 
   const { data: secondaryListing, isLoading: isLoadingSecondaryListing } =
     useFetchTokenizedAssetsQuery(
@@ -322,25 +348,35 @@ export default function Home() {
     secondaryListing?.records == undefined
       ? []
       : (secondaryListing?.records as TokenizedAsset[]);
-  console.log('typed primary offers', typedSecondaryListing);
 
-  const { data: expressedInterest, isLoading: isLoadingExpressedInterest } =
-    useFetchExpressedInterestsQuery(
-      {
-        signer: primaryWallet?.signer ?? '',
-        publicKey: primaryWallet.publicKey,
-        secretKey,
-        body: { status: 1 },
-      },
-      { skip: !secretKey || !primaryWallet },
+  primaryOffers?.records.map((x: TokenizedAsset) => {
+    var record = expressedInterests?.records?.find(
+      (a: ExpressedInterest) => a.assetCode == x.assetCode,
     );
+    var y = {
+      ...x,
+      expressedInterestAmount: record != null ? record.amount : 0,
+    };
+    typedPrimaryOffers = [...typedPrimaryOffers, y];
+  });
 
-  var typedExpressedInterests =
-    expressedInterest?.records == undefined
-      ? []
-      : (expressedInterest?.records as TokenizedAsset[]);
+  const { data: tokenizationData } = useFetchTokenizationDataQuery(
+    {
+      signer: primaryWallet?.signer ?? '',
+      publicKey: primaryWallet.publicKey,
+      secretKey,
+      body: { limit: 5 },
+    },
+    { skip: !secretKey || !primaryWallet },
+  );
 
-  console.log('expressed interests', typedExpressedInterests);
+  dispatch(
+    setTokenizationData(
+      tokenizationData != undefined
+        ? (tokenizationData as TokenizationData)
+        : undefined,
+    ),
+  );
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
@@ -407,7 +443,16 @@ export default function Home() {
             </div>
             {isActivated ? (
               <div className="w-full">
-                <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+                <p
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(JSON.stringify(tokenizationData))
+                      .then(() => {
+                        showNotification('success', 'Public key copied!');
+                      });
+                  }}
+                  className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold"
+                >
                   Tokenized Assets
                 </p>
                 <div className="md:px-5 pb-10 w-full space-y-5">
@@ -417,7 +462,7 @@ export default function Home() {
                     </p>
                     <Link
                       className="flex space-x-5 items-center"
-                      to={'history'}
+                      to={'tokenized-asset-list?rel=primary'}
                     >
                       <p className="test-xs text-primary-400 underline">
                         View all
@@ -442,30 +487,30 @@ export default function Home() {
                       </div>
                     </div>
                   ) : (
-                    <div>
-                      {typedPrimaryOffers.map((asset) => (
-                        <AssetListItem
-                          asset={asset}
-                          isSubscribed={
-                            typedExpressedInterests.find(
-                              (a) => a.assetCode == asset.assetCode,
-                            ) != null
-                          }
-                          onclick={() => {
-                            // navigate('/dashboard/tokenized-asset');
-                            navigator.clipboard
-                              .writeText(
-                                JSON.stringify(expressedInterest.records[0]),
-                              )
-                              .then(() => {
-                                showNotification(
-                                  'success',
-                                  'Public key copied!',
-                                );
-                              });
-                          }}
-                        />
-                      ))}
+                    <div className="space-y-5">
+                      {typedPrimaryOffers.map((asset, index) => {
+                        return (
+                          <AssetListItem
+                            key={index}
+                            asset={asset}
+                            isSubscribed={asset.expressedInterestAmount > 0}
+                            onclick={() => {
+                              dispatch(setActiveTokenizedAsset(asset));
+                              navigate(
+                                `/dashboard/tokenized-asset?salesList=0&assetCode=${asset.assetCode}`,
+                              );
+                            }}
+                            onBuy={() => {
+                              setAsset(asset);
+                              setShowBuyTokenModal(true);
+                            }}
+                            onExpressInterest={() => {
+                              setAsset(asset);
+                              setShowSubscribeModal(true);
+                            }}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -476,7 +521,7 @@ export default function Home() {
                     </p>
                     <Link
                       className="flex space-x-5 items-center"
-                      to={'history'}
+                      to={'tokenized-asset-list?rel=secondary'}
                     >
                       <p className="test-xs text-primary-400 underline">
                         View all
@@ -502,12 +547,24 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="space-y-5">
-                      {typedSecondaryListing.map((asset) => (
+                      {typedSecondaryListing.map((asset, index) => (
                         <AssetListItem
+                          key={index}
                           asset={asset}
                           isSecondary={true}
                           onclick={() => {
-                            navigate('/dashboard/tokenized-asset');
+                            dispatch(setActiveTokenizedAsset(asset));
+                            navigate(
+                              `/dashboard/tokenized-asset?salesList=1&assetCode=${asset.assetCode}`,
+                            );
+                          }}
+                          onBuy={() => {
+                            setAsset(asset);
+                            setShowBuyTokenModal(true);
+                          }}
+                          onExpressInterest={() => {
+                            setAsset(asset);
+                            setShowSubscribeModal(true);
                           }}
                         />
                       ))}
@@ -940,8 +997,9 @@ export default function Home() {
             {isLoading ? (
               <div>Loading transaction history...</div>
             ) : rows.length > 0 ? (
-              rows.map((item) => (
+              rows.map((item, index) => (
                 <TransactionItem
+                  key={index}
                   addressOrUsername={
                     item.type == 'Sent'
                       ? item.toUsername?.length == 0
@@ -985,6 +1043,46 @@ export default function Home() {
           <div />
         </div>
       </div>
+      {showSubscribeModal && (
+        <ExpressInterestModal
+          show={showSubscribeModal}
+          onClose={() => {
+            setShowSubscribeModal(false);
+          }}
+          asset={asset}
+          onSuccess={() => {
+            setShowSubscribeModal(false);
+          }}
+        />
+      )}
+      {/* Public key copied modal */}
+      <P2pComingSoonModal
+        show={showP2pComingSoonModal}
+        onClose={() => {
+          setShowP2pComingSoonModal(false);
+        }}
+      />
+      <KycUnverifiedModal
+        show={showKycUnverifiedModal}
+        onClose={() => {
+          setShowKycUnverifiedModal(false);
+        }}
+      />
+      <SoldOutModal
+        show={showSoldOutModal}
+        onClose={() => {
+          setShowSoldOutModal(false);
+        }}
+      />
+      {showBuyTokenModal && (
+        <BuyTokenModal
+          show={showBuyTokenModal}
+          onClose={() => {
+            setShowBuyTokenModal(false);
+          }}
+          asset={asset}
+        />
+      )}
     </div>
   );
 }

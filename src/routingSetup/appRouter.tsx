@@ -14,7 +14,7 @@ import RecoveryMain from '../pages/accountRecovery/main';
 import Login from '../pages/login';
 import Dashboard from '../pages/dashboard/main';
 import Home from '../pages/dashboard/home';
-import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
+import TokenizedAsset from '../pages/dashboard/tokenizedAssets/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
 import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
@@ -26,6 +26,8 @@ import { Tokenize, TokenizeAssetForm } from '../pages/dashboard';
 import AssetDetail from '../pages/dashboard/wallet/assetDetails';
 import YieldView from '../pages/dashboard/wallet/yield';
 import EarlyExitView from '../pages/dashboard/wallet/earlyExit';
+import TokenizedAssetsListView from '../pages/dashboard/tokenizedAssets/assetsListView';
+import TokenizedAssetDetailsView from '../pages/dashboard/tokenizedAssets/tokenizedAsset';
 
 export default function AppRouter() {
   return (
@@ -65,7 +67,14 @@ export default function AppRouter() {
             <Route path="yield" element={<YieldView />} />
             <Route path="early-exit" element={<EarlyExitView />} />
             <Route path="asset-details" element={<AssetDetail />} />
-            <Route path="tokenized-asset" element={<TokenizedAsset />} />
+            <Route
+              path="tokenized-asset"
+              element={<TokenizedAssetDetailsView />}
+            />
+            <Route
+              path="tokenized-asset-list"
+              element={<TokenizedAssetsListView />}
+            />
             <Route path="wallet" element={<WalletView />} />
             <Route path="history" element={<History />} />
             <Route path="tokenize" element={<Tokenize />}></Route>
