@@ -12,7 +12,7 @@ const getFiatRate = (usdPrice: number, fiatRate: number): number => {
 const formatToDecimal = (amount: number) => `
 ${amount.toLocaleString('en-NG', {
   style: 'decimal',  
-  minimumFractionDigits: 7,
+  minimumFractionDigits: 0,
   maximumFractionDigits: 7,
 })}`;
 

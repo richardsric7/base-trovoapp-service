@@ -1,15 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { HIDEBALANCES, WALLETMODE } from './constants';
+import { ACTIVEWALLET, HIDEBALANCES, WALLETMODE } from './constants';
 import { setStorage } from '../utils/storage';
+import { Wallet } from '../types/wallet';
+import { TokenizedAsset } from '../types/tokenizedAsset';
+import { TokenizationData } from '../types/tokenizationData';
 
 export type AppStateSlice = {
   hideBalances: number,
   walletMode: string,
+  activeWallet?: Wallet,
+  activeAsset?: string,
+  activeTokenizedAsset?: TokenizedAsset,
+  tokenizationData?: TokenizationData,
 }
 
 const initialState: AppStateSlice = {
   hideBalances: 0,
   walletMode: 'TESTNET',
+  activeWallet: undefined,
+  activeAsset: undefined,
+  activeTokenizedAsset: undefined,
 };
 export const appStateSlice = createSlice({
   name: 'appState',
@@ -29,7 +39,32 @@ export const appStateSlice = createSlice({
       } 
       return state;
     },
+    setActiveWallet: (state, action) => {
+      if (action.payload) {
+        state.activeWallet = action.payload;
+        setStorage(ACTIVEWALLET, {activeWallet: state.activeWallet});               
+      } 
+      return state;
+    },
+    setActiveAsset: (state, action) => {
+      if (action.payload) {
+        state.activeAsset = action.payload;        
+      } 
+      return state;
+    },
+    setActiveTokenizedAsset: (state, action) => {
+      if (action.payload) {
+        state.activeTokenizedAsset = action.payload;        
+      } 
+      return state;
+    },
+    setTokenizationData: (state, action) => {
+      if (action.payload) {
+        state.tokenizationData = action.payload;        
+      } 
+      return state;
+    },
   },
 });
 
-export const { setHideBalances } = appStateSlice.actions;
+export const { setHideBalances, setActiveWallet, setActiveAsset, setActiveTokenizedAsset, setTokenizationData } = appStateSlice.actions;

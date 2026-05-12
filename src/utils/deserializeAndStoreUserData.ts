@@ -88,6 +88,7 @@ export const deserializeUserData = (data: any): User => {
                     buyingLiabilities: Number(a.inTrade.buyingLiabilities),
                 },
                 nativePrice: a.nativePrice,
+                tokenizedAsset: a.tokenizedAsset === 1,
             }}),
             unclaimedAssets: d.assetBalances.unclaimed.map((a: any) => {return {
                 ...a,

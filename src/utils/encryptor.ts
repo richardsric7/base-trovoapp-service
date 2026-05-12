@@ -40,12 +40,7 @@ export class Encryptor {
       );
 
       const ivBase64 = btoa(String.fromCharCode.apply(null, Array.from(iv)));
-      const encryptDataB64 = btoa(
-        String.fromCharCode.apply(
-          null,
-          Array.from(new Uint8Array(encryptedData)),
-        ),
-      );
+      const encryptDataB64 = this.arrayBufferToBase64(encryptedData);
 
       return `${ivBase64}|${encryptDataB64}`;
     }
@@ -68,6 +63,13 @@ export class Encryptor {
         encryptedDataUint
       );
       return new TextDecoder().decode(decrypted);
+    }
+
+    arrayBufferToBase64(buffer: ArrayBuffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary);
     }
 
     async getSecretKey(appUser: User){

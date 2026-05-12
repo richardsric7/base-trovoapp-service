@@ -59,12 +59,115 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    fetchFiatAmountForActivation: builder.query({
+      query: (payload: Payload) => ({
+        url: '/v1/users/activate/fiat',
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchTokenizedAssets: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/list?onlyWithUserPermission=0&salesList=${payload.body.status}&${payload.body.filters}`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchExpressedInterests: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/expressed-interests`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchSubscriptions: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization/subscriptions`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    fetchTokenizationData: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/tokenization`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    buyTokenizedAssets: builder.mutation({
+      query: (payload: Payload) => ({
+        url: payload.body.isSharedWallet
+            ? `/v1/shared-access/tokenization/subscriptions/${payload.body.assetId}`
+            : `/v1/tokenization/subscriptions/${payload.body.assetId}`,
+        method: 'POST',
+        data: {
+          payload: {'amount': payload.body.amount},
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    subscribeTokenizedAssets: builder.mutation({
+      query: (payload: Payload) => ({
+        url:
+             `/v1/tokenization/expressed-interests/${payload.body.assetId}`,
+        method: 'POST',
+        data: {
+          payload: {'amount': payload.body.amount},
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   useSendAssetMutation,
   useSwapAssetMutation,
+  useBuyTokenizedAssetsMutation,
+  useSubscribeTokenizedAssetsMutation,
   useLazyReceiveAssetQuery,
   useFetchFiatPaymentsQuery,
+  useFetchTokenizationDataQuery,
+  useFetchTokenizedAssetsQuery,
+  useFetchExpressedInterestsQuery,
+  useFetchSubscriptionsQuery,
+  useLazyFetchFiatAmountForActivationQuery,
 } = authApi;

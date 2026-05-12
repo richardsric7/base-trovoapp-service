@@ -7,6 +7,7 @@ type Props = {
   leadingIcon?: string;
   inputType: string;
   error?: string;
+  readonly?: boolean;
   onInputChange: (newValue: string) => void;
   trailingIcon?: string;
   trailingText?: string;
@@ -19,6 +20,7 @@ export default function TextInput({
   leadingIcon,
   inputType = 'text',
   error = '',
+  readonly,
   onInputChange,
   trailingIcon,
   trailingText,
@@ -49,6 +51,7 @@ export default function TextInput({
           type={inputType !== 'password' || showPlainText ? 'text' : 'password'}
           value={value}
           onChange={handleInputChange}
+          readOnly={readonly ?? false}
           autoComplete="off"
         />
         {trailingIcon && (

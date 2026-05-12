@@ -42,32 +42,32 @@ type HistoryRow = {
 };
 
 const defaultFilters: FilterState = {
-  username: "",
-  fromPublicKey: "",
-  toPublicKey: "",
-  memo: "",
+  username: '',
+  fromPublicKey: '',
+  toPublicKey: '',
+  memo: '',
 };
 
 export const History = () => {
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  const [secretKey, setSecretKey] = useState("");
-  const [selectedWallet, setSelectedWallet] = useState("");
-  const [selectedAsset, setSelectedAsset] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [secretKey, setSecretKey] = useState('');
+  const [selectedWallet, setSelectedWallet] = useState('');
+  const [selectedAsset, setSelectedAsset] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
   const [showMoreFiltersModal, setShowMoreFiltersModal] = useState(false);
-  const [minAmountInput, setMinAmountInput] = useState("");
-  const [maxAmountInput, setMaxAmountInput] = useState("");
+  const [minAmountInput, setMinAmountInput] = useState('');
+  const [maxAmountInput, setMaxAmountInput] = useState('');
   const [appliedMinAmount, setAppliedMinAmount] = useState<number | null>(null);
   const [appliedMaxAmount, setAppliedMaxAmount] = useState<number | null>(null);
-  const [dateRangeKey, setDateRangeKey] = useState<DateRangeKey>("none");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [draftStartDate, setDraftStartDate] = useState("");
-  const [draftEndDate, setDraftEndDate] = useState("");
+  const [dateRangeKey, setDateRangeKey] = useState<DateRangeKey>('none');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [draftStartDate, setDraftStartDate] = useState('');
+  const [draftEndDate, setDraftEndDate] = useState('');
   const [draftDateRangeKey, setDraftDateRangeKey] =
-    useState<DateRangeKey>("none");
+    useState<DateRangeKey>('none');
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
   const [selectedHistoryRow, setSelectedHistoryRow] = useState<HistoryRow | null>(
@@ -88,48 +88,50 @@ export const History = () => {
     wallets.find((wallet) => wallet.primaryWallet) ?? wallets?.[0];
 
   const forPublicKey =
-    selectedWallet !== "" ? selectedWallet : (primaryWallet?.publicKey ?? "");
+    selectedWallet !== '' ? selectedWallet : (primaryWallet?.publicKey ?? '');
 
   const apiDateRange = buildDateRange(dateRangeKey, startDate, endDate);
 
   const transactionTypeParam =
-    selectedType === ""
-      ? ""
-      : selectedType === "Swap"
-      ? "swap"
-      : "payment";
+    selectedType === '' ? '' : selectedType === 'Swap' ? 'swap' : 'payment';
 
   const queryParams: string[] = [];
-  if (filters.username) queryParams.push(`&name=${encodeURIComponent(filters.username)}`);
-  if (filters.memo) queryParams.push(`&memo=${encodeURIComponent(filters.memo)}`);
-  if (filters.fromPublicKey) queryParams.push(`&fromPublicKey=${encodeURIComponent(filters.fromPublicKey)}`);
-  if (filters.toPublicKey) queryParams.push(`&toPublicKey=${encodeURIComponent(filters.toPublicKey)}`);
+  if (filters.username)
+    queryParams.push(`&name=${encodeURIComponent(filters.username)}`);
+  if (filters.memo)
+    queryParams.push(`&memo=${encodeURIComponent(filters.memo)}`);
+  if (filters.fromPublicKey)
+    queryParams.push(
+      `&fromPublicKey=${encodeURIComponent(filters.fromPublicKey)}`,
+    );
+  if (filters.toPublicKey)
+    queryParams.push(`&toPublicKey=${encodeURIComponent(filters.toPublicKey)}`);
   if (appliedMinAmount !== null || appliedMaxAmount !== null) {
-    const min = appliedMinAmount !== null ? appliedMinAmount : "";
-    const max = appliedMaxAmount !== null ? appliedMaxAmount : "";
+    const min = appliedMinAmount !== null ? appliedMinAmount : '';
+    const max = appliedMaxAmount !== null ? appliedMaxAmount : '';
     queryParams.push(`&amount=${encodeURIComponent(`${min}%${max}`)}`);
   }
   if (apiDateRange.start && apiDateRange.end) {
     queryParams.push(
       `&dateBetween=${encodeURIComponent(
-        `${apiDateRange.start}%${apiDateRange.end}`
-      )}`
+        `${apiDateRange.start}%${apiDateRange.end}`,
+      )}`,
     );
   }
   queryParams.push(`&transactionType=${transactionTypeParam}`);
 
   const { data, isLoading } = useFetchFiatPaymentsQuery(
     {
-      signer: primaryWallet?.signer ?? "",
+      signer: primaryWallet?.signer ?? '',
       publicKey: forPublicKey,
       secretKey,
-      body: { limit: 50, query: queryParams.join("") },
+      body: { limit: 50, query: queryParams.join('') },
     },
-    { skip: !secretKey || !primaryWallet }
+    { skip: !secretKey || !primaryWallet },
   );
 
   const walletOptions = [
-    { label: "All wallets", value: "" },
+    { label: 'All wallets', value: '' },
     ...wallets.map((wallet) => ({
       label: wallet.alias,
       value: wallet.publicKey,
@@ -144,7 +146,7 @@ export const History = () => {
   });
 
   const assetOptions = [
-    { label: "All assets", value: "" },
+    { label: 'All assets', value: '' },
     ...Array.from(assetSet).map((assetCode) => ({
       label: assetCode,
       value: assetCode,
@@ -152,10 +154,10 @@ export const History = () => {
   ];
 
   const transactionOptions = [
-    { label: "All transactions", value: "" },
-    { label: "Received", value: "Received" },
-    { label: "Sent", value: "Sent" },
-    { label: "Swap", value: "Swap" },
+    { label: 'All transactions', value: '' },
+    { label: 'Received', value: 'Received' },
+    { label: 'Sent', value: 'Sent' },
+    { label: 'Swap', value: 'Swap' },
   ];
 
   const rawRecords = data?.data?.records ?? data?.records ?? [];
@@ -165,35 +167,35 @@ export const History = () => {
       const type = normalizeTransactionType(
         item.transactionType ?? item.type,
         item,
-        forPublicKey
+        forPublicKey,
       );
       const amountValue = parseAmountValue(item.amount);
       const assetCode = getTransactionAssetCode(item);
       const amountPrefix =
-        type === "Sent" ? "-" : type === "Received" ? "+" : "+";
+        type === 'Sent' ? '-' : type === 'Received' ? '+' : '+';
       const amountText =
-        typeof item.amount === "string" && item.amount.trim().length > 0
+        typeof item.amount === 'string' && item.amount.trim().length > 0
           ? item.amount
           : formatAmount(amountValue, assetCode);
       const createdAt = parseDate(
-        item.transactionDate ?? item.createdAt ?? item.date
+        item.transactionDate ?? item.createdAt ?? item.date,
       );
       const description =
         item.description ??
         item.narration ??
         item.memo ??
-        (type === "Received"
+        (type === 'Received'
           ? `Received ${assetCode}`
-          : type === "Sent"
-          ? `Sent ${assetCode}`
-          : `Swapped asset to ${assetCode}`);
+          : type === 'Sent'
+            ? `Sent ${assetCode}`
+            : `Swapped asset to ${assetCode}`);
 
       const walletMatch =
         wallets.find(
           (wallet) =>
             wallet.publicKey === item.publicKey ||
             wallet.publicKey === item.walletPublicKey ||
-            wallet.alias === item.walletAlias
+            wallet.alias === item.walletAlias,
         ) ?? primaryWallet;
 
       return {
@@ -216,21 +218,17 @@ export const History = () => {
         transactionId: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? ""}`,
         memo: `${item.memo ?? item.narration ?? ""}`.trim(),
       };
-    }
+    },
   );
 
   const filteredRows = rows.filter((row) => {
-    if (selectedAsset !== "" && row.assetCode !== selectedAsset) {
+    if (selectedAsset !== '' && row.assetCode !== selectedAsset) {
       return false;
     }
-    if (selectedType === "Sent" && row.type !== "Sent") return false;
-    if (selectedType === "Received" && row.type !== "Received") return false;
+    if (selectedType === 'Sent' && row.type !== 'Sent') return false;
+    if (selectedType === 'Received' && row.type !== 'Received') return false;
     if (
-      !matchesDateRange(
-        row.dateValue,
-        apiDateRange.start,
-        apiDateRange.end
-      )
+      !matchesDateRange(row.dateValue, apiDateRange.start, apiDateRange.end)
     ) {
       return false;
     }
@@ -241,8 +239,8 @@ export const History = () => {
   const dateLabel = getDateLabel(dateRangeKey, startDate, endDate);
 
   const openAmountModal = () => {
-    setMinAmountInput(appliedMinAmount?.toString() ?? "");
-    setMaxAmountInput(appliedMaxAmount?.toString() ?? "");
+    setMinAmountInput(appliedMinAmount?.toString() ?? '');
+    setMaxAmountInput(appliedMaxAmount?.toString() ?? '');
     setShowAmountModal(true);
   };
 
@@ -260,10 +258,10 @@ export const History = () => {
 
   const applyAmountFilter = () => {
     setAppliedMinAmount(
-      minAmountInput.trim().length > 0 ? Number(minAmountInput) : null
+      minAmountInput.trim().length > 0 ? Number(minAmountInput) : null,
     );
     setAppliedMaxAmount(
-      maxAmountInput.trim().length > 0 ? Number(maxAmountInput) : null
+      maxAmountInput.trim().length > 0 ? Number(maxAmountInput) : null,
     );
     setShowAmountModal(false);
   };
@@ -281,19 +279,19 @@ export const History = () => {
   };
 
   const resetAllFilters = () => {
-    setSelectedWallet("");
-    setSelectedAsset("");
-    setSelectedType("");
-    setMinAmountInput("");
-    setMaxAmountInput("");
+    setSelectedWallet('');
+    setSelectedAsset('');
+    setSelectedType('');
+    setMinAmountInput('');
+    setMaxAmountInput('');
     setAppliedMinAmount(null);
     setAppliedMaxAmount(null);
-    setDateRangeKey("none");
-    setStartDate("");
-    setEndDate("");
-    setDraftDateRangeKey("none");
-    setDraftStartDate("");
-    setDraftEndDate("");
+    setDateRangeKey('none');
+    setStartDate('');
+    setEndDate('');
+    setDraftDateRangeKey('none');
+    setDraftStartDate('');
+    setDraftEndDate('');
     setFilters(defaultFilters);
     setDraftFilters(defaultFilters);
   };
@@ -419,11 +417,11 @@ export const History = () => {
                 />
               </div>
               <div className={styles.filterActionCell}>
-              <ButtonSecondary
-                label="Reset Filters"
-                onclick={resetAllFilters}
-                additionalClasses={styles.resetFiltersButton}
-              />
+                <ButtonSecondary
+                  label="Reset Filters"
+                  onclick={resetAllFilters}
+                  additionalClasses={styles.resetFiltersButton}
+                />
               </div>
             </div>
           </div>
@@ -437,7 +435,9 @@ export const History = () => {
             </div>
 
             {isLoading ? (
-              <div className={styles.emptyState}>Loading transaction history...</div>
+              <div className={styles.emptyState}>
+                Loading transaction history...
+              </div>
             ) : filteredRows.length === 0 ? (
               <div className={styles.emptyState}>
                 No transactions match the selected filters.
@@ -453,7 +453,7 @@ export const History = () => {
                   >
                     <div
                       className={`${styles.price} ${
-                        row.type === "Sent"
+                        row.type === 'Sent'
                           ? styles.priceNegative
                           : styles.pricePositive
                       }`}
@@ -602,7 +602,10 @@ export const History = () => {
               placeholder="“To” Public Key"
               value={draftFilters.toPublicKey}
               onChange={(value) =>
-                setDraftFilters((current) => ({ ...current, toPublicKey: value }))
+                setDraftFilters((current) => ({
+                  ...current,
+                  toPublicKey: value,
+                }))
               }
             />
             <LabeledInput
@@ -649,18 +652,18 @@ export const History = () => {
             <div className={styles.presetRow}>
               <PresetButton
                 label="Past Week"
-                active={draftDateRangeKey === "week"}
-                onClick={() => setDraftDateRangeKey("week")}
+                active={draftDateRangeKey === 'week'}
+                onClick={() => setDraftDateRangeKey('week')}
               />
               <PresetButton
                 label="Past Month"
-                active={draftDateRangeKey === "month"}
-                onClick={() => setDraftDateRangeKey("month")}
+                active={draftDateRangeKey === 'month'}
+                onClick={() => setDraftDateRangeKey('month')}
               />
               <PresetButton
                 label="Past 3 Months"
-                active={draftDateRangeKey === "quarter"}
-                onClick={() => setDraftDateRangeKey("quarter")}
+                active={draftDateRangeKey === 'quarter'}
+                onClick={() => setDraftDateRangeKey('quarter')}
               />
             </div>
 
@@ -670,7 +673,7 @@ export const History = () => {
                 placeholder="From"
                 value={draftStartDate}
                 onChange={(value) => {
-                  setDraftDateRangeKey("custom");
+                  setDraftDateRangeKey('custom');
                   setDraftStartDate(value);
                 }}
               />
@@ -679,7 +682,7 @@ export const History = () => {
                 placeholder="To"
                 value={draftEndDate}
                 onChange={(value) => {
-                  setDraftDateRangeKey("custom");
+                  setDraftDateRangeKey('custom');
                   setDraftEndDate(value);
                 }}
               />
@@ -923,7 +926,7 @@ const LabeledInput = ({
   placeholder,
   value,
   onChange,
-  type = "text",
+  type = 'text',
 }: {
   label: string;
   placeholder: string;
@@ -988,7 +991,7 @@ const PresetButton = ({
   return (
     <button
       type="button"
-      className={`${styles.presetButton} ${active ? styles.presetButtonActive : ""}`}
+      className={`${styles.presetButton} ${active ? styles.presetButtonActive : ''}`}
       onClick={onClick}
     >
       {label}
@@ -1010,9 +1013,22 @@ const CalendarIcon = () => (
 
 const MoneyIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <rect x="3" y="6" width="18" height="12" rx="2.5" stroke="#1B4E91" strokeWidth="2.2" />
+    <rect
+      x="3"
+      y="6"
+      width="18"
+      height="12"
+      rx="2.5"
+      stroke="#1B4E91"
+      strokeWidth="2.2"
+    />
     <circle cx="12" cy="12" r="2.6" stroke="#1B4E91" strokeWidth="2.2" />
-    <path d="M6.5 10.5H6.51M17.5 13.5H17.51" stroke="#1B4E91" strokeWidth="2.6" strokeLinecap="round" />
+    <path
+      d="M6.5 10.5H6.51M17.5 13.5H17.51"
+      stroke="#1B4E91"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -1042,26 +1058,26 @@ const CloseIcon = () => (
 const buildDateRange = (
   rangeKey: DateRangeKey,
   start: string,
-  end: string
+  end: string,
 ): { start: string; end: string } => {
-  if (rangeKey === "none") {
-    return { start: "", end: "" };
+  if (rangeKey === 'none') {
+    return { start: '', end: '' };
   }
 
   const now = new Date();
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
-  if (rangeKey === "week") {
+  if (rangeKey === 'week') {
     const s = new Date(now);
     s.setDate(now.getDate() - 7);
     return { start: fmt(s), end: fmt(now) };
   }
-  if (rangeKey === "month") {
+  if (rangeKey === 'month') {
     const s = new Date(now);
     s.setDate(now.getDate() - 30);
     return { start: fmt(s), end: fmt(now) };
   }
-  if (rangeKey === "quarter") {
+  if (rangeKey === 'quarter') {
     const s = new Date(now);
     s.setDate(now.getDate() - 90);
     return { start: fmt(s), end: fmt(now) };
@@ -1069,88 +1085,8 @@ const buildDateRange = (
   return { start, end };
 };
 
-const normalizeTransactionType = (
-  value: string | undefined,
-  item?: Record<string, any>,
-  activePublicKey?: string
-) => {
-  const type = `${value ?? ""}`.toLowerCase();
-
-  if (type.includes("swap")) return "Swap";
-  if (type.includes("sent") || type.includes("send")) return "Sent";
-  if (type.includes("received") || type.includes("receive")) return "Received";
-  if (type.includes("payment")) {
-    const fromPublicKey = `${item?.fromPublicKey ?? item?.senderPublicKey ?? ""}`;
-    const toPublicKey = `${item?.toPublicKey ?? item?.receiverPublicKey ?? ""}`;
-
-    if (activePublicKey && fromPublicKey === activePublicKey) return "Sent";
-    if (activePublicKey && toPublicKey === activePublicKey) return "Received";
-  }
-
-  return "Received";
-};
-
-const parseAmountValue = (amount: unknown) => {
-  if (typeof amount === "number") return amount;
-
-  if (typeof amount === "string") {
-    const cleaned = amount.replace(/[^0-9.-]/g, "");
-    const parsed = Number(cleaned);
-    return Number.isNaN(parsed) ? 0 : Math.abs(parsed);
-  }
-
-  return 0;
-};
-
-const formatAmount = (amount: number, assetCode: string) => {
-  return `${amount.toLocaleString("en-NG", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })} ${assetCode}`;
-};
-
-const parseDate = (value: unknown) => {
-  if (!value) return null;
-  const parsed = new Date(String(value));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const formatRelativeTime = (date: Date | null) => {
-  if (!date) return "-";
-
-  const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-  if (diffInDays <= 0) return "Today";
-  if (diffInDays === 1) return "1 day ago";
-
-  return `${diffInDays} days ago`;
-};
-
-const getTransactionAssetCode = (item: Record<string, any>) => {
-  if (item.assetCode !== undefined) {
-    return getAssetCode(item.assetCode);
-  }
-
-  if (item.asset?.assetCode !== undefined) {
-    return getAssetCode(item.asset.assetCode);
-  }
-
-  if (typeof item.amount === "string") {
-    const segments = item.amount.trim().split(/\s+/);
-    const lastSegment = segments[segments.length - 1];
-
-    if (/[A-Za-z]/.test(lastSegment)) {
-      return lastSegment.toUpperCase();
-    }
-  }
-
-  return "XBN";
-};
-
 const getAmountLabel = (minAmount: number | null, maxAmount: number | null) => {
-  if (minAmount === null && maxAmount === null) return "Amount";
+  if (minAmount === null && maxAmount === null) return 'Amount';
   if (minAmount !== null && maxAmount !== null) {
     return `${minAmount} - ${maxAmount}`;
   }
@@ -1161,21 +1097,21 @@ const getAmountLabel = (minAmount: number | null, maxAmount: number | null) => {
 const getDateLabel = (
   dateRangeKey: DateRangeKey,
   startDate: string,
-  endDate: string
+  endDate: string,
 ) => {
-  if (dateRangeKey === "week") return "Past Week";
-  if (dateRangeKey === "month") return "Past Month";
-  if (dateRangeKey === "quarter") return "Past 3 Months";
+  if (dateRangeKey === 'week') return 'Past Week';
+  if (dateRangeKey === 'month') return 'Past Month';
+  if (dateRangeKey === 'quarter') return 'Past 3 Months';
   if (startDate && endDate) return `${startDate} - ${endDate}`;
   if (startDate) return `From ${startDate}`;
   if (endDate) return `To ${endDate}`;
-  return "Select Date";
+  return 'Select Date';
 };
 
 const matchesDateRange = (
   date: Date | null,
   startDate: string,
-  endDate: string
+  endDate: string,
 ) => {
   if (!startDate || !endDate) return true;
   if (!date) return false;
