@@ -147,6 +147,17 @@
   align-items: center;
 }
 
+.rowButton {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rowButton:hover {
+  box-shadow: 0 8px 24px rgba(18, 50, 108, 0.1);
+}
+
 .price,
 .description,
 .date {
@@ -384,6 +395,143 @@
   width: 100%;
 }
 
+.detailsOverlayCard {
+  width: min(100%, 480px);
+  border-radius: 20px;
+  padding: 16px 20px 24px;
+}
+
+.detailsModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detailsCloseButton {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #20427c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -2px 0 0;
+}
+
+.detailsHeader {
+  text-align: center;
+}
+
+.detailsLogo {
+  width: min(100%, 160px);
+  height: auto;
+  margin: 0 auto 10px;
+  display: block;
+}
+
+.detailsTitle {
+  color: #193e7d;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.detailsGeneratedText {
+  color: #6a7fa8;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.detailsCard {
+  background: #edf1f7;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.detailRow {
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid #dde4ef;
+}
+
+.detailRow:last-child {
+  border-bottom: 0;
+}
+
+.detailRowTitle {
+  color: #183e7d;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 6px;
+}
+
+.detailRowName {
+  color: #49618b;
+  font-size: 15px;
+  line-height: 1.3;
+  margin: 0;
+  word-break: break-word;
+}
+
+.detailRowValue {
+  color: #49618b;
+  font-size: 15px;
+  line-height: 1.3;
+  margin: 8px 0 0;
+  word-break: break-all;
+}
+
+.detailsActions {
+  display: grid;
+  gap: 12px;
+}
+
+.shareImageButton,
+.sharePdfButton,
+.shareTextButton {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.shareImageButton:disabled,
+.sharePdfButton:disabled,
+.shareTextButton:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.shareImageButton {
+  border: 0;
+  background: #1a4e95;
+  color: #ffffff;
+}
+
+.sharePdfButton {
+  border: 0;
+  background: #7c9cbd;
+  color: #ffffff;
+}
+
+.shareTextButton {
+  border: 2px solid #a9bfdc;
+  background: #ffffff;
+  color: #1b417d;
+}
+
+.detailsShareFeedback {
+  text-align: center;
+  color: #1b417d;
+  font-size: 13px;
+  margin: 2px auto 0;
+}
+
 @media (min-width: 768px) {
   .pageBody {
     padding: 0 26px 26px;
@@ -413,6 +561,10 @@
 
   .singleAction {
     align-items: center;
+  }
+
+  .detailRow {
+    padding: 20px 30px 18px;
   }
 }
 
