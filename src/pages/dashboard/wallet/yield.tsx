@@ -209,7 +209,9 @@ export default function Yield() {
               <div className="flex justify-between items-start space-x-5">
                 <Tabs
                   tabList={['Dividend History', 'Yield History']}
-                  onTabChanged={(index) => {}}
+                  onTabChanged={(index) => {
+                    console.log(index);
+                  }}
                 />
               </div>
               <div className="w-full">

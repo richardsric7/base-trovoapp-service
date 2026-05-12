@@ -1,15 +1,30 @@
-import { ReactNode, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
-import Header from "../../../components/header";
-import Button from "../../../components/button";
-import ButtonSecondary from "../../../components/buttonSecondary";
-import { RootState } from "../../../store/reduxStore";
-import { useFetchFiatPaymentsQuery } from "../../../store/api/walletApis";
-import { Encryptor } from "../../../utils/encryptor";
-import { getAssetCode } from "../../../utils/utilities";
-import styles from "./main.module.css";
-import { transactionTypeConfig } from "./data";
+import { ReactNode, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  pdf,
+} from '@react-pdf/renderer';
+import Header from '../../../components/header';
+import Button from '../../../components/button';
+import ButtonSecondary from '../../../components/buttonSecondary';
+import { RootState } from '../../../store/reduxStore';
+import { useFetchFiatPaymentsQuery } from '../../../store/api/walletApis';
+import { Encryptor } from '../../../utils/encryptor';
+import { getAssetCode } from '../../../utils/utilities';
+import styles from './main.module.css';
+import { transactionTypeConfig } from './data';
+import {
+  formatAmount,
+  formatRelativeTime,
+  getTransactionAssetCode,
+  normalizeTransactionType,
+  parseAmountValue,
+  parseDate,
+} from '../../../utils/transactionUtils';
 
 type FilterState = {
   username: string;
@@ -18,7 +33,7 @@ type FilterState = {
   memo: string;
 };
 
-type DateRangeKey = "none" | "week" | "month" | "quarter" | "custom";
+type DateRangeKey = 'none' | 'week' | 'month' | 'quarter' | 'custom';
 
 type HistoryRow = {
   id: string;
@@ -70,13 +85,12 @@ export const History = () => {
     useState<DateRangeKey>('none');
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
-  const [selectedHistoryRow, setSelectedHistoryRow] = useState<HistoryRow | null>(
-    null
-  );
-  const [shareLoading, setShareLoading] = useState<"image" | "pdf" | "text" | null>(
-    null
-  );
-  const [shareFeedback, setShareFeedback] = useState("");
+  const [selectedHistoryRow, setSelectedHistoryRow] =
+    useState<HistoryRow | null>(null);
+  const [shareLoading, setShareLoading] = useState<
+    'image' | 'pdf' | 'text' | null
+  >(null);
+  const [shareFeedback, setShareFeedback] = useState('');
 
   useEffect(() => {
     const encryptor = new Encryptor();
@@ -207,16 +221,16 @@ export const History = () => {
         description,
         dateLabel: formatRelativeTime(createdAt),
         dateValue: createdAt,
-        dateRaw: `${item.transactionDate ?? item.createdAt ?? item.date ?? ""}`,
-        walletKey: walletMatch?.publicKey ?? "unknown",
-        walletLabel: walletMatch?.alias ?? "Primary wallet",
-        username: `${item.username ?? item.fullName ?? item.name ?? ""}`.trim(),
-        fromName: `${item.from ?? item.senderName ?? ""}`.trim(),
-        toName: `${item.to ?? item.receiverName ?? ""}`.trim(),
-        fromPublicKey: `${item.fromPublicKey ?? item.senderPublicKey ?? ""}`,
-        toPublicKey: `${item.toPublicKey ?? item.receiverPublicKey ?? ""}`,
-        transactionId: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? ""}`,
-        memo: `${item.memo ?? item.narration ?? ""}`.trim(),
+        dateRaw: `${item.transactionDate ?? item.createdAt ?? item.date ?? ''}`,
+        walletKey: walletMatch?.publicKey ?? 'unknown',
+        walletLabel: walletMatch?.alias ?? 'Primary wallet',
+        username: `${item.username ?? item.fullName ?? item.name ?? ''}`.trim(),
+        fromName: `${item.from ?? item.senderName ?? ''}`.trim(),
+        toName: `${item.to ?? item.receiverName ?? ''}`.trim(),
+        fromPublicKey: `${item.fromPublicKey ?? item.senderPublicKey ?? ''}`,
+        toPublicKey: `${item.toPublicKey ?? item.receiverPublicKey ?? ''}`,
+        transactionId: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? ''}`,
+        memo: `${item.memo ?? item.narration ?? ''}`.trim(),
       };
     },
   );
@@ -298,25 +312,25 @@ export const History = () => {
 
   const handleShareText = async () => {
     if (!selectedHistoryRow) return;
-    setShareLoading("text");
-    setShareFeedback("");
+    setShareLoading('text');
+    setShareFeedback('');
 
     const message = buildHistoryShareText(selectedHistoryRow);
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "Trovo Payment Details",
+          title: 'Trovo Payment Details',
           text: message,
         });
-        setShareFeedback("Details shared successfully.");
+        setShareFeedback('Details shared successfully.');
       } else {
         await navigator.clipboard.writeText(message);
-        setShareFeedback("Details copied to clipboard.");
+        setShareFeedback('Details copied to clipboard.');
       }
     } catch (error: any) {
-      if (error?.name !== "AbortError") {
-        setShareFeedback("Unable to share text right now.");
+      if (error?.name !== 'AbortError') {
+        setShareFeedback('Unable to share text right now.');
       }
     } finally {
       setShareLoading(null);
@@ -325,23 +339,25 @@ export const History = () => {
 
   const handleShareImage = async () => {
     if (!selectedHistoryRow) return;
-    setShareLoading("image");
-    setShareFeedback("");
+    setShareLoading('image');
+    setShareFeedback('');
 
     try {
       const imageBlob = await generateHistoryImageBlob(selectedHistoryRow);
       const fileName = `trovo-payment-${safeFileDate(selectedHistoryRow.dateValue)}.png`;
-      const file = new File([imageBlob], fileName, { type: "image/png" });
+      const file = new File([imageBlob], fileName, { type: 'image/png' });
       const shared = await shareFileWithFallback(
         file,
-        "Trovo Payment Details",
-        "Payment details image"
+        'Trovo Payment Details',
+        'Payment details image',
       );
       setShareFeedback(
-        shared ? "Image shared successfully." : "Image downloaded successfully."
+        shared
+          ? 'Image shared successfully.'
+          : 'Image downloaded successfully.',
       );
     } catch (error) {
-      setShareFeedback("Unable to generate payment image.");
+      setShareFeedback('Unable to generate payment image.');
     } finally {
       setShareLoading(null);
     }
@@ -349,24 +365,24 @@ export const History = () => {
 
   const handleSharePdf = async () => {
     if (!selectedHistoryRow) return;
-    setShareLoading("pdf");
-    setShareFeedback("");
+    setShareLoading('pdf');
+    setShareFeedback('');
 
     try {
       const doc = <HistoryReceiptPdf row={selectedHistoryRow} />;
       const pdfBlob = await pdf(doc).toBlob();
       const fileName = `trovo-payment-${safeFileDate(selectedHistoryRow.dateValue)}.pdf`;
-      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
       const shared = await shareFileWithFallback(
         file,
-        "Trovo Payment Details",
-        "Payment details PDF"
+        'Trovo Payment Details',
+        'Payment details PDF',
       );
       setShareFeedback(
-        shared ? "PDF shared successfully." : "PDF downloaded successfully."
+        shared ? 'PDF shared successfully.' : 'PDF downloaded successfully.',
       );
     } catch (error) {
-      setShareFeedback("Unable to generate payment PDF.");
+      setShareFeedback('Unable to generate payment PDF.');
     } finally {
       setShareLoading(null);
     }
@@ -484,7 +500,7 @@ export const History = () => {
               className={styles.detailsCloseButton}
               onClick={() => {
                 setSelectedHistoryRow(null);
-                setShareFeedback("");
+                setShareFeedback('');
               }}
               aria-label="Close payment details"
             >
@@ -499,8 +515,7 @@ export const History = () => {
               />
               <h2 className={styles.detailsTitle}>Payment Details</h2>
               <p className={styles.detailsGeneratedText}>
-                Generated from Trovo-App on{" "}
-                {formatModalDateTime(new Date())}
+                Generated from Trovo-App on {formatModalDateTime(new Date())}
               </p>
             </div>
 
@@ -516,18 +531,18 @@ export const History = () => {
               />
               <DetailRow
                 title="From"
-                name={selectedHistoryRow.fromName || "-"}
+                name={selectedHistoryRow.fromName || '-'}
                 value={shortenKey(selectedHistoryRow.fromPublicKey)}
               />
               <DetailRow
                 title="Blockchain Proof (Transaction ID)"
-                name={selectedHistoryRow.transactionId || "-"}
+                name={selectedHistoryRow.transactionId || '-'}
               />
               <DetailRow
                 title="Date"
                 name={formatModalDateTime(
                   selectedHistoryRow.dateValue,
-                  selectedHistoryRow.dateRaw
+                  selectedHistoryRow.dateRaw,
                 )}
               />
             </div>
@@ -539,7 +554,9 @@ export const History = () => {
                 onClick={handleShareImage}
                 disabled={shareLoading !== null}
               >
-                {shareLoading === "image" ? "Preparing image..." : "Share Image"}
+                {shareLoading === 'image'
+                  ? 'Preparing image...'
+                  : 'Share Image'}
               </button>
               <button
                 type="button"
@@ -547,7 +564,7 @@ export const History = () => {
                 onClick={handleSharePdf}
                 disabled={shareLoading !== null}
               >
-                {shareLoading === "pdf" ? "Preparing PDF..." : "Share PDF"}
+                {shareLoading === 'pdf' ? 'Preparing PDF...' : 'Share PDF'}
               </button>
               <button
                 type="button"
@@ -555,7 +572,7 @@ export const History = () => {
                 onClick={handleShareText}
                 disabled={shareLoading !== null}
               >
-                {shareLoading === "text" ? "Preparing text..." : "Share Text"}
+                {shareLoading === 'text' ? 'Preparing text...' : 'Share Text'}
               </button>
               {shareFeedback ? (
                 <p className={styles.detailsShareFeedback}>{shareFeedback}</p>
@@ -842,12 +859,12 @@ const HistoryReceiptPdf = ({ row }: { row: HistoryRow }) => {
           />
           <PdfDetailRow
             title="From"
-            lineOne={row.fromName || "-"}
+            lineOne={row.fromName || '-'}
             lineTwo={shortenKey(row.fromPublicKey)}
           />
           <PdfDetailRow
             title="Blockchain Proof (Transaction ID)"
-            lineOne={row.transactionId || "-"}
+            lineOne={row.transactionId || '-'}
           />
           <PdfDetailRow
             title="Date"
@@ -881,7 +898,9 @@ const PdfDetailRow = ({
     >
       <Text style={receiptPdfStyles.detailTitle}>{title}</Text>
       <Text style={receiptPdfStyles.detailValue}>{lineOne}</Text>
-      {lineTwo ? <Text style={receiptPdfStyles.detailValue}>{lineTwo}</Text> : null}
+      {lineTwo ? (
+        <Text style={receiptPdfStyles.detailValue}>{lineTwo}</Text>
+      ) : null}
     </View>
   );
 };
@@ -890,7 +909,7 @@ const OverlayCard = ({
   children,
   show,
   onClose,
-  cardClassName = "",
+  cardClassName = '',
   hideCloseButton = false,
 }: {
   children: ReactNode;
@@ -1122,28 +1141,25 @@ const matchesDateRange = (
 
 const shortenKey = (value: string) => {
   const text = value.trim();
-  if (!text) return "-";
+  if (!text) return '-';
   if (text.length <= 12) return text;
   return `${text.slice(0, 5)}...${text.slice(-5)}`;
 };
 
-const formatModalDateTime = (
-  date: Date | null,
-  fallbackRaw = ""
-): string => {
+const formatModalDateTime = (date: Date | null, fallbackRaw = ''): string => {
   if (!date) {
-    if (!fallbackRaw) return "-";
+    if (!fallbackRaw) return '-';
     const parsed = parseDate(fallbackRaw);
     if (!parsed) return fallbackRaw;
     return formatModalDateTime(parsed);
   }
 
-  return date.toLocaleString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 };
@@ -1151,36 +1167,36 @@ const formatModalDateTime = (
 const buildHistoryShareText = (row: HistoryRow) => {
   const receiver = row.toName || row.username || row.walletLabel;
   return [
-    "Trovo Payment Details",
-    "",
+    'Trovo Payment Details',
+    '',
     `Type: ${row.type}`,
     `Amount: ${row.price}`,
     `Asset: ${row.assetCode}`,
     `Received On: ${receiver}`,
-    `Receiver Key: ${row.toPublicKey || "-"}`,
-    `From: ${row.fromName || "-"}`,
-    `Sender Key: ${row.fromPublicKey || "-"}`,
-    `Transaction ID: ${row.transactionId || "-"}`,
+    `Receiver Key: ${row.toPublicKey || '-'}`,
+    `From: ${row.fromName || '-'}`,
+    `Sender Key: ${row.fromPublicKey || '-'}`,
+    `Transaction ID: ${row.transactionId || '-'}`,
     `Date: ${formatModalDateTime(row.dateValue, row.dateRaw)}`,
-    row.memo ? `Memo: ${row.memo}` : "",
+    row.memo ? `Memo: ${row.memo}` : '',
   ]
     .filter(Boolean)
-    .join("\n");
+    .join('\n');
 };
 
 const safeFileDate = (date: Date | null) => {
-  if (!date) return "transaction";
-  return date.toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  if (!date) return 'transaction';
+  return date.toISOString().slice(0, 19).replace(/[:T]/g, '-');
 };
 
 const shareFileWithFallback = async (
   file: File,
   title: string,
-  text: string
+  text: string,
 ) => {
   if (
     navigator.share &&
-    typeof navigator.canShare === "function" &&
+    typeof navigator.canShare === 'function' &&
     navigator.canShare({ files: [file] })
   ) {
     await navigator.share({ title, text, files: [file] });
@@ -1193,7 +1209,7 @@ const shareFileWithFallback = async (
 
 const downloadBlob = (blob: Blob, fileName: string) => {
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
+  const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = fileName;
   document.body.appendChild(anchor);
@@ -1203,55 +1219,55 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 };
 
 const generateHistoryImageBlob = async (row: HistoryRow) => {
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   const width = 1080;
   const height = 1400;
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas context unavailable");
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas context unavailable');
 
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, width, height);
 
-  ctx.fillStyle = "#1B2E5A";
-  ctx.font = "700 72px Arial";
-  ctx.fillText("trovotech", 110, 140);
-  ctx.font = "700 54px Arial";
-  ctx.fillText("Payment Details", 110, 230);
+  ctx.fillStyle = '#1B2E5A';
+  ctx.font = '700 72px Arial';
+  ctx.fillText('trovotech', 110, 140);
+  ctx.font = '700 54px Arial';
+  ctx.fillText('Payment Details', 110, 230);
 
-  ctx.fillStyle = "#6A7FA8";
-  ctx.font = "400 30px Arial";
+  ctx.fillStyle = '#6A7FA8';
+  ctx.font = '400 30px Arial';
   ctx.fillText(`Generated on ${formatModalDateTime(new Date())}`, 110, 285);
 
   const cardX = 90;
   const cardY = 340;
   const cardWidth = 900;
   const cardHeight = 760;
-  ctx.fillStyle = "#EDF1F7";
+  ctx.fillStyle = '#EDF1F7';
   roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 28);
   ctx.fill();
 
   const sections = [
     {
-      title: "Received On",
+      title: 'Received On',
       lineOne: row.toName || row.username || row.walletLabel,
       lineTwo: shortenKey(row.toPublicKey),
     },
     {
-      title: "From",
-      lineOne: row.fromName || "-",
+      title: 'From',
+      lineOne: row.fromName || '-',
       lineTwo: shortenKey(row.fromPublicKey),
     },
     {
-      title: "Blockchain Proof (Transaction ID)",
-      lineOne: row.transactionId || "-",
-      lineTwo: "",
+      title: 'Blockchain Proof (Transaction ID)',
+      lineOne: row.transactionId || '-',
+      lineTwo: '',
     },
     {
-      title: "Date",
+      title: 'Date',
       lineOne: formatModalDateTime(row.dateValue, row.dateRaw),
-      lineTwo: "",
+      lineTwo: '',
     },
   ];
 
@@ -1259,7 +1275,7 @@ const generateHistoryImageBlob = async (row: HistoryRow) => {
   sections.forEach((section, index) => {
     const baseY = cardY + rowHeight * index;
     if (index > 0) {
-      ctx.strokeStyle = "#DDE4EF";
+      ctx.strokeStyle = '#DDE4EF';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(cardX + 28, baseY);
@@ -1267,25 +1283,39 @@ const generateHistoryImageBlob = async (row: HistoryRow) => {
       ctx.stroke();
     }
 
-    ctx.fillStyle = "#183E7D";
-    ctx.font = "700 36px Arial";
+    ctx.fillStyle = '#183E7D';
+    ctx.font = '700 36px Arial';
     ctx.fillText(section.title, cardX + 48, baseY + 70);
-    ctx.fillStyle = "#49618B";
-    ctx.font = "400 34px Arial";
-    fillWrappedText(ctx, section.lineOne, cardX + 48, baseY + 128, cardWidth - 96, 40);
+    ctx.fillStyle = '#49618B';
+    ctx.font = '400 34px Arial';
+    fillWrappedText(
+      ctx,
+      section.lineOne,
+      cardX + 48,
+      baseY + 128,
+      cardWidth - 96,
+      40,
+    );
     if (section.lineTwo) {
-      fillWrappedText(ctx, section.lineTwo, cardX + 48, baseY + 176, cardWidth - 96, 40);
+      fillWrappedText(
+        ctx,
+        section.lineTwo,
+        cardX + 48,
+        baseY + 176,
+        cardWidth - 96,
+        40,
+      );
     }
   });
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
-        reject(new Error("Failed to create image blob"));
+        reject(new Error('Failed to create image blob'));
         return;
       }
       resolve(blob);
-    }, "image/png");
+    }, 'image/png');
   });
 };
 
@@ -1295,10 +1325,10 @@ const fillWrappedText = (
   x: number,
   y: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
 ) => {
-  const words = text.split(" ");
-  let line = "";
+  const words = text.split(' ');
+  let line = '';
   let lineOffset = 0;
 
   words.forEach((word) => {
@@ -1324,7 +1354,7 @@ const roundRect = (
   y: number,
   width: number,
   height: number,
-  radius: number
+  radius: number,
 ) => {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -1343,36 +1373,36 @@ const receiptPdfStyles = StyleSheet.create({
   page: {
     paddingTop: 40,
     paddingHorizontal: 36,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 20,
   },
   brand: {
     fontSize: 34,
-    color: "#1B2E5A",
+    color: '#1B2E5A',
     fontWeight: 700,
     marginBottom: 8,
   },
   title: {
     fontSize: 24,
-    color: "#193E7D",
+    color: '#193E7D',
     fontWeight: 700,
     marginBottom: 6,
   },
   generated: {
     fontSize: 11,
-    color: "#6A7FA8",
+    color: '#6A7FA8',
   },
   card: {
-    backgroundColor: "#EDF1F7",
+    backgroundColor: '#EDF1F7',
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   detailRow: {
     borderBottomWidth: 1,
-    borderBottomColor: "#DDE4EF",
+    borderBottomColor: '#DDE4EF',
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
@@ -1382,12 +1412,12 @@ const receiptPdfStyles = StyleSheet.create({
   detailTitle: {
     fontSize: 12,
     fontWeight: 700,
-    color: "#183E7D",
+    color: '#183E7D',
     marginBottom: 4,
   },
   detailValue: {
     fontSize: 11,
-    color: "#49618B",
+    color: '#49618B',
     marginBottom: 3,
   },
 });
