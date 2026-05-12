@@ -36,6 +36,8 @@ export default function EarlyExitView() {
     terms: '',
   });
 
+  console.log('fklsd', password);
+
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
       <Header />

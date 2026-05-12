@@ -14,7 +14,6 @@ import RecoveryMain from '../pages/accountRecovery/main';
 import Login from '../pages/login';
 import Dashboard from '../pages/dashboard/main';
 import Home from '../pages/dashboard/home';
-import TokenizedAsset from '../pages/dashboard/tokenizedAssets/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
 import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
