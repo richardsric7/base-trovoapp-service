@@ -1058,7 +1058,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			//get amount for activation
-			msg, err := userServices.StablerailInitiateOnboardUser(user.Username, bvn, gc)
+			msg, err := userServices.StablerailInitiateOnboardUser(&user, bvn, gc)
 			if err != nil {
 				var ex tErrors.GenericError
 				var ok bool

@@ -13,8 +13,9 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.GlobalConfig) (msg string, err error) {
+func StablerailInitiateOnboardUser(trovoUser *userModels.User, bvn string, gc *sharedconfig.GlobalConfig) (msg string, err error) {
 	var config userModels.StablerailConfig
+	trovoUsername := trovoUser.Username
 	gc.DB.First(&config)
 	if len(config.ApiKey) == 0 {
 		log.Println("[StablerailOnboardUser] Stablerail configuration not found.")
@@ -55,6 +56,10 @@ func StablerailInitiateOnboardUser(trovoUsername, bvn string, gc *sharedconfig.G
 		log.Printf("[StablerailInitiateOnboardUser]Error saving onboarding for username %v: %v\n", trovoUsername, e)
 		return "", fmt.Errorf("could not onboard user %s", trovoUsername)
 	}
+	//send PN
+	dataPayload := make(map[string]string)
+	dataPayload["route"] = ""
+	trovoUser.SendPushMessage("Onboarding your BVN for fiat transactions", "Please wait while we onboard your BVN for fiat operations.", "", dataPayload, gc)
 	return r.Data.Message, nil
 
 }
