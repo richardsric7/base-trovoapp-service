@@ -148,7 +148,9 @@ type KycWebhookRequest struct {
 /**
 These are possible verification status : Ongoing, Completed, Pending, Failed
 **/
-
+//Obj.Data.GovernmentData.Data.Bvn.Entity.Bvn
+//Obj.IDType="BVN", Obj.Value="BVN VALUE"
+//Obj.Status=
 type DojaKYCResponse struct {
 	Metadata struct {
 		Ipinfo struct {

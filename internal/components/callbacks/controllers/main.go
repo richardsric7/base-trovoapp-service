@@ -80,6 +80,152 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
+		/*
+			{
+			  "metadata": {
+			    "ipinfo": {
+			      "status": "success",
+			      "country": "Nigeria",
+			      "city": "Lagos",
+			      "district": "",
+			      "zip": "",
+			      "lat": 6.4474,
+			      "lon": 3.3903,
+			      "timezone": "Africa/Lagos",
+			      "isp": "MTN NIGERIA Communication limited",
+			      "org": "MTN Nigeria",
+			      "as": "AS29465 MTN NIGERIA Communication limited",
+			      "mobile": true,
+			      "proxy": false,
+			      "hosting": true,
+			      "query": "102.88.115.133",
+			      "region_name": "Lagos"
+			    },
+			    "device_info": "Mozilla/5.0 (Linux; Android 10; Infinix X692 Build/QP1A.190711.020; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/137.0.7151.115 Mobile Safari/537.36",
+			    "user_id": "trovo"
+			  },
+			  "data": {
+			    "index": {
+			      "data": {
+
+			      },
+			      "message": "Successfully continued to the main checks.",
+			      "status": true
+			    },
+			    "email": {
+			      "data": {
+			        "email": "info@trovotech.io"
+			      },
+			      "status": true,
+			      "message": "info@trovotech.io validation Successful"
+			    },
+			    "user_data": {
+			      "data": {
+			        "first_name": "App",
+			        "last_name": "Trovo",
+			        "dob": "1977-08-25",
+			        "email": "info@trovotech.io"
+			      },
+			      "message": "",
+			      "status": true
+			    },
+			    "countries": {
+			      "data": {
+			        "country": "Nigeria"
+			      },
+			      "message": "Successfully continued to the next step.",
+			      "status": true
+			    },
+			    "government_data": {
+			      "data": {
+			        "bvn": {
+			          "entity": {
+			            "customer": "6bb82c41-e15e-4308-b99d-e9640818eca9",
+			            "app_id": null,
+			            "bvn": "22324280081",
+			            "first_name": "IFEANYI",
+			            "last_name": "OKERE",
+			            "middle_name": "",
+			            "gender": "Male",
+			            "date_of_birth": "01-Jun-1982",
+			            "phone_number1": "08011111111",
+			            "phone_number2": "",
+			            "image_url": null,
+			            "email": "",
+			            "enrollment_bank": "",
+			            "enrollment_branch": "",
+			            "level_of_account": "",
+			            "lga_of_origin": "",
+			            "lga_of_residence": "",
+			            "marital_status": "",
+			            "name_on_card": "",
+			            "nationality": "",
+			            "nin": "",
+			            "registration_date": "",
+			            "residential_address": "",
+			            "state_of_origin": "",
+			            "state_of_residence": "",
+			            "title": "",
+			            "type": "BASIC",
+			            "xc": null,
+			            "sc": true,
+			            "watch_listed": "",
+			            "createdAt": "2024-11-23T18:38:32.000Z",
+			            "updatedAt": "2024-11-23T18:38:32.000Z"
+			          }
+			        }
+			      },
+			      "message": "",
+			      "status": true
+			    },
+			    "phone_number": {
+			      "data": {
+			        "phone": "2348034477900"
+			      },
+			      "message": "2348034477900 validation Successful",
+			      "status": true
+			    },
+			    "address": {
+			      "message": "Address Verification Failed",
+			      "status": false,
+			      "data": {
+			        "location": {
+			          "user_location": {
+			            "latitude": "6.5191501",
+			            "longitude": "3.2921159",
+			            "name": "50 Ariyo Akinloye Street, Lagos, Nigeria"
+			          },
+			          "address_location": {
+			            "latitude": "6.5211771",
+			            "longitude": "3.2925486"
+			          }
+			        }
+			      }
+			    },
+			    "additional_document": [
+			      {
+			        "document_type": "image",
+			        "document_url": "https://images.dojah.io/image_686433e6da66af0047d5468887dd61b2-7a60-430b-a8f4-a0410fc8041b_1751397716.jpg"
+			      }
+			    ]
+			  },
+			  "id_type": "BVN",
+			  "value": "22222222222",
+			  "message": "Successfully completed the verification.",
+			  "reference_id": "DJ-80F3FD18A1",
+			  "widget_id": "67e6968cc5f45aec8ae35e0a",
+			  "verification_mode": "OTP",
+			  "verification_type": "BVN",
+			  "verification_value": "22222222222",
+			  "verification_url": "https://app.dojah.io/verifications/bio-data/30d31b0a-8ff3-4bf6-8fd2-455187e3e54e",
+			  "selfie_url": "",
+			  "status": true,
+			  "aml": {
+			    "status": false
+			  },
+			  "verification_status": "Completed"
+			}
+		*/
 		// Read body
 		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
