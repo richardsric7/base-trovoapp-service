@@ -15,6 +15,7 @@ import {
 } from '../store/api/walletApis';
 import Dropdown from './dropdown';
 import { formatToDecimal } from '../utils/utilities';
+import { signBase64Txn } from '../utils/trovoSDK';
 
 type Props = {
   show: boolean;
@@ -199,7 +200,7 @@ export function ShowExpressInterestSuccessModal({
 export function BuyTokenModal({ show, onClose, asset }: Props) {
   return (
     <Modal showModal={show} onClose={onClose}>
-      {renderBuyTokenSteps(asset!)}
+      {renderBuyTokenSteps(asset!, onClose)}
     </Modal>
   );
 }
@@ -245,7 +246,7 @@ export function ShowVerificationDocumentsModal({
   );
 }
 
-function renderBuyTokenSteps(asset: TokenizedAsset) {
+function renderBuyTokenSteps(asset: TokenizedAsset, onClose: () => void) {
   const [buyTokenStep, setBuyTokenStep] = useState(1);
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet)!;
@@ -344,7 +345,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset) {
             <TextInput
               inputType="text"
               label="Amount"
-              defaultValue={amount.toString()}
+              defaultValue={amount > 0 ? amount.toString() : ''}
               placeholder="5,000.0000"
               trailingIcon="/images/trovIcon.png"
               trailingText="CNGN"
@@ -391,7 +392,9 @@ function renderBuyTokenSteps(asset: TokenizedAsset) {
           </p>
           <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
             <div className="flex flex-col space-y-2 items-center w-full justify-between">
-              <p className="font-montserratSemiBold">{amount} Tokens</p>
+              <p className="font-montserratSemiBold">
+                {formatToDecimal(quantity)} Tokens
+              </p>
               <p className="text-xs text-primary-800">
                 of {asset?.assetName} Asset
               </p>
@@ -448,7 +451,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset) {
                   secretKey: secretKey,
                   body: {
                     isSharedWallet: activeWallet.sharedAccessEnabled,
-                    amount: amount,
+                    data: { amount: amount },
                     assetId: asset?.id,
                   },
                 };
@@ -459,6 +462,42 @@ function renderBuyTokenSteps(asset: TokenizedAsset) {
 
                 if ('data' in res) {
                   console.log('response', res);
+                  const body = {
+                    data: {
+                      isSharedWallet: activeWallet.sharedAccessEnabled,
+                      ...res.data,
+                      commit: res.data.signatureRequired == 1 ? 0 : 1,
+                      transactionSignature:
+                        res.data.signatureRequired == 1
+                          ? signBase64Txn(
+                              secretKey,
+                              res.data.transaction,
+                              res.data.networkPassPhrase,
+                            )
+                          : '',
+                    },
+                    assetId: asset?.id,
+                  };
+
+                  const payload = {
+                    signer: activeWallet.signer,
+                    publicKey: activeWallet.publicKey,
+                    secretKey: secretKey,
+                    body,
+                  };
+                  console.log('body', payload);
+                  const res2 = await buyToken(payload);
+                  if ('data' in res2) {
+                    console.log('response2', res2);
+                    setBuyTokenStep(5);
+                  } else if ('error' in res2) {
+                    const errorResponse = res2.error as ErrorResponse;
+                    showNotification(
+                      'error',
+                      errorResponse.data.message ??
+                        'Something went wrong. Please try again.',
+                    );
+                  }
                 } else if ('error' in res) {
                   const errorResponse = res.error as ErrorResponse;
                   showNotification(
@@ -496,8 +535,15 @@ function renderBuyTokenSteps(asset: TokenizedAsset) {
           <img src="/images/success.png" alt="success" />
           <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
             <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-              Purchase Successful!
+              You have successfully purchased {amount} {asset.assetCode}!
             </p>
+            <Button
+              label="Done"
+              additionalClasses="font-montserratSemiBold"
+              onclick={async () => {
+                onClose();
+              }}
+            />
           </div>
         </div>
       );
