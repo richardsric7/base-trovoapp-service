@@ -158,11 +158,27 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    addSubwallet: builder.mutation({
+      query: (payload: Payload) => ({
+        url:
+             `/v1/users/subwallet`,
+        method: 'POST',
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   useSendAssetMutation,
+  useAddSubwalletMutation,
   useSwapAssetMutation,
   useBuyTokenizedAssetsMutation,
   useSubscribeTokenizedAssetsMutation,
