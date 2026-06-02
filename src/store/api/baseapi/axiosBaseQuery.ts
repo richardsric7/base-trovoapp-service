@@ -67,12 +67,14 @@ export const axiosBaseQuery =
     const serverTs = Math.round(ms / 1000).toString();
     const toSign = uri + signer + serverTs;
     console.log('toSign: ', toSign); 
-    const signHttp = signHTTP(toSign, secretKey);
+    const signature = signHTTP(toSign, secretKey);
     console.log('pubkey: ', publicKey);  
     console.log('uri: ', uri);
+    console.log('signature: ', signature);
+    console.log('timestamp: ', serverTs);
 
     return {
-      "X-TW-SIGNATURE": signHttp,
+      "X-TW-SIGNATURE": signature,
       "X-TW-PUBLIC-KEY": publicKey,
       "X-TW-SIGNER": signer,
       "X-TW-DEVICE-ID": deviceId,

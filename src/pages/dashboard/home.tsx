@@ -1080,6 +1080,9 @@ export default function Home() {
           onClose={() => {
             setShowBuyTokenModal(false);
           }}
+          onSuccess={() => {
+            setShowBuyTokenModal(false);
+          }}
           asset={asset}
         />
       )}

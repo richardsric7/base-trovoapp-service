@@ -124,21 +124,24 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
-    buyTokenizedAssets: builder.mutation({
-      query: (payload: Payload) => ({
+    buyTokenizedAssets: builder.mutation({      
+      query: (payload: Payload) => {
+        console.log('from mutation ==> ', payload);
+        return ({
         url: payload.body.isSharedWallet
             ? `/v1/shared-access/tokenization/subscriptions/${payload.body.assetId}`
             : `/v1/tokenization/subscriptions/${payload.body.assetId}`,
         method: 'POST',
         data: {
-          payload: {'amount': payload.body.amount},
+          payload: payload.body.data,
           creds: {
             signer: payload.signer,
             publicKey: payload.publicKey,
             secretKey: payload.secretKey,
           }
         },
-      }),
+      })
+      },
     }),
     subscribeTokenizedAssets: builder.mutation({
       query: (payload: Payload) => ({
@@ -155,11 +158,27 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    addSubwallet: builder.mutation({
+      query: (payload: Payload) => ({
+        url:
+             `/v1/users/subwallet`,
+        method: 'POST',
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   useSendAssetMutation,
+  useAddSubwalletMutation,
   useSwapAssetMutation,
   useBuyTokenizedAssetsMutation,
   useSubscribeTokenizedAssetsMutation,
