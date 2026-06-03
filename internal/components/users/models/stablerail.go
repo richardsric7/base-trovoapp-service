@@ -138,6 +138,7 @@ type StablerailWithdrawalRequest struct {
 	Amount            float64 `json:"amount"`
 	Ticker            string  `json:"ticker"`
 	Network           string  `json:"network"`
+	Status            string  `json:"-"` //use only to save status on DB
 }
 
 // Response struct
