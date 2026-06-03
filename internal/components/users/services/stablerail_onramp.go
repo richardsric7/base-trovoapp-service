@@ -325,8 +325,37 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 		}()), "Provider has successfully processed your deposit. Now continuing to transfer your token to your TrovoApp blockchain wallet.", "", dataPayload, gc)
 
 		//start user asset withdrawal action
+		sruser:=GetStablerailUser(r.TrovoUsername, gc)
+		sronramp:=GetStablerailOnrampRequestByID(res.Data.RequestID, gc)
+		
+		if len(sruser.ID)>0 && len(sronramp.ID)>0{
+					assetWdlRq := userModels.StablerailAssetWithdrawalRequest{
+			ID:     sronramp.ID,
+			UserID: res.Data.RequestID,
+			InternalWallet: res.Data.Wallet.WalletAddress,
+			DestinationWallet: sronramp.WalletAddress,
+			Amount: sronramp.TotalAmount,
+			Ticker: "CNGN",
+			Network: "xbn",
+		}
+
+		StableRailInitiateAssetWithdrawal(&assetWdlRq, gc)
+		}
+
 
 	}
 	return nil
 
+}
+
+func GetStablerailUser(username string, gc *sharedconfig.GlobalConfig) (req userModels.StablerailUser) {
+
+	gc.DB.Where("Trovo_Username = ?", username).First(&req)
+	return
+}
+
+func GetStablerailOnrampRequestByID(id string, gc *sharedconfig.GlobalConfig) (req userModels.StablerailOnramp) {
+
+	gc.DB.Where("id = ?", id).First(&req)
+	return
 }
