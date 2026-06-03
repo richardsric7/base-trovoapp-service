@@ -345,7 +345,37 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					progress.KYCLevel1Submitted = 1
 					progress.KYCLevel1Completed = 1
 				}
+				//trigger CNGN onboarding
+				/*			  "id_type": "BVN",
+							  "value": "22222222222",
+				*/
+				if strings.EqualFold(event.IDType, "bvn") && len(event.Value) > 5 {
+					// bvn is valid
+					sriomsg, srierr := userServices.StablerailInitiateOnboardUser(&user, event.Value, gc)
+					if srierr != nil {
+						//perform operation trigger for stable rail for user
+						gc.LogDiscordFailedRequest(fmt.Sprintf("FAILED to trigger stablerail onboarding for user %v with BVN %v", user.Username, event.Value))
+						//TODO: save the detail for retry later,
+						retryLater := userModels.StablerailOnboardUserRetry{
+							TrovoUsername: user.Username,
+							BVN:           event.Value,
+						}
+						e := dbTx.Omit(clause.Associations).Save(&retryLater).Error
+						if e != nil {
+							errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save stablrail later retry task for [%v] due to [%v]\nRetry data: [%+v]", user.Username, e, retryLater)
+							gc.LogDiscordFailedRequest(errMsg)
+							log.Println(errMsg)
 
+							c.JSON(http.StatusInternalServerError, "error")
+							return
+						}
+
+					} else {
+						//
+						log.Printf("StablerailInitiate onboarding message for %v: %v\n", user.Username, sriomsg)
+					}
+
+				}
 			} else if widget.Level == 2 {
 				if progress.KYCLevel2Completed == 0 {
 					takeAction = true

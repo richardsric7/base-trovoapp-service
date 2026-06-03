@@ -17,7 +17,13 @@ type StablerailUser struct {
 	UpdatedAt     time.Time
 	ID            string
 	TrovoUsername string
-	// BVN           string // xx...xxx
+}
+type StablerailOnboardUserRetry struct {
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	ID            uint64
+	TrovoUsername string
+	BVN           string // xx...xxx
 
 }
 
@@ -181,12 +187,12 @@ type StablerailPayout struct {
 
 // Request payload
 type CNGNOnrampRequest struct {
-	Owner          string `json:"owner"`
-	Amount         int    `json:"amount"`
-	AssetSwap      string `json:"assetSwap"`
-	AutoSwap       bool   `json:"autoSwap"`
-	UserID         string `json:"userId"`
-	SweepToOfframp bool   `json:"sweepToOfframp"`
+	Owner          string  `json:"owner"`     //Owner wallet address if you want to manage the generated transaction wallet. Caveat!!! Doing this, our system won't be able to withdraw funds from such wallet.
+	Amount         float64 `json:"amount"`    //Amount to fund in Naira (e.g., 500 = ₦500)
+	AssetSwap      string  `json:"assetSwap"` //Asset to swap into after funding (e.g. USDC)
+	AutoSwap       bool    `json:"autoSwap"`  //Automatically swap funded amount to assetSwap
+	UserID         string  `json:"userId"`
+	SweepToOfframp bool    `json:"sweepToOfframp"` //Automatically route funds to the user's default wallet after funding
 }
 
 // Response structures
@@ -210,28 +216,28 @@ type CNGNResponseData struct {
 }
 
 type CNGNFeeBreakdown struct {
-	BaseAmount     int       `json:"baseAmount"`
-	FintechFee     int       `json:"fintechFee"`
-	GatewayFee     int       `json:"gatewayFee"`
-	StablesRailFee int       `json:"stablesRailFee"`
-	TotalFee       int       `json:"totalFee"`
-	TotalAmount    int       `json:"totalAmount"`
+	BaseAmount     float64       `json:"baseAmount"`
+	FintechFee     float64       `json:"fintechFee"`
+	GatewayFee     float64       `json:"gatewayFee"`
+	StablesRailFee float64       `json:"stablesRailFee"`
+	TotalFee       float64       `json:"totalFee"`
+	TotalAmount    float64       `json:"totalAmount"`
 	Breakdown      Breakdown `json:"breakdown"`
 }
 
 type Breakdown struct {
-	UserRequestedAmount      int     `json:"userRequestedAmount"`
-	FintechFeeAmount         int     `json:"fintechFeeAmount"`
+	UserRequestedAmount      float64     `json:"userRequestedAmount"`
+	FintechFeeAmount         float64     `json:"fintechFeeAmount"`
 	FintechFeePercentage     float64 `json:"fintechFeePercentage"`
 	FintechFeeCapped         bool    `json:"fintechFeeCapped"`
-	GatewayFeeAmount         int     `json:"gatewayFeeAmount"`
+	GatewayFeeAmount         float64     `json:"gatewayFeeAmount"`
 	GatewayFeePercentage     float64 `json:"gatewayFeePercentage"`
-	StablesRailFeeAmount     int     `json:"stablesRailFeeAmount"`
+	StablesRailFeeAmount     float64     `json:"stablesRailFeeAmount"`
 	StablesRailFeePercentage float64 `json:"stablesRailFeePercentage"`
 	StablesRailFeeCapped     bool    `json:"stablesRailFeeCapped"`
-	TotalFeeAmount           int     `json:"totalFeeAmount"`
-	FinalAmount              int     `json:"finalAmount"`
-	AmountToWallet           int     `json:"amountToWallet"`
+	TotalFeeAmount           float64     `json:"totalFeeAmount"`
+	FinalAmount              float64     `json:"finalAmount"`
+	AmountToWallet           float64     `json:"amountToWallet"`
 }
 
 // Request payload

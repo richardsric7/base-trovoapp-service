@@ -3894,7 +3894,11 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			if err != nil {
 				if err.Error() != "error-duplicate-operation-exists" {
 					log.Printf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo)
-					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
+					if !strings.Contains(err.Error(), "sale") {
+						//skip all sale related error
+						gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing first trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
+
+					}
 				}
 				continue
 			}
@@ -3906,7 +3910,10 @@ func ProcessPostTokenizationTrustline(gc *sharedconfig.GlobalConfig) {
 			if err != nil {
 				if err.Error() != "error-duplicate-operation-exists" {
 					log.Printf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v,err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo)
-					gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
+					if !strings.Contains(err.Error(), "sale") {
+						//skip all sale related errors
+						gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessPostTokenizationTrustline] error executing 2nd trustline call command %v, err: %v\nTrustLineInfo: [%+v]", candidate.PublicKey, err, trustLineInfo))
+					}
 
 				}
 				continue

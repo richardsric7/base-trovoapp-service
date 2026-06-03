@@ -11,8 +11,8 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-// Function to call API
-func GetVirtualAccount(requestID string, gc *sharedconfig.GlobalConfig) (*userModels.GetVirtualAccountResponse, error) {
+//GetCNGNOnrampVirtualAccount Function to call GetCNGNOnrampVirtualAccount API
+func GetCNGNOnrampVirtualAccount(requestID string, gc *sharedconfig.GlobalConfig) (*userModels.GetVirtualAccountResponse, error) {
 	// url := "https://beta.stablesrail.io/v1/getvirtualaccount"
 
 	// get config
