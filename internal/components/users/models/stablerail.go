@@ -131,8 +131,8 @@ type StablerailOfframpRequest struct {
 }
 
 // Request payload struct
-type StablerailWithdrawalRequest struct {
-	ID                string  `json:"id"`
+type StablerailAssetWithdrawalRequest struct {
+	ID                string  `json:"id"` //request ID of the deposit we are moving. After deposit, trigger witjdrawal.
 	UserID            string  `json:"userId"`
 	InternalWallet    string  `json:"internalWallet"`
 	DestinationWallet string  `json:"destinationWallet"`
@@ -140,6 +140,20 @@ type StablerailWithdrawalRequest struct {
 	Ticker            string  `json:"ticker"`
 	Network           string  `json:"network"`
 	Status            string  `json:"-"` //use only to save status on DB
+}
+
+/*
+{
+  "status": "Success",
+  "response_code": "00",
+  "message": "Withdrawal initiated"
+}
+*/
+// Request payload struct
+type StablerailUserAssetWithdrawalResponse struct {
+	Status       string `json:"status"`
+	ResponseCode string `json:"response_code"`
+	Message      string `json:"message"`
 }
 
 // Response struct

@@ -13,13 +13,20 @@ import (
 )
 
 // Function to initiate offramp
-func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailWithdrawalRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
+func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailAssetWithdrawalRequest, gc *sharedconfig.GlobalConfig) (*userModels.StablerailUserAssetWithdrawalResponse, error) {
 	// get config
 	var config userModels.StablerailConfig
-	if len(reqData.Status)==0{
+	if len(reqData.Status) == 0 {
 		reqData.Status = "pending"
 	}
-	gc.DB.Save(&reqData)
+	e := gc.DB.Save(&reqData).Error
+	if e != nil {
+		//failed to save withdrawal
+		log.Printf("[StableRailInitiateAssetWithdrawal] unable to create deposit request %+v\n", reqData)
+		gc.LogDiscordFailedRequest(fmt.Sprintf("[StableRailInitiateAssetWithdrawal] unable to create deposit request %+v\n", reqData))
+		return nil, fmt.Errorf("%v", "unable to create deposit request")
+	}
+
 	gc.DB.First(&config)
 	if len(config.ApiKey) == 0 {
 		log.Println("[StableRailInitiateOfframp] Stablerail configuration not found.")
@@ -70,10 +77,21 @@ func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailWithdrawalRe
 	}
 
 	// Parse JSON response
-	var offrampResp userModels.StableRailOfframpResponse
-	if err := json.Unmarshal(body, &offrampResp); err != nil {
+	var wtdResp userModels.StablerailUserAssetWithdrawalResponse
+	if err := json.Unmarshal(body, &wtdResp); err != nil {
 		return nil, fmt.Errorf("error unmarshaling response: %w", err)
 	}
+	//save deposit status
+	if wtdResp.ResponseCode == "00" {
+		reqData.Status = "completed"
+		e = gc.DB.Save(&reqData).Error
+		if e != nil {
+			//failed to update user asset withdrawal
+			log.Printf("[StableRailInitiateAssetWithdrawal] unable to create deposit request %+v\n", reqData)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[StableRailInitiateAssetWithdrawal] unable to save deposit request %+v\n", reqData))
+			return nil, fmt.Errorf("%v", "unable to save deposit request")
+		}
+	}
 
-	return &offrampResp, nil
+	return &wtdResp, nil
 }

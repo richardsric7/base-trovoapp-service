@@ -614,9 +614,9 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating StablerailOnboardUserRetry: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.StablerailWithdrawalRequest{})
+		errMigrate = gormDB.AutoMigrate(&users.StablerailAssetWithdrawalRequest{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating StablerailWithdrawalRequest: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating StablerailAssetWithdrawalRequest: ", errMigrate)
 		}
 
 		// errMigrate = UserTriggers(gormDB)
