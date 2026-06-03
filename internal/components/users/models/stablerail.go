@@ -132,6 +132,7 @@ type StablerailOfframpRequest struct {
 
 // Request payload struct
 type StablerailWithdrawalRequest struct {
+	ID                string  `json:"id"`
 	UserID            string  `json:"userId"`
 	InternalWallet    string  `json:"internalWallet"`
 	DestinationWallet string  `json:"destinationWallet"`

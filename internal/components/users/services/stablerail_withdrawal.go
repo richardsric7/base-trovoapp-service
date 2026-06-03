@@ -16,6 +16,10 @@ import (
 func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailWithdrawalRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
 	// get config
 	var config userModels.StablerailConfig
+	if len(reqData.Status)==0{
+		reqData.Status = "pending"
+	}
+	gc.DB.Save(&reqData)
 	gc.DB.First(&config)
 	if len(config.ApiKey) == 0 {
 		log.Println("[StableRailInitiateOfframp] Stablerail configuration not found.")
