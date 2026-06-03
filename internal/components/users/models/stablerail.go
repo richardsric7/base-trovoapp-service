@@ -130,6 +130,16 @@ type StableRailOfframpRequest struct {
 	Ticker        string `json:"ticker"`
 }
 
+// Request payload struct
+type StableRailWithdrawalRequest struct {
+	UserID            string  `json:"userId"`
+	InternalWallet    string  `json:"internalWallet"`
+	DestinationWallet string  `json:"destinationWallet"`
+	Amount            float64 `json:"amount"`
+	Ticker            string  `json:"ticker"`
+	Network           string  `json:"network"`
+}
+
 // Response struct
 type StableRailOfframpResponse struct {
 	Status       string `json:"status"`
@@ -216,28 +226,28 @@ type CNGNResponseData struct {
 }
 
 type CNGNFeeBreakdown struct {
-	BaseAmount     float64       `json:"baseAmount"`
-	FintechFee     float64       `json:"fintechFee"`
-	GatewayFee     float64       `json:"gatewayFee"`
-	StablesRailFee float64       `json:"stablesRailFee"`
-	TotalFee       float64       `json:"totalFee"`
-	TotalAmount    float64       `json:"totalAmount"`
+	BaseAmount     float64   `json:"baseAmount"`
+	FintechFee     float64   `json:"fintechFee"`
+	GatewayFee     float64   `json:"gatewayFee"`
+	StablesRailFee float64   `json:"stablesRailFee"`
+	TotalFee       float64   `json:"totalFee"`
+	TotalAmount    float64   `json:"totalAmount"`
 	Breakdown      Breakdown `json:"breakdown"`
 }
 
 type Breakdown struct {
-	UserRequestedAmount      float64     `json:"userRequestedAmount"`
-	FintechFeeAmount         float64     `json:"fintechFeeAmount"`
+	UserRequestedAmount      float64 `json:"userRequestedAmount"`
+	FintechFeeAmount         float64 `json:"fintechFeeAmount"`
 	FintechFeePercentage     float64 `json:"fintechFeePercentage"`
 	FintechFeeCapped         bool    `json:"fintechFeeCapped"`
-	GatewayFeeAmount         float64     `json:"gatewayFeeAmount"`
+	GatewayFeeAmount         float64 `json:"gatewayFeeAmount"`
 	GatewayFeePercentage     float64 `json:"gatewayFeePercentage"`
-	StablesRailFeeAmount     float64     `json:"stablesRailFeeAmount"`
+	StablesRailFeeAmount     float64 `json:"stablesRailFeeAmount"`
 	StablesRailFeePercentage float64 `json:"stablesRailFeePercentage"`
 	StablesRailFeeCapped     bool    `json:"stablesRailFeeCapped"`
-	TotalFeeAmount           float64     `json:"totalFeeAmount"`
-	FinalAmount              float64     `json:"finalAmount"`
-	AmountToWallet           float64     `json:"amountToWallet"`
+	TotalFeeAmount           float64 `json:"totalFeeAmount"`
+	FinalAmount              float64 `json:"finalAmount"`
+	AmountToWallet           float64 `json:"amountToWallet"`
 }
 
 // Request payload
