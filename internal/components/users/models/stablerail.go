@@ -122,7 +122,7 @@ type StablerailGetBanksResponse struct {
 }
 
 // Request payload struct
-type StablerailOfframpRequest struct {
+type StableRailOfframpRequest struct {
 	UserID        string `json:"userId"`
 	Amount        int    `json:"amount"`
 	AccountNumber string `json:"accountNumber"`
@@ -131,7 +131,7 @@ type StablerailOfframpRequest struct {
 }
 
 // Request payload struct
-type StablerailWithdrawalRequest struct {
+type StableRailWithdrawalRequest struct {
 	UserID            string  `json:"userId"`
 	InternalWallet    string  `json:"internalWallet"`
 	DestinationWallet string  `json:"destinationWallet"`
