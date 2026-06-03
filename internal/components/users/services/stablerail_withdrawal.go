@@ -87,7 +87,7 @@ func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailAssetWithdra
 		e = gc.DB.Save(&reqData).Error
 		if e != nil {
 			//failed to update user asset withdrawal
-			log.Printf("[StableRailInitiateAssetWithdrawal] unable to create deposit request %+v\n", reqData)
+			log.Printf("[StableRailInitiateAssetWithdrawal] unable to save deposit request %+v\n", reqData)
 			gc.LogDiscordFailedRequest(fmt.Sprintf("[StableRailInitiateAssetWithdrawal] unable to save deposit request %+v\n", reqData))
 			return nil, fmt.Errorf("%v", "unable to save deposit request")
 		}
