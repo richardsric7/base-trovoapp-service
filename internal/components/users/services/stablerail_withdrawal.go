@@ -13,7 +13,7 @@ import (
 )
 
 // Function to initiate offramp
-func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
+func StableRailInitiateAssetWithdrawal(reqData userModels.StablerailWithdrawalRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
 	// get config
 	var config userModels.StablerailConfig
 	gc.DB.First(&config)
@@ -29,7 +29,7 @@ func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *
 	if len(baseUrl) == 0 {
 		baseUrl = "https://beta.stablesrail.io/v1"
 	}
-	url := baseUrl + "/cngnofframp"
+	url := baseUrl + "/withdrawasset"
 
 	// Convert request struct to JSON
 	jsonData, err := json.Marshal(reqData)
