@@ -13,7 +13,7 @@ import (
 )
 
 // Function to initiate offramp
-func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
+func StableRailInitiateOfframp(reqData userModels.StableRailOfframpRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
 	// get config
 	var config userModels.StablerailConfig
 	gc.DB.First(&config)
