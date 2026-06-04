@@ -158,7 +158,7 @@ func StablerailGetPendingCNGNOnrampRequest(trovoUser *userModels.User, gc *share
 
 	//check if username already exists
 	var stablerailUserOnramp userModels.StablerailOnramp
-	e := gc.DB.Where("trovo_username = ? AND status = ?", trovoUsername, "created").First(&stablerailUserOnramp).Error
+	e := gc.DB.Where("trovo_username = ? AND status = ?", trovoUsername, "%"+"created"+"%").First(&stablerailUserOnramp).Error
 	if e != nil {
 		//error getting the stablerail user onramp
 		return rv, fmt.Errorf("no pending user fiat deposit: %v", 404)
@@ -412,7 +412,7 @@ func UpdateStablerailRequestByID(id, newStatus string, gc *sharedconfig.GlobalCo
 
 func GetStablerailPendingOnrampRequests(gc *sharedconfig.GlobalConfig) (req []userModels.StablerailRequest) {
 	req = make([]userModels.StablerailRequest, 0)
-	gc.DB.Where("request_type= ? AND status = ?", "Onramp", "created").Find(&req)
+	gc.DB.Where("request_type= ? AND status like ?", "Onramp", "%"+"created"+"%").Find(&req)
 	return
 }
 func ProcessUpdateStablerailCNGNOnrampStatus(gc *sharedconfig.GlobalConfig) {
