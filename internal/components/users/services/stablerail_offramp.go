@@ -73,3 +73,5 @@ func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *
 
 	return &offrampResp, nil
 }
+
+//TODO: stable rail offramp status update

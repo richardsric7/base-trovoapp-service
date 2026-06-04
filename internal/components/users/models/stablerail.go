@@ -38,10 +38,11 @@ type StablerailRequest struct {
 }
 
 type StablerailOnramp struct {
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	ID            string
-	WalletAddress string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	ID                 string
+	WalletAddress      string //stablerail internal wallet address to be used as internet address for triggering user asset withdrawal
+	TrovoWalletAddress string //trovo wallet address public key to be used as destination wallet address for triggering user asset withdrawal
 	// BaseAmount      float64
 	// Fee             float64
 	TotalAmount     float64
@@ -317,7 +318,7 @@ type GetVirtualAccountResponse struct {
 
 // Request payload
 type CNGNOnrampStatusRequest struct {
-	RequestID string `json:"requestId"`
+	WalletAddress string `json:"walletAddress"`
 }
 
 // Response structures

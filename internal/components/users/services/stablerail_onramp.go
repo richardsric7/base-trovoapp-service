@@ -27,10 +27,41 @@ func StablerailInitiateCNGNOnrampRequest(trovoUser *userModels.User, wallet *use
 		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
 	}
 	// check if pending one exists first.
-	_, existsError := StablerailGetPendingCNGNOnrampRequest(trovoUser, gc)
+	pr, existsError := StablerailGetPendingCNGNOnrampRequest(trovoUser, gc)
 	if existsError == nil {
+		// it already exists. check if the time is about 25mins and then delete it, just return the virtual account associated with it.
 
-		return nil, fmt.Errorf("%v", "active or pending fiat deposit exists. wait for it to expire or you proceed with it")
+		if time.Now().Sub(pr.CreatedAt) < time.Duration(25*time.Minute) {
+			//get virtual account info and return it since it still has some valid time on it
+			rv, err := GetCNGNOnrampVirtualAccount(pr.ID, gc)
+			if err != nil {
+				return nil, err
+			}
+			if rv != nil {
+				//check if the request ID is already funded and then skip.
+				//rv.Data.Status != "funded" && rv.Data.Status != "expired"
+				if rv.Data.Status == "created" {
+					//send the account information in pns.
+					vaMsg := fmt.Sprintf("Please pay NGN %v into:\nAccount Number: %v\nBank Name: %v\nAccount Name: %v\nAmount to pay: NGN %v\n", rv.Data.VirtualAccount.Amount, rv.Data.VirtualAccount.AccountNumber, rv.Data.VirtualAccount.BankName, rv.Data.VirtualAccount.AccountName, rv.Data.VirtualAccount.Amount)
+
+					//send PN
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = ""
+					trovoUser.SendPushMessage("funding payment detail", vaMsg, "", dataPayload, gc)
+					return rv, nil
+				} else {
+					//update the status
+					pr.Status = rv.Data.Status
+					gc.DB.Save(&pr)
+				}
+
+			}
+
+		} else {
+			//update the existing pending record to expired or aborted
+			pr.Status = "expired"
+			gc.DB.Save(&pr)
+		}
 
 	}
 	//check if username already exists
@@ -40,9 +71,6 @@ func StablerailInitiateCNGNOnrampRequest(trovoUser *userModels.User, wallet *use
 		//error getting the stablerail user
 		return nil, fmt.Errorf("user not onbaorded for fiat: %v", 404)
 	}
-	//initiate onboarding
-	// tx := gc.DB.Begin()
-	// defer tx.Rollback()
 
 	var stablerailRequest userModels.StablerailRequest
 
@@ -78,13 +106,14 @@ func StablerailInitiateCNGNOnrampRequest(trovoUser *userModels.User, wallet *use
 	}
 	//stablerail onramp
 	stablerailOnramp := userModels.StablerailOnramp{
-		ID:              cr.Data.RequestID,
-		WalletAddress:   wallet.ID,
-		TotalAmount:     rv.Data.VirtualAccount.Amount,
-		TargetAsset:     "USDC",
-		Status:          cr.Data.Status,
-		AutoSwapEnabled: 0,
-		TrovoUsername:   trovoUsername,
+		ID:                 cr.Data.RequestID,
+		WalletAddress:      rv.Data.WalletAddress,
+		TrovoWalletAddress: wallet.ID,
+		TotalAmount:        rv.Data.VirtualAccount.Amount,
+		TargetAsset:        "USDC",
+		Status:             cr.Data.Status,
+		AutoSwapEnabled:    0,
+		TrovoUsername:      trovoUsername,
 	}
 	e = gc.DB.Save(&stablerailOnramp).Error
 	if e != nil {
@@ -129,7 +158,7 @@ func StablerailGetPendingCNGNOnrampRequest(trovoUser *userModels.User, gc *share
 
 	//check if username already exists
 	var stablerailUserOnramp userModels.StablerailOnramp
-	e := gc.DB.Where("trovo_username = ? AND status != ?", trovoUsername, "completed").First(&stablerailUserOnramp).Error
+	e := gc.DB.Where("trovo_username = ? AND status = ?", trovoUsername, "created").First(&stablerailUserOnramp).Error
 	if e != nil {
 		//error getting the stablerail user onramp
 		return rv, fmt.Errorf("no pending user fiat deposit: %v", 404)
@@ -213,9 +242,13 @@ func GetCNGNOnrampStatus(requestID string, gc *sharedconfig.GlobalConfig) (*user
 	}
 	url := baseUrl + "/cngnonrampstatus"
 
+	onramReq := GetStablerailOnrampRequestByID(requestID, gc)
+	if len(onramReq.ID) == 0 {
+		return nil, fmt.Errorf("unable to find onramo request with id %v", requestID)
+	}
 	// Prepare request body
 	payload := userModels.CNGNOnrampStatusRequest{
-		RequestID: requestID,
+		WalletAddress: onramReq.WalletAddress,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -292,6 +325,7 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 	//if the response is successful, then we insert into user table
 	if strings.EqualFold(res.Data.Status, "funded") {
 		// it has been completed
+		//trovo wallet address is omitted since it is an update the address is already recorded during creation of request.
 		su := userModels.StablerailOnramp{
 			ID:            res.Data.RequestID,
 			WalletAddress: res.Data.Wallet.WalletAddress,
@@ -313,6 +347,10 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 
 			return fmt.Errorf("could not save onramp record for user %s", r.TrovoUsername)
 		}
+		//update the request itself
+		r.Status = res.Data.Status
+		gc.DB.Save(&r)
+
 		//send PN
 		user, _ := userModels.Username(r.TrovoUsername).GetSimpleUser(gc.DB, gc)
 		dataPayload := make(map[string]string)
@@ -325,23 +363,22 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 		}()), "Provider has successfully processed your deposit. Now continuing to transfer your token to your TrovoApp blockchain wallet.", "", dataPayload, gc)
 
 		//start user asset withdrawal action
-		sruser:=GetStablerailUser(r.TrovoUsername, gc)
-		sronramp:=GetStablerailOnrampRequestByID(res.Data.RequestID, gc)
-		
-		if len(sruser.ID)>0 && len(sronramp.ID)>0{
-					assetWdlRq := userModels.StablerailAssetWithdrawalRequest{
-			ID:     sronramp.ID,
-			UserID: res.Data.RequestID,
-			InternalWallet: res.Data.Wallet.WalletAddress,
-			DestinationWallet: sronramp.WalletAddress,
-			Amount: sronramp.TotalAmount,
-			Ticker: "CNGN",
-			Network: "xbn",
-		}
+		sruser := GetStablerailUser(r.TrovoUsername, gc)
+		sronramp := GetStablerailOnrampRequestByID(res.Data.RequestID, gc)
 
-		StableRailInitiateAssetWithdrawal(&assetWdlRq, gc)
-		}
+		if len(sruser.ID) > 0 && len(sronramp.ID) > 0 {
+			assetWdlRq := userModels.StablerailAssetWithdrawalRequest{
+				ID:                sronramp.ID,
+				UserID:            res.Data.RequestID,
+				InternalWallet:    res.Data.Wallet.WalletAddress,
+				DestinationWallet: sronramp.WalletAddress,
+				Amount:            sronramp.TotalAmount,
+				Ticker:            "CNGN",
+				Network:           "xbn",
+			}
 
+			StableRailInitiateAssetWithdrawal(&assetWdlRq, gc)
+		}
 
 	}
 	return nil
@@ -358,4 +395,35 @@ func GetStablerailOnrampRequestByID(id string, gc *sharedconfig.GlobalConfig) (r
 
 	gc.DB.Where("id = ?", id).First(&req)
 	return
+}
+
+func GetStablerailRequestByID(id string, gc *sharedconfig.GlobalConfig) (req userModels.StablerailRequest) {
+
+	gc.DB.Where("id = ?", id).First(&req)
+	return
+}
+
+func UpdateStablerailRequestByID(id, newStatus string, gc *sharedconfig.GlobalConfig) (sr userModels.StablerailRequest) {
+	sr = GetStablerailRequestByID(id, gc)
+	sr.Status = newStatus
+	gc.DB.Save(&sr)
+	return
+}
+
+func GetStablerailPendingOnrampRequests(gc *sharedconfig.GlobalConfig) (req []userModels.StablerailRequest) {
+	req = make([]userModels.StablerailRequest, 0)
+	gc.DB.Where("request_type= ? AND status = ?", "Onramp", "created").Find(&req)
+	return
+}
+func ProcessUpdateStablerailCNGNOnrampStatus(gc *sharedconfig.GlobalConfig) {
+	log.Printf("[ProcessUpdateStablerailCNGNOnrampStatus] <<<<<STARTING PROCESSING STABLERAIL ONRAMP STATUS>>>>>\n")
+
+	reqs := GetStablerailPendingOnrampRequests(gc)
+
+	for _, req := range reqs {
+		perror := UpdateStablerailCNGNOnrampStatus(req, gc)
+		if perror != nil {
+			log.Printf("[ProcessUpdateStablerailCNGNOnrampStatus] error updating stablerail onramp status: %v\n", perror)
+		}
+	}
 }

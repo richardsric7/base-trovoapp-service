@@ -191,3 +191,21 @@ func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sh
 	return nil
 
 }
+
+func GetStablerailPendingOnboardingRequests(gc *sharedconfig.GlobalConfig) (req []userModels.StablerailRequest) {
+	req = make([]userModels.StablerailRequest, 0)
+	gc.DB.Where("request_type= ? AND status = ?", "Onboarding", "processing").Find(&req)
+	return
+}
+func ProcessUpdateStablerailOnboardingStatus(gc *sharedconfig.GlobalConfig) {
+	log.Printf("[ProcessUpdateStablerailOnboardingStatus] <<<<<STARTING PROCESSING STABLERAIL USER ONBOARDING STATUS>>>>>\n")
+
+	reqs := GetStablerailPendingOnboardingRequests(gc)
+
+	for _, req := range reqs {
+		perror := UpdateStablerailUserOnboardingStatus(req, gc)
+		if perror != nil {
+			log.Printf("[ProcessUpdateStablerailOnboardingStatus] error updating stablerail user onboarding status: %v\n", perror)
+		}
+	}
+}

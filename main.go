@@ -767,6 +767,18 @@ func main() {
 				time.Sleep(5 * time.Second)
 			}
 		}()
+
+		//Start processing Stablerails onboarding and onramping
+		go func() {
+
+			for {
+				userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
+				time.Sleep(10 * time.Second)
+				userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				time.Sleep(10 * time.Second)
+
+			}
+		}()
 	}
 
 	{
