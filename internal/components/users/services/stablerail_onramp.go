@@ -369,9 +369,9 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 		if len(sruser.ID) > 0 && len(sronramp.ID) > 0 {
 			assetWdlRq := userModels.StablerailAssetWithdrawalRequest{
 				ID:                sronramp.ID,
-				UserID:            res.Data.RequestID,
-				InternalWallet:    res.Data.Wallet.WalletAddress,
-				DestinationWallet: sronramp.WalletAddress,
+				UserID:            sruser.ID,
+				InternalWallet:    sronramp.WalletAddress,
+				DestinationWallet: sronramp.TrovoWalletAddress,
 				Amount:            sronramp.TotalAmount,
 				Ticker:            "CNGN",
 				Network:           "xbn",
