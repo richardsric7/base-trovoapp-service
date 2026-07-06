@@ -501,6 +501,8 @@ class _EquityMutualFundsAssetInformationView
           item.value['value'] = data[item.key]?.toString() ?? '';
         }
 
+        var maxWords = int.tryParse(item.value['maxWords'].toString());
+
         return Column(
           children: [
             Row(
@@ -516,12 +518,20 @@ class _EquityMutualFundsAssetInformationView
                     100.sp,
                     width / 1.12,
                     initialValue: item.value['value'] ?? '',
+                    maxWords: maxWords,
                     validator: (value) {
                       if (item.value['required'] != true) return null;
 
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
                       }
+
+                      int wordLength = value.toString().split(' ').length;
+
+                      if (maxWords != null && wordLength > maxWords) {
+                        return "Max words exceeded!";
+                      }
+
                       return null;
                     },
                     onChanged: (value) {
@@ -540,6 +550,24 @@ class _EquityMutualFundsAssetInformationView
                     minLines: 3,
                     maxLines: null,
                     keyboardtype: TextInputType.multiline,
+                    buildCounter: maxWords != null
+                        ? (context, {currentLength, isFocused, maxLength}) {
+                            int length = item.value['value']
+                                .toString()
+                                .split(' ')
+                                .length;
+                            return Container(
+                              child: Text(
+                                '$length/$maxWords words',
+                                style: TextStyle(
+                                  color: length > maxWords
+                                      ? Colors.red
+                                      : notifier.getdarkgrey,
+                                ),
+                              ),
+                            );
+                          }
+                        : null,
                   ),
                 ),
               ],

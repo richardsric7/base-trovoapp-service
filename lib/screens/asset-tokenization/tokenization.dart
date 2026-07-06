@@ -439,6 +439,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     );
                   } else if (snapshot.connectionState == ConnectionState.done) {
                     if (snapshot.hasError) {
+                      inspect(snapshot);
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: SizedBox(
@@ -853,8 +854,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 .toString()
                 .toLowerCase() ==
             "ng") {
-          tokenizationApplicationFee = appState
-              .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
+          tokenizationApplicationFee =
+              double.tryParse(
+                appState
+                    .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee']
+                    .toString(),
+              ) ??
+              0.0;
           tokenizationApplicationFeeAsset = appState
               .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
               .toString()
@@ -874,7 +880,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.signer!,
       );
-      // inspect(responseData);
+      inspect(responseData);
       if (responseData['statusCode'] == 200) {
         await fetchTokenizationData();
         List<TokenizedAsset> assets = [];

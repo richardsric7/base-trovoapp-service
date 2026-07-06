@@ -50,6 +50,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
   late String insurancePolicyNumber;
   late String insurancePolicyHolder;
   late double percentageValueOfInsurance;
+  int assetDescriptionMaxWords = 100;
   bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
@@ -147,6 +148,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
   final assetOwnerRetainedOrContributedValueController =
       TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
+  final assetDescriptionController = TextEditingController();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -527,6 +529,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
         ? '0'
         : formatNumberShort(percentageFromPromoters);
 
+    assetDescriptionController.text = assetDescription;
+
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -648,11 +652,17 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
                         }
+
+                        int wordLength = value.toString().split(' ').length;
+
+                        if (wordLength > assetDescriptionMaxWords) {
+                          return "Max words exceeded!";
+                        }
+
                         return null;
                       },
                       onSaved: (value) {
@@ -662,7 +672,26 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                       },
                       minLines: 3,
                       maxLines: null,
+                      maxWords: assetDescriptionMaxWords,
                       keyboardtype: TextInputType.multiline,
+                      controller: assetDescriptionController,
+                      buildCounter:
+                          (context, {currentLength, isFocused, maxLength}) {
+                            var maxWords = assetDescriptionMaxWords;
+                            int length = assetDescriptionController.text
+                                .split(' ')
+                                .length;
+                            return Container(
+                              child: Text(
+                                '$length/$maxWords words',
+                                style: TextStyle(
+                                  color: length > maxWords
+                                      ? Colors.red
+                                      : notifier.getdarkgrey,
+                                ),
+                              ),
+                            );
+                          },
                     ),
                   ),
                 ],
@@ -773,192 +802,6 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                   ),
                 ],
               ),
-              // SizedBox(height: height / 50),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: Text(
-              //         "Upload Asset Images",
-              //         style: TextStyle(
-              //           fontSize: 12,
-              //           fontFamily: fontsemibold,
-              //           color: notifier.getbluewhitecolor,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // Row(
-              //   children: [
-              //     GestureDetector(
-              //       onTap: () async {
-              //         var file = await getFile();
-              //         if (file != null) {
-              //           // uploadAssetLogo(file);
-              //         }
-              //       },
-              //       child: Column(
-              //         children: [
-              //           SizedBox(height: height / 50),
-              //           Padding(
-              //             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-              //             child: Container(
-              //               height: height / 4,
-              //               decoration: BoxDecoration(
-              //                 border: Border.all(
-              //                   color: notifier.getbluewhitecolor,
-              //                   width: 1,
-              //                 ),
-              //                 borderRadius: const BorderRadius.all(
-              //                   Radius.circular(15.0),
-              //                 ),
-              //                 color: notifier.getwihitecolor,
-              //               ),
-              //               child: Column(
-              //                 crossAxisAlignment: CrossAxisAlignment.center,
-              //                 mainAxisAlignment: MainAxisAlignment.center,
-              //                 spacing: 10,
-              //                 children: [
-              //                   Icon(
-              //                     Icons.add_circle_sharp,
-              //                     color: notifier.getbluewhitecolor,
-              //                   ),
-              //                   SizedBox(
-              //                     width: width / 1.2,
-              //                     child: Center(
-              //                       child: Wrap(
-              //                         alignment: WrapAlignment.center,
-              //                         children: [
-              //                           Text(
-              //                             "browsefiles".tr(),
-              //                             textAlign: TextAlign.center,
-              //                             style: TextStyle(
-              //                               color: notifier.getbluewhitecolor,
-              //                               fontFamily: fontsemibold,
-              //                               fontSize: 12.sp,
-              //                             ),
-              //                           ),
-              //                         ],
-              //                       ),
-              //                     ),
-              //                   ),
-              //                   const SizedBox(height: 2),
-              //                   if (true) ...[
-              //                     Container(
-              //                       width: 300,
-              //                       padding: EdgeInsets.symmetric(
-              //                         horizontal: 5,
-              //                         vertical: 10,
-              //                       ),
-              //                       decoration: BoxDecoration(
-              //                         borderRadius: const BorderRadius.all(
-              //                           Radius.circular(15.0),
-              //                         ),
-              //                         color: notifier.isDark
-              //                             ? darktilewhitecolor
-              //                             : notifier.getaddsubwalletgrey,
-              //                       ),
-              //                       child: GestureDetector(
-              //                         onTap: () {
-              //                           getFile();
-              //                         },
-              //                         child: Column(
-              //                           children: [
-              //                             Row(
-              //                               mainAxisAlignment:
-              //                                   MainAxisAlignment.spaceBetween,
-              //                               children: [
-              //                                 Text(
-              //                                   "11 images uploaded",
-              //                                   style: TextStyle(
-              //                                     fontSize: 12,
-              //                                     fontFamily: fontsemibold,
-              //                                     color: notifier
-              //                                         .getbluewhitecolor,
-              //                                   ),
-              //                                 ),
-              //                                 Icon(
-              //                                   Icons.fullscreen_outlined,
-              //                                   color:
-              //                                       notifier.getbluewhitecolor,
-              //                                 ),
-              //                               ],
-              //                             ),
-              //                             Row(
-              //                               children: [
-              //                                 Image.network(
-              //                                   'https://picsum.photos/50/50',
-              //                                 ),
-              //                               ],
-              //                             ),
-              //                           ],
-              //                         ),
-              //                       ),
-              //                     ),
-              //                   ],
-              //                 ],
-              //               ),
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // if (true) ...[
-              //   Row(
-              //     children: [
-              //       Padding(
-              //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //         child: Text(
-              //           'Please upload asset images',
-              //           style: TextStyle(
-              //             fontSize: 12,
-              //             fontFamily: fontbody,
-              //             color: Colors.red,
-              //           ),
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ],
-              SizedBox(height: height / 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
-                  width: width,
-                  child: Text(
-                    textAlign: TextAlign.left,
-                    "Ownership",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {});
-                  },
-                  [],
-                  null,
-                  'Select asset ownership',
-                  context,
-                  null,
-                  validator: (value) {
-                    // if (selectedAssetSectorId.isEmpty) {
-                    //   return "Please choose an option";
-                    // }
-                    return null;
-                  },
-                ),
-              ),
               SizedBox(height: height / 30),
               Row(
                 children: [
@@ -1048,62 +891,62 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                 ],
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      "Project Estimated Payback Period (in Months)",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 70),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "Enter estimate",
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      85,
-                      300.sp,
-                      initialValue: estimatedProjectPaybackPeriodsInMonths
-                          .toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          estimatedProjectPaybackPeriodsInMonths =
-                              int.tryParse(value) ?? 0;
-                        });
-                      },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          estimatedProjectPaybackPeriodsInMonths =
-                              int.tryParse(value) ?? 0;
-                        });
-                      },
-                      keyboardtype: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: Text(
+              //         "Project Estimated Payback Period (in Months)",
+              //         style: TextStyle(
+              //           fontSize: 12,
+              //           fontFamily: fontsemibold,
+              //           color: notifier.getbluewhitecolor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(height: height / 70),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "Enter estimate",
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         85,
+              //         300.sp,
+              //         initialValue: estimatedProjectPaybackPeriodsInMonths
+              //             .toString(),
+              //         onChanged: (value) {
+              //           setState(() {
+              //             estimatedProjectPaybackPeriodsInMonths =
+              //                 int.tryParse(value) ?? 0;
+              //           });
+              //         },
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             estimatedProjectPaybackPeriodsInMonths =
+              //                 int.tryParse(value) ?? 0;
+              //           });
+              //         },
+              //         keyboardtype: TextInputType.number,
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Row(
@@ -1274,7 +1117,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Project Economic Benefits",
+                      "Project Intended Economic Benefits",
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -2191,7 +2034,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
-                      "Estimated Project Payback Periods?",
+                      "Estimated Project Payback Periods (in months)",
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -3680,67 +3523,6 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: width / 1.12,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(15.0),
-                        ),
-                        color: notifier.getaddsubwalletgrey,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "ownershipandlegalindependence".tr(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: fontsemibold,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            CheckboxItem(
-                              value: undertakingNoForeclosure,
-                              label: "confirmfreeoflegaldisputes".tr(),
-                              onChanged: (value) {
-                                setState(() {
-                                  undertakingNoForeclosure = value!;
-                                });
-                              },
-                              validator: (value) {
-                                if (!undertakingNoForeclosure) {
-                                  setState(() {
-                                    formHasError = true;
-                                  });
-                                  return '';
-                                }
-
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
                       ),
                     ),
                   ),

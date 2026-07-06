@@ -59,7 +59,7 @@ class _CreatePassword extends State<CreatePassword> {
           notifier.getwihitecolor,
           "",
           notifier.getblck,
-          height: height / 18,
+          height: height / 16,
         ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(

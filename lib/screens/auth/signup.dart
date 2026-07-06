@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -18,6 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/models/user.dart';
+import 'package:trovo_app/widgets/utilities.dart';
 import '../../functions/trovo-sdk.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
@@ -50,6 +52,12 @@ class _SignUpState extends State<SignUp> {
   bool hasAgreed = false; // to the terms of services
   final referrerController = TextEditingController();
   final secretKeyController = TextEditingController();
+  final fNameController = TextEditingController();
+  final lNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final mobileController = TextEditingController();
+  final usernameController = TextEditingController();
+
   late FocusNode passPhraseFocusNode;
   late FocusNode secretKeyFocusNode;
   bool usePassPhrase = false;
@@ -57,6 +65,7 @@ class _SignUpState extends State<SignUp> {
   String secretKey = '';
   bool importMode = false;
   String errorText = '';
+  Account? creds = null;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -72,8 +81,24 @@ class _SignUpState extends State<SignUp> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    state = Provider.of<DataProvider>(context, listen: false);
     passPhraseFocusNode = FocusNode();
     secretKeyFocusNode = FocusNode();
+
+    if (state.viewData?['rel'] == 'afterSwitch') {
+      fNameController.text =
+          state.userInfo?.firstName?.toLowerCase().capitalizeEachWord() ?? "";
+      lNameController.text =
+          state.userInfo?.lastName?.toLowerCase().capitalizeEachWord() ?? "";
+      emailController.text = state.userInfo?.email ?? "";
+      mobileController.text = state.userInfo?.mobile?.split('-').last ?? "";
+      usernameController.text = state.userInfo?.username ?? "";
+      corporate = state.userInfo?.isCorporate == true ? 1 : 0;
+      referrerController.text = state.userInfo?.referrer ?? "";
+    } else if (state.tempReferrerUsername.isNotEmpty) {
+      referrerController.text = state.tempReferrerUsername;
+      state.tempReferrerUsername = '';
+    }
   }
 
   @override
@@ -82,10 +107,7 @@ class _SignUpState extends State<SignUp> {
     state = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    if (state.tempReferrerUsername.isNotEmpty) {
-      referrerController.text = state.tempReferrerUsername;
-      state.tempReferrerUsername = '';
-    }
+
     if (state.viewData![SignupPageConfig.key] != null &&
         state.viewData![SignupPageConfig.key]['importMode']) {
       secretKeyController.text = state.tempSecretKey;
@@ -115,24 +137,62 @@ class _SignUpState extends State<SignUp> {
                     child: Column(
                       children: [
                         SizedBox(height: height / 50),
-                        Text(
-                          "ittakesaminute1".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 30.sp,
-                            fontFamily: fontsemibold,
+                        if (state.viewData?['rel'] != 'afterSwitch') ...[
+                          Text(
+                            "ittakesaminute1".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 30.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          "ittakesaminute2".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 30.sp,
-                            fontFamily: fontsemibold,
+                          Text(
+                            "ittakesaminute2".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 30.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                        ),
+                        ] else ...[
+                          SizedBox(
+                            width: width / 1.3,
+                            child: Text(
+                              "Create ${state.walletMode} Account",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 30.sp,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: width / 1.2,
+                            child: Text(
+                              "Please review the following information and submit to create a new account on ${state.walletMode}.",
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 13.sp,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          SizedBox(
+                            width: width / 1.2,
+                            child: Text(
+                              'Please note that this account will be created with a different keypair. If you want to retain the same keypair on ${state.walletMode.toLowerCase() == 'testnet' ? 'Mainnet' : state.walletMode} please import the key by tapping on the "Import existing wallet" checkbox below.',
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 13.sp,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ),
+                        ],
                         SizedBox(height: height / 20),
                         ToggleSwitch(
                           minHeight: height / 16,
@@ -172,6 +232,7 @@ class _SignUpState extends State<SignUp> {
                         // Email address
                         CustomTextFormField.textField(
                           "emailadress".tr(),
+                          controller: emailController,
                           notifier.getbluecolor,
                           Icons.email,
                           notifier.getgrey,
@@ -190,6 +251,7 @@ class _SignUpState extends State<SignUp> {
                         // Username
                         CustomTextFormField.textField(
                           "username".tr(),
+                          controller: usernameController,
                           notifier.getbluecolor,
                           Icons.person,
                           notifier.getgrey,
@@ -216,6 +278,7 @@ class _SignUpState extends State<SignUp> {
                           bordercolor: notifier.getgrey,
                           h: 70.sp,
                           w: 300.sp,
+                          controller: mobileController,
                         ),
                         SizedBox(height: height / 50),
                         // Referrer's Username
@@ -284,6 +347,25 @@ class _SignUpState extends State<SignUp> {
                               }
                               return null;
                             },
+                            onChanged: (value) {
+                              if (value != null && value.length == 56) {
+                                try {
+                                  setState(() {
+                                    creds = parseKey(value)!;
+                                  });
+                                } catch (e) {
+                                  popup(
+                                    context,
+                                    title: "error".tr(),
+                                    message: "invalidcredentials".tr(),
+                                  );
+                                }
+                              } else {
+                                setState(() {
+                                  creds = null;
+                                });
+                              }
+                            },
                             onSaved: (value) {
                               secretKey = value!.trim().replaceAll(' ', '');
                             },
@@ -291,15 +373,65 @@ class _SignUpState extends State<SignUp> {
                             maxLength: 56,
                             focusNode: secretKeyFocusNode,
                           ),
-                          // ],
-                          // Row(
-                          //   children: [
-                          //     Container(
-                          //       width: width / 1.2,
-                          //       child: checkUsePassphrase(),
-                          //     ),
-                          //   ],
-                          // ),
+                          if (creds != null) ...[
+                            SizedBox(height: height / 90),
+                            Container(
+                              constraints: BoxConstraints(
+                                maxWidth: width / 1.2,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'publickey'.tr(),
+                                    overflow: TextOverflow.visible,
+                                    style: TextStyle(
+                                      color: notifier.getblck,
+                                      fontSize: 15,
+                                      fontFamily: fontbody,
+                                    ),
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: width / 1.4,
+                                        ),
+                                        child: Text(
+                                          creds?.publicKey ?? '',
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                            color: notifier.getblck,
+                                            fontSize: 13,
+                                            fontFamily: fontbody,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          onPressed: () => {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: creds!.publicKey,
+                                              ),
+                                            ),
+                                            showSnackBar(
+                                              "publickey".tr(),
+                                              context,
+                                            ),
+                                          },
+                                          icon: Icon(Icons.copy, size: 20),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                         SizedBox(height: height / 50),
                         // Terms of Service
@@ -326,42 +458,44 @@ class _SignUpState extends State<SignUp> {
                 onTap: () => _validateAndSave(),
               ),
               SizedBox(height: height / 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "alreadyregistered".tr(),
-                    style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      state.currentAction = state.userInfo == null
-                          ? PageAction(
-                              state: PageState.addPage,
-                              page: ImportWalletPageConfig,
-                            )
-                          : PageAction(
-                              state: PageState.replaceAll,
-                              page: LoginPageConfig,
-                            );
-                    },
-                    child: Text(
-                      ' ${state.userInfo == null ? "importwallet".tr() : "signin".tr()}',
+              if (state.viewData?['rel'] != 'afterSwitch') ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "alreadyregistered".tr(),
                       style: TextStyle(
-                        color: notifier.isDark
-                            ? notifier.getbluecolor50
-                            : notifier.getbluecolor90,
+                        color: notifier.getgrey,
                         fontSize: 13.sp,
                         fontFamily: fontbody,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    GestureDetector(
+                      onTap: () {
+                        state.currentAction = state.userInfo == null
+                            ? PageAction(
+                                state: PageState.addPage,
+                                page: ImportWalletPageConfig,
+                              )
+                            : PageAction(
+                                state: PageState.replaceAll,
+                                page: LoginPageConfig,
+                              );
+                      },
+                      child: Text(
+                        ' ${state.userInfo == null ? "importwallet".tr() : "signin".tr()}',
+                        style: TextStyle(
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                          fontSize: 13.sp,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(height: height / 20),
               Padding(
                 padding: EdgeInsets.only(
@@ -471,6 +605,8 @@ class _SignUpState extends State<SignUp> {
                 if (usePassPhrase) {
                   passPhraseFocusNode.requestFocus();
                 } else {
+                  secretKey = '';
+                  secretKeyController.text = '';
                   secretKeyFocusNode.requestFocus();
                 }
               });
@@ -540,6 +676,7 @@ class _SignUpState extends State<SignUp> {
           // Firstname
           CustomTextFormField.textField(
             "fanme".tr(),
+            controller: fNameController,
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -556,6 +693,7 @@ class _SignUpState extends State<SignUp> {
           // Lastname
           CustomTextFormField.textField(
             "lname".tr(),
+            controller: lNameController,
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -577,6 +715,7 @@ class _SignUpState extends State<SignUp> {
           // EntityName
           CustomTextFormField.textField(
             "entityname".tr(),
+            controller: fNameController,
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -611,6 +750,7 @@ class _SignUpState extends State<SignUp> {
     bordercolor,
     h,
     w,
+    controller,
   }) {
     return Container(
       color: Colors.transparent,
@@ -650,6 +790,7 @@ class _SignUpState extends State<SignUp> {
             borderRadius: BorderRadius.circular(15.sp),
           ),
         ),
+        controller: controller,
         onChanged: (value) {
           setState(() {
             phoneNumber = value.completeNumber;
@@ -658,6 +799,11 @@ class _SignUpState extends State<SignUp> {
         onCountryChanged: (value) {
           setState(() {
             countryCode = value.code;
+          });
+        },
+        onSaved: (value) {
+          setState(() {
+            phoneNumber = value?.completeNumber ?? "";
           });
         },
       ),
@@ -860,7 +1006,6 @@ class _SignUpState extends State<SignUp> {
       };
 
       String jsonBody = jsonEncode(map);
-      Account? creds = null;
 
       if (!usePassPhrase && secretKey.isNotEmpty) {
         creds = parseKey(secretKey)!;
@@ -869,8 +1014,9 @@ class _SignUpState extends State<SignUp> {
       }
 
       if (creds != null) {
-        state.tempPublicKey = creds.publicKey;
-        state.tempSecretKey = creds.secretKey;
+        state.tempPublicKey = creds!.publicKey;
+        state.tempSigner = creds!.publicKey;
+        state.tempSecretKey = creds!.secretKey;
       }
 
       Map responseData = await makePostRequest(

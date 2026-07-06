@@ -189,12 +189,11 @@ class _VeryficationState extends State<Veryfication> {
 
       var publicKey = state.tempPublicKey;
       var secretKey = state.tempSecretKey;
-      var signer = state.tempSigner;
 
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: signer ?? publicKey,
+        signer: publicKey,
         publicKey: publicKey,
         secretKey: secretKey,
       );
@@ -232,6 +231,7 @@ class _VeryficationState extends State<Veryfication> {
 
     var publicKey = state.tempPublicKey;
     var secretKey = state.tempSecretKey;
+    state.backupSecrets.clear();
     state.backupSecrets.add(secretKey);
 
     Map responseData = await makeGetRequest(

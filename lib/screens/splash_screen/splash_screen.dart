@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:math';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +12,6 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/services/push_fcm_service.dart';
 import 'package:trovo_app/storage/cache.dart';
 import 'package:trovo_app/storage/state.dart';
-import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -307,8 +304,18 @@ class _SplashScreenState extends State<SplashScreen>
     } else if (responseData['statusCode'] == 404) {
       accountNotFoundAfterSwitchPopup(
         context,
-        onContinueWithCredentials: () async =>
-            await createUserAccountAfterSwitch(),
+        onCreateNewAccount: () {
+          var account = TrovoWalletSDK().createAccount();
+          appState.setTempPassword = appState.password;
+          appState.setTempPublicKey = account.publicKey;
+          appState.setTempSecretKey = account.secretKey;
+          appState.setTempSigner = account.publicKey;
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: SignupPageConfig,
+          );
+          appState.viewData = {'rel': 'afterSwitch'};
+        },
         onImportNewCredential: () => {
           appState.currentAction = PageAction(
             state: PageState.addPage,
@@ -328,7 +335,18 @@ class _SplashScreenState extends State<SplashScreen>
       accountNotFoundAfterSwitchPopup(
         context,
         message: responseData['data']['message'],
-        onContinueWithCredentials: () {},
+        onCreateNewAccount: () {
+          var account = TrovoWalletSDK().createAccount();
+          appState.setTempPassword = appState.password;
+          appState.setTempPublicKey = account.publicKey;
+          appState.setTempSecretKey = account.secretKey;
+          appState.setTempSigner = account.publicKey;
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: SignupPageConfig,
+          );
+          appState.viewData = {'rel': 'afterSwitch'};
+        },
         onImportNewCredential: () => {
           appState.currentAction = PageAction(
             state: PageState.addPage,
@@ -345,66 +363,70 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  Future<void> createUserAccountAfterSwitch() async {
-    try {
-      showLoader(context);
-      appState.userInfo!.pushNotificationToken = await FCM()
-          .getPushNotificationToken();
-      Map map = {
-        'username': appState.userInfo!.username,
-        'email': appState.userInfo!.email,
-        'firstName': appState.userInfo!.firstName,
-        'lastName': appState.userInfo!.lastName,
-        'mobile': appState.userInfo!.mobile,
-        'mobileCountryCode': appState.userInfo!.countryCode,
-        'referrer': appState.userInfo!.referrer,
-        'pushNotificationToken': appState.userInfo!.pushNotificationToken,
-        'corporate': appState.userInfo!.corporate,
-        'verificationCode': '',
-      };
+  // Future<void> createUserAccountAfterSwitch() async {
+  //   try {
+  //     showLoader(context);
+  //     appState.userInfo!.pushNotificationToken = await FCM()
+  //         .getPushNotificationToken();
+  //     appState.userInfo!.countryCode = 'NG';
+  //     appState.userInfo!.referrer = '';
+  //     Map map = {
+  //       'username': appState.userInfo!.username,
+  //       'email': appState.userInfo!.email,
+  //       'firstName': appState.userInfo!.firstName,
+  //       'lastName': appState.userInfo!.lastName,
+  //       'mobile': appState.userInfo!.mobile,
+  //       'mobileCountryCode': appState.userInfo!.countryCode,
+  //       'referrer': appState.userInfo!.referrer,
+  //       'pushNotificationToken': appState.userInfo!.pushNotificationToken,
+  //       'corporate': appState.userInfo!.corporate,
+  //       'verificationCode': '',
+  //     };
 
-      Account? creds = parseKey(context, appState.secretKeys[0])!;
+  //     print('======> userdata $map');
 
-      String jsonBody = jsonEncode(map);
+  //     Account? creds = parseKey(context, appState.secretKeys[0])!;
 
-      Map responseData = await makePostRequest(
-        uri: '/v1/users',
-        body: jsonBody,
-        signer: creds.publicKey,
-        publicKey: creds.publicKey,
-        secretKey: creds.secretKey,
-      );
+  //     String jsonBody = jsonEncode(map);
 
-      hideLoader(context);
+  //     Map responseData = await makePostRequest(
+  //       uri: '/v1/users',
+  //       body: jsonBody,
+  //       signer: creds.publicKey,
+  //       publicKey: creds.publicKey,
+  //       secretKey: creds.secretKey,
+  //     );
 
-      if (responseData['statusCode'] == 202) {
-        appState.tempPublicKey = creds.publicKey;
-        appState.tempSecretKey = creds.secretKey;
-        appState.tempSigner = creds.publicKey;
-        appState.tempPassword = appState.password!;
+  //     hideLoader(context);
 
-        appState.currentAction = PageAction(
-          state: PageState.addPage,
-          page: VerificationPageConfig,
-        );
-      } else {
-        popup(
-          context,
-          title: "error".tr(),
-          message: responseData['data']['message'],
-        );
-      }
-    } catch (e) {
-      hideLoader(context);
-      popup(
-        context,
-        title: "error".tr(),
-        message: e.toString().contains('firebase')
-            ? 'Network error! Please check your connection and try again.'
-            : e.toString(),
-      );
-    }
-  }
+  //     if (responseData['statusCode'] == 202) {
+  //       appState.tempPublicKey = creds.publicKey;
+  //       appState.tempSecretKey = creds.secretKey;
+  //       appState.tempSigner = creds.publicKey;
+  //       appState.tempPassword = appState.password!;
+
+  //       appState.currentAction = PageAction(
+  //         state: PageState.addPage,
+  //         page: VerificationPageConfig,
+  //       );
+  //     } else {
+  //       popup(
+  //         context,
+  //         title: "error".tr(),
+  //         message: responseData['data']['message'],
+  //       );
+  //     }
+  //   } catch (e) {
+  //     hideLoader(context);
+  //     popup(
+  //       context,
+  //       title: "error".tr(),
+  //       message: e.toString().contains('firebase')
+  //           ? 'Network error! Please check your connection and try again.'
+  //           : e.toString(),
+  //     );
+  //   }
+  // }
 
   Future<String> resolveShortlink(String linkId) async {
     var uri = '/v1/shortlinks/$linkId';

@@ -195,7 +195,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         // of the textbox so it will
                         // consistent when showing an
                         // error message
-                        70,
+                        0,
                         300,
                         onChanged: (value) {
                           if (value != null && value.toString().isNotEmpty) {

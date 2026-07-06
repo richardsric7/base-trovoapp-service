@@ -212,7 +212,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                           ),
                           SizedBox(height: height / 50),
                           detailItem(
-                            "assetverificationdocs".tr(),
+                            "Asset Documents",
                             "provideverificationdocs".tr(),
                             "2",
                             appState.viewData!['AssetTokenizationDocuments'] !=

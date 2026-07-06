@@ -76,8 +76,13 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
           tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
         quoteCurrencyCode =
             appState.tokenizationData['countryConfigs'][i]['quoteCurrencyCode'];
-        tokenizationApplicationFee = appState
-            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee'];
+        tokenizationApplicationFee =
+            double.tryParse(
+              appState
+                  .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee']
+                  .toString(),
+            ) ??
+            0.0;
         tokenizationApplicationFeeAsset = appState
             .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
             .toString()
@@ -111,7 +116,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
     width = MediaQuery.of(context).size.width;
     var isAlreadySubmitted = tokenizedAsset.tokenizationStatus! >= 1;
     var isVetted = tokenizedAsset.vettingStatus == 1;
-    inspect(appState.tokenizationData);
+    inspect(tokenizedAsset);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -407,7 +412,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         SizedBox(height: height / 90),
                         if (tokenizedAsset.issuingHouseFeeValue! > 0) ...[
                           item(
-                            "Issuing house Fee",
+                            "Issuing House Fee",
                             '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}',
                           ),
                           SizedBox(height: height / 90),
@@ -422,8 +427,15 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                         ],
                         if (tokenizedAsset.ratingAgencyFeeValue! > 0) ...[
                           item(
-                            "Rating agency Fee",
+                            "Rating Agency Fee",
                             '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}',
+                          ),
+                          SizedBox(height: height / 90),
+                        ],
+                        if (tokenizedAsset.trusteeFeeValue! > 0) ...[
+                          item(
+                            "Trustee Fee",
+                            '${formatNumberShort(tokenizedAsset.trusteeFeeValue!)} ${fiatCurrency}',
                           ),
                           SizedBox(height: height / 90),
                         ],
@@ -876,6 +888,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         tokenizedAsset.issuingHouseFeeValue! +
         tokenizedAsset.legalAndProfessionalFeeValue! +
         tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.trusteeFeeValue! +
         tokenizedAsset.vatValue! +
         getFeeInfo(tokenizedAsset.tokenizationFeeId!);
 
@@ -883,8 +896,10 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
   }
 
   double getFeeInfo(int index) {
-    var fiatPercentage = appState
-        .tokenizationData["tokenizationFees"][index]['feeFiatPercentage'];
+    var fiatPercentage = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatPercentage']
+          .toString(),
+    );
     var fiatFeeCap = double.parse(
       appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
           .toString(),

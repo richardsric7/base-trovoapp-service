@@ -780,6 +780,8 @@ Widget tokenizedAssetTile({
   void Function()? onSubscribe,
   void Function()? onBuyToken,
 }) {
+  var tokensRemaining =
+      (asset.numberOfTokenToBeSold! - asset.quantityOfTokensSold!);
   return Card(
     elevation: notifier.isDark ? 0 : 5,
     shadowColor: Colors.black,
@@ -977,6 +979,7 @@ Widget tokenizedAssetTile({
                   ],
                 ),
               ] else if (asset.tokenizationStatus == 5) ...[
+                SizedBox(height: 5),
                 Container(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -997,7 +1000,7 @@ Widget tokenizedAssetTile({
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: Text(
-                            'Available',
+                            tokensRemaining == 0 ? 'Sold Out' : 'Available',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
@@ -1008,54 +1011,56 @@ Widget tokenizedAssetTile({
                           ),
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: onBuyToken,
-                        style: ButtonStyle(
-                          padding: WidgetStateProperty.all(EdgeInsets.zero),
-                          overlayColor: WidgetStateProperty.all<Color>(
-                            notifier.getbluecolor90,
-                          ),
-                          backgroundColor: WidgetStateProperty.all<Color>(
-                            notifier.getbluewhitecolor,
-                          ),
-                          foregroundColor: WidgetStateProperty.all<Color>(
-                            notifier.getwihitecolor,
-                          ),
-                          side: WidgetStateProperty.all(
-                            BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                              style: BorderStyle.solid,
+                      if (tokensRemaining > 0) ...[
+                        ElevatedButton(
+                          onPressed: onBuyToken,
+                          style: ButtonStyle(
+                            padding: WidgetStateProperty.all(EdgeInsets.zero),
+                            overlayColor: WidgetStateProperty.all<Color>(
+                              notifier.getbluecolor90,
                             ),
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
+                            backgroundColor: WidgetStateProperty.all<Color>(
+                              notifier.getbluewhitecolor,
+                            ),
+                            foregroundColor: WidgetStateProperty.all<Color>(
+                              notifier.getwihitecolor,
+                            ),
+                            side: WidgetStateProperty.all(
+                              BorderSide(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                                style: BorderStyle.solid,
+                              ),
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape:
+                                WidgetStateProperty.all<RoundedRectangleBorder>(
+                                  const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
                                   ),
                                 ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Buy',
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                  fontSize: 12,
+                                  color: notifier.getwihitecolor,
+                                ),
                               ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Buy',
-                              style: TextStyle(
-                                fontFamily: fontsemibold,
-                                fontSize: 12,
+                              Image.asset(
+                                'assets/images/money.png',
                                 color: notifier.getwihitecolor,
                               ),
-                            ),
-                            Image.asset(
-                              'assets/images/money.png',
-                              color: notifier.getwihitecolor,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

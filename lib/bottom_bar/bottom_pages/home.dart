@@ -49,7 +49,7 @@ class _HomeState extends State<Home>
   List<Asset>? claimedAssets;
   String? activeWallet;
   var noOfTransactionsToSign;
-  var noXbnBalance = false;
+  var activateWallet = false;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   late Future<List<TokenizedAsset>> primaryOffersListFuture;
@@ -77,11 +77,11 @@ class _HomeState extends State<Home>
     wallets = userInfo.wallets!;
     sharedWallets = userInfo.sharedWallets!;
 
-    if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
+    if ((activeWallet == null && wallets.length > 0) || activateWallet) {
       activeWallet = wallets[0].publicKey;
       claimedAssets = wallets[0].claimedAssets;
       unclaimedAssets = wallets[0].unClaimedAssets;
-      noXbnBalance =
+      activateWallet =
           claimedAssets!
               .firstWhere(
                 (asset) =>
@@ -93,7 +93,7 @@ class _HomeState extends State<Home>
       reOrderClaimedAssets(activeWallet!);
     }
 
-    if (!noXbnBalance) {
+    if (!activateWallet) {
       primaryOffersListFuture = fetchTokenizationList(status: 0);
       secondaryListItemsFuture = fetchTokenizationList(status: 1);
     }
@@ -359,7 +359,7 @@ class _HomeState extends State<Home>
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
-                  if (!noXbnBalance) ...[
+                  if (!activateWallet) ...[
                     SizedBox(height: height / 50),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -787,9 +787,9 @@ class _HomeState extends State<Home>
                                   'testnet') {
                                 showNewUserView = !showNewUserView;
                                 if (showNewUserView) {
-                                  noXbnBalance = true;
+                                  activateWallet = true;
                                 } else {
-                                  noXbnBalance = false;
+                                  activateWallet = false;
                                 }
                               }
                             });
@@ -1021,12 +1021,22 @@ class _HomeState extends State<Home>
 
   void refreshData() async {
     try {
-      if (!noXbnBalance) {
+      await appState.refreshData();
+      await appState.getApprovals();
+      setState(() {
+        var xbn = appState.primaryWallet.claimedAssets!.firstWhere(
+          (asset) => asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty,
+        );
+        print('========> xbn balance = ${xbn.amount}');
+        activateWallet = xbn.amount == 0;
+      });
+      print('=======>sdss $activateWallet');
+
+      if (!activateWallet) {
         primaryOffersListFuture = fetchTokenizationList(status: 0);
         secondaryListItemsFuture = fetchTokenizationList(status: 1);
       }
-      await appState.refreshData();
-      await appState.getApprovals();
+
       _refreshController.refreshCompleted();
       appState.updateListeners();
     } catch (e) {
@@ -1427,7 +1437,6 @@ class _HomeState extends State<Home>
   }
 
   Future<void> fetchFiatAmountForActivation() async {
-    ;
     try {
       showLoader(context);
       var uri = '/v1/users/activate/fiat';

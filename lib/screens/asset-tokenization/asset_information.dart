@@ -48,6 +48,7 @@ class _AssetInformation extends State<AssetInformation>
   late String insurancePolicyNumber;
   late String insurancePolicyHolder;
   late double percentageValueOfInsurance;
+  int assetDescriptionMaxWords = 100;
   bool assetAlreadyExists = false;
   bool formHasError = false;
   late dynamic data = {};
@@ -121,6 +122,7 @@ class _AssetInformation extends State<AssetInformation>
   final assetOwnerRetainedOrContributedValueController =
       TextEditingController();
   final percentValueOfInsuranceController = TextEditingController();
+  final assetDescriptionController = TextEditingController();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -463,6 +465,8 @@ class _AssetInformation extends State<AssetInformation>
         ? '0'
         : formatNumberShort(percentageFromPromoters);
 
+    assetDescriptionController.text = assetDescription;
+
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -584,11 +588,17 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
-                      initialValue: assetDescription,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
                         }
+
+                        int wordLength = value.toString().split(' ').length;
+
+                        if (wordLength > assetDescriptionMaxWords) {
+                          return "Max words exceeded!";
+                        }
+
                         return null;
                       },
                       onSaved: (value) {
@@ -598,7 +608,26 @@ class _AssetInformation extends State<AssetInformation>
                       },
                       minLines: 3,
                       maxLines: null,
+                      maxWords: assetDescriptionMaxWords,
                       keyboardtype: TextInputType.multiline,
+                      controller: assetDescriptionController,
+                      buildCounter:
+                          (context, {currentLength, isFocused, maxLength}) {
+                            var maxWords = assetDescriptionMaxWords;
+                            int length = assetDescriptionController.text
+                                .split(' ')
+                                .length;
+                            return Container(
+                              child: Text(
+                                '$length/$maxWords words',
+                                style: TextStyle(
+                                  color: length > maxWords
+                                      ? Colors.red
+                                      : notifier.getdarkgrey,
+                                ),
+                              ),
+                            );
+                          },
                     ),
                   ),
                 ],
@@ -2597,110 +2626,110 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ),
                 SizedBox(height: height / 50),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "Repayment Schedule",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        getFile();
-                      },
-                      child: Column(
-                        children: [
-                          SizedBox(height: height / 50),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: notifier.getbluewhitecolor,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(15.0),
-                                ),
-                                color: notifier.isDark
-                                    ? darktilewhitecolor
-                                    : notifier.getaddsubwalletgrey,
-                              ),
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    width: width / 1.2,
-                                    height: height / 6,
-                                    child: Center(
-                                      child: Wrap(
-                                        alignment: WrapAlignment.center,
-                                        children: [
-                                          Text(
-                                            "browsefiles".tr(),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: notifier.getbluewhitecolor,
-                                              fontFamily: fontsemibold,
-                                              fontSize: 12.sp,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (true) ...[
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          'Please upload file',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: fontbody,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (true) ...[
-                  GestureDetector(
-                    onTap: () {
-                      getFile();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Image.network(
-                        'https://picsum.photos/200/200',
-                        width: width / 1.3,
-                        height: height / 6,
-                      ),
-                    ),
-                  ),
-                ],
-                SizedBox(height: height / 50),
+                // Row(
+                //   children: [
+                //     Padding(
+                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //       child: Text(
+                //         "Repayment Schedule",
+                //         style: TextStyle(
+                //           fontSize: 12,
+                //           fontFamily: fontsemibold,
+                //           color: notifier.getbluewhitecolor,
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // Row(
+                //   children: [
+                //     GestureDetector(
+                //       onTap: () {
+                //         getFile();
+                //       },
+                //       child: Column(
+                //         children: [
+                //           SizedBox(height: height / 50),
+                //           Padding(
+                //             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                //             child: Container(
+                //               decoration: BoxDecoration(
+                //                 border: Border.all(
+                //                   color: notifier.getbluewhitecolor,
+                //                   width: 1,
+                //                 ),
+                //                 borderRadius: const BorderRadius.all(
+                //                   Radius.circular(15.0),
+                //                 ),
+                //                 color: notifier.isDark
+                //                     ? darktilewhitecolor
+                //                     : notifier.getaddsubwalletgrey,
+                //               ),
+                //               child: Column(
+                //                 children: [
+                //                   SizedBox(
+                //                     width: width / 1.2,
+                //                     height: height / 6,
+                //                     child: Center(
+                //                       child: Wrap(
+                //                         alignment: WrapAlignment.center,
+                //                         children: [
+                //                           Text(
+                //                             "browsefiles".tr(),
+                //                             textAlign: TextAlign.center,
+                //                             style: TextStyle(
+                //                               color: notifier.getbluewhitecolor,
+                //                               fontFamily: fontsemibold,
+                //                               fontSize: 12.sp,
+                //                             ),
+                //                           ),
+                //                         ],
+                //                       ),
+                //                     ),
+                //                   ),
+                //                   const SizedBox(height: 2),
+                //                 ],
+                //               ),
+                //             ),
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // if (true) ...[
+                //   Row(
+                //     children: [
+                //       Padding(
+                //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                //         child: Text(
+                //           'Please upload file',
+                //           style: TextStyle(
+                //             fontSize: 12,
+                //             fontFamily: fontbody,
+                //             color: Colors.red,
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ],
+                // if (true) ...[
+                //   GestureDetector(
+                //     onTap: () {
+                //       getFile();
+                //     },
+                //     child: Padding(
+                //       padding: const EdgeInsets.all(15.0),
+                //       child: Image.network(
+                //         'https://picsum.photos/200/200',
+                //         width: width / 1.3,
+                //         height: height / 6,
+                //       ),
+                //     ),
+                //   ),
+                // ],
+                // SizedBox(height: height / 50),
                 Row(
                   children: [
                     Padding(

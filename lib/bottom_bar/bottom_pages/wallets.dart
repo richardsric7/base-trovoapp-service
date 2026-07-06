@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/home.dart';
@@ -895,7 +896,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 5),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -905,18 +906,23 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                       fontSize: 13,
                       fontFamily: fontsemibold,
                       color: notifier.getblck,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      asset.tokenizedAsset
-                          ? asset.usdPrice.toString()
-                          : "${getFiatRate(asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 100.sp),
+                      child: Text(
+                        asset.tokenizedAsset
+                            ? asset.usdPrice.toString()
+                            : "${getFiatRate(asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontFamily: fontbody,
+                          color: notifier.getblck,
+                          overflow: TextOverflow.visible,
+                        ),
                       ),
                     ),
                   ),

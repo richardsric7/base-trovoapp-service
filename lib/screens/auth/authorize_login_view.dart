@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,8 +41,9 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
-    viewData = appState.viewData![AuthorizeLoginViewPageConfig.key];
+    viewData = appState.viewData;
     activeWallet = appState.activeWallet;
+    inspect(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(

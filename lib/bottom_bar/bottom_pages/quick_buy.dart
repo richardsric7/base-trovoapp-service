@@ -27,6 +27,7 @@ class _QuickBuyView extends State<QuickBuyView> with TickerProviderStateMixin {
   final formKey = GlobalKey<FormState>();
   late Map viewData;
   String amount = '';
+  double assetValue = 0.0;
   late Asset asset;
   final amountController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -151,6 +152,16 @@ class _QuickBuyView extends State<QuickBuyView> with TickerProviderStateMixin {
                         }
 
                         amount = trim(value.toString(), '.');
+                        assetValue =
+                            double.tryParse(
+                              calculateFiatValue(
+                                amount,
+                                asset.usdPrice.toString(),
+                                'NGN',
+                                appState,
+                              ).replaceAll(',', ''),
+                            ) ??
+                            0.0;
                       });
                     },
                     controller: amountController,
@@ -177,7 +188,7 @@ class _QuickBuyView extends State<QuickBuyView> with TickerProviderStateMixin {
                       Flexible(
                         child: Text(
                           amount.isNotEmpty
-                              ? "You will get ${formatNumber(double.tryParse(calculateFiatValue(amount, asset.usdPrice.toString(), 'NGN', appState).replaceAll(',', '')) ?? 0.0)} ${asset.assetCode}"
+                              ? "You will get ${formatNumber(assetValue)} ${getAssetCode(asset.assetCode)}"
                               : "≈ 0.0000 ${getAssetCode(asset.assetCode)}",
 
                           textScaler: TextScaler.linear(1.0),
@@ -201,6 +212,7 @@ class _QuickBuyView extends State<QuickBuyView> with TickerProviderStateMixin {
                       if (!form!.validate()) return;
 
                       appState.viewData!['amount'] = amount;
+                      appState.viewData!['assetValue'] = assetValue;
                       appState.setPage(page: ConfirmQuickBuyViewPageConfig);
                     },
                   ),

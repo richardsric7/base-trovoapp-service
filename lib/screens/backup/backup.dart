@@ -116,15 +116,15 @@ class _BackupState extends State<Backup> {
   List<Wallet> getUserWallets() {
     var wallets = <Wallet>[];
     secrets.forEach((secret) {
+      print('=========> secret $secret');
       Account account = TrovoWalletSDK().parseSecretKey(secret);
       var wlt = user.wallets!.firstWhereOrNull(
         (wallet) => wallet.publicKey == account.publicKey,
       );
-      if (wlt == null) {
-        wlt = state.primaryWallet;
+      if (wlt != null) {
+        wlt.secretKey = secret;
+        wallets.add(wlt);
       }
-      wlt.secretKey = secret;
-      wallets.add(wlt);
     });
     return wallets;
   }

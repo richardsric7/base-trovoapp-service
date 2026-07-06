@@ -42,6 +42,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   double assetBalance = 0;
   late TokenizedAsset tokenizedAsset;
   String regulatorName = '';
+  var exemptedCountries = <String>[];
   late Future<dynamic> formJsonFuture;
   bool isFinancialAssetType = false;
 
@@ -137,6 +138,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     _totalDays = tokenizedAsset.salesEnd!
         .difference(tokenizedAsset.salesStart!)
         .inDays;
+
+    tokenizedAsset.exemptedCountries
+        ?.replaceAll(' ', '')
+        .split(',')
+        .forEach((c) => exemptedCountries.add(iso2Countries[c] ?? c));
   }
 
   @override
@@ -381,6 +387,16 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                     kycUnverifiedErrorPop(context);
                                     return;
                                   }
+                                  if (_tokensRemaining == 0) {
+                                    popup(
+                                      context,
+                                      title: 'Sold Out',
+                                      message:
+                                          'This token has already sold out!',
+                                    );
+
+                                    return;
+                                  }
                                   showBuyTokenPopup(
                                     context,
                                     assetCode: tokenizedAsset.assetCode!
@@ -443,7 +459,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                     ),
                                     SizedBox(width: 10),
                                     Text(
-                                      'Buy',
+                                      _tokensRemaining == 0
+                                          ? 'Sold Out'
+                                          : 'Buy',
                                       style: TextStyle(
                                         fontFamily: fontsemibold,
                                         fontSize: 12,
@@ -790,29 +808,30 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             child: Center(
                               child: Column(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 30.0,
-                                        ),
-                                        child: Text(
+                                  SizedBox(height: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
                                           'Description',
+                                          textAlign: TextAlign.left,
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontFamily: fontsemibold,
                                             color: notifier.getbluewhitecolor,
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: Text(
                                       tokenizedAsset.assetDescription!,
-                                      textAlign: TextAlign.center,
+                                      textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontSize: 14,
                                         height: 1.4,
@@ -1130,12 +1149,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                       imageUrl: 'assets/images/asset-info.png',
                                       onTap: () {
                                         var details = {
-                                          'Status':
-                                              tokenizedAsset
-                                                      .assetAlreadyExists ==
-                                                  1
-                                              ? 'Existing'
-                                              : 'Upcoming',
                                           'Sector':
                                               tokenizedAsset.assetSector ?? '',
                                           'Sub-Sector':
@@ -1146,16 +1159,19 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                               iso2Countries[tokenizedAsset
                                                   .assetCountryLocation] ??
                                               "",
-                                          'Address':
-                                              tokenizedAsset
-                                                  .assetPhysicalAddress ??
-                                              '',
+                                          'Address': isFinancialAssetType
+                                              ? ''
+                                              : tokenizedAsset
+                                                        .assetPhysicalAddress ??
+                                                    '',
                                           'Map Coordinates':
-                                              tokenizedAsset.assetLatitude ==
-                                                      null ||
-                                                  tokenizedAsset
-                                                      .assetLatitude!
-                                                      .isEmpty
+                                              isFinancialAssetType
+                                              ? ''
+                                              : tokenizedAsset.assetLatitude ==
+                                                        null ||
+                                                    tokenizedAsset
+                                                        .assetLatitude!
+                                                        .isEmpty
                                               ? ''
                                               : "Lat. ${tokenizedAsset.assetLatitude}, Lon. ${tokenizedAsset.assetLongitude}",
                                           'Project Strategic Objectives':
@@ -1310,7 +1326,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Exempted Countries':
-                                              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+                                              exemptedCountries.join(", "),
                                         };
                                         displayDetails(
                                           'Asset Token & Sale Information',
@@ -1483,12 +1499,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                     SizedBox(height: 10),
                                     categoryTile(
                                       notifier,
-                                      label: 'Verification Documents',
+                                      label: 'Asset Documents',
                                       imageUrl: 'assets/images/documents.png',
                                       onTap: () {
-                                        displayDocuments(
-                                          'Verification Documents',
-                                        );
+                                        displayDocuments('Asset Documents');
                                       },
                                     ),
                                   ],

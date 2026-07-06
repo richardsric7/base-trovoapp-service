@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/constants.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -37,6 +38,9 @@ class _AssetDashboardState extends State<AssetDashboard>
   double tokenFee = 0;
   late Future<dynamic> formJsonFuture;
   bool isFinancialAssetType = false;
+  double tokenizationApplicationFee = 0;
+  String tokenizationApplicationFeeAsset = '';
+  var exemptedCountries = <String>[];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,6 +67,29 @@ class _AssetDashboardState extends State<AssetDashboard>
     for (var i = 0; i < assetTypes.length; i++) {
       if (assetTypes[i]['id'].toString() == tokenizedAsset.assetType) {
         assetType = assetTypes[i]['assetType'];
+      }
+    }
+
+    for (
+      var i = 0;
+      i < appState.tokenizationData['countryConfigs'].length;
+      i++
+    ) {
+      if (appState.tokenizationData['countryConfigs'][i]['countryCode']
+              .toString()
+              .toLowerCase() ==
+          tokenizedAsset.assetCountryLocation.toString().toLowerCase()) {
+        tokenizationApplicationFee =
+            double.tryParse(
+              appState
+                  .tokenizationData['countryConfigs'][i]['tokenizationApplicationFee']
+                  .toString(),
+            ) ??
+            0.0;
+        tokenizationApplicationFeeAsset = appState
+            .tokenizationData['countryConfigs'][i]['tokenizationApplicationFeeAsset']
+            .toString()
+            .split(':')[0];
       }
     }
 
@@ -106,6 +133,11 @@ class _AssetDashboardState extends State<AssetDashboard>
             .toUpperCase();
       }
     }
+
+    tokenizedAsset.exemptedCountries
+        ?.replaceAll(' ', '')
+        .split(',')
+        .forEach((c) => exemptedCountries.add(iso2Countries[c] ?? c));
   }
 
   @override
@@ -124,6 +156,10 @@ class _AssetDashboardState extends State<AssetDashboard>
     double normalizedDaysProgress = _daysProgress == _totalDays
         ? 1
         : 1 - (_daysProgress / _totalDays); // Convert to 0-1 range
+
+    var equivalentFeesInToken =
+        ((tokenizedAsset.feeInAsset! * 0.075) + tokenizedAsset.feeInAsset!) *
+        tokenizedAsset.pricePerToken!;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -341,7 +377,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     padding: const EdgeInsets.all(10.0),
                                     child: Text(
                                       tokenizedAsset.assetDescription!,
-                                      textAlign: TextAlign.center,
+                                      textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontSize: 14,
                                         height: 1.4,
@@ -726,6 +762,10 @@ class _AssetDashboardState extends State<AssetDashboard>
                                               tokenizedAsset.assetSubSector ??
                                               '',
                                           'Type': assetType,
+                                          'Asset Original Value':
+                                              '${getFiatValue(tokenizedAsset.assetCurrentValue!)} ${fiatCurrency}',
+                                          'Incurred Costs Outside Valuation':
+                                              '${getFiatValue(tokenizedAsset.assetMscCostOutisdeOfValuation!)} ${fiatCurrency}',
                                           'Asset Country':
                                               iso2Countries[tokenizedAsset
                                                   .assetCountryLocation] ??
@@ -771,6 +811,14 @@ class _AssetDashboardState extends State<AssetDashboard>
                                               tokenizedAsset
                                                   .projectFinancialPartners ??
                                               "",
+                                          'Date Submitted':
+                                              '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.dateSubmitted!)}',
+                                          'Approval Date':
+                                              tokenizedAsset
+                                                      .tokenizationStatus ==
+                                                  4
+                                              ? '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.dateOfApproval!)}'
+                                              : 'Nill',
                                         };
 
                                         details[tokenizedAsset
@@ -833,8 +881,15 @@ class _AssetDashboardState extends State<AssetDashboard>
                                       imageUrl: 'assets/images/token-info.png',
                                       onTap: () {
                                         var details = {
+                                          'Minting Date':
+                                              [5, 6].contains(
+                                                tokenizedAsset
+                                                    .tokenizationStatus,
+                                              )
+                                              ? '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.mintingDate!)}'
+                                              : 'Nill',
                                           'Sales Window':
-                                              '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
+                                              '${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesStart!)} to ${DateFormat('MMMM dd, yyyy').format(tokenizedAsset.salesEnd!)}',
                                           'Cap Amount':
                                               '${getFiatValue(double.parse(tokenizedAsset.capAmountInFiat!.toString()))} ${fiatCurrency}',
                                           'Cap Quantity':
@@ -847,7 +902,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Exempted Countries':
-                                              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+                                              exemptedCountries.join(", "),
                                         };
                                         displayDetails(
                                           'Asset Token & Sale Information',
@@ -962,11 +1017,20 @@ class _AssetDashboardState extends State<AssetDashboard>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Legal/Professional Advisor':
-                                              tokenizedAsset.legalAdvisor
-                                                  ?.toLowerCase()
-                                                  .capitalizeEachWord() ??
+                                              tokenizedAsset
+                                                  .assetLegalAndProfessionalPartnerInfo
+                                                  ?.partnerName ??
                                               '',
-                                          'Rating Agency': '',
+                                          'Rating Agency':
+                                              tokenizedAsset
+                                                  .assetRatingAgencyInfo
+                                                  ?.agencyName ??
+                                              '',
+                                          'Trustee':
+                                              tokenizedAsset
+                                                  .assetTrusteeInfo
+                                                  ?.trusteeName ??
+                                              "",
                                         };
                                         displayDetails(
                                           "Stakeholders Information",
@@ -1020,11 +1084,11 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     ],
                                     categoryTile(
                                       notifier,
-                                      label: 'Verification Documents',
+                                      label: 'Asset Documents',
                                       imageUrl: 'assets/images/documents.png',
                                       onTap: () {
                                         displayDocuments(
-                                          'Verification Documents',
+                                          'Asset Documents',
                                           tokenizedAsset
                                                   .assetTokenizationDocuments ??
                                               [],
@@ -1045,6 +1109,72 @@ class _AssetDashboardState extends State<AssetDashboard>
                                         );
                                       },
                                     ),
+                                    SizedBox(height: 10),
+                                    if (tokenizedAsset.vettingStatus == 1) ...[
+                                      categoryTile(
+                                        notifier,
+                                        label: "Fees Details",
+                                        imageUrl: 'assets/images/proof.png',
+                                        onTap: () {
+                                          var details = {
+                                            "Application Fee":
+                                                '${formatNumberShort(tokenizationApplicationFee)} ${tokenizationApplicationFeeAsset}',
+                                            "Fees in Fiat": <String, String>{
+                                              'Additional Cost':
+                                                  '${getFiatValue(tokenizedAsset.assetMscCostOutisdeOfValuation!)} ${fiatCurrency}',
+                                              "Tokenization Fee":
+                                                  '${formatNumber(getFeeInfo(tokenizedAsset.tokenizationFeeId!))} ${fiatCurrency}',
+                                              "SEC Fee":
+                                                  '${formatNumberShort(tokenizedAsset.SECTokenizationFeeValue!)} ${fiatCurrency}',
+                                              "Custody Fee":
+                                                  '${formatNumberShort(tokenizedAsset.custodianFeeValue!)} ${fiatCurrency}',
+                                              "Management Fee":
+                                                  '${formatNumberShort(tokenizedAsset.assetManagerFeeValue!)} ${fiatCurrency}',
+                                              "Issuing House Fee":
+                                                  '${formatNumberShort(tokenizedAsset.issuingHouseFeeValue!)} ${fiatCurrency}',
+                                              "Legal/Professional Fee":
+                                                  '${formatNumberShort(tokenizedAsset.legalAndProfessionalFeeValue!)} ${fiatCurrency}',
+                                              "Rating Agency Fee":
+                                                  '${formatNumberShort(tokenizedAsset.ratingAgencyFeeValue!)} ${fiatCurrency}',
+                                              "Trustee Fee":
+                                                  '${formatNumberShort(tokenizedAsset.trusteeFeeValue!)} ${fiatCurrency}',
+                                              "VAT":
+                                                  '${formatNumberShort(tokenizedAsset.vatValue!)} ${fiatCurrency}',
+                                              "Total":
+                                                  '${getTotalFee()} ${fiatCurrency}',
+                                            },
+
+                                            "Fees in Asset": <String, String>{
+                                              "Tokenization Fee":
+                                                  '${formatNumberShort(tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}',
+                                              "VAT":
+                                                  '${formatNumberShort(tokenizedAsset.feeInAsset! * 0.075)} ${tokenizedAsset.assetCode?.toUpperCase()}',
+                                              "Total":
+                                                  '${formatNumberShort((tokenizedAsset.feeInAsset! * 0.075) + tokenizedAsset.feeInAsset!)} ${tokenizedAsset.assetCode?.toUpperCase()}',
+                                            },
+
+                                            "Current Asset Value": <String, String>{
+                                              "Original valuation":
+                                                  '${formatNumberShort(tokenizedAsset.assetCurrentValue!)} ${fiatCurrency}',
+                                              "Additional cost":
+                                                  '${formatNumberShort(tokenizedAsset.assetMscCostOutisdeOfValuation!)} ${fiatCurrency}',
+                                              "Fees in fiat":
+                                                  '${getTotalFee()} ${fiatCurrency}',
+                                              "Equiv. fees in token":
+                                                  '${formatNumberShort(equivalentFeesInToken)} $fiatCurrency',
+                                              "Total":
+                                                  '${getFiatValue((tokenizedAsset.numberOfTokenToBeIssued! * tokenizedAsset.pricePerToken!))} $fiatCurrency',
+                                            },
+                                          };
+
+                                          displayDetails(
+                                            "Financial Details",
+                                            details,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                    SizedBox(height: 10),
                                   ],
                                 ),
                               ),
@@ -1072,6 +1202,34 @@ class _AssetDashboardState extends State<AssetDashboard>
         ),
       ),
     );
+  }
+
+  String getTotalFee() {
+    var total =
+        tokenizedAsset.SECTokenizationFeeValue! +
+        tokenizedAsset.custodianFeeValue! +
+        tokenizedAsset.assetManagerFeeValue! +
+        tokenizedAsset.issuingHouseFeeValue! +
+        tokenizedAsset.legalAndProfessionalFeeValue! +
+        tokenizedAsset.ratingAgencyFeeValue! +
+        tokenizedAsset.trusteeFeeValue! +
+        tokenizedAsset.vatValue! +
+        getFeeInfo(tokenizedAsset.tokenizationFeeId!);
+
+    return "${formatNumberShort(total)}";
+  }
+
+  double getFeeInfo(int index) {
+    var fiatPercentage = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatPercentage']
+          .toString(),
+    );
+    var fiatFeeCap = double.parse(
+      appState.tokenizationData["tokenizationFees"][index]['feeFiatCap']
+          .toString(),
+    );
+    var fiatFee = (tokenizedAsset.assetCurrentValue! * fiatPercentage) / 100;
+    return fiatFeeCap > fiatFee ? fiatFeeCap : fiatFee;
   }
 
   void displayDetails(String label, Map<String, dynamic> items) {
@@ -1131,7 +1289,10 @@ class _AssetDashboardState extends State<AssetDashboard>
                   SizedBox(height: 20),
                   for (var item in items.entries) ...[
                     if (item.value.toString().isNotEmpty) ...[
-                      infoTile(notifier, item.key, item.value),
+                      if (item.value is String)
+                        infoTile(notifier, item.key, item.value)
+                      else
+                        customInfoTile(notifier, item.key, item.value),
                     ],
                   ],
                   SizedBox(height: 60),
@@ -1142,6 +1303,157 @@ class _AssetDashboardState extends State<AssetDashboard>
         );
       },
     );
+  }
+
+  Widget customInfoTile(
+    ColorNotifier notifier,
+    String key,
+    Map<String, String> value,
+  ) {
+    return Card(
+      shadowColor: Colors.black,
+      color: notifier.isDark
+          ? notifier.getbluecolor90
+          : notifier.getaddsubwalletgrey,
+      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Row(
+            children: [
+              Column(
+                spacing: 4,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: width / 1.3,
+                    child: Text(
+                      key,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: width / 1.2,
+                    child: Column(
+                      spacing: 6,
+                      children: [
+                        ...value.entries
+                            .map(
+                              (entry) => entry.value.split(' ')[0] == '0'
+                                  ? SizedBox.shrink()
+                                  : Column(
+                                      children: [
+                                        if (entry.key.toLowerCase() ==
+                                            "total") ...[
+                                          if (key.toLowerCase() ==
+                                              "current asset value") ...[
+                                            Row(
+                                              spacing: 6,
+                                              children: [
+                                                Expanded(
+                                                  child: Divider(
+                                                    color:
+                                                        notifier.getsplashgrey,
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  CupertinoIcons
+                                                      .equal_circle_fill,
+                                                  color: notifier.getgreencolor,
+                                                ),
+                                                Expanded(
+                                                  child: Divider(
+                                                    color:
+                                                        notifier.getsplashgrey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ] else ...[
+                                            Divider(
+                                              color: notifier.getsplashgrey,
+                                            ),
+                                          ],
+                                        ],
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Flexible(
+                                              flex: 2,
+                                              child: Row(
+                                                spacing: 3,
+                                                children: [
+                                                  if (key.toLowerCase() ==
+                                                      "current asset value") ...[
+                                                    getIcon(
+                                                      entry.key.toLowerCase(),
+                                                    ),
+                                                  ],
+                                                  Text(
+                                                    '${entry.key} ',
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontFamily: fontsemibold,
+                                                      color: notifier
+                                                          .getbluewhitecolor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Flexible(
+                                              flex: 2,
+                                              child: Text(
+                                                entry.value,
+                                                textAlign: TextAlign.right,
+                                                overflow: TextOverflow.visible,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontFamily: fontbody,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                            )
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getIcon(String key) {
+    return switch (key) {
+      'original valuation' => Icon(
+        CupertinoIcons.equal_circle_fill,
+        color: notifier.getbluewhitecolor,
+        size: 20,
+      ),
+      'total' => SizedBox.shrink(),
+      _ => Icon(
+        Icons.add_circle_outlined,
+        color: notifier.getbluewhitecolor,
+        size: 20,
+      ),
+    };
   }
 
   void displayDocuments(String label, List<Document> documents) {

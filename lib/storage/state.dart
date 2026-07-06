@@ -126,14 +126,14 @@ class DataProvider with ChangeNotifier {
 
   Future<void> changeWalletMode(String value, {bool isReversed = false}) async {
     try {
-      StoreData().storeInsertData('walletMode', value);
+      await StoreData().storeInsertData('walletMode', value);
       walletMode = value;
       currentAction = PageAction(
-        state: PageState.addPage,
+        state: PageState.replaceAll,
         page: SplashPageConfig,
       );
-      Timer(const Duration(seconds: 4), () async {
-        StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
+      Timer(const Duration(seconds: 2), () async {
+        await StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
         await TerminateRestart.instance.restartApp(
           options: const TerminateRestartOptions(terminate: true),
         );
@@ -574,7 +574,6 @@ class DataProvider with ChangeNotifier {
       );
 
       if (responseData['statusCode'] == 200) {
-        inspect(responseData['data']);
         return responseData['data'];
       } else {
         return Future.error('Error! Something went wrong.');
@@ -729,7 +728,8 @@ class DataProvider with ChangeNotifier {
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
       setSplashFinished();
-      viewData![AuthorizeLoginViewPageConfig.key] = {
+      inspect(initialDynamicLink.queryParameters);
+      viewData = {
         'action': initialDynamicLink.queryParameters['action'],
         'loginId': initialDynamicLink.queryParameters['loginId'],
         'description': initialDynamicLink.queryParameters['description'],
@@ -893,8 +893,6 @@ class DataProvider with ChangeNotifier {
         secretKey: secretKeys[0], // the primary wallet secret key
         publicKey: primaryWallet.signer!,
       );
-
-      inspect(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
         return TokenizedAsset().deserializeJson(

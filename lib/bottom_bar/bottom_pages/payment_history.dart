@@ -399,7 +399,7 @@ class Payment_HistoryState extends State<PaymentHistory>
       return Container(
         height: isFromSharedWalletsView
             ? (showFilter ? height / 1.3950 : height / 1.14)
-            : (showFilter ? height / 1.49 : height / 1.19),
+            : (showFilter ? height / 1.49 : height / 1.192),
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {

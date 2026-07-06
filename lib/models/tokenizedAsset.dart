@@ -43,6 +43,9 @@ class TokenizedAsset {
   String? walletToHoldAssetsNotForSale;
   double? totalTokenHeldByManager;
   double? pricePerToken;
+  DateTime? mintingDate;
+  DateTime? dateSubmitted;
+  DateTime? dateOfApproval;
   DateTime? salesStart;
   DateTime? salesEnd;
   int? capOnPurchase;
@@ -71,6 +74,9 @@ class TokenizedAsset {
 
   CustodianInfo? approvedAssetCustodianInfo;
   IssuingHouseInfo? assetIssuingHouseInfo;
+  RatingAgencyInfo? assetRatingAgencyInfo;
+  TrusteeInfo? assetTrusteeInfo;
+  LegalAndProfessionalPartnerInfo? assetLegalAndProfessionalPartnerInfo;
   String? initiatorUsername;
   String? closedGroupId;
   ClosedGroupInfo? closedGroupInfo;
@@ -126,6 +132,9 @@ class TokenizedAsset {
   double? ratingAgencyFeeValue;
   double? ratingAgencyFeePercent;
   double? ratingAgencyFeeFixed;
+  double? trusteeFeePercent;
+  double? trusteeFeeFixed;
+  double? trusteeFeeValue;
   double? tokenizationApplicationFee;
   double? vatValue;
   double? vatPercent;
@@ -204,6 +213,9 @@ class TokenizedAsset {
     this.pricePerToken,
     this.salesStart,
     this.salesEnd,
+    this.mintingDate,
+    this.dateSubmitted,
+    this.dateOfApproval,
     this.capOnPurchase,
     this.capQuantity,
     this.capAmountInFiat,
@@ -221,6 +233,9 @@ class TokenizedAsset {
     this.updatedAt,
     this.approvedAssetCustodianInfo,
     this.assetIssuingHouseInfo,
+    this.assetRatingAgencyInfo,
+    this.assetTrusteeInfo,
+    this.assetLegalAndProfessionalPartnerInfo,
     this.initiatorUsername,
     this.closedGroupId,
     this.closedGroupInfo,
@@ -284,6 +299,9 @@ class TokenizedAsset {
     this.ratingAgencyFeePercent,
     this.ratingAgencyFeeValue,
     this.ratingAgencyFeeFixed,
+    this.trusteeFeePercent,
+    this.trusteeFeeFixed,
+    this.trusteeFeeValue,
     this.tokenizationApplicationFee,
     this.tokenizationApplicationFeeAsset,
     this.vatValue,
@@ -376,6 +394,9 @@ class TokenizedAsset {
       ),
       pricePerToken: double.parse(m["pricePerToken"].toString()),
       salesStart: DateTime.parse(m["salesStart"]),
+      mintingDate: DateTime.parse(m["mintingDate"]),
+      dateSubmitted: DateTime.parse(m["dateSubmitted"]),
+      dateOfApproval: DateTime.parse(m["dateOfApproval"]),
       salesEnd: DateTime.parse(m["salesEnd"]),
       capOnPurchase: m["capOnPurchase"],
       capQuantity: double.parse(m["capQuantity"].toString()),
@@ -398,6 +419,12 @@ class TokenizedAsset {
       assetIssuingHouseInfo: IssuingHouseInfo().deserializeJson(
         m["assetIssuingHouseInfo"],
       ),
+      assetRatingAgencyInfo: RatingAgencyInfo().deserializeJson(
+        m['ratingAgencyInfo'],
+      ),
+      assetTrusteeInfo: TrusteeInfo().deserializeJson(m['trusteeInfo']),
+      assetLegalAndProfessionalPartnerInfo: LegalAndProfessionalPartnerInfo()
+          .deserializeJson(m['legalAndProfesionalPartnerInfo']),
       initiatorUsername: m["initiatorUsername"],
       closedGroupId: m["closedGroupId"],
       closedGroupInfo: ClosedGroupInfo().deserializeJson(m["closedGroupInfo"]),
@@ -498,6 +525,9 @@ class TokenizedAsset {
       ratingAgencyFeeFixed: double.tryParse(
         m["ratingAgencyFeeFixed"].toString(),
       ),
+      trusteeFeePercent: double.tryParse(m["trusteeFeePercent"].toString()),
+      trusteeFeeValue: double.tryParse(m["trusteeFeeValue"].toString()),
+      trusteeFeeFixed: double.tryParse(m["trusteeFeeFixed"].toString()),
       tokenizationApplicationFee: double.tryParse(
         m["tokenizationApplicationFee"].toString(),
       ),
@@ -566,6 +596,78 @@ class TokenizedAsset {
 
   // bool get isWithdrawable => withdrawable == 1;
   // bool get canGenerateDepositAddresses => generateDepositAddress == 1;
+}
+
+class RatingAgencyInfo {
+  int? id;
+  String? agencyName;
+  String? agencyAddress;
+  String? agencyCountry;
+
+  RatingAgencyInfo({
+    this.id,
+    this.agencyName,
+    this.agencyAddress,
+    this.agencyCountry,
+  });
+
+  RatingAgencyInfo deserializeJson(Map<String, dynamic> m) {
+    var info = m["agencyInfo"] != null ? m["agencyInfo"] : m;
+    return RatingAgencyInfo(
+      id: m["agencyInfo"] != null ? info["id"] : null,
+      agencyName: info["agencyName"],
+      agencyAddress: info["agencyAddress"],
+      agencyCountry: info["agencyCountry"],
+    );
+  }
+}
+
+class TrusteeInfo {
+  int? id;
+  String? trusteeName;
+  String? trusteeAddress;
+  String? trusteeCountry;
+
+  TrusteeInfo({
+    this.id,
+    this.trusteeName,
+    this.trusteeAddress,
+    this.trusteeCountry,
+  });
+
+  TrusteeInfo deserializeJson(Map<String, dynamic> m) {
+    var info = m["trusteeInfo"] != null ? m["trusteeInfo"] : m;
+    return TrusteeInfo(
+      id: m["trusteeInfo"] != null ? info["id"] : null,
+      trusteeName: info["trusteeName"],
+      trusteeAddress: info["trusteeAddress"],
+      trusteeCountry: info["trusteeCountry"],
+    );
+  }
+}
+
+class LegalAndProfessionalPartnerInfo {
+  int? id;
+  String? partnerName;
+  String? partnerAddress;
+  String? partnerCountry;
+
+  LegalAndProfessionalPartnerInfo({
+    this.id,
+    this.partnerName,
+    this.partnerAddress,
+    this.partnerCountry,
+  });
+
+  LegalAndProfessionalPartnerInfo deserializeJson(Map<String, dynamic> m) {
+    var info = m["partnerInfo"] != null ? m["partnerInfo"] : m;
+    return LegalAndProfessionalPartnerInfo(
+      id: m["partnerInfo"] != null ? info["id"] : null,
+      partnerName: info["partnerName"],
+      partnerAddress: info["partnerAddress"],
+      partnerCountry: info["partnerCountry"],
+    );
+  }
 }
 
 class CustodianInfo {

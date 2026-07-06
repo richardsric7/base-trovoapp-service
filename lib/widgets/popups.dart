@@ -388,7 +388,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
 
 Future<bool?> accountNotFoundAfterSwitchPopup(
   BuildContext context, {
-  required void Function() onContinueWithCredentials,
+  required void Function() onCreateNewAccount,
   required void Function() onImportNewCredential,
   required void Function() onGoBackToPrevEnvironment,
   String? message,
@@ -467,7 +467,7 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                   child: ElevatedButton(
                     onPressed: () {
                       // Navigator.of(context).pop();
-                      onContinueWithCredentials();
+                      onCreateNewAccount();
                     },
                     style: ButtonStyle(
                       fixedSize: WidgetStateProperty.all(
@@ -486,7 +486,8 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                       ),
                     ),
                     child: Text(
-                      "continuewithcredentials".tr(),
+                      // "continuewithcredentials".tr(),
+                      "Create an account",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: notifier.getwihitecolor,
@@ -5133,70 +5134,67 @@ showSwitchEnvironmentPopup(
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  if (toEnvironment == 'Mainnet') ...[
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "Mainnet is out of service at the moment. We will let you know as soon as Mainnet goes live.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontbody,
-                          ),
+                  // if (toEnvironment == 'Mainnet') ...[
+                  //   Padding(
+                  //     padding: const EdgeInsets.all(20.0),
+                  //     child: Center(
+                  //       child: Text(
+                  //         "Mainnet is out of service at the moment. We will let you know as soon as Mainnet goes live.",
+                  //         textAlign: TextAlign.center,
+                  //         style: TextStyle(
+                  //           color: notifier.getbluewhitecolor,
+                  //           fontSize: 15,
+                  //           fontFamily: fontbody,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "appwillrestart".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                  ] else ...[
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          "appwillrestart".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontbody,
+                  ),
+                  SizedBox(height: height / 50),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigator.of(context).pop(); // dismiss dialog,
+                        onProceed();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: WidgetStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: WidgetStateProperty.all<Color>(
+                          notifier.getbluecolor,
+                        ),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: height / 50),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onProceed();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: WidgetStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: WidgetStateProperty.all<Color>(
-                            notifier.getbluecolor,
-                          ),
-                          shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                ),
-                              ),
-                        ),
-                        child: Text(
-                          "switchto".tr(args: [toEnvironment]),
-                          style: TextStyle(
-                            color: wihitecolor,
-                            fontFamily: fontbody,
-                          ),
+                      child: Text(
+                        "switchto".tr(args: [toEnvironment]),
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
                         ),
                       ),
                     ),
-                  ],
+                  ),
+                  // ],
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: OutlinedButton(
