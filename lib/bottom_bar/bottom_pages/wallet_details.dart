@@ -466,7 +466,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   ),
                 ),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 5),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -480,12 +480,15 @@ class _WalletDetailsState extends State<WalletDetails>
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      type,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 100.sp),
+                      child: Text(
+                        type,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontbody,
+                          color: notifier.getblck,
+                        ),
                       ),
                     ),
                   ),
@@ -764,7 +767,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   ),
                 ),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 5),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -780,12 +783,15 @@ class _WalletDetailsState extends State<WalletDetails>
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      "${getFiatRate(asset.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 100.sp),
+                      child: Text(
+                        "${getFiatRate(asset.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontFamily: fontbody,
+                          color: notifier.getblck,
+                        ),
                       ),
                     ),
                   ),

@@ -13,6 +13,7 @@ String hideBalanceText = '********';
 String tokenizationRequirementsUrl =
     'https://tokenization-requirements-app-xu8c6.ondigitalocean.app/';
 final Map<String, String> iso2Countries = {
+  "AC": "Ascension Island",
   "AD": "Andorra",
   "AE": "United Arab Emirates",
   "AF": "Afghanistan",

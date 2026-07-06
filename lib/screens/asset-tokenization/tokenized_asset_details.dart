@@ -42,6 +42,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
   double assetBalance = 0;
   late TokenizedAsset tokenizedAsset;
   String regulatorName = '';
+  var exemptedCountries = <String>[];
   late Future<dynamic> formJsonFuture;
   bool isFinancialAssetType = false;
 
@@ -137,6 +138,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     _totalDays = tokenizedAsset.salesEnd!
         .difference(tokenizedAsset.salesStart!)
         .inDays;
+
+    tokenizedAsset.exemptedCountries
+        ?.replaceAll(' ', '')
+        .split(',')
+        .forEach((c) => exemptedCountries.add(iso2Countries[c] ?? c));
   }
 
   @override
@@ -823,19 +829,15 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(10.0),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          tokenizedAsset.assetDescription!,
-                                          textAlign: TextAlign.left,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            height: 1.4,
-                                            fontFamily: fontbody,
-                                            color: notifier.getbluewhitecolor,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      tokenizedAsset.assetDescription!,
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        height: 1.4,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: height / 70),
@@ -1324,7 +1326,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Exempted Countries':
-                                              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+                                              exemptedCountries.join(", "),
                                         };
                                         displayDetails(
                                           'Asset Token & Sale Information',

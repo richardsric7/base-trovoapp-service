@@ -40,6 +40,7 @@ class _AssetDashboardState extends State<AssetDashboard>
   bool isFinancialAssetType = false;
   double tokenizationApplicationFee = 0;
   String tokenizationApplicationFeeAsset = '';
+  var exemptedCountries = <String>[];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -132,6 +133,11 @@ class _AssetDashboardState extends State<AssetDashboard>
             .toUpperCase();
       }
     }
+
+    tokenizedAsset.exemptedCountries
+        ?.replaceAll(' ', '')
+        .split(',')
+        .forEach((c) => exemptedCountries.add(iso2Countries[c] ?? c));
   }
 
   @override
@@ -896,7 +902,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                                   .capitalizeEachWord() ??
                                               '',
                                           'Exempted Countries':
-                                              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+                                              exemptedCountries.join(", "),
                                         };
                                         displayDetails(
                                           'Asset Token & Sale Information',
