@@ -15,10 +15,18 @@ export const deserializeUserData = (data: any): User => {
             ...wallet,
             unclaimedAssets: [],
             claimedAssets: [],
-            nfts: [],
+            nfts: [],            
         };
+        w.isInitiator = getAccesses(w.permissions, userData.username).includes('INITIATOR');
+        w.isApprover = getAccesses(w.permissions, userData.username).includes('APPROVER');
+        w.isSharedWallet = w.sharedAccessEnabled;
+        w.isSharedWalletAndCanInitiate = w.sharedAccessEnabled && w.walletThreshold == 2 && getAccesses(w.permissions, userData.username).includes('INITIATOR');
+        w.canInitiate = !w.sharedAccessEnabled || (w.sharedAccessEnabled && w.walletThreshold == 2 && getAccesses(w.permissions, userData.username).includes('INITIATOR')) && w.walletType == 0;
+        w.isPrimaryWallet = w.primaryWallet == 1;
+
+        if(w.isSharedWallet && !w.canInitiate) console.log('========> cannot initiate', w);
         walletsMap.set(wallet.publicKey, w);
-    }
+    }    
 
     for (var assetKey in data.assetBalances) {
         const assetBalance = data.assetBalances[assetKey];
@@ -67,13 +75,20 @@ export const deserializeUserData = (data: any): User => {
     for (var wallet of data.walletsSharedWithUser) {
         // walletsSharedWithUser.push(wallet as SharedWallet);
         const d = wallet as SharedWallet;
+        const permissions = d.walletSettings ? d.walletSettings?.permissions as Permission[] : [];
         const w = {
             owner: d.owner,
             permission: d.permission,
-            permissions: d.walletSettings ? d.walletSettings?.permissions as Permission[] : [],
+            permissions: permissions,
             alias: d.walletAlias,
             signer: userData.primarySigner,
             sharedAccessEnabled: true, 
+            isInitiator: getAccesses(permissions, userData.username).includes('INITIATOR') ,
+            isApprover: getAccesses(permissions, userData.username).includes('APPROVER'),
+            isSharedWallet: true,
+            isSharedWalletAndCanInitiate: d.walletSettings?.walletThreshold == 2 && getAccesses(permissions, userData.username).includes('INITIATOR'),
+            canInitiate: (d.walletSettings?.walletThreshold == 2 && getAccesses(permissions, userData.username).includes('INITIATOR')) && d.walletSettings.walletType == 0,
+            isPrimaryWallet: false,
             description: d.walletDescription,
             publicKey: d.walletPublicKey,
             numberOfApprovalsNeeded: d.walletSettings ? d.walletSettings.numberOfApprovalsNeeded : null,
@@ -115,3 +130,13 @@ export const deserializeUserData = (data: any): User => {
         defaultAssets,              
     }; 
 }
+
+function getAccesses(permissions: Permission[], username: string): string[] {
+        return [
+            ...new Set(
+                (permissions ?? [])
+                    .filter(p => p.targetUsername === username)
+                    .map(p => p.permission)
+            ),
+        ];
+    }

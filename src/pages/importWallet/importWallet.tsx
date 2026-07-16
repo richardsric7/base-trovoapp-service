@@ -330,11 +330,11 @@ export default function ImportWallet() {
           />
         </div>
       </div>
-      <div className="w-full md:w-2/5 h-full overflow-y-scroll">
+      <div className="w-full md:w-2/5 h-full">
         <form
           id="import-form"
           onSubmit={handleSubmit}
-          className="flex flex-col space-y-6 h-full overflow-y-scroll items-center md:justify-center"
+          className="grid place-items-center h-full py-16 overflow-y-scroll gap-y-6"
         >
           <div className="w-3/4 space-y-1">
             <TextInput

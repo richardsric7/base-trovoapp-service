@@ -195,7 +195,7 @@ export default function Backup() {
             onDone={async (value) => {
               if (tempData.secretKey.length > 0) {
                 var backupData: any[] = [];
-                // console.log('tempdata here...', tempData);
+                console.log('tempdata here...', tempData);
 
                 const encryptor = new Encryptor();
                 const decryptedData = await encryptor.decryptData(
@@ -211,12 +211,12 @@ export default function Backup() {
                 });
 
                 setData(backupData);
-                // console.log('backupData...', backupData);
+                console.log('backupData...', backupData);
                 setPassword(value);
                 setShowEnterPassword(false);
                 setShowCredentials(true);
               } else {
-                // console.log('not tempdata here...', appUser);
+                console.log('not tempdata here...', appUser);
 
                 var backupData: any[] = [];
                 const encryptor = new Encryptor();

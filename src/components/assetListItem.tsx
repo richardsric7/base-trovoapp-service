@@ -27,9 +27,12 @@ function AssetListItem({
         <div className="relative inline-block">
           <div className="w-[38px] h-[38px] rounded-full overflow-hidden">
             <img
-              src={asset.assetLogo}
+              src={asset.assetLogo ?? '/images/trovoLogo.png'}
               alt="logo"
               className="w-full h-full object-fill"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/trovoLogo.png';
+              }}
             />
           </div>
 
