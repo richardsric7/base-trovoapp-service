@@ -173,6 +173,38 @@ export const authApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    addAsset: builder.mutation({
+      query: (payload: Payload) => ({        
+        url: payload.body.isSharedWallet
+            ? '/v1/shared-access/users/asset/opt-in'
+            : '/v1/users/asset/opt-in',
+        method: 'POST',
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
+    removeAsset: builder.mutation({
+      query: (payload: Payload) => ({        
+        url: payload.body.isSharedWallet
+            ? '/v1/shared-access/users/asset/opt-out'
+            : '/v1/users/asset/opt-out',
+        method: 'DELETE',
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
   }),
 });
 
@@ -181,6 +213,8 @@ export const {
   useAddSubwalletMutation,
   useSwapAssetMutation,
   useBuyTokenizedAssetsMutation,
+  useAddAssetMutation,
+  useRemoveAssetMutation,
   useSubscribeTokenizedAssetsMutation,
   useLazyReceiveAssetQuery,
   useFetchFiatPaymentsQuery,

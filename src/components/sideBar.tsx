@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import TrovoBrand from './trovoBrand';
 import SideBarItem from './sidebarItem';
 import { toggleSidebar } from '../store/sidebarSlice';
+import { Encryptor } from '../utils/encryptor';
 
 type Props = {
   mobileMode?: boolean;
@@ -120,7 +121,7 @@ function SideBar({ mobileMode = false }: Props) {
               ? '/images/addAssetWhite.svg'
               : '/images/addAsset.svg'
           }
-          url="/dashboard/add-assets"
+          url="/dashboard/add-remove-assets"
           isActive={activeItem === 8}
           onSidebarClicked={() => {
             setActiveItem(8);
@@ -131,7 +132,7 @@ function SideBar({ mobileMode = false }: Props) {
           icon={
             activeItem === 9 ? '/images/importWhite.svg' : '/images/import.svg'
           }
-          url="/dashboard/import-wallet"
+          url="/import"
           isActive={activeItem === 9}
           onSidebarClicked={() => {
             setActiveItem(9);
@@ -155,7 +156,7 @@ function SideBar({ mobileMode = false }: Props) {
               ? '/images/historyWhite.svg'
               : '/images/history.svg'
           }
-          url="/dashboard/account-recovery"
+          url="/recovery"
           isActive={activeItem === 11}
           onSidebarClicked={() => {
             setActiveItem(11);
@@ -195,8 +196,17 @@ function SideBar({ mobileMode = false }: Props) {
           icon={activeItem === 1 ? '/images/logout.png' : '/images/logout.png'}
           url="/login"
           isActive={false}
-          onSidebarClicked={() => {
-            setActiveItem(13);
+          onSidebarClicked={async () => {
+            const encryptor = new Encryptor();
+            let user = await encryptor.decryptUserData();
+            if (user?.isLoggedIn) {
+              user = { ...user, isLoggedIn: false };
+              const encryptor = new Encryptor();
+              await encryptor.encryptUserData(user);
+              console.log('logged out');
+            } else {
+              console.log('user is not logged in.');
+            }
           }}
         />
       </div>

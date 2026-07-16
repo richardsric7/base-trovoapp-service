@@ -29,7 +29,7 @@ export default function Login() {
   const isValidPassword = async () => {
     try {
       const encryptor = new Encryptor();
-      const secretKey = await encryptor.decryptData(
+      await encryptor.decryptData(
         appUser?.secretKeys[0],
         password,
         appUser?.primarySigner,
@@ -38,7 +38,7 @@ export default function Login() {
       dispatch(
         setTempData({
           ...tempData,
-          secretKey,
+          password,
         }),
       );
 

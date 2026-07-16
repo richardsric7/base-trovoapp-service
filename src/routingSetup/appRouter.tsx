@@ -27,6 +27,7 @@ import YieldView from '../pages/dashboard/wallet/yield';
 import EarlyExitView from '../pages/dashboard/wallet/earlyExit';
 import TokenizedAssetsListView from '../pages/dashboard/tokenizedAssets/assetsListView';
 import TokenizedAssetDetailsView from '../pages/dashboard/tokenizedAssets/tokenizedAsset';
+import AssetsList from '../pages/dashboard/addOrRemoveAssets/assetsList';
 
 export default function AppRouter() {
   return (
@@ -74,6 +75,7 @@ export default function AppRouter() {
               path="tokenized-asset-list"
               element={<TokenizedAssetsListView />}
             />
+            <Route path="add-remove-assets" element={<AssetsList />} />
             <Route path="wallet" element={<WalletView />} />
             <Route path="history" element={<History />} />
             <Route path="tokenize" element={<Tokenize />}></Route>

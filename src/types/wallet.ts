@@ -22,5 +22,10 @@ export type Wallet = {
     owner: string,
     permission: string,
     permissions: Permission[],
-}
-  
+    isInitiator: boolean,
+    isApprover: boolean,
+    isSharedWallet: boolean,
+    canInitiate: boolean,
+    isPrimaryWallet: boolean,
+    isSharedWalletAndCanInitiate: boolean,
+}  
