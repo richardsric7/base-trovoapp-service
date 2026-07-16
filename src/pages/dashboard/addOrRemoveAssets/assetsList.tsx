@@ -235,8 +235,7 @@ const AssetsList = () => {
           </div>
           {!filteredWallets && (
             <div className="flex w-4/6 space-y-3 py-7 px-2 xl:px-5 xl:space-y-5 rounded-lg bg-primary-100">
-              Select the wallet where you want to add or remove assets from.{' '}
-              {secretKey} || {appUser.password}
+              Select the wallet where you want to add or remove assets from.
             </div>
           )}
         </form>
