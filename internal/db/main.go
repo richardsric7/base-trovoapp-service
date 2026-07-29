@@ -14,6 +14,8 @@ import (
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/dynamiclinks"
+	sharedConfig "trovo-wallet-api/internal/sharedconfig"
 	SMS "trovo-wallet-api/internal/sms"
 
 	"github.com/ecnepsnai/discord"
@@ -22,6 +24,7 @@ import (
 
 	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 )
 
@@ -131,14 +134,51 @@ func OpenSqliteDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(gormDB *gorm.DB) {
-	if os.Getenv("DB_AUTOMIGRATE") == "1" {
+	//do automigrate if it is not explicitly disabled,
+	if os.Getenv("DB_AUTOMIGRATE") != "0" {
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.DeletedUserAccount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DeletedUserAccount: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserWallet{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.Bank{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Bank: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.Country{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Country: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.CountryConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CountryConfig: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.KYCConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KYCConfig: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.KYCLevel{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KYCLevel: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.SumSubReviewResult{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating SumSubReviewResult: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserKYCProgress{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserKYCProgress: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserFiatPaymentMethod{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserFiatPaymentMethod: ", errMigrate)
 		}
 		errMigrate = gormDB.AutoMigrate(&users.ClosedGroup{})
 		if errMigrate != nil {
@@ -152,6 +192,30 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAsset: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetSubscription{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSubscription: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExpressionOfInterest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExpressionOfInterest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ProceedPayout{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ProceedPayout: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetPayoutSchedule{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutSchedule: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetPayoutEngineTask{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
@@ -303,6 +367,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSector: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationStatus{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationStatus: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetSubSector{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSubSector: ", errMigrate)
@@ -312,9 +381,80 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetType: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationFeePaymentMethod{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationFeePaymentMethod: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationFeeProofOfPayment{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationFeeProofOfPayment: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.AssetTokenizationDocumentType{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocumentType: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ApprovedAssetCustodian{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ApprovedAssetCustodian: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.AssetManager{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetManager: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.AssetIssuingHouse{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetIssuingHouse: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.LegalAndProfesionalPartner{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating LegalAndProfesionalPartner: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.RatingAgency{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating RatingAgency: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.Trustee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Trustee: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingApprover{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingApprover: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationMintingInitiator{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationMintingInitiator: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetInformation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetInformation: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetDocument{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetDocument: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.ExistingAssetValidationAssetTokenInfo{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ExistingAssetValidationAssetTokenInfo: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetInformation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetInformation: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetDocument{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetDocument: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.NonExistingAssetValidationAssetTokenInfo{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating NonExistingAssetValidationAssetTokenInfo: ", errMigrate)
 		}
 		errMigrate = gormDB.AutoMigrate(&users.TokenizationCurrency{})
 		if errMigrate != nil {
@@ -341,10 +481,15 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating ProceedCycle: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.PostTokenizationTrustlineCandidate{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PostTokenizationTrustlineCandidate: ", errMigrate)
+		}
+
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error
 		if errors.Is(dberr, gorm.ErrRecordNotFound) {
 			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Tokenized Asset"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}
-			gormDB.Create(&assetClasses)
+			gormDB.Omit(clause.Associations).Create(&assetClasses)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&assetModels.CuratedAsset{})
@@ -365,6 +510,115 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AppVersion: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&users.KycWebhookRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating KycWebhookRequest: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.DojaWidget{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DojaWidget: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserDojaKYCProgress{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserDojaKYCProgress: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.FiatPaymentConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FiatPaymentConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.PaymentWebhookRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PaymentWebhookRequest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.FiatPayment{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FiatPayment: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.FiatPaymentInvoice{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FiatPaymentInvoice: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.FaucetConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FaucetConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&dynamiclinks.DynamicLink{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DynamicLink: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.JsonForm{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating JsonForm: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ServiceFee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ServiceFee: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.ActivationAmount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ActivationAmount: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&sharedConfig.ServiceLinkServiceFee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ServiceLinkServiceFee: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&sharedConfig.FeeCollection{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating FeeCollection: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailConfig{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailConfig: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailBank{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailBank: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailUser{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailUser: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailRequest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailOnramp{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailOnramp: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailOfframp{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailOfframp: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailOnboardUserRetry{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailOnboardUserRetry: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.StablerailAssetWithdrawalRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating StablerailAssetWithdrawalRequest: ", errMigrate)
+		}
+
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
 		// 	log.Fatalln("[OpenDb]Error Migrating User Triggers: ", errMigrate)

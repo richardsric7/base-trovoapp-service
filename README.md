@@ -1,4 +1,4 @@
-# TROVO WALLET API
+# TrovoApp API
 
 
 ## Setup Instructions
@@ -19,12 +19,12 @@ Logical components are grouped into folders under the /internal folder.
 
 We strive to use  [REST API guideline standards](https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/) as much as we can. 
 
-Trovo Wallet API has been tested to work with the following databases:
+TrovoApp API has been tested to work with the following databases:
 - Postgres
 
 ## Error Messages
 
-Trovo Wallet API errors are generally structured as follows
+TrovoApp API errors are generally structured as follows
 
 |   name   |  type  |                                                                        description                                                                        |
 | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |

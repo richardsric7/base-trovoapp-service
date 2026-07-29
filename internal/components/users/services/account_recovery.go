@@ -20,6 +20,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccountRecoveryPayload, gc *sharedconfig.GlobalConfig) (err error) {
@@ -29,6 +30,13 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	ops := make([]txnbuild.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
+	ACCOUNT_RECOVERY_FEE := user.UserWallets[0].GetAccountRecoveryFee(gc)
+	if len(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey) == 0 {
+		logDiscordFailedRecovery("ACCOUNT RECOVERY FEE WALLET NOT CONFIGURED")
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	RECOVERY_SIGNER_ACTIVATION_AMOUNT := user.UserWallets[0].GetActivationFee("RECOVERY_SIGNER_ACTIVATION_AMOUNT", gc)
+
 	if user.HasSecurityQuestions == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error security answers not set", ErrMessage: "security answers has not been set for this account."}
 	}
@@ -45,7 +53,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	user.AccountRecoveryEnabled = 1
 	exp := time.Now().AddDate(1, 0, 0)
 	user.AccountRecoveryExpiresOn = &exp
-	dbErr := dbtx.Save(user).Error
+	dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 	if dbErr != nil {
 		log.Printf("[EnableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -80,10 +88,10 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			//activate account
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   recoveryAddress,
-				Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 				SourceAccount: user.PublicKey,
 			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your unique recovery key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your unique recovery key on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username))
 
 		}
 	}
@@ -133,10 +141,10 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 						//activate account
 						ops = append(ops, &txnbuild.CreateAccount{
 							Destination:   w.ID,
-							Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 							SourceAccount: user.PublicKey,
 						})
-						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username, w.Alias))
+						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username, w.Alias))
 
 					}
 				}
@@ -199,13 +207,15 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	signForFeeTrustLine := 0
 	{ //add fee for transaction
-		usdPrice, _, _ := blockchain.GetDollarPrice(os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_ISSUER"), gc, true)
 
-		serviceFee, e := decimal.NewFromString(os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"))
+		usdPrice, _, _ := blockchain.GetDollarPrice(ACCOUNT_RECOVERY_FEE.FeeAssetCode, ACCOUNT_RECOVERY_FEE.FeeAssetIssuer, gc, true)
+
+		serviceFee := decimal.NewFromFloat(ACCOUNT_RECOVERY_FEE.FeeFixed)
 		if e != nil {
 			serviceFee = decimal.Zero
 		}
 		if serviceFee.IsPositive() {
+			//get the actual service fee to be charged
 			serviceFee = decimal.RequireFromString(usdPrice).Div(serviceFee).Truncate(7)
 		} else {
 			serviceFee = decimal.Zero
@@ -216,13 +226,17 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			//process service fee
 			// feeLabel := os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD") + " USDT worth of " + os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE")
 
-			feeKeypair := keypair.MustParseFull(os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET"))
+			feeKeypair, e := keypair.ParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey)
+			if e != nil {
+				logDiscordFailedRecovery("ACCOUNT RECOVERY FEE WALLET NOT VALID")
+				return &tErrors.ErrorTemporaryServerError{}
+			}
 			feeAddress := feeKeypair.Address()
 
-			feeAsset := txnbuild.CreditAsset{Code: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), Issuer: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_ISSUER")}
+			feeAsset := txnbuild.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeAssetIssuer}
 			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.PublicKey, feeAsset)
 			if assetBalance.LessThan(serviceFee) {
-				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username, serviceFee.Sub(assetBalance), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"))}
+				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), ACCOUNT_RECOVERY_FEE.FeeAssetCode, user.Username, serviceFee.Sub(assetBalance), ACCOUNT_RECOVERY_FEE.FeeAssetCode)}
 
 			}
 
@@ -245,7 +259,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				Asset:         feeAsset,
 			})
 			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
-			messages = append(messages, fmt.Sprintf("%v %v ($%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"), user.Username))
+			messages = append(messages, fmt.Sprintf("%v %v ($%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), ACCOUNT_RECOVERY_FEE.FeeAssetCode, ACCOUNT_RECOVERY_FEE.FeeFixed, user.Username))
 
 		}
 
@@ -296,8 +310,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 
 	if signForFeeTrustLine == 1 {
-		feeKeypair := keypair.MustParseFull(os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET"))
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), keypair.MustParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey))
 
 		if err != nil {
 			log.Println("[EnableAccountRecovery] error signing transaction with fee wallet key ", err)
@@ -337,7 +351,9 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 
 	return nil
 
@@ -360,7 +376,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	user.AccountRecoveryEnabled = 0
 	// exp := time.Now().AddDate(1, 0, 0)
 	user.AccountRecoveryExpiresOn = nil
-	dbErr := dbtx.Save(user).Error
+	dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 	if dbErr != nil {
 		log.Printf("[DisableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -567,7 +583,10 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	}
 	user.InvalidateUserCache(gc)
 	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	user = &owner
+	// user = &owner
+	if len(owner.ID) > 0 {
+		user = &owner
+	}
 	return nil
 
 }
@@ -579,7 +598,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	ops := make([]txnbuild.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
-
+	RECOVERY_SIGNER_ACTIVATION_AMOUNT := user.UserWallets[0].GetActivationFee("RECOVERY_SIGNER_ACTIVATION_AMOUNT", gc)
 	if len(payload.NewSignerPublicKey) != 56 {
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 	}
@@ -609,7 +628,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		NewSignerPublicKey: payload.NewSignerPublicKey,
 		MasterWallet:       masterRecover,
 	}
-	e = dbtx.Create(&arl).Error
+	e = dbtx.Omit(clause.Associations).Create(&arl).Error
 	if e != nil {
 		log.Printf("[DoAccountRecovery] Error creating log for account recovery for [%v]: %v\n", arl, e)
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error unable to log recovery attempt", ErrMessage: "Unable to log recovery attempt. Please try again."}
@@ -652,10 +671,10 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			//activate account
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   payload.NewSignerPublicKey,
-				Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 				SourceAccount: user.PublicKey,
 			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your new signer key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your new signer key on the blockchain.", fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount), RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username))
 
 		} else {
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -700,10 +719,10 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 						//activate account
 						ops = append(ops, &txnbuild.CreateAccount{
 							Destination:   w.ID,
-							Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 							SourceAccount: user.PublicKey,
 						})
-						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username, w.Alias))
+						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username, w.Alias))
 
 					}
 				}
@@ -788,7 +807,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		// generate new transaction
 		user.LastRecoveredAccountOn = time.Now().UTC()
 		user.PrimarySigner = payload.NewSignerPublicKey
-		dbErr := dbtx.Save(user).Error
+		dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving user database status ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -797,7 +816,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			v.Signer = payload.NewSignerPublicKey
 			wallets[i] = v
 		}
-		dbErr = dbtx.Save(&wallets).Error
+		dbErr = dbtx.Omit(clause.Associations).Save(&wallets).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving wallet signers database status ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -817,8 +836,11 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			//remove from wallets
 			if len(deletingPermissions) > 0 {
 				e := dbtx.Where("id IN (?)", deletingPermissions).Delete(&userModels.WalletPermission{}).Error
-				log.Println("[DoAccountRecovery]error deleting permissions from shared wallets database status ", e)
-				return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+				if e != nil {
+					log.Printf("[DoAccountRecovery]error deleting permissions [%+v] from shared wallets database status. Error: %v\n", e, deletingPermissions)
+					return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+				}
+
 			}
 
 		}
@@ -862,7 +884,10 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		payload.TransactionID = resp.Hash
 		user.InvalidateUserCache(gc)
 		owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-		user = &owner
+		// user = &owner
+		if len(owner.ID) > 0 {
+			user = &owner
+		}
 		return multiAccessWallets, sharedApproverWallets, nil
 	}
 	return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
@@ -958,7 +983,8 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	subjectUser.HasSecurityQuestions = 1
 	subjectUser.UserWallets = make([]userModels.UserWallet, 0)
 	subjectUser.BuildPrimaryWallet()
-
+	// extract the wallet seperately...
+	subjectUserWallet := subjectUser.UserWallets
 	if subjectUser.HasSecurityQuestions == 0 {
 		err = SaveUserSecurityQuestions(subjectUser, answers, dbtx)
 		if err != nil {
@@ -967,7 +993,16 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		}
 	}
 
-	e = dbtx.Save(subjectUser).Error
+	e = dbtx.Omit(clause.Associations).Save(subjectUser).Error
+	// e = dbtx.Save(subjectUser).Error //do not omit save, bcos it needs to save wallet
+	if e != nil {
+		// error saving security questions
+		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)
+		return userInfo, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	e = dbtx.Omit(clause.Associations).Save(&subjectUserWallet).Error
+	// e = dbtx.Save(subjectUser).Error //do not omit save, bcos it needs to save wallet
 	if e != nil {
 		// error saving security questions
 		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)

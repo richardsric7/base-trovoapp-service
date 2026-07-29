@@ -241,17 +241,56 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
+		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+		if publicKeyPayment {
+			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
+				destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
+				publicKeyPayment = false
 			}
+		} else {
+			//check if it is an email
+			if strings.Contains(paymentInfo.Destination, "@") {
+				//an email...replace the user info
+				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				if err == nil {
+					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					if getDestinationWalletError == nil {
+						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Email [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
+						paymentInfo.Destination = destinationUser.Username
+						publicKeyPayment = false
+					}
+				}
+			} else if strings.Contains(paymentInfo.Destination, "+") {
+				//a phone...replace the user info
+				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				if err == nil {
+					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					if getDestinationWalletError == nil {
+						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Phone [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
+						paymentInfo.Destination = destinationUser.Username
+						publicKeyPayment = false
+					}
+				}
+			} else {
+				//wallet alias...
+				destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+				if getDestinationWalletError == nil {
+					//get destination user:
+					destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
+					publicKeyPayment = false
+				}
+			}
+
+			paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 		}
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
 
-		if len(paymentInfo.Destination) != 56 && len(paymentInfo.Destination) != 69 {
+		if !publicKeyPayment {
 			//skip public key payments
 			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
@@ -274,19 +313,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 				return
 			}
-			if checkReservedReceiverError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = checkReservedReceiverError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedReceiverError.Error()})
-				}
-				return
-			}
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
 		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
@@ -320,6 +347,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			//log user current location
 			accountSignerUser.PublicIP = c.ClientIP()
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				accountSignerUser.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
@@ -338,10 +368,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			if len(destinationWallet.ID) == 56 {
 				destinationWallet.InvalidateUserCache(gc)
-				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				if destinationWallet.TempPublicKey != nil {
+
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				}
 			}
 			if len(sourceWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				if sourceWallet.TempPublicKey != nil {
+
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				}
 
 			}
 
@@ -418,7 +454,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
-				if getDestinationWalletError == nil {
+				if !publicKeyPayment {
 					// dataPayload := make(map[string]string)
 					// dataPayload["none"] = ""
 					if destinationWallet.SharedAccessEnabled == 1 {
@@ -446,7 +482,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 							}
 						}
 					} else {
-						u, e := destinationWallet.GetWalletOwner(gc.DB, gc)
+						// 				if !publicKeyPayment {
+						// 	dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+						// 	destinationUser, _ = dw.GetWalletOwner(gc.DB, gc)
+						// 	destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+						// 	destinationUser.InvalidateUserCache(gc)
+						// }
+						dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+						u, e := dw.GetWalletOwner(gc.DB, gc)
 						if e == nil {
 							if u.PushNotificationToken != nil {
 
@@ -602,7 +645,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
-
+		// trim the destination
+		paymentInfo.Destination = strings.TrimSpace(paymentInfo.Destination)
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/payment %v", sourceWalletOwnerAlias), gc.DB)
 
 		//initiatlize message holder
@@ -626,20 +670,27 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		var destinationUser userModels.User
 		var destinationWallet userModels.UserWallet
-		var getDestinationUserError, getDestinationWalletError error
+		var getDestinationUserError error
+		var getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
+		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+
+		if publicKeyPayment {
+			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
+				publicKeyPayment = false
 			}
+		} else {
+			paymentInfo.Destination = strings.ToLower(paymentInfo.Destination)
 		}
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
 
-		if len(paymentInfo.Destination) != 56 && len(paymentInfo.Destination) != 69 {
+		if !publicKeyPayment {
 			//skip public key payments
 			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
@@ -662,19 +713,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 				return
 			}
-			if checkReservedReceiverError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = checkReservedReceiverError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedReceiverError.Error()})
-				}
-				return
-			}
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
 		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
@@ -708,7 +747,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			//log user current location
 			accountSignerUser.PublicIP = c.ClientIP()
-
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				accountSignerUser.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", sourceWalletOwnerAlias)
@@ -725,10 +766,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			}
 			if len(destinationWallet.ID) == 56 {
-				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				if destinationWallet.TempPublicKey != nil {
+
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+				}
 			}
 			if len(sourceWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				if sourceWallet.TempPublicKey != nil {
+
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+				}
 
 			}
 
@@ -789,9 +836,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
-				if getDestinationWalletError == nil {
-					destinationUser.InvalidateUserCache(gc)
+				if !publicKeyPayment {
+					dw, _ := userModels.WalletAlias(paymentInfoReturned.Destination).GetWallet(gc.DB, gc)
+					destinationUser, _ = dw.GetWalletOwner(gc.DB, gc)
 					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+					destinationUser.InvalidateUserCache(gc)
 				}
 				accountSignerUser.InvalidateUserCache(gc)
 				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)

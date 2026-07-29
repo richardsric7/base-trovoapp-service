@@ -19,6 +19,8 @@ func NormalizeUserRegistrationInfo(user *usermodels.UserRegistrationInfo) {
 	user.Email = strings.ReplaceAll(strings.TrimSpace(strings.ToLower(user.Email)), " ", "")
 	user.Referrer = strings.TrimSpace(strings.ToLower(user.Referrer))
 	user.Mobile = strings.ReplaceAll(strings.TrimSpace(user.Mobile), " ", "")
+	user.PublicKey = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(user.PublicKey), " ", ""))
+	user.PrimarySigner = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(user.PrimarySigner), " ", ""))
 	if len(user.Mobile) > 0 {
 		// geoData, _ := usermodels.GetGeoInfo(user.PublicIP)
 		num, err := phonenumbers.Parse(user.Mobile, user.MobileCountryCode)
@@ -78,6 +80,13 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		if len(user.PublicKey) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "publicKey"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
+			return &x
+		}
+		if len(user.PrimarySigner) == 0 {
+			var x tErrors.ErrorMissingParameter
+			x.Parameter = "primarySigner"
 			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
 
 			return &x

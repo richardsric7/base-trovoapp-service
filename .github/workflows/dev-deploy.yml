@@ -3,7 +3,7 @@ name: Deploy to Dev
 on:
   push:
     branches:
-      - dev
+      - ric-asset-tokenization
   workflow_dispatch:
 
 concurrency:

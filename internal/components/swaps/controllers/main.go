@@ -158,6 +158,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//log user current location
 			signerOwner.PublicIP = c.ClientIP()
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				signerOwner.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 			swapServices.UpdateAndLogUserSwapGeoInformation(&signerOwner, &swapInfo, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", signerOwner.Username)
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", signerOwner.Username)
@@ -352,6 +355,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//log user current location
 			signerOwner.PublicIP = c.ClientIP()
+			if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
+				signerOwner.PublicIP = c.GetHeader("Cf-Connecting-Ip")
+			}
 			swapServices.UpdateAndLogUserSwapGeoInformation(&signerOwner, &swapInfo, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", signerOwner.Username)
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", signerOwner.Username)

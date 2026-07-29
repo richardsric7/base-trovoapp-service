@@ -1,18 +1,19 @@
 package payments
 
 import (
-	userModels "trovo-wallet-api/internal/components/users/models"
 	payments "trovo-wallet-api/internal/components/payments/models"
+	userModels "trovo-wallet-api/internal/components/users/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-//UpdateAndLogUserPaymentGeoInformation logs payment information and updates user location information
+// UpdateAndLogUserPaymentGeoInformation logs payment information and updates user location information
 func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInfoReturned *payments.PaymentInfo, db *gorm.DB) {
 
 	// updatedUser:= &userInfo -m''
 	userInfo.AppendGeoInfo()
-	db.Save(userInfo)
+	db.Omit(clause.Associations).Save(userInfo)
 	paymentLog := payments.PaymentLog{
 		Sender:               userInfo.Username,
 		Destination:          paymentInfoReturned.Destination,
@@ -35,6 +36,6 @@ func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInf
 		TimeZone:             userInfo.TimeZone,
 		ISP:                  userInfo.ISP,
 	}
-	db.Create(&paymentLog)
+	db.Omit(clause.Associations).Create(&paymentLog)
 
 }

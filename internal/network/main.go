@@ -93,7 +93,8 @@ func BlockchainAccountProperties(client *horizonclient.Client, destinationPublic
 	destinationAccountDetail, destinationHorizonError := client.AccountDetail(destinationAccountRequest)
 
 	if destinationHorizonError != nil {
-		log.Print(destinationHorizonError)
+		// log.Print(destinationHorizonError)
+		log.Print("[BlockchainAccountProperties] error is ", destinationHorizonError)
 		userNotFoundError := false
 
 		horizonException, ok := destinationHorizonError.(*horizonclient.Error)
@@ -370,6 +371,111 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 	return txnResult, nil
 
 }
+
+// SubmitXdrWithSignatures submit multiple singatures in a map with the map key as signer public key and the value as the signature
+func SubmitXdrWithSignatures(client *horizonclient.Client, transactionXdr string, signatures map[string]string, db *gorm.DB) (string, error) {
+
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFb"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+
+	gTxn, err := txnbuild.TransactionFromXDR(transactionXdr)
+
+	if err != nil {
+		return "", err
+	}
+
+	txn, ok := gTxn.Transaction()
+
+	if !ok {
+		return "", &tErrors.ErrorInvalidTransaction{}
+	}
+	for signer, signature := range signatures {
+
+		txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), signer, signature)
+
+		if err != nil {
+			log.Printf("[SubmitXdrWithSignatures] Failed to verify signature on [%v] for [%v] on signerPublicKey [%v], error: [%v]\n", GetBlockchainNetworkPassPhrase(), signature, signer, err)
+			return "", err
+		}
+	}
+
+	xdrBase64, err := txn.Base64()
+
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	// log.Println("signed xdr is " + xdrBase64)
+
+	txnResult, err := client.SubmitTransactionXDR(xdrBase64)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+			discord.Say(fmt.Sprintf("[SubmitXdrWithSignatures] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
+		}
+
+		horizonException, ok := err.(*horizonclient.Error)
+
+		if ok {
+
+			extraErrors := horizonException.Problem.Extras
+
+			for key, val := range extraErrors {
+				log.Printf("[SubmitXdrWithSignatures] Extras: %v is %v\n", key, val)
+				logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\n", key, val))
+
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return "", &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
+
+			}
+
+			resultCodes, errRes := horizonException.ResultCodes()
+			if errRes == nil {
+				for key, val := range resultCodes.OperationCodes {
+					log.Printf("[v] Result code: %v is %v\n", key, val)
+					logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Result code: %v is %v\n", key, val))
+
+				}
+			} else {
+				log.Printf("[SubmitApprovalXdrWithSignature] Error getting result codes: %vzz\n", errRes)
+			}
+
+		} else {
+			log.Printf("[SubmitApprovalXdrWithSignature] not horizon error: %v\n", err)
+
+		}
+
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
+
+	}
+
+	return txnResult.Hash, nil
+
+}
+
 func SubmitApprovalsXdrWithSignatures(client *horizonclient.Client, approvalID string, db *gorm.DB) (string, error) {
 	type PendingTransactionSignature struct {
 		CreatedAt                time.Time `json:"createdAt"`
@@ -505,6 +611,7 @@ func SubmitApprovalsXdrWithSignatures(client *horizonclient.Client, approvalID s
 	return txnResult.Hash, nil
 
 }
+
 func SubmitApprovalsXdrWithSignaturesReturnsTrx(client *horizonclient.Client, approvalID string, db *gorm.DB) (txnResult horizon.Transaction, err error) {
 	type PendingTransactionSignature struct {
 		CreatedAt                time.Time `json:"createdAt"`

@@ -1,13 +1,18 @@
 package users
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	users "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	tMail "trovo-wallet-api/internal/mail"
@@ -19,6 +24,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nyaruka/phonenumbers"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const saltInCode = "7HrtrGCRUPp8j5Gze"
@@ -84,6 +90,57 @@ func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 	s := strconv.FormatUint(uint64(data), 10)
 
 	return s[0:NumberOfCharactersInVerificationCode]
+}
+
+// GenerateRandomCode generates email verification code
+func GenerateRandomCode(codeLength int) string {
+	if codeLength == 0 {
+		codeLength = 14
+	}
+
+	// Create random bytes using crypto/rand
+	randomBytes := make([]byte, 32)
+	_, err := io.ReadFull(rand.Reader, randomBytes)
+	if err != nil {
+		return ""
+	}
+
+	// Hash the random bytes with SHA-256
+	hash := sha256.Sum256(randomBytes)
+	hashStr := hex.EncodeToString(hash[:]) // hex chars are already 0-9 and a-f
+
+	// Allowed characters (a-z, 0-9)
+	allowedChars := "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	// Convert the hash to allowed characters
+	var filtered strings.Builder
+	for _, ch := range hashStr {
+		// map a-f to some letters for full coverage
+		if ch >= 'a' && ch <= 'f' {
+			// shift to random letters from a-z
+			filtered.WriteByte(byte('a' + (ch-'a')%26))
+		} else {
+			filtered.WriteRune(ch)
+		}
+	}
+
+	// Build the final secure code
+	result := make([]byte, codeLength)
+	for i := 0; i < codeLength; i++ {
+		index, err := rand.Int(rand.Reader, bigInt(len(allowedChars)))
+		if err != nil {
+			return ""
+		}
+		result[i] = allowedChars[index.Int64()]
+	}
+
+	return string(result)
+
+}
+
+// Helper to convert int to big.Int
+func bigInt(n int) *big.Int {
+	return new(big.Int).SetInt64(int64(n))
 }
 
 // CheckAndSendVerificationCode checks and sends verification code
@@ -200,7 +257,7 @@ func UpdatePhoneNumber(userInfo *users.User, mobileCountryCode, mobile string, d
 		userInfo.RegionName = &geoData.RegionName
 	}
 
-	saveError := db.Save(userInfo).Error
+	saveError := db.Omit(clause.Associations).Save(userInfo).Error
 	if saveError != nil {
 		log.Printf("unable to save new mobile number for user %v due to: %v\n", userInfo.Username, saveError)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -270,7 +327,7 @@ func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, d
 	}
 
 	userInfo.MobileVerified = 1
-	errSaveUser := db.Save(userInfo).Error
+	errSaveUser := db.Omit(clause.Associations).Save(userInfo).Error
 	if errSaveUser != nil {
 		log.Printf("[CheckPhoneVerificationCode]Unable to save mobile verification for user %v at this time due to Error: %s\n", userInfo.Username, errSaveUser.Error())
 
@@ -366,7 +423,7 @@ func RemoveAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string
 	}
 
 	//verification code matches
-	db.Delete(&userVerification)
+	db.Omit(clause.Associations).Delete(&userVerification)
 
 	return nil
 
@@ -435,7 +492,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//send SMS
-		message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
+		message := fmt.Sprintf("Your TrovoApp mobile phone confirmation code is %s. One time use only.", verificationCode)
 		errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 		if errSMS != nil {
 			log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
@@ -475,7 +532,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 	}
 	//updated successfully
 	//send SMS
-	message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
+	message := fmt.Sprintf("Your TrovoApp mobile phone confirmation code is %s. One time use only.", verificationCode)
 	errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 	if errSMS != nil {
 		log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())

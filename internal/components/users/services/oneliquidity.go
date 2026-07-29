@@ -21,6 +21,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func GetCryptoDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []userModels.CryptoWalletDepositAddress) {
@@ -84,7 +85,7 @@ func CreateCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string
 
 	client := http.DefaultClient
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
-	jbody, err := json.Marshal(userModels.SubWalletInput{
+	jbody, err := json.Marshal(userModels.OnliquiditySubWalletInput{
 		Currency: currency,
 		UID:      wallet.Alias + "@" + os.Getenv("WALLET_DOMAIN"),
 	})
@@ -307,7 +308,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 			WithdrawalServiceFee: wdlInput.WithdrawalServiceFee,
 			WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
 		}
-		e := dbTx.Create(&wdlRequest).Error
+		e := dbTx.Omit(clause.Associations).Create(&wdlRequest).Error
 		if e != nil {
 			log.Printf("[QueueWithdrawalRequest] error creating withdrawal request on db. error: %v\n", e)
 			return &tErrors.ErrorTemporaryServerError{}
@@ -322,7 +323,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 
 		wdlInput.TransactionID = txnID
 		wdlRequest.TransactionID = wdlInput.TransactionID
-		e = dbTx.Save(&wdlRequest).Error
+		e = dbTx.Omit(clause.Associations).Save(&wdlRequest).Error
 		if e != nil {
 			log.Printf("[QueueWithdrawalRequest] error saving withdrawal request for transactionID %v on db. error: %v\n", txnID, e)
 
@@ -351,7 +352,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[QueueWithdrawalRequest] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -487,7 +488,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	}
 	wdlItem.TrovoWalletPublicKey = wallet.ID
 	wdlItem.Fees = wdlInput.WithdrawalServiceFee
-	e = gc.DB.Save(&wdlItem).Error
+	e = gc.DB.Omit(clause.Associations).Save(&wdlItem).Error
 	if e != nil {
 		err = &tErrors.CustomError{
 			Param:      "withdrwalID",
@@ -726,7 +727,7 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	if eDel != nil {
 		log.Printf("[GetWithdrawalNetworks] error deleting from wdlNetworks where currency %v, error: %v\n", currency, eDel)
 	}
-	e := dbTX.Create(&wdlNetworks).Error
+	e := dbTX.Omit(clause.Associations).Create(&wdlNetworks).Error
 	if e != nil {
 		log.Printf("[GetWithdrawalNetworks] error creating wdlNetworks for %v error:%v\n", currency, e)
 
@@ -964,7 +965,7 @@ func StartFacematchForPassport(user *userModels.User, selfieVideo, documentPictu
 	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	e := dbTX.Create(&doc).Error
+	e := dbTX.Omit(clause.Associations).Create(&doc).Error
 	if e != nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -1057,7 +1058,7 @@ func StartFacematchForDrivingLicense(user *userModels.User, selfieVideo, documen
 	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	e := dbTX.Create(&doc).Error
+	e := dbTX.Omit(clause.Associations).Create(&doc).Error
 	if e != nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -1148,7 +1149,7 @@ func StartFacematchForNationalID(user *userModels.User, selfieVideo, documentPic
 	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	e := dbTX.Create(&doc).Error
+	e := dbTX.Omit(clause.Associations).Create(&doc).Error
 	if e != nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -1234,7 +1235,7 @@ func StartGovernmentIDCheckForProofOfResidency(user *userModels.User, documentPi
 	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	e := dbTX.Create(&doc).Error
+	e := dbTX.Omit(clause.Associations).Create(&doc).Error
 	if e != nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}

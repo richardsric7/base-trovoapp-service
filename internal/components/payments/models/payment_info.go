@@ -23,8 +23,10 @@ type PaymentInfo struct {
 	TransactionSource       string            `json:"-"`
 	SignatureRequired       int               `json:"signatureRequired"`
 	Commit                  int               `json:"commit"`
+	Vat                     string            `json:"vat"`
 	Fee                     string            `json:"fee"`
 	FeeAmount               string            `json:"feeAmount"`
+	VatAmount               string            `json:"vatAmount"`
 	AmountToPay             string            `json:"amountToPay"`
 	SHash                   string            `json:"sHash"`
 	ChannelAccount          string            `json:"channelAccount"`

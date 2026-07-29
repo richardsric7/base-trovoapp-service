@@ -3,6 +3,7 @@ package swaps
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/ecnepsnai/discord"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm/clause"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -32,11 +34,34 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
-	fee := decimal.RequireFromString(wallet.GetSwapFee(gc))
+
+	var feePercent float64
+	if walletOwner.BelongsToAnEnterpriseProfile() {
+		slf, exists, e := gc.GetServiceLinkFees(*walletOwner.CreatedByServiceLinkID)
+		if e != nil {
+			//error occured
+			return e
+		}
+		if !exists {
+			//no service fee is configured, use standard fee
+			feePercent = wallet.GetSwapFee(gc).FeePercent
+		} else {
+			//get the enterprise config fee
+			feePercent = float64(slf.SwapFee)
+		}
+	} else {
+
+		feePercent = wallet.GetSwapFee(gc).FeePercent
+	}
+	fee := decimal.NewFromFloat(feePercent)
 
 	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.SourceAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
-
-	swapAmount := decimal.RequireFromString(swapInfo.SourceAmount).Sub(feeAmount)
+	//calculate VAT on the fee amount.
+	vatFee := gc.GetVATValue(feeAmount)
+	vatRate := decimal.NewFromFloat(gc.GetVATRate()).String()
+	swapInfo.Vat = vatRate
+	swapInfo.VatAmount = decimal.NewFromFloat(vatFee).String()
+	swapAmount := decimal.RequireFromString(swapInfo.SourceAmount).Sub(feeAmount.Add(decimal.NewFromFloat(vatFee)))
 	swapInfo.SwapAmount = swapAmount.String()
 	swapInfo.Fee = fee.String()
 	swapInfo.FeeAmount = feeAmount.String()
@@ -53,9 +78,39 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if e := ValidateSwapSendInfo(swapInfo); e != nil {
 		return e
 	}
+	if gc.IsValidTokenizedAsset(swapInfo.DestinationAssetCode) {
 
+		t := gc.GetTokenizedAssetByCode(swapInfo.DestinationAssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Swap is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+
+		//check if user has done KYC
+		if walletOwner.KYCVerified == 0 {
+			return &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-no-kyc",
+				ErrMessage: fmt.Sprintf("%v does not meet KYC requirement to receive the asset %v", walletOwner.Username, swapInfo.DestinationAssetCode),
+			}
+		}
+
+		//Check if it is still in primary sales
+		if gc.IsTokenizedAssetInPrimarySales(swapInfo.DestinationAssetCode) {
+			return &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-primary-sales-active",
+				ErrMessage: fmt.Sprintf("%v is still in primary sales. Please go to the tokenized asset market place to purchase from there.", swapInfo.DestinationAssetCode),
+			}
+		}
+
+	}
 	if len(swapInfo.TransactionSignature) == 0 {
-		xdrBase64, err := generateSwapSendXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+		xdrBase64, err := generateSwapSendXdr(wallet, swapInfo, gc)
 		if err != nil {
 			return err
 		}
@@ -70,11 +125,66 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return nil
 	}
 	//no need to check this since offer can change, therefore changing the transaction
-	// if swapInfo.SHash != algofuncs.SHash(swapInfo.Transaction) {
-	// 	return &swapErrors.ErrorTransactionMismatch{}
-	// }
 
 	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
+
+		var dbAssetIssuer *string
+		dbAssetCode := swapInfo.SourceAssetCode
+		if len(swapInfo.SourceAssetIssuer) > 0 {
+			dbAssetIssuer = &swapInfo.SourceAssetIssuer
+		} else {
+			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+
+		swapFee := sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        wallet.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "SWAP",
+			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.Alias,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+		vatFeeCollection := sharedconfig.FeeCollection{
+			ID:                         gc.GenerateUUIDString(),
+			FromUsername:               walletOwner.Username,
+			FromWalletPublicKey:        walletOwner.ID,
+			FromWalletAlias:            wallet.Alias,
+			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
+			FeeType:                    "VAT",
+			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
+			AssetCode:                  dbAssetCode,
+			AssetIssuer:                dbAssetIssuer,
+			DestinationWallet:          wallet.Alias,
+			SharedAccessOperation:      swapInfo.Multiparty,
+		}
+		//start transaction for the fee collection
+		dbTX := gc.DB.Begin()
+		defer dbTX.Rollback()
+		//save  this to database
+		e := dbTX.Omit(clause.Associations).Create(&swapFee).Error
+		if e != nil {
+
+			log.Printf("[SwapSend] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
+		//save vat to database
+		e = dbTX.Omit(clause.Associations).Create(&vatFeeCollection).Error
+		if e != nil {
+
+			log.Printf("[SwapSend] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+			err := &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+
 		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, swapInfo.Transaction, swapInfo.TransactionSignature)
 		if err != nil {
 			logDiscordFailedSwap(fmt.Sprintf("Error submitting swap [%+v] transaction: %s", swapInfo, err.Error()))
@@ -87,12 +197,42 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+				}
 				return &tErrors.CustomError{
 					Param:      "destinationAssetCode",
 					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					ErrMessage: emsg,
 				}
 			}
+		}
+		if err == nil {
+			//update fee swap and vat
+			swapFee.TransactionHash = &txnHash
+			vatFeeCollection.TransactionHash = &txnHash
+			e = dbTX.Save(&swapFee).Error
+			if e != nil {
+
+				log.Printf("[SwapSend] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving transaction hash for swap fee [%+v] transaction on fee collections table table: %s\n", swapFee, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
+			}
+			e = dbTX.Save(&vatFeeCollection).Error
+			if e != nil {
+
+				log.Printf("[SwapSend] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error())
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[SwapSend] Error saving transaction hash for vat [%+v] transaction on fee collections table table: %s\n", vatFeeCollection, e.Error()))
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
+			}
+			//commit the database transaction
+			dbTX.Commit()
 		}
 		swapInfo.TransactionID = txnHash
 		wallet.InvalidateUserCache(gc)
@@ -144,7 +284,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[SwapSend] Error saving swap txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err := &tErrors.ErrorTemporaryServerError{}
@@ -163,7 +303,8 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
-	fee := decimal.RequireFromString(wallet.GetSwapFee(gc))
+	serviceFee := wallet.GetSwapFee(gc)
+	fee := decimal.NewFromFloat(serviceFee.FeePercent)
 
 	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.DestinationAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
 
@@ -186,7 +327,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	}
 
 	if len(swapInfo.TransactionSignature) == 0 {
-		xdrBase64, _, err := generateSwapReceiveXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+		xdrBase64, _, err := generateSwapReceiveXdr(wallet, swapInfo, gc)
 		if err != nil {
 			return err
 		}
@@ -218,10 +359,17 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+				if b != "0" {
+					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+				}
 				return &tErrors.CustomError{
 					Param:      "destinationAssetCode",
 					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					ErrMessage: emsg,
 				}
 			}
 		}
@@ -275,7 +423,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[SwapSend] Error saving swap txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err := &tErrors.ErrorTemporaryServerError{}
@@ -288,7 +436,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	return err
 }
 
-func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
@@ -297,7 +445,7 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	var err error
 	var amountToSwap, totalFees decimal.Decimal
-
+	var tokenizedAssetIssuerMustSign bool
 	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
@@ -345,6 +493,33 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
+
+			bantuAsset := userModels.BantuAsset{
+				AssetCode:   destinationAsset.GetCode(),
+				AssetIssuer: destinationAsset.GetIssuer(),
+			}
+			bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
+			if e != nil {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return "", err
+
+			}
+			if len(bcAsset.Code) == 0 {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return "", err
+
+			}
+
+			if bcAsset.Flags.AuthRequired && !gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+
+				err = &tErrors.CustomError{
+					Param:      "destination",
+					Err:        "error-destination-forbidden-to-receive-asset",
+					ErrMessage: fmt.Sprintf("%v is a regulated asset. You have not yet opted to receive this asset. Please first add the asset to your trusted assets, successfully.", destinationAsset.GetCode()),
+				}
+				return "", err
+			}
+
 			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
 			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing will activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
 			messages = append(messages, message)
@@ -359,6 +534,18 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 				Limit:         "900000000000",
 				SourceAccount: wallet.ID,
 			})
+
+			if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+				tokenizedAssetIssuerMustSign = true
+
+				// allow trust from issuer to destination wallet
+				ops = append(ops, &txnbuild.SetTrustLineFlags{
+					Trustor:       wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+					SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+					SourceAccount: swapInfo.DestinationAssetIssuer,
+				})
+			}
 
 		}
 	}
@@ -404,9 +591,23 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
 		SourceAmount:      newAmountToSwap,
 	}
-	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
+	path, swappedEstimate, err := GetStrictSendPaths(pathInput, gc)
 	if err != nil {
 		log.Println("[generateSwapXdr]error fetching valid swap Path ", err)
+		if strings.Contains(err.Error(), "liquid") || strings.Contains(err.Error(), "market") {
+			_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+
+			emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
+			if b != "0" {
+				emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
+
+			}
+			return "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: emsg,
+			}
+		}
 		return "", err
 	}
 
@@ -420,19 +621,29 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
-	serviceFee, e := decimal.NewFromString(swapInfo.FeeAmount)
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
+	serviceFee := wallet.GetSwapFee(gc)
+	swapFee := decimal.RequireFromString(swapInfo.FeeAmount)
+	vatFee := decimal.RequireFromString(swapInfo.VatAmount)
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
 	signForFeeTrustLine := 0
-	if serviceFee.IsPositive() && os.Getenv("SWAP_FEE_ENABLED") == "1" {
+	if swapFee.IsPositive() && serviceFee.Inactive == 0 {
 		//process service fee
 
 		//ensure that the fee address is can accept the asset.
 		// but bcos  fee address needs to sign, it cannot be done here
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		// feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+		if e != nil {
+			log.Println("[generateSwapXdr] error parsing fee wallet secret key", e)
+			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing fee wallet secret key")
+
+			return "", &tErrors.CustomError{
+				Err:        "error-parsing-swap-fee-wallet-secret-key",
+				Param:      "feeAmont",
+				ErrMessage: "Failed to parse Swap Fee Wallet. Fee Wallet is Invalid",
+			}
+		}
 		feeAddress := feeKeypair.Address()
 
 		if !sourceAsset.IsNative() {
@@ -447,12 +658,24 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 					SourceAccount: feeAddress,
 				})
 
+				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+					tokenizedAssetIssuerMustSign = true
+
+					// allow trust from issuer to destination wallet
+					ops = append(ops, &txnbuild.SetTrustLineFlags{
+						Trustor:       feeAddress,
+						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						SourceAccount: swapInfo.DestinationAssetIssuer,
+					})
+				}
+
 			}
 		}
 
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   feeAddress,
-			Amount:        serviceFee.String(),
+			Amount:        swapFee.String(),
 			SourceAccount: wallet.ID,
 			Asset:         sourceAsset,
 		})
@@ -460,7 +683,60 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 		messages = append(messages, "Service fee will apply.")
 
 	}
+	//VAT remittance
+	if vatFee.IsPositive() && serviceFee.Inactive == 0 {
+		//process vat
 
+		feeKeypair, e := keypair.ParseFull(gc.GetVATWallet())
+		if e != nil {
+			log.Println("[generateSwapXdr] error parsing vat wallet secret key", e)
+			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing vat wallet secret key")
+
+			return "", &tErrors.CustomError{
+				Err:        "error-parsing-swap-vat-wallet-key",
+				Param:      "feeAmont",
+				ErrMessage: "Failed to parse VAT Fee Wallet. Fee Wallet is Invalid",
+			}
+		}
+		feeAddress := feeKeypair.Address()
+
+		if !sourceAsset.IsNative() {
+
+			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
+			if !feeAccountTrustsAsset {
+				signForFeeTrustLine = 1
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+					Limit:         "900000000000",
+					SourceAccount: feeAddress,
+				})
+
+				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+					tokenizedAssetIssuerMustSign = true
+
+					// allow trust from issuer to destination wallet
+					ops = append(ops, &txnbuild.SetTrustLineFlags{
+						Trustor:       feeAddress,
+						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						SourceAccount: swapInfo.DestinationAssetIssuer,
+					})
+				}
+
+			}
+		}
+
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   feeAddress,
+			Amount:        vatFee.String(),
+			SourceAccount: wallet.ID,
+			Asset:         sourceAsset,
+		})
+
+		messages = append(messages, "VAT will apply.")
+
+	}
 	// Construct the transaction that holds the operations to execute on the network
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode
@@ -511,7 +787,7 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 	if signForFeeTrustLine == 1 && !sourceAsset.IsNative() {
 		log.Printf("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with swap fee key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", sourceAsset)
 
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {
@@ -520,9 +796,22 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 		}
 	}
 
-	if err != nil {
-		log.Println("[generateSwapXdr]error constructing transaction ", err)
-		return "", err
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
+
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateSwapXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	var xdrBase64 string
@@ -539,7 +828,7 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 }
 
 // generateSwapReceiveXdr generates xdr for strict receive operation. Returns the base64 xdr transaction string, the operation object, and error
-func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
+func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	client := gc.BantuExpansionClient
@@ -792,7 +1081,7 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 }
 
 // GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, gc *sharedconfig.GlobalConfig) (paths []txnbuild.Asset, swappedEstimate string, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -832,7 +1121,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 		SourceAmount:       pathInput.SourceAmount,
 	}
 
-	swapPaths, err = client.StrictSendPaths(sspr)
+	swapPaths, err = gc.BantuExpansionClient.StrictSendPaths(sspr)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
@@ -842,6 +1131,7 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 			return paths, "", &tErrors.ErrorTemporaryServerError{}
 		}
 		if strings.Contains(err.Error(), "liquid") {
+
 			destAsset := os.Getenv("NATIVE_ASSET_CODE")
 			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
 			if len(pathInput.SourceAssetCode) > 0 {

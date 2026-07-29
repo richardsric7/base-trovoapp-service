@@ -8,11 +8,12 @@ import (
 	bantupayerrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
+	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 )
 
-//OrderBookRequestInput holds orderbook request input bindings
+// OrderBookRequestInput holds orderbook request input bindings
 type OrderBookRequestInput struct {
 	SellingAssetType   string `json:"selling_asset_type" form:"selling_asset_type"`
 	SellingAssetCode   string `json:"selling_asset_code" form:"selling_asset_code"`
@@ -23,7 +24,7 @@ type OrderBookRequestInput struct {
 	Limit              string `json:"limit" form:"limit"`
 }
 
-//getBantuOrderBookSummary gets orderbook on bantu network
+// getBantuOrderBookSummary gets orderbook on bantu network
 func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
 	client := network.GetBlockchainClient()
 	var limit uint
@@ -70,16 +71,20 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 			log.Println("[client.OrderBookRequest]", err)
 			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
 		}
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
-		log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
-		log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
-		log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
-		log.Println("[client.OrderBookRequest] Error submitting:", err)
-		return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		if hError, ok := err.(*horizonclient.Error); ok {
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
+			log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
+			log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
+			log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
+			log.Println("[client.OrderBookRequest] Error submitting:", err)
+			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		} else {
+			log.Println("[client.OrderBookRequest] Error submitting:", err)
+			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		}
 
 	}
 
@@ -87,7 +92,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 
 }
 
-//GetDollarAskPrice dollar ask price using USDB
+// GetDollarAskPrice dollar ask price using USDB
 func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice string, err error) {
 	var input OrderBookRequestInput
 	var errAssetCode string
@@ -108,7 +113,10 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 		input.BuyingAssetIssuer = "GBTNUZDIUMWZEGTNQCL5F73PIABCBJ4YQA2VJS7HXTBRDDSTWCE6UNXE"
 	}
 	orderBook, err := getBantuOrderBookSummary(input)
-
+	if err != nil {
+		log.Println("[GetDollarAskPrice] Error fetching dollar price:", err)
+		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+	}
 	if len(orderBook.Asks) == 0 {
 		log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
 		return "0", &bantupayerrors.ErrorTemporaryServerError{}
@@ -120,4 +128,61 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 
 	// fmt.Printf("OrderBookSummary: %+v\n", orderBook)
 	return usdPrice, nil
+}
+
+// GetAvalableMarketQuantity
+func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAssetCode, buyingAssetIssuer string) (sellingQuantity, buyingQuantity string, err error) {
+	var input OrderBookRequestInput
+	sellingQuantity = "0"
+	buyingQuantity = "0"
+	var errAssetCode, errBuyingAssetCode string
+	if sellingAssetCode == "" {
+		errAssetCode = "native"
+	} else {
+		errAssetCode = sellingAssetCode
+	}
+	if buyingAssetCode == "" {
+		errBuyingAssetCode = "native"
+	} else {
+		errBuyingAssetCode = sellingAssetCode
+	}
+	input.SellingAssetCode = sellingAssetCode
+	input.SellingAssetIssuer = sellingAssetIssuer
+
+	input.BuyingAssetCode = buyingAssetCode
+	input.BuyingAssetIssuer = buyingAssetIssuer
+
+	orderBook, err := getBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetAvalableMarketQuantity] Error fetching %v/%v market: %v\n", errBuyingAssetCode, errAssetCode, err)
+		return "0", "0", &bantupayerrors.ErrorTemporaryServerError{}
+	}
+	if len(orderBook.Asks) == 0 {
+		log.Printf("[GetAvalableMarketQuantity] Error fetching %v asks for %v: %v\n", errBuyingAssetCode, errAssetCode, err)
+		// return "0","0", &bantupayerrors.ErrorTemporaryServerError{}
+		sellingQuantity = "0"
+	} else {
+		//asks exists
+		totalAsks := decimal.Zero
+
+		for _, v := range orderBook.Asks {
+			totalAsks = totalAsks.Add(decimal.RequireFromString(v.Amount))
+		}
+		sellingQuantity = totalAsks.String()
+	}
+	if len(orderBook.Bids) == 0 {
+		log.Printf("[GetAvalableMarketQuantity] Error fetching %v bids for %v: %v\n", errBuyingAssetCode, errAssetCode, err)
+		// return "0","0", &bantupayerrors.ErrorTemporaryServerError{}
+		buyingQuantity = "0"
+	} else {
+		//asks exists
+		totalBids := decimal.Zero
+
+		for _, v := range orderBook.Bids {
+			totalBids = totalBids.Add(decimal.RequireFromString(v.Amount))
+		}
+		buyingQuantity = totalBids.String()
+	}
+
+	return sellingQuantity, buyingQuantity, nil
 }

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -129,7 +130,7 @@ func (u *User) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.Globa
 
 // GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
-	balances = make(map[string]Balance)
+	balances = make(map[string]Balance, 0)
 	depositAddresses := make([]CryptoWalletDepositAddress, 0)
 	var nativeCode, nativeIssuer, nativeUsdPrice string
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
@@ -138,12 +139,17 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		nativeIssuer = nv[1]
 	}
 
+	// get the ngn to usd rate. then get XBN naira price.
+	cngnPrice := gc.GetCngnUsdRate()
 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
 	xbnNativePrice := "1"
 	// log.Println("xbnUsdPrice", xbnUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
-		cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+		if u.TempPublicKey != nil {
+
+			cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+		}
 
 	}
 	{
@@ -191,6 +197,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 			//save to cache
 			gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 60)
+			//check if the cached result is nil then build default native placeholder
+
 			return balances, nil
 		}
 		if !temp {
@@ -199,7 +207,18 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		return balances, err
 	}
 	if len(nv) == 2 {
-		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc, true)
+		checkCacheFirst := false
+		if nativeCode != "CNGN" {
+			checkCacheFirst = true
+		}
+		nairaAssetPrice, _, _ := blockchain.GetNairaPrice(nativeCode, nativeIssuer, gc, checkCacheFirst, true)
+		if len(nairaAssetPrice) > 0 && nairaAssetPrice != "0" {
+			// convert it to USD using current rate of naira
+			nativeUsdPrice = decimal.RequireFromString(nairaAssetPrice).Mul(decimal.NewFromFloat(cngnPrice.Data.NgnToUsd)).Truncate(7).String()
+		} else {
+			nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc, checkCacheFirst)
+
+		}
 	} else {
 		nativeUsdPrice = xbnUsdPrice
 	}
@@ -210,6 +229,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	for _, v := range account.Balances {
 		wg.Add(1)
 		go func(bal horizon.Balance) {
+			bantuAsset := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}
 			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(bal.Balance)
@@ -238,7 +258,17 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetUsdPrice = xbnUsdPrice
 					assetNativePrice = xbnNativePrice
 				} else {
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
+					checkCacheFirst := false
+					if nativeCode != "CNGN" {
+						checkCacheFirst = true
+					}
+					///////////////////////////////////////////////////////////////////////////////////////////////////
+					nairaAssetPrice, _, _ := blockchain.GetNairaPrice(bal.Code, bal.Issuer, gc, checkCacheFirst, bantuAsset.IsEnabled(gc))
+					if len(nairaAssetPrice) > 0 && nairaAssetPrice != "0" {
+						// convert it to USD using current rate of naira
+						nativeUsdPrice = decimal.RequireFromString(nairaAssetPrice).Mul(decimal.NewFromFloat(cngnPrice.Data.NgnToUsd)).Truncate(7).String()
+					}
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, checkCacheFirst, bantuAsset.IsEnabled(gc))
 					dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 					if len(dollarAsset) == 2 {
 						if strings.EqualFold(bal.Code, dollarAsset[0]) && strings.EqualFold(bal.Issuer, dollarAsset[1]) {
@@ -247,6 +277,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 						} else if strings.HasPrefix(bal.Code, "USD") || strings.HasSuffix(bal.Code, "USD") {
 							assetUsdPrice = "1"
+						} else if bal.Code == "CNGN" {
+							assetUsdPrice = decimal.NewFromFloat(cngnPrice.Data.UsdToNgn).Truncate(7).String()
+							assetNativePrice = "1"
 						} else {
 							nativeUsdPriceDec := decimal.RequireFromString(nativeUsdPrice)
 							nativePriceDec := decimal.RequireFromString(assetNativePrice)
@@ -267,7 +300,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetNativePrice = xbnNativePrice
 				} else {
 					assetUsdPrice = nativeUsdPrice
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true, bantuAsset.IsEnabled(gc))
 				}
 
 			}
@@ -281,14 +314,29 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				}
 			}
 			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImage(gc)
+			var quoteCurrency string
+			var tokenizedAsset, fundingStructure, exitWithFiat int
+			if gc.IsValidTokenizedAsset(bal.Code) {
+				t := gc.GetTokenizedAssetByCode(bal.Code)
+				assetNativePrice = decimal.NewFromFloat(t.PricePerToken).String()
+				assetUsdPrice = decimal.NewFromFloat(t.PricePerToken).String()
+				quoteCurrency = *t.AssetQuoteCurrency
+				tokenizedAsset = 1
+				fundingStructure = t.FundingStructure
+				exitWithFiat = t.ExitWithFiat
 
+			}
 			balance := Balance{AssetIssuer: bal.Issuer,
-				AssetCode:   bal.Code,
-				Amount:      availableBalance,
-				QRCode:      qrCode,
-				ImageURL:    imageUrl,
-				UsdPrice:    assetUsdPrice,
-				NativePrice: assetNativePrice,
+				AssetCode:        bal.Code,
+				Amount:           availableBalance,
+				QRCode:           qrCode,
+				ImageURL:         imageUrl,
+				UsdPrice:         assetUsdPrice,
+				NativePrice:      assetNativePrice,
+				QuoteCurrency:    quoteCurrency,
+				TokenizedAsset:   tokenizedAsset,
+				FundingStructure: fundingStructure,
+				ExitWithFiat:     exitWithFiat,
 				InTrade: TradeLiabilties{
 					SellingLiabilities: bal.SellingLiabilities,
 					BuyingLiabilities:  bal.BuyingLiabilities,
@@ -347,12 +395,29 @@ func (u *User) GetUserNFTs(gc *sharedconfig.GlobalConfig) (userNFTs map[string][
 	return
 }
 
+func (u *User) HasSharedAccessInAnyWallet(gc *sharedconfig.GlobalConfig) (enabled bool) {
+
+	for _, wallet := range u.UserWallets {
+
+		if wallet.SharedAccessEnabled == 1 {
+			enabled = true
+			break
+		}
+
+	}
+
+	return
+}
+
 // GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
 	nfts = make([]NFT, 0)
 	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
 	if temp {
-		cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+		if u.TempPublicKey != nil {
+			cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+
+		}
 
 	}
 	{
@@ -422,6 +487,31 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	//GetBalance
 	unsortedBalances, err := u.GetBalance(temp, gc)
 	if err != nil {
+		// qrCode := ""
+		// if !temp {
+
+		// 	p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+		// 	if e == nil {
+		// 		qrCode = p.QRCode
+		// 	}
+
+		// }
+		// xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
+		// xbnNativePrice := "1"
+		// unsortedBalances[":"] = Balance{
+		// 	AssetIssuer: "",
+		// 	AssetCode:   "",
+		// 	Amount:      decimal.Zero,
+		// 	QRCode:      qrCode,
+		// 	ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+		// 	UsdPrice:    xbnUsdPrice,
+		// 	NativePrice: xbnNativePrice,
+		// 	InTrade: TradeLiabilties{
+		// 		SellingLiabilities: "0",
+		// 		BuyingLiabilities:  "0",
+		// 	},
+		// 	CryptoWalletDepositAddresses: nil,
+		// }
 		return
 	}
 	// log.Printf("unsorted balance for [%v]:[%+v]", u.ID, unsortedBalances)
@@ -439,7 +529,33 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 		balances = append(balances, balance)
 
 	}
+	// if len(balances) < 1 {
+	// 	qrCode := ""
+	// 	if !temp {
 
+	// 		p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+	// 		if e == nil {
+	// 			qrCode = p.QRCode
+	// 		}
+
+	// 	}
+	// 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
+	// 	xbnNativePrice := "1"
+	// 	balances = append(balances, Balance{
+	// 		AssetIssuer: "",
+	// 		AssetCode:   "",
+	// 		Amount:      decimal.Zero,
+	// 		QRCode:      qrCode,
+	// 		ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+	// 		UsdPrice:    xbnUsdPrice,
+	// 		NativePrice: xbnNativePrice,
+	// 		InTrade: TradeLiabilties{
+	// 			SellingLiabilities: "0",
+	// 			BuyingLiabilities:  "0",
+	// 		},
+	// 		CryptoWalletDepositAddresses: nil,
+	// 	})
+	// }
 	return balances, nil
 }
 
@@ -521,6 +637,14 @@ func (u *User) GetUserWalletAssetBalances(gc *sharedconfig.GlobalConfig) (userWa
 				ml.Unlock()
 
 			}
+			// else {
+			// 	//default asset is returned on error
+			// 	//Unclaimed Assets
+			// 	ml.Lock()
+			// 	assetBalances.Unclaimed = unclaimedBalance
+			// 	ml.Unlock()
+			// }
+
 		}(wallet, &wg, &m)
 		wg.Add(1)
 		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
@@ -633,9 +757,6 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
 	}
 	{
-		// cacheKey := fmt.Sprintf("bca_%v", u.ID)
-		// cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
-		// gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
 
 		// search cache
 		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
@@ -662,13 +783,107 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 				if horizonException.Problem.Status == http.StatusNotFound {
 					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
 				}
-				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
+				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
 			}
 
 		}
 		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
 	}
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
+
+	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
+	if cacheTimeStr == "" {
+		cacheTimeStr = "94608000" //3yrs
+	}
+	cacheTime, _ := strconv.Atoi(cacheTimeStr)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
+	return clientAccount, true, nil
+}
+
+type MarketOfferWallet string
+
+// GetMarketOffer fetches the offer information using public key
+func (u MarketOfferWallet) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers horizon.OffersPage, err error) {
+	seller := string(u)
+	client := network.GetBlockchainClient()
+	// var offerRequest horizonclient.OfferRequest
+
+	//real account
+	offerRequest := horizonclient.OfferRequest{Seller: seller}
+
+	marketOffers, err = client.Offers(offerRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetMarketOffer Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return marketOffers, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return marketOffers, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Printf("[GetMarketOffer] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
+			}
+
+		}
+		return marketOffers, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	return marketOffers, nil
+}
+
+// GetBlockchainAccountDetail fetches the bantu account information using public key
+func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
+	cacheKey := fmt.Sprintf("bca_%v", string(id))
+
+	client := network.GetBlockchainClient()
+	// var accountRequest horizonclient.AccountRequest
+
+	// account
+	accountRequest := horizonclient.AccountRequest{AccountID: string(id)}
+
+	{
+
+		// search cache
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+
+		if ok {
+
+			json.Unmarshal(rawdata, &clientAccount)
+			return
+		}
+
+	}
+
+	clientAccount, err = client.AccountDetail(accountRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
+			}
+
+		}
+		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
+	if cacheTimeStr == "" {
+		cacheTimeStr = "94608000" //3yrs
+	}
+	cacheTime, _ := strconv.Atoi(cacheTimeStr)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
 	return clientAccount, true, nil
 }
 
@@ -706,22 +921,22 @@ func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
-func (u *UserWallet) CanIssueMoreAssets() bool {
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return false
-	}
-	maxCountAssets := 200
+// // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+// func (u *UserWallet) CanIssueMoreAssets() bool {
+// 	assetPage, err := u.GetBlockchainAssets()
+// 	if err != nil {
+// 		return false
+// 	}
+// 	maxCountAssets := 200
 
-	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-	if err != nil {
-		return len(assetPage.Embedded.Records) < maxCountAssets
-	}
+// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+// 	if err != nil {
+// 		return len(assetPage.Embedded.Records) < maxCountAssets
+// 	}
 
-	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
 
-}
+// }
 
 // GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
 func (u *UserWallet) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
@@ -772,22 +987,22 @@ func (u Issuer) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
-func (u Issuer) CanIssueMoreAssets() bool {
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return false
-	}
-	maxCountAssets := 200
+// // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+// func (u Issuer) CanIssueMoreAssets() bool {
+// 	assetPage, err := u.GetBlockchainAssets()
+// 	if err != nil {
+// 		return false
+// 	}
+// 	maxCountAssets := 200
 
-	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-	if err != nil {
-		return len(assetPage.Embedded.Records) < maxCountAssets
-	}
+// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+// 	if err != nil {
+// 		return len(assetPage.Embedded.Records) < maxCountAssets
+// 	}
 
-	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
 
-}
+// }
 
 // GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
 func (u Issuer) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
@@ -878,10 +1093,6 @@ func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.Glo
 
 func (u *UserWallet) GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
 
-	if err != nil {
-		return
-	}
-
 	return clientAccount.Data, nil
 }
 
@@ -904,12 +1115,21 @@ func (u *User) BuildPrimaryWallet() {
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, linkedWalletPublicKey string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 	hasMMSubwallet := false
 	hasBPSubWallet := false
 
+	if len(linkedWalletPublicKey) > 0 && len(linkedWalletPublicKey) != 56 {
+		log.Println("[BuildNewSubWallet] invalid parameters")
+		return userWallet, &tErrors.CustomError{
+			Param:      "linkedWalletPublicKey",
+			Err:        "error-sub-wallet-parameters-invalid",
+			ErrMessage: "Sub-wallet parameters are invalid. Ensure linkedWallet public key is 56 characters long.",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
@@ -923,6 +1143,15 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		walletDescription = walletTag
 	}
 	userWallets := u.GetAllWallets(gc)
+	if strings.EqualFold(walletTag, "distribution") {
+		log.Printf("[BuildNewSubWallet] wallet tag [%v] is an internal reserved tag. Not allowed.\n", walletTag)
+		return userWallet, &tErrors.CustomError{
+			Param:      "tag",
+			Err:        "error-wallet-tag-not-allowed",
+			ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] is a reserved tag for internal use and not allowed to be used as a tag in sub wallet creation.", walletTag),
+			Code:       http.StatusConflict,
+		}
+	}
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range userWallets {
@@ -967,6 +1196,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 						Code:       http.StatusConflict,
 					}
 				}
+
 			}
 
 		}
@@ -1018,8 +1248,148 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		UserID:        u.ID,
 		WalletType:    walletType,
 	}
-	// u.UserWallets = append(u.UserWallets, userSubWallet)
+	if len(linkedWalletPublicKey) > 0 {
+		userSubWallet.LinkedWalletPublicKey = &linkedWalletPublicKey
+	}
+
 	return userSubWallet, nil
+}
+
+func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+	if uw.LinkedWalletPublicKey == nil {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-linked-wallet-public-key-invalid",
+			ErrMessage: "Linked-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+	if *uw.LinkedWalletPublicKey == "" {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-linked-wallet-public-key-invalid",
+			ErrMessage: "Linked-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+
+	var walletTag, walletDescription string
+
+	if uw.WalletType == 1 {
+		walletTag = *uw.Tag + "-distribution"
+		walletDescription = "distribution wallet for issuer wallet" + uw.Alias
+
+	}
+
+	if len(walletDescription) == 0 {
+		walletDescription = walletTag
+	}
+	userWallets := owner.GetAllWallets(gc)
+	{
+		//check to ensure sub-wallet does not already exist
+		for _, wallet := range userWallets {
+			if wallet.ID == *uw.LinkedWalletPublicKey {
+				log.Printf("[BuildNewLinkedSubWallet] wallet [%v] already exists in your account\n", *uw.LinkedWalletPublicKey)
+				return userWallet, &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-sub-wallet-already-exists-in-your-account",
+					ErrMessage: "Sub-wallet already exists in your account",
+					Code:       http.StatusConflict,
+				}
+			}
+			// if wallet.WalletType == 2 {
+			// 	hasMMSubwallet = true
+			// }
+			// if wallet.WalletType == 3 {
+			// 	hasBPSubWallet = true
+			// }
+
+			if wallet.Tag != nil {
+				if strings.EqualFold(*wallet.Tag, walletTag) {
+					log.Printf("[BuildNewLinkedSubWallet] wallet tag [%v] already exists in your account\n", walletTag)
+					return userWallet, &tErrors.CustomError{
+						Param:      "id",
+						Err:        "error-wallet-tag-already-exists-in-your-account",
+						ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] already exists in your account", walletTag),
+						Code:       http.StatusConflict,
+					}
+				}
+			}
+
+		}
+	}
+	{
+		//check if wallet already exists in wallets
+		_, errWallet := owner.GetWalletByPublicKey(*uw.LinkedWalletPublicKey, gc.DB)
+		if errWallet != nil {
+			if errWallet.Error() != "error-wallet-not-found" {
+				log.Println("[BuildNewLinkedSubWallet] other service error ...", errWallet)
+
+				return userWallet, errWallet
+			}
+
+		} else {
+			//wallet already exists.
+			log.Printf("[BuildNewLinkedSubWallet] wallet [%v] found in another account\n", uw.LinkedWalletPublicKey)
+
+			return userWallet, &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-sub-wallet-already-exists-with-another-account",
+				ErrMessage: "Sub-wallet already exists with another account",
+				Code:       http.StatusConflict,
+			}
+		}
+	}
+	tempKP, pErr := network.TempAccountKeypair(*uw.LinkedWalletPublicKey)
+	var tempPK string
+	if pErr != nil {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-sub-wallet-public-key-invalid",
+			ErrMessage: "Sub-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+	if tempKP != nil {
+		tempPK = tempKP.Address()
+	}
+
+	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
+	userSubWallet := UserWallet{
+		ID:            *uw.LinkedWalletPublicKey,
+		TempPublicKey: &tempPK,
+		Tag:           &walletTag,
+		Description:   &walletDescription,
+		Alias:         alias,
+		Signer:        owner.PrimarySigner,
+		UserID:        owner.ID,
+		WalletType:    0,
+	}
+	return userSubWallet, nil
+}
+
+func (lw LinkedWalletPublicKey) String() string {
+	return string(lw)
+}
+func (lw LinkedWalletPublicKey) IsValid(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
+	e := gc.DB.Where("linked_wallet_public_key = ?", string(lw)).First(&w).Error
+	if e == nil {
+		return w, true
+	}
+	return w, false
+}
+func (u UserWallet) IsValidLinkedWallet(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
+	e := gc.DB.Where("linked_wallet_public_key = ?", u.ID).First(&w).Error
+	if e == nil {
+		return w, true
+	}
+	return w, false
+}
+
+func (lw *LinkedWalletPublicKey) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+
+	return uw.BuildNewLinkedSubWallet(owner, gc)
+
 }
 
 func (id UserWalletID) String() string {
@@ -1082,6 +1452,63 @@ func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermis
 	accessList = make([]WalletPermission, 0)
 	db.Preload(clause.Associations).Where("wallet_public_key = ?", string(id)).Find(&accessList)
 
+	return
+}
+
+func (id UserWalletID) UserHasAccess(username, permissionToCheck string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck = strings.ToUpper(strings.TrimSpace(permissionToCheck))
+	if permissionToCheck == "" {
+		return
+	}
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+
+func (id UserWalletID) UserWithInitiatorAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "INITIATOR"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+
+func (id UserWalletID) UserWithApproverAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "APPROVER"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
+	return
+}
+func (id UserWalletID) UserWithViewOnlyAccess(username string, db *gorm.DB) (hasAccess bool) {
+	permissionToCheck := "VIEW-ONLY"
+
+	ap := id.GetPermissionList(db)
+	for _, p := range ap {
+		if p.TargetUsername == username && p.Permission == permissionToCheck {
+			hasAccess = true
+			break
+		}
+
+	}
 	return
 }
 
@@ -1343,30 +1770,162 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 	return
 }
 
-func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (swapFee string) {
-	if os.Getenv("SWAP_FEE_ENABLED") == "1" {
-		fee := decimal.RequireFromString(os.Getenv("SWAP_FEE_AMOUNT"))
+func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", "SWAP_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
 
-		//TODO: check if user has zero swap fees
+		//TODO: check if user has zero swap fees and modify the swap fee
 
-		swapFee = fee.String()
-	} else {
-		swapFee = "0"
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("SWAP_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetPaymentFeeWallet(gc *sharedconfig.GlobalConfig) (wallet string) {
+	var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", "PAYMENT_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero swap fees and modify the swap fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("PAYMENT_FEE_WALLET")
+
+	return serviceFee.FeeWalletSecretKey
+}
+
+func (u *UserWallet) GetVATWallet(gc *sharedconfig.GlobalConfig) string {
+
+	return gc.GetVATWallet()
+}
+
+func (u *UserWallet) GetVATValue(serviceFee decimal.Decimal, gc *sharedconfig.GlobalConfig) (vat float64) {
+	// var serviceFee ServiceFee
+	vat = gc.GetVATValue(serviceFee)
+	return
+}
+
+func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	if u.SharedAccessEnabled == 0 {
+		return
+	}
+	gc.DB.Where("id = ? AND inactive = 0", "SHARED_ACCESS_PAYMENT_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("SHARED_ACCESS_PAYMENT_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "PATRON_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("PATRON_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "ACCOUNT_RECOVERY_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "SUBWALLET_CREATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	// SUBWALLET_CREATION_FEE_WALLET
+	serviceFee.FeeWalletSecretKey = os.Getenv("SUBWALLET_CREATION_FEE_WALLET")
+	return
+}
+
+func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_APPLICATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
+
+	return
+}
+
+func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+
+	gc.DB.Where("id = ? AND inactive = 0", "CLOSED_GROUP_FEE").First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero fees and modify the fee
+
+	}
+	serviceFee.FeeWalletSecretKey = os.Getenv("CLOSED_GROUP_FEE_WALLET")
+
+	return
+}
+
+func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", serviceFeeID).First(&serviceFee)
+	if serviceFee.Inactive == 0 {
+
+		//TODO: check if user has zero swap fees and modify the swap fee
+
 	}
 
 	return
 }
 
-func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (sharedAccessFee string) {
+func (u *UserWallet) GetActivationFee(activationFeeID string, gc *sharedconfig.GlobalConfig) (activationAmount ActivationAmount) {
+	// var serviceFee ServiceFee
+	gc.DB.Where("id = ? AND inactive = 0", activationFeeID).First(&activationAmount)
+	if activationAmount.Inactive == 0 {
 
-	if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
-		fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_PAYMENT_FEE_AMOUNT"))
+		//TODO: check if user has zero swap fees and modify the swap fee
 
-		//TODO: get shared access fees
-
-		sharedAccessFee = fee.String()
-	} else {
-		sharedAccessFee = "0"
 	}
 
 	return
@@ -1616,7 +2175,7 @@ func (d CryptoDepositAddress) GetDetail(currency string, gc *sharedconfig.Global
 }
 func (callback *CallbackDepositItem) Save(gc *sharedconfig.GlobalConfig) (err error) {
 
-	e := gc.DB.Create(callback).Error
+	e := gc.DB.Omit(clause.Associations).Create(callback).Error
 	if e != nil {
 		log.Println("[SAVE CALLBACK]error creating callback: ", e)
 		//notify failure
@@ -1646,7 +2205,7 @@ func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalC
 
 		return err
 	}
-	e := gc.DB.Create(&callbackObj.Data).Error
+	e := gc.DB.Omit(clause.Associations).Create(&callbackObj.Data).Error
 	if e != nil {
 		log.Println("[SAVE CALLBACK]error creating callback: ", e)
 		//notify failure
@@ -1803,6 +2362,7 @@ func (id UserWalletID) GetUserPermissionOnWallet(username, permission string, db
 	return
 }
 
+// GetFullUser get user by username or id
 func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner User, err error) {
 	cacheKeyInfo := fmt.Sprintf("userObj %v", string(u))
 
@@ -1820,7 +2380,7 @@ func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner
 
 	}
 
-	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("username = ?", string(u)).First(&owner).Error
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("(username = ? OR id= ?)", string(u), string(u)).First(&owner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -1899,6 +2459,50 @@ func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB)
 	return
 }
 
+// GetOpenTokenizedAssetByInitiatorUsername get the tokenization that has status 0 or 1 initiated by the initiator username
+func (u Username) GetOpenTokenizedAssetByInitiatorUsername(db *gorm.DB) (tokenizedAsset TokenizedAsset, NotFound bool, err error) {
+	// var ta userModels.TokenizedAsset
+	initiatorUsername := u.String()
+	err = db.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("asset_tokenization_status < 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			NotFound = true
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
+
+// GetFeeReadyTokenizedAssetApplicationByInitiatorUsername get the tokenization that has status 1 and initiated by the initiator username
+func (u Username) GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(db *gorm.DB) (tokenizedAsset TokenizedAsset, NotFound bool, err error) {
+	initiatorUsername := u.String()
+	err = db.Preload(clause.Associations).Order("Created_At DESC").Where("asset_tokenization_status = 1 AND initiator_username = ?", initiatorUsername).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with initiatorUsername %v from database  [%v]", initiatorUsername, err)
+			return
+
+		} else {
+			//record not found
+			NotFound = true
+			err = &tErrors.CustomError{Param: "tokenizationID", Err: "error-invalid-tokenizationId", ErrMessage: fmt.Sprintf("%v has no tokenized asset inititated", initiatorUsername)}
+			return
+		}
+	}
+
+	return
+}
 func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 	// walletPermissions := u.Fetch3rdPartyWalletPermissions(gc)
 	// if len(walletPermissions) == 0 {
@@ -1911,6 +2515,23 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 	}
 
 	return false
+}
+
+// func (u *User) IsTokenizedAsset(code, issuer string, gc *sharedconfig.GlobalConfig) bool {
+
+// 	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+
+// 	return e == nil
+// }
+
+func (u *User) HasPassedKYC() bool {
+
+	return u.KYCVerified > 0
+}
+
+func (u *User) GetKYCLevel() int {
+
+	return u.KYCVerified
 }
 
 func (u *User) GetKycData(gc *sharedconfig.GlobalConfig) (kycData UserKyc, err error) {
@@ -2178,6 +2799,37 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
+
+func (u *User) IsEnterpriseProfile(gc *sharedconfig.GlobalConfig) bool {
+	var result string
+	e := gc.DB.Table("service_links").Select("id").Where("username = ?", u.Username).Scan(&result).Error
+	if e != nil {
+		gc.LogDiscordFailedRequest(fmt.Sprintf("[IsEnterpriseProfile] Error verifying if %v is enterprise profile: %v", u.Username, e))
+	}
+	return len(result) > 0
+
+}
+func (u *User) BelongsToAnEnterpriseProfile() bool {
+	if u.CreatedByServiceLinkID != nil {
+		if len(*u.CreatedByServiceLinkID) > 5 {
+			return true
+		}
+	}
+	return false
+
+}
+
+func (u *User) GetFiatActiationAmount(gc *sharedconfig.GlobalConfig) (activationAmount, trovPercent float64) {
+	cc := CountryCode(*u.CountryCode).GetConfig(gc)
+	_, exists, _ := UserWalletID(u.PublicKey).GetBlockchainAccountDetail(gc)
+
+	if exists {
+		return 0, cc.TrovTokenActivationPercent
+	}
+	// get the country fiat
+
+	return cc.FiatActivationAmount, cc.TrovTokenActivationPercent
+}
 func (u *ServiceLinksUser) SendPushMessage(title, body, imageURI string, dataPayload map[string]string, gc *sharedconfig.GlobalConfig) {
 	//Send push notification to user
 	// log.Println(title, body)
@@ -2233,6 +2885,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	if err != nil {
 		return
 	}
+
 	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
@@ -2243,7 +2896,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	gc.RedisCache.DeleteFromCache(cacheKey1)
 	userAccount.InvalidateUserWalletCache(gc)
 }
-func (u Username) InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) {
+func (u Username) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	userAccount, err := u.GetFullUser(gc.DB, gc)
 	if err != nil {
 		return
@@ -2255,14 +2908,17 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 		return
 	}
 	cacheKey1 := fmt.Sprintf("GetBalance_%s", u.PublicKey)
+	// cacheKeyBCA := fmt.Sprintf("bca_%v", u.PublicKey)
+
 	cacheKeyUsername := fmt.Sprintf("userObj %v", u.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", u.Email)
 	cacheKeySigner := fmt.Sprintf("userObj %v", u.PrimarySigner)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", u.ID)
 	cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
-	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID, cacheKey1)
-
+	cacheKeyCuratedAssets := fmt.Sprintf("curatedAssets %v", u.Username)
+	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID, cacheKey1, cacheKeyCuratedAssets)
 	u.InvalidateUserWalletCache(gc)
+	gc.RedisCache.InvalidateCachedHttpResponse(cacheKeyCuratedAssets)
 }
 
 func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
@@ -2285,7 +2941,7 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
 		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
-		cacheKeybca1 := fmt.Sprintf("bca_%v", u.ID)
+		cacheKeybca1 := fmt.Sprintf("bca_%v", w.ID)
 		if w.TempPublicKey != nil {
 			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
 			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempPublicKey)
@@ -2424,7 +3080,7 @@ func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconf
 
 	client := http.DefaultClient
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
-	jbody, err := json.Marshal(SubWalletInput{
+	jbody, err := json.Marshal(OnliquiditySubWalletInput{
 		Currency: currency,
 		UID:      w.Alias + "@" + os.Getenv("WALLET_DOMAIN"),
 	})

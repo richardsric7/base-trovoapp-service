@@ -9,6 +9,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecurityAnswer, db *gorm.DB) error {
@@ -31,14 +32,14 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 			answer.A3 = bc.EncodeSha256(strings.ToLower(answer.A3))
 		}
 
-		e := db.Save(&answer).Error
+		e := db.Omit(clause.Associations).Save(&answer).Error
 		if e != nil {
 			log.Printf("[SaveUserSecurityQuestions] error creating answers [%v]", e)
 			return &tErrors.CustomError{Param: "id", Err: "error saving security answers", ErrMessage: "Unable to save security answers at this time"}
 		}
 		if user.HasSecurityQuestions == 0 {
 			user.HasSecurityQuestions = 1
-			db.Save(user)
+			db.Omit(clause.Associations).Save(user)
 		}
 
 		return nil
@@ -57,16 +58,16 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 	existingAnswer.Q2 = answer.Q2
 	// existingAnswer.A3 = answer.A3
 	existingAnswer.Q3 = answer.Q3
-	e = db.Save(&existingAnswer).Error
+	e = db.Omit(clause.Associations).Save(&existingAnswer).Error
 	if e != nil {
 		log.Printf("[SaveUserSecurityQuestions] error saving answers [%v]\n", e)
 		return &tErrors.CustomError{Param: "id", Err: "error saving security answers", ErrMessage: "Unable to save security answers at this time"}
 	}
 	if user.HasSecurityQuestions == 0 {
 		user.HasSecurityQuestions = 1
-		db.Save(user)
+		db.Omit(clause.Associations).Save(user)
 	}
-	
+
 	return nil
 
 }

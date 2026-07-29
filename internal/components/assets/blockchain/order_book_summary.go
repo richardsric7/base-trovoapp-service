@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	bantupayerrors "trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ecnepsnai/discord"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"gorm.io/gorm"
@@ -133,18 +134,22 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 	if err != nil {
 		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[getTradeAggregate]", err)
-			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+			return tds, &tErrors.ErrorTemporaryServerError{}
 		}
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("\n[getTradeAggregate] Problem in Request:", hError.Problem)
-		log.Println("\n[getTradeAggregate] Result Codes in Request:", rCode)
-		log.Println("\n[getTradeAggregate] Result String in Request:", rS)
-		log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
-		log.Println("[getTradeAggregate] Error submitting:", err)
-		return tds, &bantupayerrors.ErrorTemporaryServerError{}
+		if hError, ok := err.(*horizonclient.Error); ok {
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("\n[getTradeAggregate] Problem in Request:", hError.Problem)
+			log.Println("\n[getTradeAggregate] Result Codes in Request:", rCode)
+			log.Println("\n[getTradeAggregate] Result String in Request:", rS)
+			log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
+			log.Println("[getTradeAggregate] Error submitting:", err)
+			return tds, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			log.Println("[getTradeAggregate] Error submitting:", err)
+			return tds, &tErrors.ErrorTemporaryServerError{}
+		}
 
 	}
 
@@ -152,8 +157,12 @@ func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregations
 
 }
 
-// getBantuOrderBookSummary gets orderbook on bantu network
-func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+// GetBantuOrderBookSummary gets orderbook on bantu network
+func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
 	client := network.GetBlockchainClient()
 	var limit uint
 	var sellingAssetType, buyingAssetType horizonclient.AssetType
@@ -195,20 +204,29 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	// fmt.Printf("Offer Request: %+v\n", oRequest)
 	oSummary, err := client.OrderBook(oRequest)
 	if err != nil {
-		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+		if strings.Contains(err.Error(), "decoding horizon.Problem") || strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
 			log.Println("[client.OrderBookRequest]", err)
-			return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+			logDiscordFailedRequest(fmt.Sprintf("[client.OrderBookRequest]%v", err))
+
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 		}
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
-		log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
-		log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
-		log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
-		log.Println("[client.OrderBookRequest] Error submitting:", err)
-		return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+		// if hError, ok := err.(*horizonclient.Error); ok {} else {}
+		if hError, ok := err.(*horizonclient.Error); ok {
+			// Assertion succeeded
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("\n[client.OrderBookRequest] Problem in Request:", hError.Problem)
+			log.Println("\n[client.OrderBookRequest] Result Codes in Request:", rCode)
+			log.Println("\n[client.OrderBookRequest] Result String in Request:", rS)
+			log.Printf("\n[client.OrderBookRequest] Problem in Request - RESPONSE: %+v\n", hError.Response)
+			log.Println("[client.OrderBookRequest] Error submitting:", err)
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			log.Println("[client.OrderBookRequest]error:", err)
+			// Assertion failed
+			return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+		}
 
 	}
 
@@ -265,7 +283,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	input.SellingAssetIssuer = sellingAssetIssuer
 	dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 	if len(dollarAsset) != 2 {
-		return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	if strings.EqualFold(sellingAssetCode, dollarAsset[0]) && strings.EqualFold(sellingAssetIssuer, dollarAsset[1]) {
@@ -280,7 +298,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	input.BuyingAssetCode = dollarAsset[0]
 	input.BuyingAssetIssuer = dollarAsset[1]
 
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetDollarPrice] error getting order book summary: %v\n", err)
 		//fetch from last stored in cache
@@ -301,7 +319,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		if len(orderBook.Bids) == 0 {
 
 			log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
-			return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
+			return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 		}
 		usdPrice = orderBook.Bids[0].Price
 		priceCache.Price = usdPrice
@@ -316,10 +334,97 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	return usdPrice, priceType, nil
 }
 
+// GetNairaPrice dollar ask price using USDB
+func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, enabledAsset bool) (nairaPrice, priceType string, err error) {
+	var priceCache PriceCache
+
+	var input OrderBookRequestInput
+	priceType = "ask"
+	nairaPrice = "0"
+	if !enabledAsset {
+		return
+	}
+	sellingAssetCode = strings.ToUpper(sellingAssetCode)
+	//sell main asset, buying currency (dollar)
+	var errAssetCode string
+	if sellingAssetCode == "" {
+		errAssetCode = "native"
+	} else {
+		errAssetCode = sellingAssetCode
+	}
+	cacheKey := fmt.Sprintf("%v.%v_naira", sellingAssetCode, sellingAssetIssuer)
+	if checkCacheFirst {
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetDollarPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
+		}
+	}
+
+	input.SellingAssetCode = sellingAssetCode
+	input.SellingAssetIssuer = sellingAssetIssuer
+	nairaAsset := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
+	if len(nairaAsset) != 2 {
+		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if strings.EqualFold(sellingAssetCode, nairaAsset[0]) && strings.EqualFold(sellingAssetIssuer, nairaAsset[1]) {
+		//it is dollar asset
+		return "1", priceType, nil
+	}
+
+	if strings.HasPrefix(sellingAssetCode, "NGN") || strings.HasSuffix(sellingAssetCode, "NGN") {
+		return "1", priceType, nil
+	}
+
+	input.BuyingAssetCode = nairaAsset[0]
+	input.BuyingAssetIssuer = nairaAsset[1]
+
+	orderBook, err := GetBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetNairaPrice] error getting order book summary: %v\n", err)
+		//fetch from last stored in cache
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetNairaPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
+		}
+
+		return
+
+	}
+
+	if len(orderBook.Asks) == 0 {
+		priceType = "bid"
+		if len(orderBook.Bids) == 0 {
+
+			log.Printf("[Error GetNairaAskPrice]: error fetching naira ASK price for asset %v/%v, err: NO Markets\n", errAssetCode, input.BuyingAssetCode)
+			return "0", priceType, &tErrors.ErrorTemporaryServerError{}
+		}
+		nairaPrice = orderBook.Bids[0].Price
+		priceCache.Price = nairaPrice
+		priceCache.PriceType = priceType
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
+		return nairaPrice, priceType, nil
+	}
+	nairaPrice = orderBook.Asks[0].Price
+	priceCache.Price = nairaPrice
+	priceCache.PriceType = priceType
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
+	return nairaPrice, priceType, nil
+}
+
 // GetNativeAskPrice native (XBN) ask price
-func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nativePrice string, err error) {
+func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, isEnabled bool) (nativePrice string, err error) {
 	var priceCache PriceCache
 	var nativeCode, nativeIssuer string
+	if !isEnabled {
+		return "0", nil
+	}
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
 	if len(nv) == 2 {
 		nativeCode = nv[0]
@@ -345,10 +450,10 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	if sellingAssetCode == nativeCode && sellingAssetIssuer == nativeIssuer {
 		return "1", nil
 	}
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 
 	if len(orderBook.Asks) == 0 || err != nil {
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+		return "0", &tErrors.ErrorTemporaryServerError{}
 	}
 	nativePrice = orderBook.Asks[0].Price
 
@@ -387,7 +492,7 @@ func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (
 	input.BuyingAssetCode = currencyCode
 	input.BuyingAssetIssuer = currencyIssuer
 
-	orderBook, err := getBantuOrderBookSummary(input)
+	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
 		log.Printf("[GetOrderBook]Error getting order book summary: %v\n", err)
 		return
@@ -582,4 +687,12 @@ func ProcessOrderBookEvent(orderBook horizon.OrderBookSummary) (trovoOrderBook O
 
 	return trovoOrderBook, nil
 
+}
+
+func logDiscordFailedRequest(msg string) {
+	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+	discord.Say(msg)
 }

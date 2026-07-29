@@ -20,6 +20,7 @@ import (
 func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 	cacheKeyInfo := fmt.Sprintf("userObj %v", userInfo)
+	userInfo = strings.TrimSpace(userInfo)
 
 	{
 
@@ -30,7 +31,10 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 			// log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &user)
-			return
+			if len(user.UserWallets) > 0 {
+				return
+			}
+
 		}
 
 	}
@@ -48,7 +52,8 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 	} else {
 
-		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+		// e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("(id = ? OR lower(username) = lower(?) OR mobile = ? OR lower(email) = lower(?))", userInfo, userInfo, userInfo, userInfo).First(&user).Error
 	}
 
 	if e != nil {
@@ -88,9 +93,12 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 		//56 char public key is supplied
 		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&userWallet).Error
 		if e == nil {
-			if identifier == *userWallet.TempPublicKey {
-				temp = true
+			if userWallet.TempPublicKey != nil {
+				if identifier == *userWallet.TempPublicKey {
+					temp = true
+				}
 			}
+
 			return
 		}
 	} else {
@@ -127,7 +135,7 @@ func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB, gc
 
 	if user.PushNotificationToken != pnt {
 		user.PushNotificationToken = pnt
-		err := db.Save(&user).Error
+		err := db.Omit(clause.Associations).Save(&user).Error
 		if err != nil {
 			log.Printf("[UpdatePushNotificationToken] unable to update push notification token for user [%v], due to:[%v]", user.Username, err)
 		}
@@ -154,16 +162,19 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 	}
 	publicKey = strings.TrimSpace(publicKey)
 	// var user usermodels.User
-	if err := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error
+	if e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return user, &tErrors.ErrorTemporaryServerError{}
 		}
+
 		return user, &tErrors.CustomError{Param: "primarySigner",
 			Err:        "error primary signer does not exist",
 			ErrMessage: "PrimarySigner does not exist",
 			Code:       http.StatusNotFound,
 		}
 	}
+
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
@@ -207,7 +218,13 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 	}
 	for _, w := range userAccount.UserWallets {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
-		cacheKey2 := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
+		cacheKey2 := fmt.Sprintf("GetBalance_%s", func() string {
+			if w.TempPublicKey != nil {
+				return *w.TempPublicKey
+			} else {
+				return "nil"
+			}
+		}())
 
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)

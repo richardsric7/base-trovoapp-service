@@ -10,9 +10,11 @@ import (
 	"strings"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 )
@@ -142,6 +144,31 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 	return *url
 }
 
+func (i BantuAsset) IsEnabled(gc *sharedconfig.GlobalConfig) bool {
+	cacheKey := fmt.Sprintf("isenabled%v_%v", i.AssetCode, i.AssetIssuer)
+	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+	if ok {
+		return response.(bool)
+	}
+	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+		return true
+	}
+
+	casset, err := assetsDB.GetCuratedAssetByCodeAndIssuer(i.AssetCode, i.AssetIssuer, false, gc)
+
+	if err != nil {
+		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets")
+		return false
+	}
+	if casset.Inactive == 0 {
+		log.Printf("[GetAssetImage] <<<<<<< curated asset is not enabled")
+		return false
+	}
+
+	gc.RedisCache.StoreResultToCache(cacheKey, true, 120)
+	return true
+}
+
 func (i BantuAsset) CanDeposit(gc *sharedconfig.GlobalConfig) bool {
 
 	cassets := assetsDB.GetCuratedAssets(false, gc)
@@ -212,6 +239,15 @@ func (i BantuAsset) CanWithdraw(gc *sharedconfig.GlobalConfig) bool {
 	return false
 }
 
+func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+
+	code, issuer := i.AssetCode, i.AssetIssuer
+
+	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+
+	return e == nil
+}
+
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
 	client := network.GetBlockchainClient()
 	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)
@@ -243,6 +279,35 @@ func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) strin
 	url := string(decData)
 	gc.RedisCache.StoreResultToCache(cacheKey, url, 1000000)
 	return url
+}
+
+// GetBlockchainAssetProperty fetches the blockchain asset information using bantu asset
+func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat horizon.AssetStat, err error) {
+
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: i.AssetIssuer, ForAssetCode: i.AssetCode, Limit: 1}
+	assetsPage, err := gc.BantuExpansionClient.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssetProperty]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssetProperty Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetStat, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	if len(assetsPage.Embedded.Records) == 0 {
+		//asset does not exist.
+		err = &tErrors.CustomError{Err: "error asset does not exist", ErrMessage: "Asset does not exist."}
+		return
+	}
+
+	assetStat = assetsPage.Embedded.Records[0]
+	return assetStat, nil
 }
 
 // GetBlockchainAccountDataKey fetches the bantu account information using public key

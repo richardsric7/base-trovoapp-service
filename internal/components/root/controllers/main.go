@@ -1,6 +1,8 @@
 package root
 
 import (
+	"net/http"
+	"os"
 	root "trovo-wallet-api/internal/components/root/services"
 	"trovo-wallet-api/internal/middleware"
 
@@ -23,4 +25,37 @@ func Init(router *gin.Engine) {
 		rootInfo.PublicKey = middleware.ExtractPublicKey(c)
 		c.JSON(200, rootInfo)
 	})
+
+	router.GET("/.well-known/apple-app-site-association", func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusOK, gin.H{
+			"applinks": gin.H{
+				"apps": []string{},
+				"details": []gin.H{
+					{
+						"appID": os.Getenv("DYNAMIC_LINKS_IOS_BUNDLE_ID"),
+						"paths": []string{"*"},
+					},
+				},
+			},
+		})
+	})
+
+	// Serve Android App Links file
+	router.GET("/.well-known/assetlinks.json", func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusOK, []gin.H{
+			{
+				"relation": []string{"delegate_permission/common.handle_all_urls"},
+				"target": gin.H{
+					"namespace": "android_app",
+					"package":   os.Getenv("DYNAMIC_LINKS_ANDROID_PACKAGE_NAME"),
+					"sha256_cert_fingerprints": []string{
+						"12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF",
+					},
+				},
+			},
+		})
+	})
+
 }

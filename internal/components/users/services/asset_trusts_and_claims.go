@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -17,10 +18,22 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 // ClaimPendingAsset claim pending assets
 func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if gc.IsValidTokenizedAsset(pendingAssetToClaim.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(pendingAssetToClaim.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return pendingAssetToClaim, false, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "Asset is not yet available for sale.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
 
 	if len(pendingAssetToClaim.AssetIssuer) == 0 {
 		return pendingAssetToClaim, false, &tErrors.CustomError{
@@ -135,7 +148,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -151,6 +164,17 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 
 // RejectPendingAsset rejects pending assets
 func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if gc.IsValidTokenizedAsset(pendingAssetToClaim.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(pendingAssetToClaim.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return pendingAssetToClaim, false, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "Asset is not yet available for sale.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		pendingAssetToClaim.Multiparty = 1
 	}
@@ -245,7 +269,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -260,7 +284,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 }
 
 func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
-
+	var tokenizedAssetIssuerMustSign bool
 	if len(pendingAssetToClaim.AssetIssuer) != 56 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
@@ -338,6 +362,18 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 		})
 	}
 
+	if gc.IsValidTokenizedAsset(asset.GetCode()) {
+		//check if it is a tokenized asset
+		// allow trust from issuer to destination wallet
+		ops = append(ops, &txnbuild.SetTrustLineFlags{
+			Trustor:       wallet.ID,
+			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SourceAccount: asset.GetIssuer(),
+		})
+		tokenizedAssetIssuerMustSign = true
+	}
+
 	if customAccountBalance.GreaterThan(decimal.Zero) {
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   wallet.ID,
@@ -351,37 +387,6 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
-
-	//service fee
-	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	// if e != nil {
-	// 	serviceFee = decimal.Zero
-	// }
-	// if serviceFee.IsPositive() {
-	// 	if pendingAssetToClaim.Multiparty == 1 {
-	// 		//process service fee
-	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.NativeAsset{},
-	// 			})
-	// 			pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-	// 		} else {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-	// 			})
-	// 			pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
-
-	// 		}
-
-	// 	}
-	// }
 
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
@@ -428,7 +433,23 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateTrustAssetXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
 
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateTrustAssetXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err := tx.Base64()
 
 	if err != nil {
@@ -579,6 +600,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 }
 
 func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	var tokenizedAssetIssuerMustSign bool
 	if len(trustLineInfo.AssetIssuer) != 56 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
@@ -626,37 +648,39 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		Limit:         "900000000000",
 		SourceAccount: wallet.ID,
 	})
-	// //service fee
-	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	// if e != nil {
-	// 	serviceFee = decimal.Zero
-	// }
-	// if serviceFee.IsPositive() {
-	// 	if trustLineInfo.Multiparty == 1 {
-	// 		//process service fee
-	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.NativeAsset{},
-	// 			})
-	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
-	// 		} else {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-	// 			})
-	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+	if gc.IsValidTokenizedAsset(asset.GetCode()) {
+		//check if it is a tokenized asset
+		// allow trust from issuer to destination wallet
+		//check if it is the asset tokenization profile that owns the wallet
+		// 		walletOwner, _:=wallet.GetWalletOwner(gc.DB,gc)
+		// 		if walletOwner.Username==strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")){
+		// //request if from a tokenization profile give full rights
+		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 			Trustor:       wallet.ID,
+		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		// 			SourceAccount: asset.GetIssuer(),
+		// 		})
 
-	// 		}
+		// 		}else{
+		// 			//it is from third party. remove market maker right.
+		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 			Trustor:       wallet.ID,
+		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.trustlin},
+		// 			SourceAccount: asset.GetIssuer(),
+		// 		})
+		// 		}
 
-	// 	}
-	// }
-
+		ops = append(ops, &txnbuild.SetTrustLineFlags{
+			Trustor:       wallet.ID,
+			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SourceAccount: asset.GetIssuer(),
+		})
+		tokenizedAssetIssuerMustSign = true
+	}
 	// Construct the transaction that holds the operations to execute on the network
 
 	var tx *txnbuild.Transaction
@@ -703,7 +727,23 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	if tokenizedAssetIssuerMustSign {
+		log.Println("[generateTrustAssetXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
+		//get atprofile
+		var tokenizationIssuerProfileWallet string
 
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
+			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+		}
+
+		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
+		if err != nil {
+			log.Println("[generateTrustAssetXdr] error signing transaction with issuer key to authorize trustline", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err := tx.Base64()
 
 	if err != nil {
@@ -855,6 +895,18 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 }
 
 func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
+	if gc.IsValidTokenizedAsset(trustLineInfo.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(trustLineInfo.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Add/Remove is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
+
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
@@ -921,7 +973,19 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+
+		//check for duplicate
+		if CheckDuplicatePendingApproval(pendingAuth.WalletPublicKey, pendingAuth.TransactionType, pendingAuth.Description, gc.DB) {
+			//duplicate exists. resist the duplicate
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "transaction",
+				Err:        "error-duplicate-operation-exists",
+				ErrMessage: "There is an existing duplicate transaction pending approval. Please Approve or reject that one before continuing with this.",
+				Code:       http.StatusBadRequest,
+			}
+		}
+
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[TrustAsset] Error saving opt in txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -936,6 +1000,18 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 }
 
 func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
+	if gc.IsValidTokenizedAsset(trustLineInfo.AssetCode) {
+		t := gc.GetTokenizedAssetByCode(trustLineInfo.AssetCode)
+		if t.AssetTokenizationStatus < 5 {
+			return trustLineInfo, &tErrors.CustomError{
+				Param:      "assetIssuer",
+				Err:        "error-asset-not-yet-available-for-sale",
+				ErrMessage: "This tokenized Asset is not yet available for sale. Add/Remove is not allowed at this time.",
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
+
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
@@ -1002,7 +1078,7 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 			TransactionInfoStr:       &transactionStr,
 		}
 		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
+		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
 		if e != nil {
 			log.Printf("[RemoveAssetTrust] Error saving opt out txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}

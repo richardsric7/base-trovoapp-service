@@ -3,52 +3,52 @@ package users
 import (
 	"bytes"
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 type User struct {
-	CreatedAt                time.Time             `json:"createdAt"`
-	UpdatedAt                time.Time             `json:"updatedAt"`
-	LastUpdatedMobileOn      time.Time             `json:"lastUpdatedMobileOn"`
-	LastRecoveredAccountOn   time.Time             `json:"lastRecoveredAccountOn"`
-	ID                       string                `json:"id"`
-	Username                 string                `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
-	Email                    string                `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL        *string               `json:"imageThumbnailURL"`
-	FirstName                string                `gorm:"size:50" json:"firstName"`
-	LastName                 *string               `gorm:"size:50" json:"lastName"`
-	Mobile                   *string               `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey                string                `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
-	PrimarySigner            string                `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
-	Referrer                 *string               `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
-	ReferralLink             *string               `json:"referralLink"`
-	ReferralQrCode           *string               `json:"referralQrCode"`
-	PushNotificationToken    *string               `json:"pushNotificationToken"`
-	Corporate                int                   `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified           int                   `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType           int                   `gorm:"type:integer;not null; default:0" json:"membershipType"`
-	MembershipExpiry         *time.Time            `json:"membershipExpiry"`
-	KYCVerified              int                   `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	AccountRecoveryEnabled   int                   `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
-	AccountRecoveryExpiresOn *time.Time            `gorm:"null" json:"accountRecoveryExpiresOn"`
-	UserWallets              []UserWallet          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
-	PublicIP                 string                `gorm:"size:45" json:"publicIP"`
-	CountryCode              *string               `gorm:"size:2;null"`
-	Latitude                 *float64              `gorm:"null"`
-	Longitude                *float64              `gorm:"null"`
-	City                     *string               `gorm:"null;size:100"`
-	Region                   *string               `gorm:"null;size:100"`
-	RegionName               *string               `gorm:"null;size:100"`
-	TimeZone                 *string               `gorm:"null;size:100"`
-	ISP                      *string               `gorm:"null;size:150"`
-	HasSecurityQuestions     int                   `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 int                   `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                int                   `gorm:"type:integer;not null;default:0" json:"suspended"`
-	SuspensionReason         *string               `gorm:"null" json:"suspensionReason"`
-	WalletsSharedWithUser    []WalletPermission    `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	PatronMembership         *UserPatronMembership `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
-	UserClosedGroups         []UserClosedGroup     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
+	CreatedAt                time.Time               `json:"createdAt"`
+	UpdatedAt                time.Time               `json:"updatedAt"`
+	LastUpdatedMobileOn      time.Time               `json:"lastUpdatedMobileOn"`
+	LastRecoveredAccountOn   time.Time               `json:"lastRecoveredAccountOn"`
+	ID                       string                  `json:"id"`
+	Username                 string                  `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
+	Email                    string                  `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL        *string                 `json:"imageThumbnailURL"`
+	FirstName                string                  `gorm:"size:50" json:"firstName"`
+	LastName                 *string                 `gorm:"size:50" json:"lastName"`
+	Mobile                   *string                 `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey                string                  `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner            string                  `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	Referrer                 *string                 `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink             *string                 `json:"referralLink"`
+	ReferralQrCode           *string                 `json:"referralQrCode"`
+	PushNotificationToken    *string                 `json:"pushNotificationToken"`
+	Corporate                int                     `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified           int                     `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType           int                     `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry         *time.Time              `json:"membershipExpiry"`
+	KYCVerified              int                     `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	AccountRecoveryEnabled   int                     `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
+	AccountRecoveryExpiresOn *time.Time              `gorm:"null" json:"accountRecoveryExpiresOn"`
+	UserWallets              []UserWallet            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
+	PublicIP                 string                  `gorm:"size:45" json:"publicIP"`
+	CountryCode              *string                 `gorm:"size:2;null"`
+	Latitude                 *float64                `gorm:"null"`
+	Longitude                *float64                `gorm:"null"`
+	City                     *string                 `gorm:"null;size:100"`
+	Region                   *string                 `gorm:"null;size:100"`
+	RegionName               *string                 `gorm:"null;size:100"`
+	TimeZone                 *string                 `gorm:"null;size:100"`
+	ISP                      *string                 `gorm:"null;size:150"`
+	HasSecurityQuestions     int                     `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 int                     `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                int                     `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason         *string                 `gorm:"null" json:"suspensionReason"`
+	WalletsSharedWithUser    []WalletPermission      `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	PatronMembership         *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+	UserClosedGroups         []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
+	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
+	CreatedByServiceLinkID   *string                 `gorm:"null;size:150; index:idx_user_unique_email, unique; index:idx_user_unique_phone, unique" json:"createdByServiceLinkId"`
 }
 
 type UserWallet struct {
@@ -56,9 +56,9 @@ type UserWallet struct {
 	UpdatedAt               time.Time          `json:"updatedAt"`
 	ID                      string             `gorm:"size:56" json:"publicKey"`
 	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     *string            `gorm:"null;size:12" json:"tag"`
+	Tag                     *string            `gorm:"null;size:50" json:"tag"`
 	Description             *string            `gorm:"null;size:100" json:"description"`
-	Alias                   string             `gorm:"size:30; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Alias                   string             `gorm:"size:70; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
 	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
@@ -70,8 +70,33 @@ type UserWallet struct {
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
+	LinkedWalletPublicKey   *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletPublicKey"`
 }
 
+type UserFiatPaymentMethod struct {
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	ID            uint64    `gorm:"" json:"id"`
+	BankID        uint64    `json:"bankId"`
+	Bank          Bank      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	AccountNumber string    `json:"accountNumber"`
+	UserID        string    `json:"userID"`
+	Inactive      int       `gorm:"default:0" json:"-"`
+}
+type Bank struct {
+	ID          uint64 `gorm:"" json:"id"`
+	BankName    string `json:"bankName"`
+	CountryCode string `gorm:"size:2;null"  json:"countryCode"`
+	Inactive    int    `gorm:"default:0" json:"-"`
+}
+type DeletedUserAccount struct {
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	ID            string    `json:"id"`
+	DeletedUserID string    `gorm:"size:120;not null;" json:"deletedUserID"`
+	ActionDate    time.Time `gorm:"null" json:"ActionDate"`
+	Status        int       `gorm:"type:integer;not null;default:0" json:"status"`
+}
 type WalletPermission struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
@@ -86,14 +111,17 @@ type UserWalletSharedAccessInfo struct {
 	Permissions             []WalletPermissionInfo `json:"permissions"`
 	Transaction             string                 `json:"transaction"`
 	TransactionSignature    string                 `json:"transactionSignature"`
-	TransactionID           string                 `json:"transactionId"`
-	NetworkPassPhrase       string                 `json:"networkPassPhrase"`
-	Messages                []string               `json:"messages"`
-	SignatureRequired       int                    `json:"signatureRequired"`
-	SHash                   string                 `json:"sHash"`
-	Approvers               []User                 `json:"-"`
-	Initiators              []User                 `json:"-"`
-	Viewers                 []User                 `json:"-"`
+	// LinkedWalletTransactionSignature string                 `json:"linkedWalletTransactionSignature"`
+	TransactionID     string   `json:"transactionId"`
+	NetworkPassPhrase string   `json:"networkPassPhrase"`
+	Messages          []string `json:"messages"`
+	SignatureRequired int      `json:"signatureRequired"`
+	// LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
+	// LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
+	SHash      string `json:"sHash"`
+	Approvers  []User `json:"-"`
+	Initiators []User `json:"-"`
+	Viewers    []User `json:"-"`
 }
 type DisableSharedAccessInfo struct {
 	WalletPublicKey      string                 `json:"walletPublicKey"`
@@ -168,18 +196,20 @@ type ServiceLinkUserInfo struct {
 	Wallet   []Balance        `json:"wallet,omitempty"`
 }
 type UserRegistrationInfo struct {
-	Username              string `json:"username"`
-	Email                 string `json:"email"`
-	FirstName             string `json:"firstName"`
-	LastName              string `json:"lastName"`
-	Mobile                string `json:"mobile"`
-	MobileCountryCode     string `json:"mobileCountryCode"`
-	PublicKey             string `json:"publicKey"`
-	Referrer              string `json:"referrer"`
-	PushNotificationToken string `json:"pushNotificationToken"`
-	Corporate             uint   `json:"corporate"`
-	VerificationCode      string `json:"verificationCode"`
-	PublicIP              string `json:"-"`
+	Username               string `json:"username"`
+	Email                  string `json:"email"`
+	FirstName              string `json:"firstName"`
+	LastName               string `json:"lastName"`
+	Mobile                 string `json:"mobile"`
+	MobileCountryCode      string `json:"mobileCountryCode"`
+	PublicKey              string `json:"publicKey"`
+	PrimarySigner          string `json:"primarySigner"`
+	Referrer               string `json:"referrer"`
+	PushNotificationToken  string `json:"pushNotificationToken,omitempty"`
+	Corporate              uint   `json:"corporate"`
+	VerificationCode       string `json:"verificationCode,omitempty"`
+	PublicIP               string `json:"-"`
+	CreatedByServiceLinkID string `json:"-"`
 }
 
 // UserWalletsharedAccessID is type for wallet access id
@@ -192,6 +222,8 @@ type UserWalletID string
 type Username string
 
 type WalletAlias string
+
+type LinkedWalletPublicKey string
 
 // UserSigner is type for signer Public Key
 type UserSigner string
@@ -220,34 +252,15 @@ type Upline struct {
 }
 
 type TrackedWallet struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`
-	Alias     string    `gorm:"index:idx_tracked_wallet_alias"`
-	Name      string    `gorm:"index:idx_tracked_wallet_name"`
+	// ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID        string `gorm:""`
+	PublicKey string `gorm:"index:idx_tracked_wallet_public_key,unique"`
+	Alias     string `gorm:"index:idx_tracked_wallet_alias"`
+	Name      string `gorm:"index:idx_tracked_wallet_name"`
 }
 
 type TrackedPublicKey struct {
 	PublicKey string `gorm:"primaryKey"`
-}
-
-type SubWalletInfo struct {
-	PublicKey               string   `json:"publicKey"`
-	WalletTag               string   `json:"walletTag"`
-	WalletDescription       string   `json:"walletDescription"`
-	Alias                   string   `json:"alias"`
-	Transaction             string   `json:"transaction"`
-	PrimarySignature        string   `json:"primarySignature"`
-	SubWalletSignature      string   `json:"subWalletSignature"`
-	TransactionID           string   `json:"transactionId"`
-	NetworkPassPhrase       string   `json:"networkPassPhrase"`
-	ChannelAccount          string   `json:"channelAccount"`
-	ChannelAccountSignature string   `json:"channelAccountSignature"`
-	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
-	Messages                []string `json:"messages"`
-	SHash                   string   `json:"sHash"`
-	FeeAmount               string   `json:"feeAmount"`
-	FeeCode                 string   `json:"feeCode"`
 }
 
 type SecurityQuestion struct {
@@ -275,6 +288,13 @@ type UserAccountRecoveryPayload struct {
 	NetworkPassPhrase    string             `json:"networkPassPhrase"`
 	Messages             []string           `json:"messages"`
 	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
+}
+type UserAccountDeletionPayload struct {
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
 }
 
 type UserAccountRecoveryLog struct {
@@ -360,4 +380,15 @@ type UserKyc struct {
 	FacematchNationalID         int    `gorm:"default:0" json:"facematchNationalId"`
 	FacematchPassport           int    `gorm:"default:0" json:"facematchPassport"`
 	GovermentIDProofOfResidency int    `gorm:"default:0" json:"govermentIDProofOfResidency"`
+}
+
+type ActivationAmount struct {
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	LastUpdatedBy string    `json:"lastUpdatedBy"`
+	ID            string    `json:"id"`
+	Amount        float64   `gorm:"default:0" json:"amount"`
+	AssetCode     string    `gorm:"default:'XBN'" json:"assetCode"`
+	AssetIssuer   string    `gorm:"default:'XBN'" json:"assetIssuer"`
+	Inactive      int       `gorm:"default:0" json:"inactive"`
 }

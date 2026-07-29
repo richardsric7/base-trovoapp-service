@@ -35,9 +35,12 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/protocols/horizon/operations"
 	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func main() {
@@ -80,16 +83,18 @@ func main() {
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
-			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
-			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
-			"GC", "GOOGLE_PROJECT_ID", "ACCOUNT_RECOVERY_SALT", "MNEMONIC_ACCOUNT_RECOVERY", "RECOVERY_SIGNER_ACTIVATION_AMOUNT",
+			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
+			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
+			"GC", "GOOGLE_PROJECT_ID", "ACCOUNT_RECOVERY_SALT", "MNEMONIC_ACCOUNT_RECOVERY",
 			"NATIVE_ASSET_CODE", "ACCOUNT_RECOVERY_MINIMUM_BALANCE",
-			"SHARED_ACCESS_PAYMENT_FEE_AMOUNT", "CHANNEL_ACCOUNTS", "WALLET_SIGNER_ACTIVATION_AMOUNT", "WALLET_DOMAIN",
+			"CHANNEL_ACCOUNTS", "WALLET_DOMAIN",
 			"MNEMONIC_BULK_PAYMENT", "BULK_PAYMENT_SALT", "ENCODER_SALT", "MARKET_MAKING_SALT",
-			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET", "CHECK_CHANNEL_ACCOUNT_BALANCE",
+			"MNEMONIC_MARKET_MAKING", "CHECK_CHANNEL_ACCOUNT_BALANCE",
 			"JWT_ACCESS_SECRET", "JWT_TOKEN_EXPIRY", "JWT_REFRESH_TOKEN_EXPIRY",
-			"SUBWALLET_FEE_AMOUNT_USD", "SUBWALLET_FEE_ASSET_ISSUER", "SUBWALLET_FEE_ASSET_CODE",
-			"SUBWALLET_FEE_WALLET", "DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED",
+			"DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED",
+			"BLOCKCHAIN_DATA_CACHE_LIFETIME", "VAT_WALLET", "SUBWALLET_CREATION_FEE_WALLET", "TOKENIZATION_APPLICATION_FEE_WALLET",
+			"TOKENIZATION_FEE_WALLET", "CLOSED_GROUP_FEE_WALLET", "ACCOUNT_RECOVERY_FEE_WALLET", "PATRON_FEE_WALLET",
+			"SHARED_ACCESS_PAYMENT_FEE_WALLET", "PAYMENT_FEE_WALLET", "SWAP_FEE_WALLET", "CNGN_PRICE_API_URL",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -108,55 +113,68 @@ func main() {
 
 			exit = true
 		}
-		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
-			log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
+		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
+		// 	log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
 
-			exit = true
-		}
+		// 	exit = true
+		// }
 
 		if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" && len(os.Getenv("NAIRA_ASSET")) < 60 {
 			log.Println("NAIRA_ASSET environment variable is required when ENABLE_NAIRA_ASSET_BY_DEFAULT is set to 1")
 
 			exit = true
 		}
-		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
-			if err != nil {
-				log.Println("MARKET_MAKING_FEE_WALLET  is invalid wallet secret key")
+		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
+		// 	_, err := keypair.ParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+		// 	if err != nil {
+		// 		log.Println("MARKET_MAKING_FEE_WALLET  is invalid wallet secret key")
 
-				exit = true
-			}
-		}
-		if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
-			log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
+		// 		exit = true
+		// 	}
+		// }
+		// if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
+		// 	log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
 
-			exit = true
-		}
-		if os.Getenv("SWAP_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("SWAP_FEE_WALLET"))
-			if err != nil {
-				log.Println("SWAP_FEE_WALLET is invalid wallet secret key")
+		// 	exit = true
+		// }
+		// if os.Getenv("SWAP_FEE_ENABLED") == "1" {
+		// 	_, err := keypair.ParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		// 	if err != nil {
+		// 		log.Println("SWAP_FEE_WALLET is invalid wallet secret key")
 
-				exit = true
-			}
-		}
-
-		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" && len(os.Getenv("SHARED_ACCESS_FEE_WALLET")) != 56 {
-			log.Println("SHARED_ACCESS_FEE_WALLET environment variable is required when SHARED_ACCESS_FEE_ENABLED is set to 1")
-
-			exit = true
-		}
-		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
-			_, err := keypair.ParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
-			if err != nil {
-				log.Println("SHARED_ACCESS_FEE_WALLET is invalid wallet secret key")
-
-				exit = true
-			}
-		}
+		// 		exit = true
+		// 	}
+		// }
 
 		if exit {
 			return
+		}
+
+		if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") == "" {
+			log.Println("ENV variable ENABLE_EMAIL_NOTIFICATIONS is not set.")
+		}
+
+		if os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME") == "" {
+			log.Println("ENV variable BLOCKCHAIN_DATA_CACHE_LIFETIME is not set. Using 3yrs by default")
+			os.Setenv("BLOCKCHAIN_DATA_CACHE_LIFETIME", "94608000")
+		}
+
+		if os.Getenv("ACCOUNT_DELETION_REQUEST_TEMPLATE") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_REQUEST_TEMPLATE is not set. defaulting to account-deletion-request-template")
+		}
+
+		if os.Getenv("ACCOUNT_DELETION_EMAIL_SUBJECT") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_EMAIL_SUBJECT is not set. defaulting to 'TrovoApp Account Deletion Request'")
+		}
+		if os.Getenv("ACCOUNT_DELETION_DAYS") == "" {
+			log.Println("ENV variable ACCOUNT_DELETION_DAYS is not set. defaulting to '30' days")
+		}
+		if os.Getenv("SUPPORT_EMAIL") == "" {
+			log.Println("ENV variable SUPPORT_EMAIL is not set.")
+		}
+
+		if os.Getenv("SHORT_LINKS_BASE_URL") == "" {
+			log.Println("ENV variable SHORT_LINKS_BASE_URL is not set. Using default https://trovo.app")
 		}
 
 	}
@@ -238,17 +256,6 @@ func main() {
 		redisCache.DeleteFromCache(cacheKey)
 	}
 
-	cas := strings.Split(os.Getenv("FBDL_SERVICE_URLS"), ",")
-	dynamicLinkServiceUrlChan := make(chan string, len(cas))
-
-	if len(cas) >= 1 {
-		for _, u := range cas {
-
-			log.Printf("Firebase Dynamic Links service URL to be used: %v", u)
-			dynamicLinkServiceUrlChan <- u
-		}
-	}
-
 	//global config
 	pnsContext := context.Background()
 	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
@@ -262,14 +269,13 @@ func main() {
 	}
 
 	var globalConfig = sharedconfig.GlobalConfig{
-		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
-		PNSContext:                pnsContext,
-		RedisCache:                &redisCache,
-		DB:                        database,
-		PushNotificationClient:    pnsClient,
-		RoachDB:                   roachDB,
-		BantuExpansionClient:      network.GetBlockchainClient(),
-		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
+		PNSContext:             pnsContext,
+		RedisCache:             &redisCache,
+		DB:                     database,
+		PushNotificationClient: pnsClient,
+		RoachDB:                roachDB,
+		BantuExpansionClient:   network.GetBlockchainClient(),
+		BantuNetworkPassphrase: network.GetBlockchainNetworkPassPhrase(),
 		FirebaseStorageUploader: &sharedconfig.ClientUploader{
 			Client:     storageClient,
 			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
@@ -285,10 +291,7 @@ func main() {
 
 			batchSize := 1
 			var usersWithNoRefLinks []userModels.User
-			dynamicLinkServiceUrl := <-dynamicLinkServiceUrlChan
-			defer func() {
-				dynamicLinkServiceUrlChan <- dynamicLinkServiceUrl
-			}()
+
 			for {
 				e := database.Where("referral_qr_code is null AND suspended = ?", 0).First(&userModels.User{}).Error
 				if e != nil {
@@ -298,7 +301,7 @@ func main() {
 
 				result := database.Where("referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range usersWithNoRefLinks {
-						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &globalConfig)
+						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, &globalConfig)
 						if errLink != nil {
 							continue
 						}
@@ -307,7 +310,7 @@ func main() {
 						usersWithNoRefLinks[i].ReferralQrCode = &rld.QRCode
 					}
 
-					e := database.Save(&usersWithNoRefLinks).Error
+					e := database.Omit(clause.Associations).Save(&usersWithNoRefLinks).Error
 					if e != nil {
 						//saving model failed
 						log.Printf("[REFLINKROUTINE]()()()@@@()()()()FAILED TO UPDATE USER LIST with referral links due to: %v\n", e)
@@ -329,7 +332,7 @@ func main() {
 		}()
 
 	}
-
+	globalConfig.ChannelOfTokenizedAssetIDs = make(chan string, 10)
 	globalConfig.InUseChannelAccounts = make(map[string]*keypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
@@ -405,7 +408,7 @@ func main() {
 				}
 				globalConfig.ChannelAccounts <- k
 				if len(ops) == 0 {
-					log.Println("NO OPeRATIONS for this wallet", k.Address())
+					log.Println("NO OPERATIONS for this wallet", k.Address())
 					continue
 				}
 				tx, err := txnbuild.NewTransaction(
@@ -557,39 +560,44 @@ func main() {
 		}
 
 	}()
+	if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE") == "1" {
+		go func() {
+			//LOAD WITHDRAWAL NETWORKS FROM 1L
+			cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
+			if len(cl) == 0 {
+				//exit routine
+				return
+			}
+			for {
 
-	go func() {
-		//LOAD WITHDRAWAL NETWORKS FROM 1L
-		cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
-		if len(cl) == 0 {
-			//exit routine
-			return
-		}
-		for {
+				for _, c := range cl {
+					//fetching currency withdrawal network list
+					log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
+					cacheKey := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", c)
+					redisCache.DeleteFromCache(cacheKey)
+					userServices.GetWithdrawalNetworks(c, &globalConfig)
+				}
 
-			for _, c := range cl {
-				//fetching currency withdrawal network list
-				log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
-				cacheKey := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", c)
-				redisCache.DeleteFromCache(cacheKey)
-				userServices.GetWithdrawalNetworks(c, &globalConfig)
+				time.Sleep(800 * time.Second)
 			}
 
-			time.Sleep(800 * time.Second)
-		}
+		}()
 
-	}()
+	}
 
 	//ACTIVATES PENDING PATRON SUBSCRIPTION
-	go func() {
-		err := UpdateUserPatronMemberships(database)
-		if err != nil {
-			log.Printf("[MAIN] error updating memberships: %v\n", err)
-			return
-		}
-		//clear the user cache
+	if os.Getenv("ENABLE_PATRON") == "1" {
+		go func() {
+			err := UpdateUserPatronMemberships(database)
+			if err != nil {
+				log.Printf("[MAIN] error updating memberships: %v\n", err)
+				//return
+			}
+			//clear the user cache
+			time.Sleep(40 * time.Second)
 
-	}()
+		}()
+	}
 
 	{
 		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {
@@ -676,7 +684,7 @@ func main() {
 					}
 
 					dbtx := database.Begin()
-					e = dbtx.Create(&depositItem).Error
+					e = dbtx.Omit(clause.Associations).Create(&depositItem).Error
 					if e != nil {
 						dbtx.Rollback()
 						log.Printf("[MINTING INITIATOR] error creating deposit item. error: %v\nDepositItem: %+v\n", e, depositItem)
@@ -684,7 +692,7 @@ func main() {
 						continue
 					}
 					di.Minted = 1
-					e = dbtx.Save(&di).Error
+					e = dbtx.Omit(clause.Associations).Save(&di).Error
 					if e != nil {
 						dbtx.Rollback()
 						log.Printf("[MINTING INITIATOR] error saving callback item. error: %v\nCallbackDepositItem: %+v\n", e, di)
@@ -726,6 +734,75 @@ func main() {
 			}()
 
 		}
+	}
+
+	{
+		//Start processing payment streams
+		go func() {
+			for {
+
+				MonitorStream(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
+	{
+		//Start processing Sales
+		go func() {
+
+			for {
+
+				userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				//also process trustlines that exist.
+				userServices.ProcessPostTokenizationTrustline(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+		//Start processing Sales
+		go func() {
+
+			for {
+				userServices.ActivateSecondarySalesRoutine(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+
+		//Start processing Stablerails onboarding and onramping
+		go func() {
+
+			for {
+				userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
+				time.Sleep(10 * time.Second)
+				userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				time.Sleep(10 * time.Second)
+
+			}
+		}()
+	}
+
+	{
+		//Start processing Sale Notification for Interests
+		go func() {
+			for {
+
+				userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+	{
+		//Start fetching Stablertail supported bank codes
+		go func() {
+
+			for {
+				_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
+				if e != nil {
+					log.Printf("[Error Fetching stablerail banks] %v\n", e)
+				}
+				time.Sleep(10 * time.Minute)
+			}
+		}()
 	}
 
 	//setup router
@@ -822,7 +899,7 @@ func UpdateUserPatronMemberships(db *gorm.DB) error {
 
 	// Save the updated memberships back to the database
 	for _, membership := range memberships {
-		err := db.Save(&membership).Error
+		err := db.Omit(clause.Associations).Save(&membership).Error
 		if err != nil {
 			log.Printf("[UpdateUserPatronMemberships] error updating membership: %v\n", err)
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -839,4 +916,232 @@ func getUniqueUsernamesSlice(uniqueUsernames map[string]struct{}) []string {
 		usernames = append(usernames, username)
 	}
 	return usernames
+}
+
+func MonitorStream(gc *sharedconfig.GlobalConfig) {
+	log.Println("[MonitorStream] <<<<<<<<<<<<Starting ..... active and processing transactions>>>>>>>>>>>>>")
+
+	client := gc.BantuExpansionClient
+	workerChan := make(chan operations.Operation, 200000)
+
+	// var opsRequest horizonclient.OperationRequest
+
+	log.Println("[MonitorStream] Starting monitoring from current state of blockchain")
+
+	// opsRequest = horizonclient.OperationRequest{
+	// 	Cursor: "0",
+	// 	Order:  horizonclient.OrderAsc,
+	// 	Join:   "transactions",
+	// }
+	opsRequest := horizonclient.OperationRequest{
+		Join: "transactions",
+	}
+
+	worker := func() {
+		for {
+			o := <-workerChan
+			ProcessOperation(o, gc)
+		}
+
+	}
+	{
+		//start two workers
+		go worker()
+		go worker()
+
+	}
+
+	operationsStreamHandler := func(o operations.Operation) {
+		//send to worker channel
+		workerChan <- o
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	streamOperations := func() {
+
+		err := client.StreamOperations(ctx, opsRequest, operationsStreamHandler)
+		if err != nil {
+			log.Printf("[MonitorStream.StreamOps]stream error:[%v]", err)
+			cancel()
+		}
+
+	}
+
+	//Start stream
+	streamOperations()
+	log.Println("#####[MonitorStream]...Ending streaming operation")
+	//close channels
+	// close(workerChan)
+	time.Sleep(30 * time.Second)
+
+}
+
+func ProcessOperation(o operations.Operation, gc *sharedconfig.GlobalConfig) {
+	// defer SaveLastCursor(o.PagingToken(), roachDB)
+	invalidateCache := func(k string) {
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", k)
+		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", k)
+		cacheKey4 := fmt.Sprintf("userObj %v", k)
+		cacheKeybca1 := fmt.Sprintf("bca_%v", k)
+		if gc.RedisCache.DeleteFromCache(cacheKey1, cacheKeyWalletID, cacheKey4, cacheKeybca1) {
+			log.Println("[ProcessOperation.invalidateCache]", k)
+		}
+	}
+	if o.GetType() == "payment" {
+		log.Println("found payment operation....beginning processing")
+		pmt := interface{}(o).(operations.Payment)
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "create_account" {
+		log.Println("found create account operation....beginning processing")
+		pmt := interface{}(o).(operations.CreateAccount)
+
+		invalidateCache(pmt.Funder)
+		invalidateCache(pmt.Account)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "path_payment_strict_send" {
+		//payment transaction.
+		log.Println("found path payment strict send operation....beginning processing")
+		pmt := interface{}(o).(operations.PathPaymentStrictSend)
+
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+
+	} else if o.GetType() == "path_payment" {
+		//payment transaction.
+		log.Println("found path payment operation....beginning processing")
+		pmt := interface{}(o).(operations.PathPayment)
+		invalidateCache(pmt.From)
+		invalidateCache(pmt.To)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "account_merge" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.AccountMerge)
+		invalidateCache(pmt.Account)
+		invalidateCache(pmt.Into)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "change_trust" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.ChangeTrust)
+		invalidateCache(pmt.Trustor)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "set_trust_line_flags" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.SetTrustLineFlags)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Trustor)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "begin_sponsoring_future_reserves" {
+		//payment transaction.
+
+		log.Println("found operation....beginning processing")
+		pmt := interface{}(o).(operations.BeginSponsoringFutureReserves)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.SponsoredID)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "bump_sequence" {
+		//payment transaction.
+
+		pmt := interface{}(o).(operations.BumpSequence)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "set_options" {
+
+		pmt := interface{}(o).(operations.SetOptions)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "clawback" {
+
+		pmt := interface{}(o).(operations.Clawback)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "clawback_claimable_balance" {
+
+		pmt := interface{}(o).(operations.ClawbackClaimableBalance)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "create_claimable_balance" {
+
+		pmt := interface{}(o).(operations.CreateClaimableBalance)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "claim_claimable_balance" {
+
+		pmt := interface{}(o).(operations.ClaimClaimableBalance)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "create_passive_sell_offer" {
+
+		pmt := interface{}(o).(operations.CreatePassiveSellOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "end_sponsoring_future_reserves" {
+
+		pmt := interface{}(o).(operations.EndSponsoringFutureReserves)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "liquidity_pool_deposit" {
+
+		pmt := interface{}(o).(operations.LiquidityPoolDeposit)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "liquidity_pool_withdraw" {
+
+		pmt := interface{}(o).(operations.LiquidityPoolWithdraw)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_buy_offer" {
+
+		pmt := interface{}(o).(operations.ManageBuyOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_data" {
+
+		pmt := interface{}(o).(operations.ManageData)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "manage_sell_offer" {
+
+		pmt := interface{}(o).(operations.ManageSellOffer)
+		invalidateCache(pmt.ID)
+		// invalidateCache(pmt.)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "revoke_sponsorship" {
+
+		pmt := interface{}(o).(operations.RevokeSponsorship)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Sponsor)
+		invalidateCache(pmt.SourceAccount)
+	} else if o.GetType() == "inflation" {
+
+		pmt := interface{}(o).(operations.Inflation)
+		invalidateCache(pmt.ID)
+		invalidateCache(pmt.Sponsor)
+		invalidateCache(pmt.SourceAccount)
+	}
+
 }

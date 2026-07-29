@@ -2,6 +2,7 @@ package users
 
 import (
 	"log"
+	"os"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	dl "trovo-wallet-api/internal/dynamiclinks"
@@ -9,11 +10,15 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm/clause"
 )
 
 func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
 	currency = strings.ToUpper(currency)
 	depositAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
+	if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE") != "1" {
+		return
+	}
 	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
 
 	if e != nil {
@@ -62,7 +67,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 		depositAddresses = append(depositAddresses, da)
 	}
 	if len(depositAddresses) > 0 {
-		e := dbTX.Create(&depositAddresses).Error
+		e := dbTX.Omit(clause.Associations).Create(&depositAddresses).Error
 		if e != nil {
 			log.Printf("[GenerateDepositAddresses] error saving deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
 			err = &tErrors.ErrorTemporaryServerError{}

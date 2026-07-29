@@ -40,15 +40,20 @@ func GetBlockchainAsset(assetCode, assetIssuer, cursor, order string, limit uint
 			return paginatedBlockchainAssets, &bantupayerrors.ErrorTemporaryServerError{}
 		}
 		// log.Println("[GetAssets]: ", err)
-		hError := err.(*horizonclient.Error)
-		//something went wrong, verify stage and check approprate action
-		rCode, _ := hError.ResultCodes()
-		rS, _ := hError.ResultString()
-		log.Println("[GetBlockchainAsset] Problem in Transaction:", hError.Problem)
-		log.Println("[GetBlockchainAsset] Result Codes in Transaction:", rCode)
-		log.Println("[GetBlockchainAsset] Result String in Transaction:", rS)
-		log.Printf("[GetBlockchainAsset] Problem in Transaction - RESPONSE: %+v\n", hError.Response)
-		return paginatedBlockchainAssets, &bantupayerrors.ErrorTemporaryServerError{}
+		if hError, ok := err.(*horizonclient.Error); ok {
+			//something went wrong, verify stage and check approprate action
+			rCode, _ := hError.ResultCodes()
+			rS, _ := hError.ResultString()
+			log.Println("[GetBlockchainAsset] Problem in Transaction:", hError.Problem)
+			log.Println("[GetBlockchainAsset] Result Codes in Transaction:", rCode)
+			log.Println("[GetBlockchainAsset] Result String in Transaction:", rS)
+			log.Printf("[GetBlockchainAsset] Problem in Transaction - RESPONSE: %+v\n", hError.Response)
+			return paginatedBlockchainAssets, &bantupayerrors.ErrorTemporaryServerError{}
+		} else {
+			log.Printf("[GetBlockchainAsset] Problem in Transaction: %v\n", err)
+			return paginatedBlockchainAssets, &bantupayerrors.ErrorTemporaryServerError{}
+		}
+
 	}
 	for _, v := range blockchainAssets.Embedded.Records {
 		paginationToken = v.PagingToken()

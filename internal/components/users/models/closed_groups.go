@@ -10,6 +10,20 @@ type ClosedGroup struct {
 	RegistrationNumber      string `gorm:"size:200" json:"registrationNumber"`
 	RegistrationDocumentUrl string `json:"registrationDocumentUrl"`
 }
+type ClosedGroupJSONInput struct {
+	ID                   string   `gorm:"primaryKey;size:100" json:"id"`
+	GroupName            string   `gorm:"size:100" json:"groupName"`
+	GroupDescription     string   `gorm:"size:300" json:"groupDescription"`
+	RegisteredEntity     int      `gorm:"default:0" json:"registeredEntity"`
+	RegistrationName     string   `gorm:"size:200" json:"registrationName"`
+	RegistrationNumber   string   `gorm:"size:200" json:"registrationNumber"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+	// RegistrationDocumentUrl string `json:"registrationDocumentUrl"`
+}
 
 type UserClosedGroup struct {
 	ID            string `gorm:"size:100" json:"id"`

@@ -89,6 +89,8 @@ type SwapSendInfo struct {
 	SHash                  string   `json:"sHash"`
 	Fee                    string   `json:"fee"`
 	FeeAmount              string   `json:"feeAmount"`
+	Vat                    string   `json:"vat"`
+	VatAmount              string   `json:"vatAmount"`
 	SwapAmount             string   `json:"swapAmount"`
 	ReturnedDescription    string   `json:"-"`
 }
@@ -119,3 +121,33 @@ type SwapReceiveInfo struct {
 	RequiredEstimate       string   `json:"requiredEstimate"`
 	ReturnedDescription    string   `json:"-"`
 }
+
+// func (s *SwapSendInfo) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+// 	type Result struct {
+// 		ID string
+// 	}
+// 	var result Result
+// 	gc.DB.Raw("SELECT id FROM Tokenized_Assets WHERE Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", s.DestinationAssetCode, s.DestinationAssetIssuer).Scan(&result)
+
+// 	return len(result.ID) > 0
+// }
+
+// func (s *SwapReceiveInfo) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+// 	type Result struct {
+// 		ID string
+// 	}
+// 	var result Result
+// 	gc.DB.Raw("SELECT id FROM Tokenized_Assets WHERE Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", s.DestinationAssetCode, s.DestinationAssetIssuer).Scan(&result)
+
+// 	return len(result.ID) > 0
+// }
+
+// func (s *SwapPathInput) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
+// 	type Result struct {
+// 		ID string
+// 	}
+// 	var result Result
+// 	gc.DB.Raw("SELECT id FROM Tokenized_Assets WHERE Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", s.DestinationAssetCode, s.DestinationAssetIssuer).Scan(&result)
+
+// 	return len(result.ID) > 0
+// }

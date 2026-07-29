@@ -219,7 +219,7 @@ type CryptoWithdrawal struct {
 	Status               string  `json:"status"`
 }
 
-type SubWalletInput struct {
+type OnliquiditySubWalletInput struct {
 	Currency string `json:"currency"`
 	UID      string `json:"uid"`
 }

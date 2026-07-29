@@ -25,7 +25,7 @@ func SendEmailVerificationCode(email, verificationCode string) (id, resp string,
 	}
 	subject := os.Getenv("EMAIL_VERIFICATION_SUBJECT")
 	if subject == "" {
-		subject = "Your Trovo Wallet Email Verification Code"
+		subject = "Your TrovoApp Email Verification Code"
 	}
 	// body := ""
 	body := fmt.Sprintf("Your verification code is: %s", verificationCode)
