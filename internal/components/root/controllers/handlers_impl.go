@@ -9,10 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// getHandler godoc
-// @Summary GET /
-// @Tags root
-// @Router / [get]
 func getHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -23,10 +19,6 @@ func getHandler() gin.HandlerFunc {
 }
 
 
-// getDotwellKnownStellarDottomlHandler godoc
-// @Summary GET /.well-known/stellar.toml
-// @Tags root
-// @Router /.well-known/stellar.toml [get]
 func getDotwellKnownStellarDottomlHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -37,10 +29,6 @@ func getDotwellKnownStellarDottomlHandler() gin.HandlerFunc {
 }
 
 
-// getDotwellKnownAppleAppSiteAssociationHandler godoc
-// @Summary GET /.well-known/apple-app-site-association
-// @Tags root
-// @Router /.well-known/apple-app-site-association [get]
 func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
@@ -59,10 +47,6 @@ func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 }
 
 
-// getDotwellKnownAssetlinksDotjsonHandler godoc
-// @Summary GET /.well-known/assetlinks.json
-// @Tags root
-// @Router /.well-known/assetlinks.json [get]
 func getDotwellKnownAssetlinksDotjsonHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
