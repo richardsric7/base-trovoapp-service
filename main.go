@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "trovo-wallet-api/docs"
+
 	cache "trovo-wallet-api/internal/cache"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -34,6 +36,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -43,6 +47,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// @title Trovo Wallet API
+// @version 1.0
+// @description Core wallet API for the Trovo platform — user accounts, crypto assets, deposits/withdrawals, swaps.
+// @host localhost:8080
+// @BasePath /
 func main() {
 
 	//setup environment variables
@@ -833,6 +842,8 @@ func main() {
 	log.Println("##announcements/version services initialized##")
 	callbacks.Init(router, callBackRetryChan, &globalConfig)
 	log.Println("##callbacks services initialized##")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	log.Println("##swagger UI initialized##")
 	//run app
 	log.Println("##service started##")
 	if len(os.Getenv("PORT")) > 0 {
