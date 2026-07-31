@@ -1,0 +1,890 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: Core wallet API for the Trovo platform — user accounts, crypto assets,
+    deposits/withdrawals, swaps.
+  title: Trovo Wallet API
+  version: "1.0"
+paths:
+  /:
+    get:
+      responses: {}
+      summary: GET /
+      tags:
+      - root
+  /.well-known/apple-app-site-association:
+    get:
+      responses: {}
+      summary: GET /.well-known/apple-app-site-association
+      tags:
+      - root
+  /.well-known/assetlinks.json:
+    get:
+      responses: {}
+      summary: GET /.well-known/assetlinks.json
+      tags:
+      - root
+  /.well-known/stellar.toml:
+    get:
+      responses: {}
+      summary: GET /.well-known/stellar.toml
+      tags:
+      - root
+  /v1/account/recovery/request-email-otp/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/account/recovery/request-email-otp/:targetUser
+      tags:
+      - users
+  /v1/account/recovery/verify-email-otp/{targetUser}/{otp}:
+    post:
+      responses: {}
+      summary: POST /v1/account/recovery/verify-email-otp/:targetUser/:otp
+      tags:
+      - users
+  /v1/banks/{countryCode}:
+    get:
+      responses: {}
+      summary: GET /v1/banks/:countryCode
+      tags:
+      - users
+  /v1/callbacks/1l:
+    post:
+      responses: {}
+      summary: POST /v1/callbacks/1l
+      tags:
+      - callbacks
+  /v1/callbacks/doja/webhook:
+    post:
+      responses: {}
+      summary: POST /v1/callbacks/doja/webhook
+      tags:
+      - callbacks
+  /v1/callbacks/flutterwave/webhook:
+    post:
+      responses: {}
+      summary: POST /v1/callbacks/flutterwave/webhook
+      tags:
+      - callbacks
+  /v1/closed-groups:
+    get:
+      responses: {}
+      summary: GET /v1/closed-groups
+      tags:
+      - users
+  /v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory}:
+    get:
+      responses: {}
+      summary: GET /v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory
+      tags:
+      - users
+  /v1/crypto/generate-addresses/{currency}:
+    post:
+      responses: {}
+      summary: POST /v1/crypto/generate-addresses/:currency
+      tags:
+      - users
+  /v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory}:
+    get:
+      responses: {}
+      summary: GET /v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory
+      tags:
+      - users
+  /v1/crypto/withdrawal-networks/{currency}:
+    get:
+      responses: {}
+      summary: GET /v1/crypto/withdrawal-networks/:currency
+      tags:
+      - users
+  /v1/crypto/withdrawals:
+    post:
+      responses: {}
+      summary: POST /v1/crypto/withdrawals
+      tags:
+      - users
+  /v1/curated-assets:
+    get:
+      responses: {}
+      summary: GET /v1/curated-assets
+      tags:
+      - assets
+  /v1/curated-assets/users:
+    get:
+      responses: {}
+      summary: GET /v1/curated-assets/users
+      tags:
+      - users
+  /v1/forms/{formId}:
+    get:
+      responses: {}
+      summary: GET /v1/forms/:formId
+      tags:
+      - users
+  /v1/patron:
+    get:
+      responses: {}
+      summary: GET /v1/patron
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/patron
+      tags:
+      - users
+  /v1/public/tokenization:
+    get:
+      responses: {}
+      summary: GET /v1/public/tokenization
+      tags:
+      - users
+  /v1/security-questions:
+    post:
+      responses: {}
+      summary: POST /v1/security-questions
+      tags:
+      - users
+  /v1/security-questions/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/security-questions/:targetUser
+      tags:
+      - users
+  /v1/servicelinks/{ownerUsername}/{targetUser}/push:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/:ownerUsername/:targetUser/push
+      tags:
+      - servicelinks
+  /v1/servicelinks/{ownerUsername}/{targetUser}/userinfo:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/:ownerUsername/:targetUser/userinfo
+      tags:
+      - servicelinks
+  /v1/servicelinks/app/authorize/verify/{ownerUsername}/{targetUser}/{authId}:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/app/authorize/verify/:ownerUsername/:targetUser/:authId
+      tags:
+      - servicelinks
+  /v1/servicelinks/authorize/request/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/authorize/request/:targetUser
+      tags:
+      - servicelinks
+  /v1/servicelinks/authorize/tokenized-asset:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/authorize/tokenized-asset
+      tags:
+      - servicelinks
+  /v1/servicelinks/authorize/verify/{ownerUsername}/{targetUser}/{authId}:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId
+      tags:
+      - servicelinks
+  /v1/servicelinks/events/request:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/events/request
+      tags:
+      - servicelinks
+  /v1/servicelinks/login/request/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/login/request/:targetUser
+      tags:
+      - servicelinks
+  /v1/servicelinks/login/verify/{ownerUsername}/{targetUser}/{loginID}:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID
+      tags:
+      - servicelinks
+  /v1/servicelinks/payment/request/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/payment/request/:targetUser
+      tags:
+      - servicelinks
+  /v1/servicelinks/token:
+    delete:
+      responses: {}
+      summary: DELETE /v1/servicelinks/token
+      tags:
+      - servicelinks
+  /v1/servicelinks/token/refresh:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/token/refresh
+      tags:
+      - servicelinks
+  /v1/servicelinks/token/verify:
+    post:
+      responses: {}
+      summary: POST /v1/servicelinks/token/verify
+      tags:
+      - servicelinks
+  /v1/servicelinks/tokenized-asset/{assetCode}:
+    get:
+      responses: {}
+      summary: GET /v1/servicelinks/tokenized-asset/:assetCode
+      tags:
+      - servicelinks
+  /v1/shared-access/approval/{ID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/shared-access/approval/:ID
+      tags:
+      - users
+    get:
+      responses: {}
+      summary: GET /v1/shared-access/approval/:ID
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/approval/:ID
+      tags:
+      - users
+  /v1/shared-access/approvals:
+    get:
+      responses: {}
+      summary: GET /v1/shared-access/approvals
+      tags:
+      - users
+  /v1/shared-access/crypto/withdrawals:
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/crypto/withdrawals
+      tags:
+      - users
+  /v1/shared-access/payment:
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/payment
+      tags:
+      - payments
+  /v1/shared-access/swap:
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/swap
+      tags:
+      - payments
+  /v1/shared-access/tokenization/subscriptions/{tokenizedAssetID}:
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/tokenization/subscriptions/:tokenizedAssetID
+      tags:
+      - users
+  /v1/shared-access/users/account:
+    delete:
+      responses: {}
+      summary: DELETE /v1/shared-access/users/account
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/users/account
+      tags:
+      - users
+    put:
+      responses: {}
+      summary: PUT /v1/shared-access/users/account
+      tags:
+      - users
+  /v1/shared-access/users/actions/claim-asset:
+    put:
+      responses: {}
+      summary: PUT /v1/shared-access/users/actions/claim-asset
+      tags:
+      - users
+  /v1/shared-access/users/actions/reject-asset:
+    delete:
+      responses: {}
+      summary: DELETE /v1/shared-access/users/actions/reject-asset
+      tags:
+      - users
+  /v1/shared-access/users/asset/opt-in:
+    post:
+      responses: {}
+      summary: POST /v1/shared-access/users/asset/opt-in
+      tags:
+      - users
+  /v1/shared-access/users/asset/opt-out:
+    delete:
+      responses: {}
+      summary: DELETE /v1/shared-access/users/asset/opt-out
+      tags:
+      - users
+  /v1/shared-access/wallet-balances:
+    get:
+      responses: {}
+      summary: GET /v1/shared-access/wallet-balances
+      tags:
+      - users
+  /v1/shortlinks/{linkID}:
+    get:
+      responses: {}
+      summary: GET /v1/shortlinks/:linkID
+      tags:
+      - users
+  /v1/stream/orderbook:
+    get:
+      responses: {}
+      summary: GET /v1/stream/orderbook
+      tags:
+      - users
+  /v1/stream/tradechart:
+    get:
+      responses: {}
+      summary: GET /v1/stream/tradechart
+      tags:
+      - users
+  /v1/stream/ws/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/stream/ws/:targetUser
+      tags:
+      - users
+  /v1/tokenization:
+    get:
+      responses: {}
+      summary: GET /v1/tokenization
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/tokenization
+      tags:
+      - users
+  /v1/tokenization/{tokenizationID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/tokenization/:tokenizationID
+      tags:
+      - users
+  /v1/tokenization/confirm/{tokenizationID}:
+    put:
+      responses: {}
+      summary: PUT /v1/tokenization/confirm/:tokenizationID
+      tags:
+      - users
+  /v1/tokenization/detail/{tid}:
+    get:
+      responses: {}
+      summary: GET /v1/tokenization/detail/:tid
+      tags:
+      - users
+  /v1/tokenization/document:
+    put:
+      responses: {}
+      summary: PUT /v1/tokenization/document
+      tags:
+      - users
+  /v1/tokenization/document/{documentID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/tokenization/document/:documentID
+      tags:
+      - users
+  /v1/tokenization/expressed-interests:
+    get:
+      responses: {}
+      summary: GET /v1/tokenization/expressed-interests
+      tags:
+      - users
+  /v1/tokenization/expressed-interests/{tokenizedAssetID}:
+    post:
+      responses: {}
+      summary: POST /v1/tokenization/expressed-interests/:tokenizedAssetID
+      tags:
+      - users
+  /v1/tokenization/fee/{documentID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/tokenization/fee/:documentID
+      tags:
+      - users
+  /v1/tokenization/fee/{tokenizationID}:
+    post:
+      responses: {}
+      summary: POST /v1/tokenization/fee/:tokenizationID
+      tags:
+      - users
+  /v1/tokenization/fee/{tokenizedAssetID}:
+    put:
+      responses: {}
+      summary: PUT /v1/tokenization/fee/:tokenizedAssetID
+      tags:
+      - users
+  /v1/tokenization/list:
+    get:
+      responses: {}
+      summary: GET /v1/tokenization/list
+      tags:
+      - users
+  /v1/tokenization/logo:
+    put:
+      responses: {}
+      summary: PUT /v1/tokenization/logo
+      tags:
+      - users
+  /v1/tokenization/subscriptions:
+    get:
+      responses: {}
+      summary: GET /v1/tokenization/subscriptions
+      tags:
+      - users
+  /v1/tokenization/subscriptions/{tokenizedAssetID}:
+    post:
+      responses: {}
+      summary: POST /v1/tokenization/subscriptions/:tokenizedAssetID
+      tags:
+      - users
+  /v1/trovo-api/assets/{tokenizationID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/trovo-api/assets/:tokenizationID
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/admin/list:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/assets/admin/list
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/apply:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/assets/apply
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/bank-list/{countryCode}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/assets/bank-list/:countryCode
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/confirm-application/{tokenizationID}:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/assets/confirm-application/:tokenizationID
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/documents:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-api/assets/documents
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/documents/{documentID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/trovo-api/assets/documents/:documentID
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/fees/confirm/{tokenizationID}:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/assets/fees/confirm/:tokenizationID
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/fees/document:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-api/assets/fees/document
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/fees/documents/{documentID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/trovo-api/assets/fees/documents/:documentID
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/logo:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-api/assets/logo
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/marketplace/list:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/assets/marketplace/list
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/marketplace/primary:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/assets/marketplace/primary
+      tags:
+      - servicelinks
+  /v1/trovo-api/assets/parameters:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/assets/parameters
+      tags:
+      - servicelinks
+  /v1/trovo-api/payment/request/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/payment/request/:targetUser
+      tags:
+      - servicelinks
+  /v1/trovo-api/tokens/mint:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/tokens/mint
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/balance/{walletPublicKey}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/users/balance/:walletPublicKey
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/onboard:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/users/onboard
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/payment:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/users/payment
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/payment-history/{walletPublicKey}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-api/users/payment-history/:walletPublicKey
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/subwallet:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/users/subwallet
+      tags:
+      - servicelinks
+  /v1/trovo-api/users/update-kyc:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-api/users/update-kyc
+      tags:
+      - servicelinks
+  /v1/trovo-manager/banks/{countryCode}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/banks/:countryCode
+      tags:
+      - users
+  /v1/trovo-manager/tokenization:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/tokenization
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/{tokenizationID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/trovo-manager/tokenization/:tokenizationID
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/detail/{tid}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/tokenization/detail/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/document:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-manager/tokenization/document
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/document/{documentID}:
+    delete:
+      responses: {}
+      summary: DELETE /v1/trovo-manager/tokenization/document/:documentID
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/faildd/{tid}:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-manager/tokenization/faildd/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/fee/{tid}:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-manager/tokenization/fee/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/list:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/tokenization/list
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/logo/{tid}:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-manager/tokenization/logo/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/mint/{tid}:
+    post:
+      responses: {}
+      summary: POST /v1/trovo-manager/tokenization/mint/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/salesdate/{tid}:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-manager/tokenization/salesdate/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/stat:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/tokenization/stat
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/update/{tid}:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-manager/tokenization/update/:tid
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/vet/{tid}:
+    put:
+      responses: {}
+      summary: PUT /v1/trovo-manager/tokenization/vet/:tid
+      tags:
+      - users
+  /v1/trovo-manager/wallet-balances/{walletPublicKey}:
+    get:
+      responses: {}
+      summary: GET /v1/trovo-manager/wallet-balances/:walletPublicKey
+      tags:
+      - users
+  /v1/users:
+    delete:
+      responses: {}
+      summary: DELETE /v1/users
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/users
+      tags:
+      - users
+  /v1/users/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/users/:targetUser
+      tags:
+      - users
+  /v1/users/account/recover:
+    post:
+      responses: {}
+      summary: POST /v1/users/account/recover
+      tags:
+      - users
+  /v1/users/account/recovery:
+    delete:
+      responses: {}
+      summary: DELETE /v1/users/account/recovery
+      tags:
+      - users
+    post:
+      responses: {}
+      summary: POST /v1/users/account/recovery
+      tags:
+      - users
+  /v1/users/actions/claim-asset:
+    put:
+      responses: {}
+      summary: PUT /v1/users/actions/claim-asset
+      tags:
+      - users
+  /v1/users/actions/reject-asset:
+    delete:
+      responses: {}
+      summary: DELETE /v1/users/actions/reject-asset
+      tags:
+      - users
+  /v1/users/activate/fiat:
+    get:
+      responses: {}
+      summary: GET /v1/users/activate/fiat
+      tags:
+      - users
+  /v1/users/asset/opt-in:
+    post:
+      responses: {}
+      summary: POST /v1/users/asset/opt-in
+      tags:
+      - users
+  /v1/users/asset/opt-out:
+    delete:
+      responses: {}
+      summary: DELETE /v1/users/asset/opt-out
+      tags:
+      - users
+  /v1/users/fiat/flutterwave:
+    post:
+      responses: {}
+      summary: POST /v1/users/fiat/flutterwave
+      tags:
+      - users
+  /v1/users/fiat/payments:
+    get:
+      responses: {}
+      summary: GET /v1/users/fiat/payments
+      tags:
+      - users
+  /v1/users/inactive-account/recover:
+    post:
+      responses: {}
+      summary: POST /v1/users/inactive-account/recover
+      tags:
+      - users
+  /v1/users/kyc/doja/configs:
+    get:
+      responses: {}
+      summary: GET /v1/users/kyc/doja/configs
+      tags:
+      - users
+  /v1/users/kyc/doja/progress:
+    get:
+      responses: {}
+      summary: GET /v1/users/kyc/doja/progress
+      tags:
+      - users
+  /v1/users/kyc/sumsub/complete/{levelName}:
+    post:
+      responses: {}
+      summary: POST /v1/users/kyc/sumsub/complete/:levelName
+      tags:
+      - users
+  /v1/users/kyc/sumsub/configs:
+    get:
+      responses: {}
+      summary: GET /v1/users/kyc/sumsub/configs
+      tags:
+      - users
+  /v1/users/kyc/sumsub/initiate/{levelName}:
+    post:
+      responses: {}
+      summary: POST /v1/users/kyc/sumsub/initiate/:levelName
+      tags:
+      - users
+  /v1/users/kyc/sumsub/progress:
+    get:
+      responses: {}
+      summary: GET /v1/users/kyc/sumsub/progress
+      tags:
+      - users
+  /v1/users/payment:
+    post:
+      responses: {}
+      summary: POST /v1/users/payment
+      tags:
+      - payments
+  /v1/users/payment/generate/{targetUser}:
+    get:
+      responses: {}
+      summary: GET /v1/users/payment/generate/:targetUser
+      tags:
+      - users
+  /v1/users/payments/{targetPublicKeyForHistory}:
+    get:
+      responses: {}
+      summary: GET /v1/users/payments/:targetPublicKeyForHistory
+      tags:
+      - users
+  /v1/users/servicelinks/authorize/approval/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/users/servicelinks/authorize/approval/:targetUser
+      tags:
+      - servicelinks
+  /v1/users/servicelinks/events/approval/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/users/servicelinks/events/approval/:targetUser
+      tags:
+      - servicelinks
+  /v1/users/servicelinks/login/approval/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/users/servicelinks/login/approval/:targetUser
+      tags:
+      - servicelinks
+  /v1/users/stablerail/banks:
+    get:
+      responses: {}
+      summary: GET /v1/users/stablerail/banks
+      tags:
+      - users
+  /v1/users/stablerail/onboarduser/{bvn}:
+    post:
+      responses: {}
+      summary: POST /v1/users/stablerail/onboarduser/:bvn
+      tags:
+      - users
+  /v1/users/stablerail/onrampcngn/{amount}:
+    post:
+      responses: {}
+      summary: POST /v1/users/stablerail/onrampcngn/:amount
+      tags:
+      - users
+  /v1/users/subwallet:
+    post:
+      responses: {}
+      summary: POST /v1/users/subwallet
+      tags:
+      - users
+  /v1/users/swap:
+    post:
+      responses: {}
+      summary: POST /v1/users/swap
+      tags:
+      - payments
+  /v1/users/trades:
+    post:
+      responses: {}
+      summary: POST /v1/users/trades
+      tags:
+      - users
+  /v1/users/upload-picture:
+    put:
+      responses: {}
+      summary: PUT /v1/users/upload-picture
+      tags:
+      - users
+  /v1/verify-answers/{targetUser}:
+    post:
+      responses: {}
+      summary: POST /v1/verify-answers/:targetUser
+      tags:
+      - users
+  /v1/verify-email-otp/{targetUser}/{otp}:
+    post:
+      responses: {}
+      summary: POST /v1/verify-email-otp/:targetUser/:otp
+      tags:
+      - users
+  /v1/webhook/sumsub/kyc/individual:
+    post:
+      responses: {}
+      summary: POST /v1/webhook/sumsub/kyc/individual
+      tags:
+      - users
+swagger: "2.0"
