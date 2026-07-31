@@ -15,42 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "tags": [
-                    "root"
-                ],
-                "summary": "GET /",
-                "responses": {}
-            }
-        },
-        "/.well-known/apple-app-site-association": {
-            "get": {
-                "tags": [
-                    "root"
-                ],
-                "summary": "GET /.well-known/apple-app-site-association",
-                "responses": {}
-            }
-        },
-        "/.well-known/assetlinks.json": {
-            "get": {
-                "tags": [
-                    "root"
-                ],
-                "summary": "GET /.well-known/assetlinks.json",
-                "responses": {}
-            }
-        },
-        "/.well-known/stellar.toml": {
-            "get": {
-                "tags": [
-                    "root"
-                ],
-                "summary": "GET /.well-known/stellar.toml",
-                "responses": {}
-            }
-        },
         "/v1/account/recovery/request-email-otp/{targetUser}": {
             "post": {
                 "tags": [

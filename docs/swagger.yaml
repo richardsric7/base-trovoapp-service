@@ -7,30 +7,6 @@ info:
   title: Trovo Wallet API
   version: "1.0"
 paths:
-  /:
-    get:
-      responses: {}
-      summary: GET /
-      tags:
-      - root
-  /.well-known/apple-app-site-association:
-    get:
-      responses: {}
-      summary: GET /.well-known/apple-app-site-association
-      tags:
-      - root
-  /.well-known/assetlinks.json:
-    get:
-      responses: {}
-      summary: GET /.well-known/assetlinks.json
-      tags:
-      - root
-  /.well-known/stellar.toml:
-    get:
-      responses: {}
-      summary: GET /.well-known/stellar.toml
-      tags:
-      - root
   /v1/account/recovery/request-email-otp/{targetUser}:
     post:
       responses: {}
