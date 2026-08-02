@@ -41,6 +41,14 @@ import (
 // postServicelinksLoginRequestTargetUserHandler godoc
 // @Summary POST /v1/servicelinks/login/request/:targetUser
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param loginDescription query string false "Login description"
+// @Param body body servicelinkModels.ServiceLinkRequestInput true "Login request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/servicelinks/login/request/{targetUser} [post]
 func postServicelinksLoginRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -172,6 +180,13 @@ func postServicelinksLoginRequestTargetUserHandler(gc *sharedconfig.GlobalConfig
 // postUsersServicelinksLoginApprovalTargetUserHandler godoc
 // @Summary POST /v1/users/servicelinks/login/approval/:targetUser
 // @Tags servicelinks
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param ownerUsername query string true "Owner username"
+// @Param loginId query string true "Login ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/servicelinks/login/approval/{targetUser} [post]
 func postUsersServicelinksLoginApprovalTargetUserHandler(callBackRetryChan chan retryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -399,6 +414,12 @@ func postUsersServicelinksLoginApprovalTargetUserHandler(callBackRetryChan chan 
 // getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler godoc
 // @Summary GET /v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID
 // @Tags servicelinks
+// @Produce json
+// @Param ownerUsername path string true "Owner username"
+// @Param targetUser path string true "Target user"
+// @Param loginID path string true "Login ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/login/verify/{ownerUsername}/{targetUser}/{loginID} [get]
 func getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -577,6 +598,12 @@ func getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler(gc *sharedc
 // postServicelinksTokenRefreshHandler godoc
 // @Summary POST /v1/servicelinks/token/refresh
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body object true "Refresh token payload with refreshToken field"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Router /v1/servicelinks/token/refresh [post]
 func postServicelinksTokenRefreshHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -634,6 +661,9 @@ func postServicelinksTokenRefreshHandler(gc *sharedconfig.GlobalConfig) gin.Hand
 // postServicelinksTokenVerifyHandler godoc
 // @Summary POST /v1/servicelinks/token/verify
 // @Tags servicelinks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
 // @Router /v1/servicelinks/token/verify [post]
 func postServicelinksTokenVerifyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -662,6 +692,9 @@ func postServicelinksTokenVerifyHandler(gc *sharedconfig.GlobalConfig) gin.Handl
 // deleteServicelinksTokenHandler godoc
 // @Summary DELETE /v1/servicelinks/token
 // @Tags servicelinks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/token [delete]
 func deleteServicelinksTokenHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -684,6 +717,13 @@ func deleteServicelinksTokenHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFu
 // postServicelinksAuthorizeRequestTargetUserHandler godoc
 // @Summary POST /v1/servicelinks/authorize/request/:targetUser
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param body body servicelinkModels.ServiceLinkRequestInput true "Authorize request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/servicelinks/authorize/request/{targetUser} [post]
 func postServicelinksAuthorizeRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -824,6 +864,12 @@ func postServicelinksAuthorizeRequestTargetUserHandler(gc *sharedconfig.GlobalCo
 // postServicelinksAuthorizeTokenizedAssetHandler godoc
 // @Summary POST /v1/servicelinks/authorize/tokenized-asset
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body servicelinkModels.ServiceLinkTokenizedAssetAuthRequestInput true "Tokenized asset auth request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/servicelinks/authorize/tokenized-asset [post]
 func postServicelinksAuthorizeTokenizedAssetHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -912,6 +958,12 @@ func postServicelinksAuthorizeTokenizedAssetHandler(gc *sharedconfig.GlobalConfi
 // postServicelinksEventsRequestHandler godoc
 // @Summary POST /v1/servicelinks/events/request
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body servicelinkModels.ServiceLinkEventRequestInput true "Event request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/servicelinks/events/request [post]
 func postServicelinksEventsRequestHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1015,6 +1067,12 @@ func postServicelinksEventsRequestHandler(gc *sharedconfig.GlobalConfig) gin.Han
 // postUsersServicelinksAuthorizeApprovalTargetUserHandler godoc
 // @Summary POST /v1/users/servicelinks/authorize/approval/:targetUser
 // @Tags servicelinks
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param ownerUsername query string true "Owner username"
+// @Param authId query string true "Authorization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/servicelinks/authorize/approval/{targetUser} [post]
 func postUsersServicelinksAuthorizeApprovalTargetUserHandler(callBackRetryChan chan retryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1198,6 +1256,12 @@ func postUsersServicelinksAuthorizeApprovalTargetUserHandler(callBackRetryChan c
 // postUsersServicelinksEventsApprovalTargetUserHandler godoc
 // @Summary POST /v1/users/servicelinks/events/approval/:targetUser
 // @Tags servicelinks
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param ownerUsername query string true "Owner username"
+// @Param eventId query string true "Event ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/servicelinks/events/approval/{targetUser} [post]
 func postUsersServicelinksEventsApprovalTargetUserHandler(callBackRetryChan chan retryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1360,6 +1424,12 @@ func postUsersServicelinksEventsApprovalTargetUserHandler(callBackRetryChan chan
 // getServicelinksAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler godoc
 // @Summary GET /v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId
 // @Tags servicelinks
+// @Produce json
+// @Param ownerUsername path string true "Owner username"
+// @Param targetUser path string true "Target user"
+// @Param authId path string true "Authorization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/authorize/verify/{ownerUsername}/{targetUser}/{authId} [get]
 func getServicelinksAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1471,6 +1541,12 @@ func getServicelinksAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *shar
 // getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler godoc
 // @Summary GET /v1/servicelinks/app/authorize/verify/:ownerUsername/:targetUser/:authId
 // @Tags servicelinks
+// @Produce json
+// @Param ownerUsername path string true "Owner username"
+// @Param targetUser path string true "Target user"
+// @Param authId path string true "Authorization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/app/authorize/verify/{ownerUsername}/{targetUser}/{authId} [get]
 func getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1582,6 +1658,16 @@ func getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *s
 // getServicelinksPaymentRequestTargetUserHandler godoc
 // @Summary GET /v1/servicelinks/payment/request/:targetUser
 // @Tags servicelinks
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param ownerUsername query string false "Owner username"
+// @Param paymentDestination query string false "Payment destination"
+// @Param assetCode query string false "Asset code"
+// @Param assetIssuer query string false "Asset issuer"
+// @Param amount query string false "Amount"
+// @Param memo query string false "Memo"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/payment/request/{targetUser} [get]
 func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1698,6 +1784,16 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 // getTrovoApiPaymentRequestTargetUserHandler godoc
 // @Summary GET /v1/trovo-api/payment/request/:targetUser
 // @Tags servicelinks
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param ownerUsername query string false "Owner username"
+// @Param paymentDestination query string false "Payment destination"
+// @Param assetCode query string false "Asset code"
+// @Param assetIssuer query string false "Asset issuer"
+// @Param amount query string false "Amount"
+// @Param memo query string false "Memo"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/payment/request/{targetUser} [get]
 func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1814,6 +1910,10 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 // getServicelinksTokenizedAssetAssetCodeHandler godoc
 // @Summary GET /v1/servicelinks/tokenized-asset/:assetCode
 // @Tags servicelinks
+// @Produce json
+// @Param assetCode path string true "Asset code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/tokenized-asset/{assetCode} [get]
 func getServicelinksTokenizedAssetAssetCodeHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1882,6 +1982,11 @@ func getServicelinksTokenizedAssetAssetCodeHandler(gc *sharedconfig.GlobalConfig
 // getServicelinksOwnerUsernameTargetUserUserinfoHandler godoc
 // @Summary GET /v1/servicelinks/:ownerUsername/:targetUser/userinfo
 // @Tags servicelinks
+// @Produce json
+// @Param ownerUsername path string true "Owner username"
+// @Param targetUser path string true "Target user"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/servicelinks/{ownerUsername}/{targetUser}/userinfo [get]
 func getServicelinksOwnerUsernameTargetUserUserinfoHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1977,6 +2082,14 @@ func getServicelinksOwnerUsernameTargetUserUserinfoHandler(gc *sharedconfig.Glob
 // postServicelinksOwnerUsernameTargetUserPushHandler godoc
 // @Summary POST /v1/servicelinks/:ownerUsername/:targetUser/push
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param ownerUsername path string true "Owner username"
+// @Param targetUser path string true "Target user"
+// @Param body body servicelinkModels.ServiceLinkPushNotificationInput true "Push notification payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/servicelinks/{ownerUsername}/{targetUser}/push [post]
 func postServicelinksOwnerUsernameTargetUserPushHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2108,6 +2221,12 @@ func postServicelinksOwnerUsernameTargetUserPushHandler(gc *sharedconfig.GlobalC
 // postTrovoApiUsersOnboardHandler godoc
 // @Summary POST /v1/trovo-api/users/onboard
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserRegistrationInfo true "User registration payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/onboard [post]
 func postTrovoApiUsersOnboardHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2215,6 +2334,12 @@ func postTrovoApiUsersOnboardHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 // postTrovoApiUsersUpdateKycHandler godoc
 // @Summary POST /v1/trovo-api/users/update-kyc
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body servicelinkModels.ServiceLinkUpdateKycInput true "KYC update payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/update-kyc [post]
 func postTrovoApiUsersUpdateKycHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2351,6 +2476,12 @@ func postTrovoApiUsersUpdateKycHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 // postTrovoApiTokensMintHandler godoc
 // @Summary POST /v1/trovo-api/tokens/mint
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body userModels.MintingInfo true "Minting payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/tokens/mint [post]
 func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2488,6 +2619,10 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 // getTrovoApiUsersBalanceWalletPublicKeyHandler godoc
 // @Summary GET /v1/trovo-api/users/balance/:walletPublicKey
 // @Tags servicelinks
+// @Produce json
+// @Param walletPublicKey path string true "Wallet public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/balance/{walletPublicKey} [get]
 func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2620,6 +2755,10 @@ func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig
 // getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler godoc
 // @Summary GET /v1/trovo-api/users/payment-history/:walletPublicKey
 // @Tags servicelinks
+// @Produce json
+// @Param walletPublicKey path string true "Wallet public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/payment-history/{walletPublicKey} [get]
 func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2769,6 +2908,12 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 // postTrovoApiUsersPaymentHandler godoc
 // @Summary POST /v1/trovo-api/users/payment
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body paymentModels.PaymentInfo true "Payment payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/payment [post]
 func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3228,6 +3373,12 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 // postTrovoApiUsersSubwalletHandler godoc
 // @Summary POST /v1/trovo-api/users/subwallet
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body userModels.ServiceLinkSubWalletInfo true "Sub-wallet payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/users/subwallet [post]
 func postTrovoApiUsersSubwalletHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3327,6 +3478,9 @@ func postTrovoApiUsersSubwalletHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 // getTrovoApiAssetsParametersHandler godoc
 // @Summary GET /v1/trovo-api/assets/parameters
 // @Tags servicelinks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/parameters [get]
 func getTrovoApiAssetsParametersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3394,6 +3548,10 @@ func getTrovoApiAssetsParametersHandler(gc *sharedconfig.GlobalConfig) gin.Handl
 // getTrovoApiAssetsBankListCountryCodeHandler godoc
 // @Summary GET /v1/trovo-api/assets/bank-list/:countryCode
 // @Tags servicelinks
+// @Produce json
+// @Param countryCode path string true "Country code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/bank-list/{countryCode} [get]
 func getTrovoApiAssetsBankListCountryCodeHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3444,6 +3602,9 @@ func getTrovoApiAssetsBankListCountryCodeHandler(gc *sharedconfig.GlobalConfig) 
 // getTrovoApiAssetsAdminListHandler godoc
 // @Summary GET /v1/trovo-api/assets/admin/list
 // @Tags servicelinks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/admin/list [get]
 func getTrovoApiAssetsAdminListHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3507,6 +3668,9 @@ func getTrovoApiAssetsAdminListHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 // getTrovoApiAssetsMarketplaceListHandler godoc
 // @Summary GET /v1/trovo-api/assets/marketplace/list
 // @Tags servicelinks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/marketplace/list [get]
 func getTrovoApiAssetsMarketplaceListHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3570,6 +3734,12 @@ func getTrovoApiAssetsMarketplaceListHandler(gc *sharedconfig.GlobalConfig) gin.
 // postTrovoApiAssetsApplyHandler godoc
 // @Summary POST /v1/trovo-api/assets/apply
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body userModels.TokenizedAssetJSONInput true "Tokenized asset application payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/apply [post]
 func postTrovoApiAssetsApplyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3661,6 +3831,12 @@ func postTrovoApiAssetsApplyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFu
 // putTrovoApiAssetsLogoHandler godoc
 // @Summary PUT /v1/trovo-api/assets/logo
 // @Tags servicelinks
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Logo image file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/logo [put]
 func putTrovoApiAssetsLogoHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3797,6 +3973,12 @@ func putTrovoApiAssetsLogoHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc
 // putTrovoApiAssetsDocumentsHandler godoc
 // @Summary PUT /v1/trovo-api/assets/documents
 // @Tags servicelinks
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Document file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/documents [put]
 func putTrovoApiAssetsDocumentsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3961,6 +4143,12 @@ func putTrovoApiAssetsDocumentsHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 // putTrovoApiAssetsFeesDocumentHandler godoc
 // @Summary PUT /v1/trovo-api/assets/fees/document
 // @Tags servicelinks
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Proof of payment file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/fees/document [put]
 func putTrovoApiAssetsFeesDocumentHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4153,6 +4341,11 @@ func putTrovoApiAssetsFeesDocumentHandler(gc *sharedconfig.GlobalConfig) gin.Han
 // postTrovoApiAssetsFeesConfirmTokenizationIDHandler godoc
 // @Summary POST /v1/trovo-api/assets/fees/confirm/:tokenizationID
 // @Tags servicelinks
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/fees/confirm/{tokenizationID} [post]
 func postTrovoApiAssetsFeesConfirmTokenizationIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4231,6 +4424,10 @@ func postTrovoApiAssetsFeesConfirmTokenizationIDHandler(gc *sharedconfig.GlobalC
 // deleteTrovoApiAssetsTokenizationIDHandler godoc
 // @Summary DELETE /v1/trovo-api/assets/:tokenizationID
 // @Tags servicelinks
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/{tokenizationID} [delete]
 func deleteTrovoApiAssetsTokenizationIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4308,6 +4505,10 @@ func deleteTrovoApiAssetsTokenizationIDHandler(gc *sharedconfig.GlobalConfig) gi
 // deleteTrovoApiAssetsDocumentsDocumentIDHandler godoc
 // @Summary DELETE /v1/trovo-api/assets/documents/:documentID
 // @Tags servicelinks
+// @Produce json
+// @Param documentID path string true "Document ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/documents/{documentID} [delete]
 func deleteTrovoApiAssetsDocumentsDocumentIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4414,6 +4615,10 @@ func deleteTrovoApiAssetsDocumentsDocumentIDHandler(gc *sharedconfig.GlobalConfi
 // deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler godoc
 // @Summary DELETE /v1/trovo-api/assets/fees/documents/:documentID
 // @Tags servicelinks
+// @Produce json
+// @Param documentID path string true "Document ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/fees/documents/{documentID} [delete]
 func deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4520,6 +4725,13 @@ func deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler(gc *sharedconfig.GlobalC
 // postTrovoApiAssetsConfirmApplicationTokenizationIDHandler godoc
 // @Summary POST /v1/trovo-api/assets/confirm-application/:tokenizationID
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Param body body userModels.ConfirmTokenizedAssetJSONInput true "Confirm tokenization payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/confirm-application/{tokenizationID} [post]
 func postTrovoApiAssetsConfirmApplicationTokenizationIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4608,6 +4820,12 @@ func postTrovoApiAssetsConfirmApplicationTokenizationIDHandler(gc *sharedconfig.
 // postTrovoApiAssetsMarketplacePrimaryHandler godoc
 // @Summary POST /v1/trovo-api/assets/marketplace/primary
 // @Tags servicelinks
+// @Accept json
+// @Produce json
+// @Param body body userModels.TokenizedAssetPrimarySalesPurchaseInputForServiceLink true "Primary sales purchase payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-api/assets/marketplace/primary [post]
 func postTrovoApiAssetsMarketplacePrimaryHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
