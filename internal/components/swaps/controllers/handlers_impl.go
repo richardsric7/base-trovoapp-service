@@ -23,6 +23,12 @@ import (
 // postUsersSwapHandler godoc
 // @Summary POST /v1/users/swap
 // @Tags payments
+// @Accept json
+// @Produce json
+// @Param body body swapModels.SwapSendInfo true "Swap payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/swap [post]
 func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -180,6 +186,12 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 // postSharedAccessSwapHandler godoc
 // @Summary POST /v1/shared-access/swap
 // @Tags payments
+// @Accept json
+// @Produce json
+// @Param body body swapModels.SwapSendInfo true "Shared access swap payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/swap [post]
 func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {

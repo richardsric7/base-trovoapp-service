@@ -28,6 +28,12 @@ import (
 // postUsersPaymentHandler godoc
 // @Summary POST /v1/users/payment
 // @Tags payments
+// @Accept json
+// @Produce json
+// @Param body body paymentModels.PaymentInfo true "Payment payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/payment [post]
 func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -455,6 +461,12 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 // postSharedAccessPaymentHandler godoc
 // @Summary POST /v1/shared-access/payment
 // @Tags payments
+// @Accept json
+// @Produce json
+// @Param body body paymentModels.PaymentInfo true "Shared access payment payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/payment [post]
 func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {

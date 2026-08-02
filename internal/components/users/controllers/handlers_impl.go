@@ -32,6 +32,10 @@ import (
 // getStreamWsTargetUserHandler godoc
 // @Summary GET /v1/stream/ws/:targetUser
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/stream/ws/{targetUser} [get]
 func getStreamWsTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -71,6 +75,9 @@ func getStreamWsTargetUserHandler(callBackRetryChan chan userModels.RetryCallbac
 // getStreamOrderbookHandler godoc
 // @Summary GET /v1/stream/orderbook
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/stream/orderbook [get]
 func getStreamOrderbookHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -86,6 +93,9 @@ func getStreamOrderbookHandler(callBackRetryChan chan userModels.RetryCallbacks,
 // getStreamTradechartHandler godoc
 // @Summary GET /v1/stream/tradechart
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/stream/tradechart [get]
 func getStreamTradechartHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -101,6 +111,10 @@ func getStreamTradechartHandler(callBackRetryChan chan userModels.RetryCallbacks
 // getShortlinksLinkIDHandler godoc
 // @Summary GET /v1/shortlinks/:linkID
 // @Tags users
+// @Produce json
+// @Param linkID path string true "Shortlink ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/shortlinks/{linkID} [get]
 func getShortlinksLinkIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -120,6 +134,10 @@ func getShortlinksLinkIDHandler(callBackRetryChan chan userModels.RetryCallbacks
 // getUsersPaymentsTargetPublicKeyForHistoryHandler godoc
 // @Summary GET /v1/users/payments/:targetPublicKeyForHistory
 // @Tags users
+// @Produce json
+// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/payments/{targetPublicKeyForHistory} [get]
 func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -262,6 +280,9 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 // getCuratedAssetsUsersHandler godoc
 // @Summary GET /v1/curated-assets/users
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/curated-assets/users [get]
 func getCuratedAssetsUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -303,6 +324,12 @@ func getCuratedAssetsUsersHandler(callBackRetryChan chan userModels.RetryCallbac
 // getUsersTargetUserHandler godoc
 // @Summary GET /v1/users/:targetUser
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param type query string false "Query type"
+// @Param pnt query string false "Pagination token"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/{targetUser} [get]
 func getUsersTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -426,6 +453,12 @@ func getUsersTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks,
 // postUsersHandler godoc
 // @Summary POST /v1/users
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserRegistrationInfo true "User registration payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users [post]
 func postUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -506,6 +539,12 @@ func postUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *shar
 // deleteUsersHandler godoc
 // @Summary DELETE /v1/users
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserAccountDeletionPayload true "Account deletion payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users [delete]
 func deleteUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -563,6 +602,12 @@ func deleteUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sh
 // postWebhookSumsubKycIndividualHandler godoc
 // @Summary POST /v1/webhook/sumsub/kyc/individual
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.SumSubReviewResultInput true "SumSub webhook payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/webhook/sumsub/kyc/individual [post]
 func postWebhookSumsubKycIndividualHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -612,6 +657,11 @@ func postWebhookSumsubKycIndividualHandler(callBackRetryChan chan userModels.Ret
 // postUsersKycSumsubInitiateLevelNameHandler godoc
 // @Summary POST /v1/users/kyc/sumsub/initiate/:levelName
 // @Tags users
+// @Produce json
+// @Param levelName path string true "KYC level name"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/kyc/sumsub/initiate/{levelName} [post]
 func postUsersKycSumsubInitiateLevelNameHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -660,6 +710,9 @@ func postUsersKycSumsubInitiateLevelNameHandler(callBackRetryChan chan userModel
 // getUsersKycSumsubProgressHandler godoc
 // @Summary GET /v1/users/kyc/sumsub/progress
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/kyc/sumsub/progress [get]
 func getUsersKycSumsubProgressHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -691,6 +744,9 @@ func getUsersKycSumsubProgressHandler(callBackRetryChan chan userModels.RetryCal
 // getUsersKycDojaProgressHandler godoc
 // @Summary GET /v1/users/kyc/doja/progress
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/kyc/doja/progress [get]
 func getUsersKycDojaProgressHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -722,6 +778,9 @@ func getUsersKycDojaProgressHandler(callBackRetryChan chan userModels.RetryCallb
 // getUsersActivateFiatHandler godoc
 // @Summary GET /v1/users/activate/fiat
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/activate/fiat [get]
 func getUsersActivateFiatHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -752,6 +811,9 @@ func getUsersActivateFiatHandler(callBackRetryChan chan userModels.RetryCallback
 // getUsersFiatPaymentsHandler godoc
 // @Summary GET /v1/users/fiat/payments
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/fiat/payments [get]
 func getUsersFiatPaymentsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -783,6 +845,12 @@ func getUsersFiatPaymentsHandler(callBackRetryChan chan userModels.RetryCallback
 // postUsersFiatFlutterwaveHandler godoc
 // @Summary POST /v1/users/fiat/flutterwave
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.FiatPaymentInvoice true "Fiat payment invoice"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/fiat/flutterwave [post]
 func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -844,6 +912,11 @@ func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCall
 // postUsersKycSumsubCompleteLevelNameHandler godoc
 // @Summary POST /v1/users/kyc/sumsub/complete/:levelName
 // @Tags users
+// @Produce json
+// @Param levelName path string true "KYC level name"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/kyc/sumsub/complete/{levelName} [post]
 func postUsersKycSumsubCompleteLevelNameHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -892,6 +965,9 @@ func postUsersKycSumsubCompleteLevelNameHandler(callBackRetryChan chan userModel
 // getUsersKycSumsubConfigsHandler godoc
 // @Summary GET /v1/users/kyc/sumsub/configs
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/kyc/sumsub/configs [get]
 func getUsersKycSumsubConfigsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -935,6 +1011,9 @@ func getUsersKycSumsubConfigsHandler(callBackRetryChan chan userModels.RetryCall
 // getUsersKycDojaConfigsHandler godoc
 // @Summary GET /v1/users/kyc/doja/configs
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/kyc/doja/configs [get]
 func getUsersKycDojaConfigsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -977,6 +1056,12 @@ func getUsersKycDojaConfigsHandler(callBackRetryChan chan userModels.RetryCallba
 // postUsersSubwalletHandler godoc
 // @Summary POST /v1/users/subwallet
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.SubWalletInfo true "Sub-wallet payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/subwallet [post]
 func postUsersSubwalletHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1043,6 +1128,12 @@ func postUsersSubwalletHandler(callBackRetryChan chan userModels.RetryCallbacks,
 // putUsersUploadPictureHandler godoc
 // @Summary PUT /v1/users/upload-picture
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param profilePicture formData file true "Profile picture (jpg/jpeg/png/gif, max 700kb)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/upload-picture [put]
 func putUsersUploadPictureHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1128,6 +1219,9 @@ func putUsersUploadPictureHandler(callBackRetryChan chan userModels.RetryCallbac
 // getUsersStablerailBanksHandler godoc
 // @Summary GET /v1/users/stablerail/banks
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/stablerail/banks [get]
 func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1158,6 +1252,11 @@ func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallb
 // postUsersStablerailOnboarduserBvnHandler godoc
 // @Summary POST /v1/users/stablerail/onboarduser/:bvn
 // @Tags users
+// @Produce json
+// @Param bvn path string true "BVN (11 digits)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/stablerail/onboarduser/{bvn} [post]
 func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1205,6 +1304,11 @@ func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.
 // postUsersStablerailOnrampcngnAmountHandler godoc
 // @Summary POST /v1/users/stablerail/onrampcngn/:amount
 // @Tags users
+// @Produce json
+// @Param amount path string true "Amount"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/stablerail/onrampcngn/{amount} [post]
 func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1267,6 +1371,12 @@ func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModel
 // postUsersAssetOptInHandler godoc
 // @Summary POST /v1/users/asset/opt-in
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.Trustline true "Trustline payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/asset/opt-in [post]
 func postUsersAssetOptInHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1368,6 +1478,12 @@ func postUsersAssetOptInHandler(callBackRetryChan chan userModels.RetryCallbacks
 // postSharedAccessUsersAssetOptInHandler godoc
 // @Summary POST /v1/shared-access/users/asset/opt-in
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.Trustline true "Trustline payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/asset/opt-in [post]
 func postSharedAccessUsersAssetOptInHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1506,6 +1622,12 @@ func postSharedAccessUsersAssetOptInHandler(callBackRetryChan chan userModels.Re
 // deleteUsersAssetOptOutHandler godoc
 // @Summary DELETE /v1/users/asset/opt-out
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.Trustline true "Trustline payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/asset/opt-out [delete]
 func deleteUsersAssetOptOutHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1609,6 +1731,12 @@ func deleteUsersAssetOptOutHandler(callBackRetryChan chan userModels.RetryCallba
 // deleteSharedAccessUsersAssetOptOutHandler godoc
 // @Summary DELETE /v1/shared-access/users/asset/opt-out
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.Trustline true "Trustline payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/asset/opt-out [delete]
 func deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1744,6 +1872,12 @@ func deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan chan userModels
 // putUsersActionsClaimAssetHandler godoc
 // @Summary PUT /v1/users/actions/claim-asset
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.PendingAssetToClaim true "Pending asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/actions/claim-asset [put]
 func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1862,6 +1996,12 @@ func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCal
 // deleteUsersActionsRejectAssetHandler godoc
 // @Summary DELETE /v1/users/actions/reject-asset
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.PendingAssetToClaim true "Pending asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/actions/reject-asset [delete]
 func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -1982,6 +2122,12 @@ func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.Retr
 // putSharedAccessUsersActionsClaimAssetHandler godoc
 // @Summary PUT /v1/shared-access/users/actions/claim-asset
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.PendingAssetToClaim true "Pending asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/actions/claim-asset [put]
 func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2132,6 +2278,12 @@ func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userMod
 // deleteSharedAccessUsersActionsRejectAssetHandler godoc
 // @Summary DELETE /v1/shared-access/users/actions/reject-asset
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.PendingAssetToClaim true "Pending asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/actions/reject-asset [delete]
 func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2275,6 +2427,15 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 // getUsersPaymentGenerateTargetUserHandler godoc
 // @Summary GET /v1/users/payment/generate/:targetUser
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param paymentDestination query string false "Payment destination"
+// @Param assetCode query string false "Asset code"
+// @Param assetIssuer query string false "Asset issuer"
+// @Param amount query string false "Amount"
+// @Param memo query string false "Memo"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/users/payment/generate/{targetUser} [get]
 func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2380,6 +2541,12 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 // postSecurityQuestionsHandler godoc
 // @Summary POST /v1/security-questions
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserSecurityAnswer true "Security answers payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/security-questions [post]
 func postSecurityQuestionsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2449,6 +2616,10 @@ func postSecurityQuestionsHandler(callBackRetryChan chan userModels.RetryCallbac
 // getSecurityQuestionsTargetUserHandler godoc
 // @Summary GET /v1/security-questions/:targetUser
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/security-questions/{targetUser} [get]
 func getSecurityQuestionsTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2495,6 +2666,12 @@ func getSecurityQuestionsTargetUserHandler(callBackRetryChan chan userModels.Ret
 // postVerifyAnswersTargetUserHandler godoc
 // @Summary POST /v1/verify-answers/:targetUser
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param body body userModels.UserSecurityAnswer true "Security answers"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/verify-answers/{targetUser} [post]
 func postVerifyAnswersTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2554,6 +2731,10 @@ func postVerifyAnswersTargetUserHandler(callBackRetryChan chan userModels.RetryC
 // postAccountRecoveryRequestEmailOtpTargetUserHandler godoc
 // @Summary POST /v1/account/recovery/request-email-otp/:targetUser
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/account/recovery/request-email-otp/{targetUser} [post]
 func postAccountRecoveryRequestEmailOtpTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2600,6 +2781,11 @@ func postAccountRecoveryRequestEmailOtpTargetUserHandler(callBackRetryChan chan 
 // postAccountRecoveryVerifyEmailOtpTargetUserOtpHandler godoc
 // @Summary POST /v1/account/recovery/verify-email-otp/:targetUser/:otp
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param otp path string true "One-time password"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/account/recovery/verify-email-otp/{targetUser}/{otp} [post]
 func postAccountRecoveryVerifyEmailOtpTargetUserOtpHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2646,6 +2832,11 @@ func postAccountRecoveryVerifyEmailOtpTargetUserOtpHandler(callBackRetryChan cha
 // postVerifyEmailOtpTargetUserOtpHandler godoc
 // @Summary POST /v1/verify-email-otp/:targetUser/:otp
 // @Tags users
+// @Produce json
+// @Param targetUser path string true "Target user identifier"
+// @Param otp path string true "One-time password"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/verify-email-otp/{targetUser}/{otp} [post]
 func postVerifyEmailOtpTargetUserOtpHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2692,6 +2883,12 @@ func postVerifyEmailOtpTargetUserOtpHandler(callBackRetryChan chan userModels.Re
 // postUsersAccountRecoveryHandler godoc
 // @Summary POST /v1/users/account/recovery
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserAccountRecoveryPayload true "Account recovery payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/account/recovery [post]
 func postUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2760,6 +2957,12 @@ func postUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCall
 // deleteUsersAccountRecoveryHandler godoc
 // @Summary DELETE /v1/users/account/recovery
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserAccountRecoveryPayload true "Account recovery payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/account/recovery [delete]
 func deleteUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2827,6 +3030,12 @@ func deleteUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCa
 // postUsersAccountRecoverHandler godoc
 // @Summary POST /v1/users/account/recover
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.AccountRecoveryRequest true "Account recovery request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/account/recover [post]
 func postUsersAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2932,6 +3141,12 @@ func postUsersAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallb
 // postUsersInactiveAccountRecoverHandler godoc
 // @Summary POST /v1/users/inactive-account/recover
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.InactiveAccountRecoveryRequest true "Inactive account recovery request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/inactive-account/recover [post]
 func postUsersInactiveAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -2997,6 +3212,12 @@ func postUsersInactiveAccountRecoverHandler(callBackRetryChan chan userModels.Re
 // postSharedAccessUsersAccountHandler godoc
 // @Summary POST /v1/shared-access/users/account
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserWalletSharedAccessInfo true "Shared access info"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/account [post]
 func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3116,6 +3337,12 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 // putSharedAccessUsersAccountHandler godoc
 // @Summary PUT /v1/shared-access/users/account
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.ModifySharedAccessInfo true "Modify shared access info"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/account [put]
 func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3275,6 +3502,12 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 // deleteSharedAccessUsersAccountHandler godoc
 // @Summary DELETE /v1/shared-access/users/account
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.DisableSharedAccessInfo true "Disable shared access info"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/users/account [delete]
 func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3459,6 +3692,9 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 // getSharedAccessApprovalsHandler godoc
 // @Summary GET /v1/shared-access/approvals
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/shared-access/approvals [get]
 func getSharedAccessApprovalsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3510,6 +3746,10 @@ func getSharedAccessApprovalsHandler(callBackRetryChan chan userModels.RetryCall
 // getSharedAccessApprovalIDHandler godoc
 // @Summary GET /v1/shared-access/approval/:ID
 // @Tags users
+// @Produce json
+// @Param ID path string true "Approval ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/shared-access/approval/{ID} [get]
 func getSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3590,6 +3830,13 @@ func getSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCal
 // postSharedAccessApprovalIDHandler godoc
 // @Summary POST /v1/shared-access/approval/:ID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param ID path string true "Approval ID"
+// @Param body body userModels.ApprovalPayload true "Approval payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/approval/{ID} [post]
 func postSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3755,6 +4002,13 @@ func postSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCa
 // deleteSharedAccessApprovalIDHandler godoc
 // @Summary DELETE /v1/shared-access/approval/:ID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param ID path string true "Approval ID"
+// @Param body body userModels.RejectPayload true "Reject payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/approval/{ID} [delete]
 func deleteSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -3920,6 +4174,9 @@ func deleteSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.Retry
 // getSharedAccessWalletBalancesHandler godoc
 // @Summary GET /v1/shared-access/wallet-balances
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/shared-access/wallet-balances [get]
 func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4030,6 +4287,10 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 // getTrovoManagerWalletBalancesWalletPublicKeyHandler godoc
 // @Summary GET /v1/trovo-manager/wallet-balances/:walletPublicKey
 // @Tags users
+// @Produce json
+// @Param walletPublicKey path string true "Wallet public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/wallet-balances/{walletPublicKey} [get]
 func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4121,6 +4382,12 @@ func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan 
 // postUsersTradesHandler godoc
 // @Summary POST /v1/users/trades
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.MarketOfferRequest true "Market offer request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/users/trades [post]
 func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4222,6 +4489,11 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
 // @Summary GET /v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory
 // @Tags users
+// @Produce json
+// @Param currency path string true "Currency code"
+// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory} [get]
 func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4365,6 +4637,11 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 // getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
 // @Summary GET /v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory
 // @Tags users
+// @Produce json
+// @Param currency path string true "Currency code"
+// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory} [get]
 func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4508,6 +4785,10 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 // getCryptoWithdrawalNetworksCurrencyHandler godoc
 // @Summary GET /v1/crypto/withdrawal-networks/:currency
 // @Tags users
+// @Produce json
+// @Param currency path string true "Currency code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/crypto/withdrawal-networks/{currency} [get]
 func getCryptoWithdrawalNetworksCurrencyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4545,6 +4826,12 @@ func getCryptoWithdrawalNetworksCurrencyHandler(callBackRetryChan chan userModel
 // postCryptoWithdrawalsHandler godoc
 // @Summary POST /v1/crypto/withdrawals
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.WithdrawalRequestInput true "Withdrawal request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/crypto/withdrawals [post]
 func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4647,6 +4934,12 @@ func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbac
 // postSharedAccessCryptoWithdrawalsHandler godoc
 // @Summary POST /v1/shared-access/crypto/withdrawals
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.WithdrawalRequestInput true "Withdrawal request payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/crypto/withdrawals [post]
 func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4790,6 +5083,11 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 // postCryptoGenerateAddressesCurrencyHandler godoc
 // @Summary POST /v1/crypto/generate-addresses/:currency
 // @Tags users
+// @Produce json
+// @Param currency path string true "Currency code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/crypto/generate-addresses/{currency} [post]
 func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4869,6 +5167,9 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 // getPatronHandler godoc
 // @Summary GET /v1/patron
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/patron [get]
 func getPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4915,6 +5216,12 @@ func getPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *shar
 // postPatronHandler godoc
 // @Summary POST /v1/patron
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.PatronSubscriptionInput true "Patron subscription payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/patron [post]
 func postPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -4997,6 +5304,9 @@ func postPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sha
 // getClosedGroupsHandler godoc
 // @Summary GET /v1/closed-groups
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/closed-groups [get]
 func getClosedGroupsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5038,6 +5348,10 @@ func getClosedGroupsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // getBanksCountryCodeHandler godoc
 // @Summary GET /v1/banks/:countryCode
 // @Tags users
+// @Produce json
+// @Param countryCode path string true "Country code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/banks/{countryCode} [get]
 func getBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5079,6 +5393,10 @@ func getBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks
 // getFormsFormIdHandler godoc
 // @Summary GET /v1/forms/:formId
 // @Tags users
+// @Produce json
+// @Param formId path string true "Form ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/forms/{formId} [get]
 func getFormsFormIdHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5130,6 +5448,10 @@ func getFormsFormIdHandler(callBackRetryChan chan userModels.RetryCallbacks, gc 
 // getTrovoManagerBanksCountryCodeHandler godoc
 // @Summary GET /v1/trovo-manager/banks/:countryCode
 // @Tags users
+// @Produce json
+// @Param countryCode path string true "Country code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/banks/{countryCode} [get]
 func getTrovoManagerBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5184,6 +5506,9 @@ func getTrovoManagerBanksCountryCodeHandler(callBackRetryChan chan userModels.Re
 // getPublicTokenizationHandler godoc
 // @Summary GET /v1/public/tokenization
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/public/tokenization [get]
 func getPublicTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5239,6 +5564,9 @@ func getPublicTokenizationHandler(callBackRetryChan chan userModels.RetryCallbac
 // getTokenizationHandler godoc
 // @Summary GET /v1/tokenization
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization [get]
 func getTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5299,6 +5627,9 @@ func getTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // getTrovoManagerTokenizationHandler godoc
 // @Summary GET /v1/trovo-manager/tokenization
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization [get]
 func getTrovoManagerTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5371,6 +5702,10 @@ func getTrovoManagerTokenizationHandler(callBackRetryChan chan userModels.RetryC
 // getTokenizationDetailTidHandler godoc
 // @Summary GET /v1/tokenization/detail/:tid
 // @Tags users
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/detail/{tid} [get]
 func getTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5434,6 +5769,10 @@ func getTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCall
 // getTrovoManagerTokenizationDetailTidHandler godoc
 // @Summary GET /v1/trovo-manager/tokenization/detail/:tid
 // @Tags users
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/detail/{tid} [get]
 func getTrovoManagerTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5509,6 +5848,9 @@ func getTrovoManagerTokenizationDetailTidHandler(callBackRetryChan chan userMode
 // getTokenizationListHandler godoc
 // @Summary GET /v1/tokenization/list
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/list [get]
 func getTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5550,6 +5892,9 @@ func getTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks
 // getTrovoManagerTokenizationListHandler godoc
 // @Summary GET /v1/trovo-manager/tokenization/list
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/list [get]
 func getTrovoManagerTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5603,6 +5948,9 @@ func getTrovoManagerTokenizationListHandler(callBackRetryChan chan userModels.Re
 // getTrovoManagerTokenizationStatHandler godoc
 // @Summary GET /v1/trovo-manager/tokenization/stat
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/stat [get]
 func getTrovoManagerTokenizationStatHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5656,6 +6004,13 @@ func getTrovoManagerTokenizationStatHandler(callBackRetryChan chan userModels.Re
 // postTokenizationExpressedInterestsTokenizedAssetIDHandler godoc
 // @Summary POST /v1/tokenization/expressed-interests/:tokenizedAssetID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param body body userModels.ExpressionOfInterestInput true "Expression of interest payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/expressed-interests/{tokenizedAssetID} [post]
 func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5772,6 +6127,13 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 // postTokenizationSubscriptionsTokenizedAssetIDHandler godoc
 // @Summary POST /v1/tokenization/subscriptions/:tokenizedAssetID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param body body userModels.TokenizedAssetSubscriptionInput true "Subscription payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/subscriptions/{tokenizedAssetID} [post]
 func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -5889,6 +6251,13 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 // postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler godoc
 // @Summary POST /v1/shared-access/tokenization/subscriptions/:tokenizedAssetID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param body body userModels.TokenizedAssetSubscriptionInput true "Subscription payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/shared-access/tokenization/subscriptions/{tokenizedAssetID} [post]
 func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6067,6 +6436,9 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 // getTokenizationExpressedInterestsHandler godoc
 // @Summary GET /v1/tokenization/expressed-interests
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/expressed-interests [get]
 func getTokenizationExpressedInterestsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6108,6 +6480,9 @@ func getTokenizationExpressedInterestsHandler(callBackRetryChan chan userModels.
 // getTokenizationSubscriptionsHandler godoc
 // @Summary GET /v1/tokenization/subscriptions
 // @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/subscriptions [get]
 func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6177,6 +6552,12 @@ func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.Retry
 // postTokenizationHandler godoc
 // @Summary POST /v1/tokenization
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.TokenizedAssetJSONInput true "Tokenized asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization [post]
 func postTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6236,6 +6617,13 @@ func postTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 // putTrovoManagerTokenizationUpdateTidHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/update/:tid
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param body body userModels.TokenizedAssetJSONInput true "Tokenized asset payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/update/{tid} [put]
 func putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6323,6 +6711,13 @@ func putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan chan userMode
 // putTrovoManagerTokenizationSalesdateTidHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/salesdate/:tid
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param body body userModels.TokenizedAssetSalesDatesInput true "Sales dates payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/salesdate/{tid} [put]
 func putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6414,6 +6809,13 @@ func putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan chan userM
 // putTrovoManagerTokenizationVetTidHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/vet/:tid
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param body body userModels.VetTokenizedAssetJSONInput true "Vet payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/vet/{tid} [put]
 func putTrovoManagerTokenizationVetTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6508,6 +6910,13 @@ func putTrovoManagerTokenizationVetTidHandler(callBackRetryChan chan userModels.
 // postTrovoManagerTokenizationFailddTidHandler godoc
 // @Summary POST /v1/trovo-manager/tokenization/faildd/:tid
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param body body userModels.FailDueDiligence true "Fail due-diligence payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/faildd/{tid} [post]
 func postTrovoManagerTokenizationFailddTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6604,6 +7013,11 @@ func postTrovoManagerTokenizationFailddTidHandler(callBackRetryChan chan userMod
 // postTrovoManagerTokenizationFeeTidHandler godoc
 // @Summary POST /v1/trovo-manager/tokenization/fee/:tid
 // @Tags users
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/fee/{tid} [post]
 func postTrovoManagerTokenizationFeeTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6699,6 +7113,11 @@ func postTrovoManagerTokenizationFeeTidHandler(callBackRetryChan chan userModels
 // postTrovoManagerTokenizationMintTidHandler godoc
 // @Summary POST /v1/trovo-manager/tokenization/mint/:tid
 // @Tags users
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/mint/{tid} [post]
 func postTrovoManagerTokenizationMintTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6795,6 +7214,13 @@ func postTrovoManagerTokenizationMintTidHandler(callBackRetryChan chan userModel
 // putTokenizationConfirmTokenizationIDHandler godoc
 // @Summary PUT /v1/tokenization/confirm/:tokenizationID
 // @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Param body body userModels.ConfirmTokenizedAssetJSONInput true "Confirm tokenization payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/confirm/{tokenizationID} [put]
 func putTokenizationConfirmTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6853,6 +7279,10 @@ func putTokenizationConfirmTokenizationIDHandler(callBackRetryChan chan userMode
 // deleteTokenizationTokenizationIDHandler godoc
 // @Summary DELETE /v1/tokenization/:tokenizationID
 // @Tags users
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/{tokenizationID} [delete]
 func deleteTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6898,6 +7328,10 @@ func deleteTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.R
 // deleteTrovoManagerTokenizationTokenizationIDHandler godoc
 // @Summary DELETE /v1/trovo-manager/tokenization/:tokenizationID
 // @Tags users
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/{tokenizationID} [delete]
 func deleteTrovoManagerTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -6968,6 +7402,12 @@ func deleteTrovoManagerTokenizationTokenizationIDHandler(callBackRetryChan chan 
 // putTokenizationDocumentHandler godoc
 // @Summary PUT /v1/tokenization/document
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Document file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/document [put]
 func putTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7102,6 +7542,12 @@ func putTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallb
 // putTokenizationLogoHandler godoc
 // @Summary PUT /v1/tokenization/logo
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Logo image file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/logo [put]
 func putTokenizationLogoHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7208,6 +7654,13 @@ func putTokenizationLogoHandler(callBackRetryChan chan userModels.RetryCallbacks
 // putTrovoManagerTokenizationLogoTidHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/logo/:tid
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param documentFile formData file true "Logo image file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/logo/{tid} [put]
 func putTrovoManagerTokenizationLogoTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7338,6 +7791,12 @@ func putTrovoManagerTokenizationLogoTidHandler(callBackRetryChan chan userModels
 // putTrovoManagerTokenizationDocumentHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/document
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param documentFile formData file true "Document file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/document [put]
 func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7523,6 +7982,11 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 // postTokenizationFeeTokenizationIDHandler godoc
 // @Summary POST /v1/tokenization/fee/:tokenizationID
 // @Tags users
+// @Produce json
+// @Param tokenizationID path string true "Tokenization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/fee/{tokenizationID} [post]
 func postTokenizationFeeTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7570,6 +8034,13 @@ func postTokenizationFeeTokenizationIDHandler(callBackRetryChan chan userModels.
 // putTokenizationFeeTokenizedAssetIDHandler godoc
 // @Summary PUT /v1/tokenization/fee/:tokenizedAssetID
 // @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param documentFile formData file true "Proof of payment file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/tokenization/fee/{tokenizedAssetID} [put]
 func putTokenizationFeeTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7734,6 +8205,10 @@ func putTokenizationFeeTokenizedAssetIDHandler(callBackRetryChan chan userModels
 // deleteTokenizationDocumentDocumentIDHandler godoc
 // @Summary DELETE /v1/tokenization/document/:documentID
 // @Tags users
+// @Produce json
+// @Param documentID path string true "Document ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/document/{documentID} [delete]
 func deleteTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7810,6 +8285,10 @@ func deleteTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userMode
 // deleteTrovoManagerTokenizationDocumentDocumentIDHandler godoc
 // @Summary DELETE /v1/trovo-manager/tokenization/document/:documentID
 // @Tags users
+// @Produce json
+// @Param documentID path string true "Document ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/trovo-manager/tokenization/document/{documentID} [delete]
 func deleteTrovoManagerTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -7891,6 +8370,10 @@ func deleteTrovoManagerTokenizationDocumentDocumentIDHandler(callBackRetryChan c
 // deleteTokenizationFeeDocumentIDHandler godoc
 // @Summary DELETE /v1/tokenization/fee/:documentID
 // @Tags users
+// @Produce json
+// @Param documentID path string true "Document ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/tokenization/fee/{documentID} [delete]
 func deleteTokenizationFeeDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {

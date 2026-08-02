@@ -12,6 +12,9 @@ import (
 // getCuratedAssetsHandler godoc
 // @Summary GET /v1/curated-assets
 // @Tags assets
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
 // @Router /v1/curated-assets [get]
 func getCuratedAssetsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {

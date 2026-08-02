@@ -28,6 +28,12 @@ import (
 // postCallbacks1lHandler godoc
 // @Summary POST /v1/callbacks/1l
 // @Tags callbacks
+// @Accept json
+// @Produce json
+// @Param body body userModels.CallbackDeposit true "Callback deposit payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/callbacks/1l [post]
 func postCallbacks1lHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -79,6 +85,12 @@ func postCallbacks1lHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 // postCallbacksDojaWebhookHandler godoc
 // @Summary POST /v1/callbacks/doja/webhook
 // @Tags callbacks
+// @Accept json
+// @Produce json
+// @Param body body userModels.DojaKYCResponse true "Doja KYC webhook payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/callbacks/doja/webhook [post]
 func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -500,6 +512,12 @@ func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 // postCallbacksFlutterwaveWebhookHandler godoc
 // @Summary POST /v1/callbacks/flutterwave/webhook
 // @Tags callbacks
+// @Accept json
+// @Produce json
+// @Param body body userModels.FlutterwaveWebhook true "Flutterwave webhook payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
 // @Router /v1/callbacks/flutterwave/webhook [post]
 func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
