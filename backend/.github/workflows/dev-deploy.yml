@@ -1,0 +1,65 @@
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger docs
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          swag init --parseDependency=false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DigitalOcean Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: registry.digitalocean.com/service-images/trovo-wallet-api:wip
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger Portainer redeploy
+        env:
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+        run: |
+          if [ -z "$PORTAINER_WEBHOOK_URL" ]; then
+            echo "::error::PORTAINER_WEBHOOK_URL secret is not set"
+            exit 1
+          fi
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' -X POST "$PORTAINER_WEBHOOK_URL")
+          if [ "$code" != "204" ] && [ "$code" != "200" ]; then
+            echo "::error::Portainer webhook returned HTTP $code"
+            exit 1
+          fi
+          echo "Portainer redeploy triggered (HTTP $code)"

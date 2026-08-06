@@ -1,0 +1,192 @@
+package users
+
+import (
+	"time"
+	assets "trovo-wallet-api/internal/components/assets/models"
+	"trovo-wallet-api/internal/sharedconfig"
+)
+
+type UserJSON struct {
+	ID                     string                    `json:"-"`
+	Username               string                    `json:"username"`
+	Email                  string                    `json:"email"`
+	ImageThumbnailURL      string                    `json:"imageThumbnailURL"`
+	FirstName              string                    `json:"firstName"`
+	LastName               string                    `json:"lastName"`
+	Mobile                 string                    `json:"mobile"`
+	PublicKey              string                    `json:"publicKey"`
+	PrimarySigner          string                    `json:"primarySigner"`
+	Referrer               string                    `json:"referrer"`
+	ReferralLink           string                    `json:"referralLink"`
+	ReferralQrCode         string                    `json:"referralQrCode"`
+	PushNotificationToken  string                    `json:"pushNotificationToken"`
+	Corporate              int                       `json:"corporate"`
+	MobileVerified         int                       `json:"mobileVerified"`
+	CountryCode            string                    `json:"countryCode"`
+	MembershipType         int                       `json:"membershipType"`
+	MembershipExpiry       time.Time                 `json:"membershipExpiry"`
+	KYCVerified            int                       `json:"kycVerified"`
+	AccountRecoveryEnabled int                       `json:"accountRecoveryEnabled"`
+	UserWallets            []UserWalletJSON          `json:"userWallets"`
+	Verified               int                       `json:"verified"`
+	Suspended              int                       `json:"suspended"`
+	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
+	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
+	PatronMembership       *UserPatronMembership     `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+	UserFiatPaymentMethods []UserFiatPaymentMethod   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
+
+	DownlineStats struct {
+		Level1 uint64 `json:"level1"`
+		Level2 uint64 `json:"level2"`
+		Level3 uint64 `json:"level3"`
+	} `json:"downlines"`
+	Uplines struct {
+		Level1 string `json:"level1,omitempty"`
+		Level2 string `json:"level2,omitempty"`
+		Level3 string `json:"level3,omitempty"`
+	} `json:"uplines"`
+}
+
+type UserWalletJSON struct {
+	CreatedAt               time.Time              `json:"createdAt"`
+	ID                      string                 `json:"publicKey"`
+	TempPublicKey           string                 `json:"-"`
+	Tag                     string                 `json:"tag"`
+	Description             string                 `json:"description"`
+	Alias                   string                 `json:"alias"`  //primaryUsername_tag for sub wallets
+	Signer                  string                 `json:"signer"` //if ID is same as signer, then it is a primary wallet
+	UserID                  string                 `json:"userId"`
+	SharedAccessEnabled     int                    `json:"sharedAccessEnabled"`
+	PrimaryWallet           int                    `json:"primaryWallet"`
+	WalletType              int                    `json:"walletType"`      //0=normal, 1= assetIssuing, 2= MarketMaking, 3 = bulkPayment
+	WalletThreshold         int                    `json:"walletThreshold"` //0=no shared access, 1 = view-Only shared access, 2 = approver is present
+	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
+	Permissions             []WalletPermissionJSON `json:"permissions"`
+	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`
+	SharedAccessUpdatedAt   time.Time              `json:"sharedAccessUpdatedAt"`
+	LinkedWalletPublicKey   string                 `json:"linkedWalletPublicKey"`
+}
+
+type WalletPermissionJSON struct {
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	WalletPublicKey string    `json:"walletPublicKey"`
+	TargetUsername  string    `json:"targetUsername"`
+	FullName        string    `json:"fullName"`
+	Permission      string    `json:"permission"`
+}
+
+type AuthJSON struct {
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	ID                  string    `json:"id"`
+	WalletOwnerUsername string    `json:"walletOwnerUsername"`
+	WalletPublicKey     string    `json:"walletPublicKey"`
+	Alias               string    `json:"alias"`
+	Initiator           string    `json:"initiator"`
+	TransactionType     string    `json:"transactionType"`
+	Description         string    `json:"description"`
+	ApprovalsNeeded     int       `json:"approvalsNeeded"`
+	ApprovalsGotten     int       `gorm:"not null;default:0" json:"approvalsGotten"`
+	TransactionStatus   string    `json:"transactionStatus"`
+	RejectedBy          string    `json:"rejectedBy"`
+	ReasonForRejection  string    `json:"reasonForRejection"`
+	ApprovedBy          string    `json:"approvedBy"`
+	Transaction         string    `json:"transaction,omitempty"`
+	TransactionID       string    `json:"transactionId,omitempty"`
+}
+
+type PaginatedAuths struct {
+	Pages        int        `json:"pages"`
+	CurrentPage  int        `json:"currentPage"`
+	TotalRecords int        `json:"totalRecords"`
+	Limit        int        `json:"limit"`
+	Records      []AuthJSON `json:"records"`
+}
+
+type SubWalletInfo struct {
+	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
+	PublicKey               string   `json:"publicKey"`
+	WalletTag               string   `json:"walletTag"`
+	WalletDescription       string   `json:"walletDescription"`
+	Alias                   string   `json:"alias"`
+	Transaction             string   `json:"transaction"`
+	PrimarySignature        string   `json:"primarySignature"`
+	SubWalletMustSign       int      `json:"subWalletMustSign"`
+	SubWalletSignature      string   `json:"subWalletSignature"`
+	TransactionID           string   `json:"transactionId"`
+	NetworkPassPhrase       string   `json:"networkPassPhrase"`
+	ChannelAccount          string   `json:"channelAccount"`
+	ChannelAccountSignature string   `json:"channelAccountSignature"`
+	Messages                []string `json:"messages"`
+	SHash                   string   `json:"sHash"`
+	FeeAmount               string   `json:"feeAmount"`
+	FeeCode                 string   `json:"feeCode"`
+	LinkedWalletMustSign    int      `json:"linkedWalletMustSign"`
+	LinkedWalletPublicKey   string   `json:"linkedWalletPublicKey"`
+	LinkedWalletSignature   string   `json:"linkedWalletSignature"`
+}
+
+type ServiceLinkSubWalletInfo struct {
+	WalletType            int      `json:"walletType"`         //0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletPublicKey is required). Required for initial Call
+	SubwalletPublicKey    string   `json:"subwalletPublicKey"` //required for Initial Call
+	WalletTag             string   `json:"walletTag"`          //required for initial Call
+	Alias                 string   `json:"alias"`
+	Transaction           string   `json:"transaction"`
+	PrimarySignature      string   `json:"primarySignature"`
+	SubWalletMustSign     int      `json:"subWalletMustSign"`
+	SubWalletSignature    string   `json:"subWalletSignature"`
+	TransactionID         string   `json:"transactionId"`
+	NetworkPassPhrase     string   `json:"networkPassPhrase"`
+	Messages              []string `json:"messages"`
+	FeeAmount             string   `json:"feeAmount"`
+	FeeCode               string   `json:"feeCode"`
+	LinkedWalletMustSign  int      `json:"linkedWalletMustSign"`
+	LinkedWalletPublicKey string   `json:"linkedWalletPublicKey"` //required for initial call only if wallet type is issuing wallet
+	LinkedWalletSignature string   `json:"linkedWalletSignature"`
+}
+
+func (i *ServiceLinkSubWalletInfo) ToSubwalletInfo(gc *sharedconfig.GlobalConfig) (o SubWalletInfo) {
+	o.WalletType = i.WalletType
+	o.PublicKey = i.SubwalletPublicKey
+	o.WalletTag = i.WalletTag
+	o.WalletDescription = i.WalletTag
+	o.Alias = i.Alias
+	o.Transaction = i.Transaction
+	o.PrimarySignature = i.PrimarySignature
+	o.SubWalletMustSign = i.SubWalletMustSign
+	o.SubWalletSignature = i.SubWalletSignature
+	o.TransactionID = i.TransactionID
+	o.NetworkPassPhrase = i.NetworkPassPhrase
+	o.Messages = i.Messages
+	o.FeeAmount = i.FeeAmount
+	o.FeeCode = i.FeeCode
+	o.LinkedWalletMustSign = i.LinkedWalletMustSign
+	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletSignature = i.LinkedWalletSignature
+
+	return
+
+}
+
+func (i *SubWalletInfo) ToServiceLinkSubwalletInfo(gc *sharedconfig.GlobalConfig) (o ServiceLinkSubWalletInfo) {
+	o.WalletType = i.WalletType
+	o.SubwalletPublicKey = i.PublicKey
+	o.WalletTag = i.WalletTag
+	o.Alias = i.Alias
+	o.Transaction = i.Transaction
+	o.PrimarySignature = i.PrimarySignature
+	o.SubWalletMustSign = i.SubWalletMustSign
+	o.SubWalletSignature = i.SubWalletSignature
+	o.TransactionID = i.TransactionID
+	o.NetworkPassPhrase = i.NetworkPassPhrase
+	o.Messages = i.Messages
+	o.FeeAmount = i.FeeAmount
+	o.FeeCode = i.FeeCode
+	o.LinkedWalletMustSign = i.LinkedWalletMustSign
+	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletSignature = i.LinkedWalletSignature
+
+	return
+
+}
