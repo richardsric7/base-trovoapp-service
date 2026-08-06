@@ -1,0 +1,31 @@
+version: '3.8'
+
+# ---------------------------------------------------------------------------
+# Portainer stack: wallet-web-dev
+#
+# Pulled from the git repo by Portainer. Image is pre-built by
+# .github/workflows/deploy.yml and pushed to DOCR. Nginx inside the image
+# proxies /api/* and /ws/* to the backend service over the internal Docker
+# network - BACKEND_URL is resolved at container start via envsubst.
+# ---------------------------------------------------------------------------
+
+services:
+  wallet-web-dev:
+    container_name: wallet-web-dev
+    image: registry.digitalocean.com/service-images/trovo-wallet:web-dev
+    environment:
+      BACKEND_URL: http://wallet-api-dev:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wallet-web-dev.entrypoints=websecure"
+      - "traefik.http.routers.wallet-web-dev.rule=Host(`app.dev.trovo.app`)"
+      - "traefik.http.routers.wallet-web-dev.service=wallet-web-dev"
+      - "traefik.http.routers.wallet-web-dev.tls.certresolver=leresolver"
+      - "traefik.http.services.wallet-web-dev.loadbalancer.server.port=80"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true

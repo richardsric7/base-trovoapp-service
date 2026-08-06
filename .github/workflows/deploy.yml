@@ -1,0 +1,185 @@
+# =============================================================================
+# Build & Push - Trovo Wallet monorepo images -> DOCR
+#
+# Builds backend (Go) and web frontend (Vite -> nginx) images and pushes them
+# to DigitalOcean Container Registry. Deployment is driven by Portainer
+# webhooks: this workflow pushes the new image, then pings Portainer, which
+# repulls.
+#
+# Branch -> tag:  dev -> dev  (staging / main added later)
+# =============================================================================
+name: Build & Push
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "backend/**"
+      - "web/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  # -- Map branch -> image tag ------------------------------------------------
+  resolve:
+    name: Resolve tag
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set.outputs.image_tag }}
+    steps:
+      - id: set
+        run: |
+          case "${{ github.ref_name }}" in
+            dev)     tag=dev ;;
+            staging) tag=staging ;;
+            main)    tag=prod ;;
+            *) echo "::error::No tag mapping for ${{ github.ref_name }}"; exit 1 ;;
+          esac
+          echo "image_tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "-> ${{ github.ref_name }} -> tag:$tag"
+
+  # -- Detect which services changed -----------------------------------------
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.event.before }}
+          ref: ${{ github.sha }}
+          filters: |
+            backend:
+              - 'backend/**'
+            web:
+              - 'web/**'
+      - name: Debug detected changes
+        run: |
+          echo "before=${{ github.event.before }} sha=${{ github.sha }}"
+          echo "backend changed = ${{ steps.filter.outputs.backend }}"
+          echo "web changed = ${{ steps.filter.outputs.web }}"
+
+  # -- Build & push each service ---------------------------------------------
+  build:
+    name: Build & Push - ${{ matrix.component }}
+    needs: [resolve, changes]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            context: backend
+            dockerfile: backend/Dockerfile
+            changed_flag: backend
+          - component: web
+            context: web
+            dockerfile: web/Dockerfile
+            changed_flag: web
+    steps:
+      - name: Check if this service changed
+        id: gate
+        env:
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          FLAG: ${{ matrix.changed_flag }}
+        run: |
+          if [ "$FLAG" = "backend" ]; then changed="$BACKEND_CHANGED"; else changed="$WEB_CHANGED"; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          if [ "$changed" != "true" ]; then
+            echo "::notice::Skipping ${{ matrix.component }} - no changes in $FLAG/"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.changed == 'true'
+
+      - name: Set up Buildx
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DigitalOcean Container Registry
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Metadata
+        id: meta
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/metadata-action@v5
+        with:
+          images: registry.digitalocean.com/service-images/trovo-wallet
+          tags: |
+            type=raw,value=${{ matrix.component }}-${{ needs.resolve.outputs.image_tag }}
+            type=sha,prefix=${{ matrix.component }}-${{ needs.resolve.outputs.image_tag }}-
+
+      - name: Build & push
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+
+  # -- Trigger Portainer redeploy via per-stack webhooks ---------------------
+  notify-portainer:
+    name: Trigger Portainer - ${{ matrix.component }}
+    needs: [resolve, changes, build]
+    if: ${{ always() && needs.build.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            changed_flag: backend
+            secret_name: PORTAINER_WEBHOOK_URL_API
+          - component: web
+            changed_flag: web
+            secret_name: PORTAINER_WEBHOOK_URL_WEB
+    steps:
+      - name: Check if this service changed
+        id: gate
+        env:
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          FLAG: ${{ matrix.changed_flag }}
+        run: |
+          if [ "$FLAG" = "backend" ]; then changed="$BACKEND_CHANGED"; else changed="$WEB_CHANGED"; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Skip notice
+        if: steps.gate.outputs.changed != 'true'
+        run: echo "::notice::Skipping Portainer webhook for wallet-${{ matrix.component }} - no changes in ${{ matrix.changed_flag }}/"
+
+      - name: POST webhook
+        if: steps.gate.outputs.changed == 'true'
+        env:
+          WEBHOOK: ${{ secrets[matrix.secret_name] }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::${{ matrix.secret_name }} secret is not set"
+            exit 1
+          fi
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' -X POST "$WEBHOOK") || curl_rc=$?
+          if [ "${code:-000}" != "204" ] && [ "${code:-000}" != "200" ]; then
+            echo "::error::Portainer webhook for wallet-${{ matrix.component }} returned HTTP ${code:-000} (curl exit ${curl_rc:-0})"
+            exit 1
+          fi
+          echo "::notice::Portainer redeploy triggered for wallet-${{ matrix.component }} (HTTP $code)"
