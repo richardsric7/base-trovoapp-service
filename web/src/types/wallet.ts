@@ -1,0 +1,31 @@
+import { Asset } from "./asset";
+import { Permission } from "./permission";
+
+export type Wallet = {
+    createdAt: Date,
+    publicKey: string,
+    tag: string,
+    description: string,
+    alias: string,
+    signer: string,
+    userId: string,
+    sharedAccessEnabled: boolean, 
+    primaryWallet: boolean,
+    walletType?: number,
+    walletThreshold?: number,
+    numberOfApprovalsNeeded?: number, 
+    sharedAccessCreatedAt?: Date,
+    sharedAccessUpdatedAt?: Date,
+    nfts: any[],
+    claimedAssets: Asset[],
+    unclaimedAssets: Asset[],
+    owner: string,
+    permission: string,
+    permissions: Permission[],
+    isInitiator: boolean,
+    isApprover: boolean,
+    isSharedWallet: boolean,
+    canInitiate: boolean,
+    isPrimaryWallet: boolean,
+    isSharedWalletAndCanInitiate: boolean,
+}  
