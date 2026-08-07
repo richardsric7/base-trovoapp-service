@@ -1,0 +1,88 @@
+platform :ios do
+  desc "Load the App Store Connect API token"
+  lane :load_asc_api_token do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY_BASE64"],      
+      is_key_content_base64: true,
+      in_house: false
+    )
+  end
+
+  before_all do
+    setup_ci
+    load_asc_api_token
+  end
+
+  def bump_build_number()    
+    return ENV["BUILD_NUMBER"]
+  end  
+
+  def get_version_name()  
+    return ENV["VERSION_NAME"]
+  end
+
+  # 🆕 New function to update version in Xcode project
+  def update_ios_version(version_name, build_number)
+    increment_version_number(
+      version_number: version_name,
+      xcodeproj: "Runner.xcodeproj"
+    )
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "Runner.xcodeproj"
+    )
+    puts "*** Updated iOS version to #{version_name} (#{build_number}) ***"
+  end
+
+  desc "Release a new build to Apple Store"
+  lane :release_beta do
+    setup_ci
+    commit = last_git_commit
+    puts "*** Starting iOS release for commit(#{commit[:abbreviated_commit_hash]}) ***"
+    api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+
+    # match(type: "development", readonly: true, app_identifier: ["com.trovo.wallet"])
+    match(type: "appstore", readonly: true, app_identifier: ["com.trovo.wallet"])
+
+    sync_code_signing(
+      api_key: api_key,
+      type: "appstore",
+      readonly: true,
+      app_identifier: "com.trovo.wallet"
+    )
+    
+    build_number = bump_build_number
+    version_name = get_version_name
+
+    # 🆕 Update iOS version & build number in Xcode project
+    update_ios_version(version_name, build_number)
+
+    Dir.chdir "../.." do
+      puts "*** Current directory: #{Dir.pwd} ***"
+      # sh("flutter", "doctor", "--verbose")
+      sh("flutter", "pub", "get")
+      puts "*** Build flutter iOS release for version #{version_name}+#{build_number} ***"
+      # let keep the ios app version in sync with the version on pubspec.yaml
+      sh("flutter", "build", "ipa", "--release", "--build-number=#{build_number}", "--build-name=#{version_name}") do |status, result|
+      # sh("flutter", "build", "ipa", "--release") do |status, result|
+        unless status.success?
+          puts "Flutter build failed with exit code #{status.exitstatus}"
+          puts "Output: #{result}"
+        end
+        status
+      end
+    end
+  
+    puts "*** Build and sign iOS app release ***"
+    build_app(
+      skip_build_archive: true,
+      archive_path: "../build/ios/archive/Runner.xcarchive",
+      xcargs: "-verbose", # Enable verbose logging for xcodebuild
+    )
+  
+    puts "*** Upload app to testflight ***"
+    upload_to_testflight(api_key: api_key)
+  end
+end

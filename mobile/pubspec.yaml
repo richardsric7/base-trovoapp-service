@@ -1,0 +1,196 @@
+name: trovo_app
+description: A non-custodial wallet for the Trovo Ecosystem of apps.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 0.0.119+163
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.2
+  flutter_bloc: ^9.1.1
+  provider: ^6.0.2
+  flutter_screenutil: ^5.3.1
+  infinite_scroll_pagination: ^5.0.0
+  appinio_swiper: ^2.0.2
+  get: ^4.6.1
+  fl_chart: ^1.0.0
+  uuid: ^4.5.1
+  # charts_flutter: ^0.12.0
+  # syncfusion_flutter_charts: ^19.1.54
+  flutter_switch: ^0.3.2
+  calendar_calendar: ^1.0.0
+  clipboard: ^0.1.3
+  fluttertoast: ^8.0.9
+  accordion: ^2.2.3
+  buttons_tabbar: ^1.3.4
+  shared_preferences: ^2.0.13
+  get_storage: ^2.0.3
+  flutter_launcher_icons: ^0.14.3
+  device_info_plus: ^11.4.0
+  stellar_flutter_sdk:
+    ^2.0.0
+    # git:
+    #  url: https://github.com/Soneso/stellar_flutter_sdk.git
+    #  ref: master
+  sembast: ^3.2.0
+  intl_phone_field: ^3.1.0
+  flutter_overlay_loader: ^2.0.0
+  firebase_core: ^3.15.1
+  firebase_messaging: ^15.2.6
+  firebase_core_platform_interface: ^6.0.0
+  firebase_analytics: ^11.5.2
+  firebase_crashlytics: ^4.3.9
+  firebase_remote_config: ^5.4.7
+  permission_handler: ^12.0.0+1
+  cool_dropdown: ^2.1.0
+  otp_text_field: ^1.1.3
+  toggle_switch: ^2.0.1
+  webview_flutter: ^4.13.0
+  flutter_inappwebview: ^6.1.5
+  local_auth: ^2.3.0
+  app_settings: ^6.1.1
+  flutter_svg: ^2.1.0
+  flutter_local_notifications: ^19.2.1
+  carousel_slider: ^5.0.0
+  # scan:
+  timeago: ^3.2.2
+  loadmore: ^2.0.1
+  mobile_scanner: ^7.0.0
+  syncfusion_flutter_sliders: ^29.2.5
+  image_picker: ^1.1.2
+  intl: ^0.20.2
+  pull_to_refresh: ^2.0.0
+  share_plus: ^11.0.0
+  terminate_restart: ^1.0.11
+  app_links: ^6.4.0
+  syncfusion_flutter_core: ^29.2.5
+  image_cropper: ^9.1.0
+  expandable: ^5.0.1
+  enhance_stepper: ^1.0.2
+  easy_localization: ^3.0.7+1
+  cupertino_stepper:
+  url_launcher: ^6.1.7
+  pdf: ^3.8.4
+  dotted_border: ^3.1.0
+  package_info_plus: ^8.3.0
+  android_id: ^0.4.0
+  flutter_html: ^3.0.0
+  country_picker: ^2.0.18
+  candlesticks: ^2.1.0
+  file_picker: ^10.1.9
+  mime: ^2.0.0
+  googleapis: ^14.0.0
+  googleapis_auth: ^2.0.0
+  google_sign_in: ^6.1.6
+  flutter_pdfview: ^1.3.2
+  flutter_image_compress: ^2.3.0
+  upgrader: ^11.4.0
+  # flutter_idensic_mobile_sdk_plugin: ^1.34.3
+  geolocator: ^14.0.2
+  logger: ^2.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: 'assets/images/logo.png'
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^1.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/translations/
+
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: Gilroy_Medium
+      fonts:
+        - asset: assets/fonts/Gilroy-Medium.otf
+    - family: Gilroy_Bold
+      fonts:
+        - asset: assets/fonts/Gilroy-Bold.otf
+    - family: Gilroy-Regular
+      fonts:
+        - asset: assets/fonts/Gilroy-Regular.otf
+    - family: Matahari_Semi_Bold
+      fonts:
+        - asset: assets/fonts/MatahariExtended-600ExtSemBd.ttf
+    - family: Matahari_Regular
+      fonts:
+        - asset: assets/fonts/Matahari-400Regular.ttf
+    - family: Montserrat_Regular
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+    - family: Montserrat_SemiBold
+      fonts:
+        - asset: assets/fonts/Montserrat-SemiBold.ttf
+    - family: Montserrat_Medium
+      fonts:
+        - asset: assets/fonts/Montserrat-Medium.ttf
+    - family: WorldIcon
+      fonts:
+        - asset: assets/fonts/World-Icon.ttf
+    - family: WorldIconOutlined
+      fonts:
+        - asset: assets/fonts/World-Icon-Outlined.ttf
+
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
