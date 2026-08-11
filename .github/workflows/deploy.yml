@@ -17,6 +17,7 @@ on:
       - "backend/**"
       - "web/**"
       - "trovotech-io/**"
+      - "trovo-app-website/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -51,6 +52,7 @@ jobs:
       backend: ${{ steps.filter.outputs.backend }}
       web: ${{ steps.filter.outputs.web }}
       website: ${{ steps.filter.outputs.website }}
+      app_website: ${{ steps.filter.outputs.app_website }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,12 +69,15 @@ jobs:
               - 'web/**'
             website:
               - 'trovotech-io/**'
+            app_website:
+              - 'trovo-app-website/**'
       - name: Debug detected changes
         run: |
           echo "before=${{ github.event.before }} sha=${{ github.sha }}"
           echo "backend changed = ${{ steps.filter.outputs.backend }}"
           echo "web changed = ${{ steps.filter.outputs.web }}"
           echo "website changed = ${{ steps.filter.outputs.website }}"
+          echo "app_website changed = ${{ steps.filter.outputs.app_website }}"
 
   # -- Build & push each service ---------------------------------------------
   build:
@@ -95,6 +100,10 @@ jobs:
             context: trovotech-io
             dockerfile: trovotech-io/Dockerfile
             changed_flag: website
+          - component: app-website
+            context: trovo-app-website
+            dockerfile: trovo-app-website/Dockerfile
+            changed_flag: app_website
     steps:
       - name: Check if this service changed
         id: gate
@@ -102,12 +111,14 @@ jobs:
           BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
           WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
+          APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
           FLAG: ${{ matrix.changed_flag }}
         run: |
           case "$FLAG" in
-            backend) changed="$BACKEND_CHANGED" ;;
-            web)     changed="$WEB_CHANGED" ;;
-            website) changed="$WEBSITE_CHANGED" ;;
+            backend)     changed="$BACKEND_CHANGED" ;;
+            web)         changed="$WEB_CHANGED" ;;
+            website)     changed="$WEBSITE_CHANGED" ;;
+            app_website) changed="$APP_WEBSITE_CHANGED" ;;
           esac
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           if [ "$changed" != "true" ]; then
@@ -170,6 +181,9 @@ jobs:
           - component: website
             changed_flag: website
             secret_name: PORTAINER_WEBHOOK_URL_WEBSITE
+          - component: app-website
+            changed_flag: app_website
+            secret_name: PORTAINER_WEBHOOK_URL_APP_WEBSITE
     steps:
       - name: Check if this service changed
         id: gate
@@ -177,12 +191,14 @@ jobs:
           BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
           WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
+          APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
           FLAG: ${{ matrix.changed_flag }}
         run: |
           case "$FLAG" in
-            backend) changed="$BACKEND_CHANGED" ;;
-            web)     changed="$WEB_CHANGED" ;;
-            website) changed="$WEBSITE_CHANGED" ;;
+            backend)     changed="$BACKEND_CHANGED" ;;
+            web)         changed="$WEB_CHANGED" ;;
+            website)     changed="$WEBSITE_CHANGED" ;;
+            app_website) changed="$APP_WEBSITE_CHANGED" ;;
           esac
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
