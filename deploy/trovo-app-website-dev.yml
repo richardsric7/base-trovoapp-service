@@ -1,0 +1,30 @@
+version: '3.8'
+
+# ---------------------------------------------------------------------------
+# Portainer stack: trovo-app-website-dev
+#
+# Marketing website for the Trovo Wallet app (trovo-app-website/). CRA build
+# served by nginx inside the container; Traefik handles TLS + host routing.
+#
+# Serves .well-known/apple-app-site-association and .well-known/assetlinks.json
+# for iOS/Android deep-linking.
+# ---------------------------------------------------------------------------
+
+services:
+  trovo-app-website-dev:
+    container_name: trovo-app-website-dev
+    image: registry.digitalocean.com/service-images/trovo-wallet:app-website-dev
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trovo-app-website-dev.entrypoints=websecure"
+      - "traefik.http.routers.trovo-app-website-dev.rule=Host(`dev.wallet.trovo.app`)"
+      - "traefik.http.routers.trovo-app-website-dev.service=trovo-app-website-dev"
+      - "traefik.http.routers.trovo-app-website-dev.tls.certresolver=leresolver"
+      - "traefik.http.services.trovo-app-website-dev.loadbalancer.server.port=80"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
