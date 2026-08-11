@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": ["6CL74B5F92.com.trovo.wallet"],
+    "details": [
+      {
+        "appID": "6CL74B5F92.com.trovo.wallet",
+        "paths": [
+          "*"
+        ]
+      }
+    ]
+  }
+}
