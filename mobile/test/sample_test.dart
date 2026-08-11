@@ -1,15 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// import 'package:mocktail/mocktail.dart';
-import 'package:provider/provider.dart';
-import 'package:trovo_app/bottom_bar/bottom_pages/swap_assets.dart';
-import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_app/models/asset.dart';
-import 'package:trovo_app/models/wallet.dart';
-import 'package:trovo_app/storage/state.dart';
-
-import 'bootstrap_test.dart';
-import 'mock_data_provider.dart';
 
 void main() {
   test('simple addition test', () {
