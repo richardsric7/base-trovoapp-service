@@ -38,6 +38,14 @@ import { TokenizationAssetDocuments } from '../pages/dashboard/tokenize/tokeniza
 import { TokenizationAssetTokenInformation } from '../pages/dashboard/tokenize/tokenizationAssetTokenInformation';
 import TokenizationAssetDashboard from '../pages/dashboard/tokenize/tokenizationAssetDashboard';
 import { TokenizationFeePayment } from '../pages/dashboard/tokenize/tokenizationFeePayment';
+import {
+  SharedAccessLanding,
+  SharedAccessWalletInfo,
+  SharedAccessUpdate,
+  SharedAccessApprovals,
+  SharedAccessApprovalDetails,
+  SharedAccessAdd,
+} from '../pages/dashboard/sharedAccess';
 
 export default function AppRouter() {
   return (
@@ -88,6 +96,28 @@ export default function AppRouter() {
             <Route path="add-remove-assets" element={<AssetsList />} />
             <Route path="wallet" element={<WalletView />} />
             <Route path="history" element={<History />} />
+            <Route path="shared-access" element={<SharedAccessLanding />} />
+            <Route
+              path="shared-access/wallets"
+              element={<SharedAccessLanding />}
+            />
+            <Route
+              path="shared-access/wallets/:publicKey"
+              element={<SharedAccessWalletInfo />}
+            />
+            <Route
+              path="shared-access/update"
+              element={<SharedAccessUpdate />}
+            />
+            <Route
+              path="shared-access/approvals"
+              element={<SharedAccessApprovals />}
+            />
+            <Route
+              path="shared-access/approvals/:id"
+              element={<SharedAccessApprovalDetails />}
+            />
+            <Route path="shared-access/add" element={<SharedAccessAdd />} />
             <Route path="tokenize" element={<Tokenize />}></Route>
             <Route
               path="tokenize/confirm-details"
