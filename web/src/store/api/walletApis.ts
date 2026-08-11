@@ -223,4 +223,5 @@ export const {
   useFetchExpressedInterestsQuery,
   useFetchSubscriptionsQuery,
   useLazyFetchFiatAmountForActivationQuery,
+  useLazyFetchTokenizationDataQuery,
 } = authApi;
