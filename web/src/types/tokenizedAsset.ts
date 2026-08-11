@@ -590,3 +590,23 @@ export interface TokenizedAsset {
   withholdingTaxDisclosure: number;
   exitWithFiat: number;
 }
+
+export const excludedSubmissionFields = new Set([
+  'hasFinancialAdvisor',
+  'hasInsurance',
+  'hasLegalAdvisor',
+  'hasOtherAssetProtection',
+  'approvedAssetCustodianInfo',
+  'approvedAssetCustodianInfo',
+  'assetIssuingHouseInfo',
+  'legalAndProfesionalPartnerInfo',
+  'ratingAgencyInfo',
+  'trusteeInfo',
+  'closedGroupInfo',
+  'assetManagerInfo',
+  'AssetTokenizationDocuments',
+  'ProofOfPaymentDocuments',
+  'tokenizationFee',
+  'countryConfig',
+  'bankInfo',
+]);
