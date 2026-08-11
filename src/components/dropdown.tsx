@@ -26,9 +26,9 @@ export default function Dropdown({
     defaultValue ?? null,
   );
   useEffect(() => {
-    // Update the component when myProp changes
+    // Keep internal selection in sync when parent default changes.
     setSelectedItem(defaultValue ?? null);
-  }, [selectedItem]);
+  }, [defaultValue]);
 
   const dropdownItems = options?.map((item: DropdownItem) => (
     <TEDropdownItem

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Props = {
   defaultValue?: string;
   placeholder?: string;
-  label: string;
+  label?: string;
   leadingIcon?: string;
   inputType: string;
   error?: string;
@@ -28,6 +28,11 @@ export default function TextInput({
   const [showPlainText, setShowPlainText] = useState(false);
 
   const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
   const handleInputChange = (event: { target: { value: any } }) => {
     const newValue = event.target.value;
     setValue(newValue);
@@ -36,9 +41,11 @@ export default function TextInput({
 
   return (
     <div>
-      <label className="text-primary-700" htmlFor={label}>
-        {label}
-      </label>
+      {label ? (
+        <label className="text-primary-700" htmlFor={label}>
+          {label}
+        </label>
+      ) : null}
       <div
         className="mt-2 ring-1 md:ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
           w-full h-12 py-1 px-2 focus-within:ring-2 flex items-center"
