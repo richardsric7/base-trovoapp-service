@@ -39,7 +39,8 @@
     "start": "vite",
     "serve": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ci": "npm run build"
   },
   "eslintConfig": {
     "extends": [

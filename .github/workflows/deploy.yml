@@ -12,7 +12,7 @@ name: Build & Push
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, staging, main]
     paths:
       - "backend/**"
       - "web/**"
@@ -22,6 +22,9 @@ on:
 concurrency:
   group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   # -- Map branch -> image tag ------------------------------------------------

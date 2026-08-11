@@ -1,0 +1,18 @@
+# golangci-lint config — intentionally minimal.
+#
+# Only `govet` is enabled today to keep the PR gate adoptable. Enable more
+# linters incrementally as the corresponding backlogs are cleared.
+#
+# To reproduce locally: cd backend && golangci-lint run
+
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    # Candidate additions once existing findings are cleaned up:
+    # - errcheck      # unchecked error returns
+    # - ineffassign   # dead assignments
+    # - staticcheck   # correctness / deprecation checks

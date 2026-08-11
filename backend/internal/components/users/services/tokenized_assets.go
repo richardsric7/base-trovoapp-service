@@ -1431,7 +1431,7 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 	}
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[AcknowledgeTokenizationFeePayment] error saving tokenization to database  for %v: %v\n", tokenizationID, initiator.Username, e)
+		log.Printf("[AcknowledgeTokenizationFeePayment] error saving tokenization to database  for %v (%v): %v\n", tokenizationID, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 
@@ -3396,7 +3396,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		_, errSharedAccess := CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
 
 		if errSharedAccess != nil {
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error creating shared access on issuing wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), errSharedAccess)
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error creating shared access on issuing wallets [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), errSharedAccess)
 
 			err = &tErrors.CustomError{
 				Param:      "IssuingWalletPublicKey",
@@ -3412,7 +3412,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		if p.SignatureRequired == 1 {
 			signedBase64, e := middleware.SignBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if e != nil {
-				log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error signing issuing wallet with primary wallets [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), e)
+				log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error signing issuing wallet with primary wallets [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), e)
 				err = &tErrors.CustomError{Param: "issuingPublicKey", Err: "error-invalid-issuer", ErrMessage: e.Error()}
 				return
 
@@ -3749,7 +3749,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
 	if e != nil {
-		log.Printf("[MintRegulatedTokenizedAsset] error saving tokenization to database  for %v: %v\n", tokenizationID, initiator.Username, e)
+		log.Printf("[MintRegulatedTokenizedAsset] error saving tokenization to database  for %v (%v): %v\n", tokenizationID, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
@@ -4076,7 +4076,7 @@ func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrency str
 					if bal.IsAuthorized != nil {
 						if !*bal.IsAuthorized {
 							//authorization has not been given. abort process.
-							log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
+							log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", ndab[0], distributionWallet.Alias)
 
 							err = &tErrors.CustomError{
 								Param:      "IssuingWalletPublicKey",
@@ -4088,7 +4088,7 @@ func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrency str
 						}
 					} else {
 						//authorization has not been given. abort process.
-						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", distributionWallet.Alias)
+						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", ndab[0], distributionWallet.Alias)
 
 						err = &tErrors.CustomError{
 							Param:      "IssuingWalletPublicKey",

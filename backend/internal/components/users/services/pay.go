@@ -871,13 +871,13 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			SourceAccount: sourceWallet.ID,
 			Asset:         asset,
 		})
-		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v of the transaction fee -> (% %) will be added from wallet %v as VAT.", vatLabel, paymentInfo.VatAmount, func() string {
+		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v of the transaction fee -> (%v%%) will be added from wallet %v (%v) as VAT.", vatLabel, paymentInfo.VatAmount, sourceWallet.Alias, func() string {
 			if len(paymentInfo.AssetCode) == 0 {
 				return os.Getenv("NATIVE_ASSET_CODE")
 			} else {
 				return paymentInfo.AssetCode
 			}
-		}(), sourceWallet.Alias))
+		}()))
 
 	}
 
@@ -1313,7 +1313,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		//parse public key
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
-			log.Println("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
+			log.Printf("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
 
 			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}

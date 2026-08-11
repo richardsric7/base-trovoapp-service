@@ -8012,7 +8012,7 @@ func postTokenizationFeeTokenizationIDHandler(callBackRetryChan chan userModels.
 			ta, err := userServices.ConfirmTokenizationFeePaymentByInitiator(&initiator, c.Param("tokenizationID"), gc)
 
 			if err != nil {
-				log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", err)
+				log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", ta, err)
 
 				var ex tErrors.GenericError
 				var ok bool
