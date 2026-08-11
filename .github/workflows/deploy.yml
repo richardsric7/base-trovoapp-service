@@ -16,6 +16,7 @@ on:
     paths:
       - "backend/**"
       - "web/**"
+      - "trovotech-io/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -49,6 +50,7 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       web: ${{ steps.filter.outputs.web }}
+      website: ${{ steps.filter.outputs.website }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,11 +65,14 @@ jobs:
               - 'backend/**'
             web:
               - 'web/**'
+            website:
+              - 'trovotech-io/**'
       - name: Debug detected changes
         run: |
           echo "before=${{ github.event.before }} sha=${{ github.sha }}"
           echo "backend changed = ${{ steps.filter.outputs.backend }}"
           echo "web changed = ${{ steps.filter.outputs.web }}"
+          echo "website changed = ${{ steps.filter.outputs.website }}"
 
   # -- Build & push each service ---------------------------------------------
   build:
@@ -86,15 +91,24 @@ jobs:
             context: web
             dockerfile: web/Dockerfile
             changed_flag: web
+          - component: website
+            context: trovotech-io
+            dockerfile: trovotech-io/Dockerfile
+            changed_flag: website
     steps:
       - name: Check if this service changed
         id: gate
         env:
           BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
           FLAG: ${{ matrix.changed_flag }}
         run: |
-          if [ "$FLAG" = "backend" ]; then changed="$BACKEND_CHANGED"; else changed="$WEB_CHANGED"; fi
+          case "$FLAG" in
+            backend) changed="$BACKEND_CHANGED" ;;
+            web)     changed="$WEB_CHANGED" ;;
+            website) changed="$WEBSITE_CHANGED" ;;
+          esac
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           if [ "$changed" != "true" ]; then
             echo "::notice::Skipping ${{ matrix.component }} - no changes in $FLAG/"
@@ -153,15 +167,23 @@ jobs:
           - component: web
             changed_flag: web
             secret_name: PORTAINER_WEBHOOK_URL_WEB
+          - component: website
+            changed_flag: website
+            secret_name: PORTAINER_WEBHOOK_URL_WEBSITE
     steps:
       - name: Check if this service changed
         id: gate
         env:
           BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
           FLAG: ${{ matrix.changed_flag }}
         run: |
-          if [ "$FLAG" = "backend" ]; then changed="$BACKEND_CHANGED"; else changed="$WEB_CHANGED"; fi
+          case "$FLAG" in
+            backend) changed="$BACKEND_CHANGED" ;;
+            web)     changed="$WEB_CHANGED" ;;
+            website) changed="$WEBSITE_CHANGED" ;;
+          esac
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Skip notice
