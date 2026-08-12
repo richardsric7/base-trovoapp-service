@@ -114,6 +114,11 @@ type TokenizedAsset struct {
 	RatingAgency                                 RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
 	TrusteeID                                    uint64                          `gorm:"not null;default:0" json:"trusteeId"`
 	Trustee                                      Trustee                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
+	// Legal Adviser and Financial Adviser are distinct A5 stakeholder roles (optional
+	// per-asset assignment). Stored as scalar IDs only; they reference partner records
+	// in the legal_advisers / financial_advisers tables.
+	LegalAdviserID                               uint64                          `gorm:"default:0" json:"legalAdviserId"`
+	FinancialAdviserID                           uint64                          `gorm:"default:0" json:"financialAdviserId"`
 	AssetQuoteCurrency                           *string                         `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                            float64                         `gorm:"default:0" json:"assetCurrentValue"`
 	AssetOwnerRetainedOrContributedValue         float64                         `gorm:"default:0" json:"assetOwnerRetainedOrContributedValue"`
@@ -580,6 +585,8 @@ type TokenizedAssetJSONInput struct {
 	LegalAndProfesionalPartnerID                 uint64    `gorm:"not null" json:"legalAndProfesionalPartnerId"`
 	RatingAgencyID                               uint64    `gorm:"not null" json:"ratingAgencyId"`
 	TrusteeID                                    uint64    `gorm:"not null" json:"trusteeId"`
+	LegalAdviserID                               uint64    `gorm:"default:0" json:"legalAdviserId"`
+	FinancialAdviserID                           uint64    `gorm:"default:0" json:"financialAdviserId"`
 	AssetQuoteCurrency                           string    `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
 	AssetCurrentValue                            float64   `gorm:"default:0" json:"assetCurrentValue"`
 	AssetMscCostOutisdeOfValuation               float64   `gorm:"default:0" json:"assetMscCostOutisdeOfValuation"`
@@ -999,6 +1006,8 @@ type VetTokenizedAssetJSONInput struct {
 	TrusteeID                            uint64  `json:"trusteeId"`
 	TrusteeFeePercent                    float64 `json:"trusteeFeePercent"`
 	TrusteeFeeFixed                      float64 `json:"trusteeFeeFixed"`
+	LegalAdviserID                       uint64  `json:"legalAdviserId"`
+	FinancialAdviserID                   uint64  `json:"financialAdviserId"`
 	CountryCode                          string  `json:"CountryCode"`
 	ProceedPayoutCurrency                string  `json:"proceedPayoutCurrency"`
 	AssetQuoteCurrency                   string  `gorm:"default:'CNGN'" json:"assetQuoteCurrency"`
@@ -1028,6 +1037,8 @@ type TokenizedAssetJSON struct {
 	RatingAgency                                 RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
 	TrusteeID                                    uint64                          `gorm:"not null" json:"trusteeId"`
 	Trustee                                      Trustee                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
+	LegalAdviserID                               uint64                          `gorm:"default:0" json:"legalAdviserId"`
+	FinancialAdviserID                           uint64                          `gorm:"default:0" json:"financialAdviserId"`
 	OfferingType                                 string                          `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	ClosedGroupID                                string                          `gorm:"null" json:"closedGroupId"`
 	ClosedGroup                                  ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
@@ -4537,6 +4548,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.TrusteeFeePercent = ti.TrusteeFeePercent
 	t.TrusteeFeeFixed = ti.TrusteeFeeFixed
 	t.TrusteeFeeValue = ti.TrusteeFeeValue
+	t.LegalAdviserID = ti.LegalAdviserID
+	t.FinancialAdviserID = ti.FinancialAdviserID
 	t.VATPercent = ti.VATPercent
 	t.VATValue = ti.VATValue
 	t.VATInAsset = ti.VATInAsset
@@ -4636,6 +4649,12 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.TrusteeID > 0 {
 		t.TrusteeID = ti.TrusteeID
 		t.Trustee = ti.Trustee
+	}
+	if ti.LegalAdviserID > 0 {
+		t.LegalAdviserID = ti.LegalAdviserID
+	}
+	if ti.FinancialAdviserID > 0 {
+		t.FinancialAdviserID = ti.FinancialAdviserID
 	}
 	if ti.OfferingType != nil {
 		t.OfferingType = *ti.OfferingType
