@@ -1373,6 +1373,10 @@ func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User,
 		return ts.FeeFixed
 	}()
 
+	// Legal Adviser and Financial Adviser are optional A5 stakeholder assignments.
+	ato.LegalAdviserID = input.LegalAdviserID
+	ato.FinancialAdviserID = input.FinancialAdviserID
+
 	if len(input.AssetQuoteCurrency) > 0 {
 		ato.AssetQuoteCurrency = &input.AssetQuoteCurrency
 	}
