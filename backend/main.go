@@ -36,13 +36,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon/operations"
 	"github.com/stellar/go/txnbuild"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -291,6 +291,11 @@ func main() {
 			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
 			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
+	}
+	if bucketName := strings.TrimSpace(os.Getenv("STAKEHOLDER_DOCUMENTS_BUCKET_NAME")); bucketName != "" {
+		globalConfig.StakeholderDocumentStorage = sharedconfig.NewGCSPrivateDocumentStorage(storageClient, bucketName, "stakeholder-documents")
+	} else {
+		log.Println("STAKEHOLDER_DOCUMENTS_BUCKET_NAME is not configured; stakeholder document storage endpoints will return 503")
 	}
 	{
 
