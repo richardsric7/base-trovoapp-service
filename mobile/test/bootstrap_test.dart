@@ -4,6 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/storage/state.dart';
 
+// This file is a test helper (bootstrapTestApp) used by other test files.
+// It lives under test/ with a _test.dart suffix, so `flutter test` tries to
+// load it as a test suite and needs a main() to satisfy the runner.
+void main() {}
+
 Future<void> bootstrapTestApp({
   required WidgetTester tester,
   required Widget child,
