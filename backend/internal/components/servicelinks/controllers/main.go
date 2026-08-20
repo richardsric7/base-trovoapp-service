@@ -206,6 +206,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	//Upload documents for tokenization from service link
 	router.PUT("/v1/trovo-api/assets/documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), putTrovoApiAssetsDocumentsHandler(gc))
 
+	// Store private stakeholder portal documents for Trovo Manager.
+	router.POST("/v1/trovo-api/stakeholder-documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), postStakeholderDocumentHandler(gc))
+	router.GET("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), getStakeholderDocumentHandler(gc))
+	router.DELETE("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), deleteStakeholderDocumentHandler(gc))
+
 	//Upload fee payment documents for tokenization from service link
 	router.PUT("/v1/trovo-api/assets/fees/document", middleware.AuthenticationMiddlewareUsingAPIKey(gc), putTrovoApiAssetsFeesDocumentHandler(gc))
 
