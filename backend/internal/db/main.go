@@ -196,6 +196,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSubscription: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetEarlyExit{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetEarlyExit: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ExpressionOfInterest{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ExpressionOfInterest: ", errMigrate)

@@ -73,47 +73,47 @@ type ExistingAssetValidationAssetDocument struct {
 }
 
 type TokenizedAsset struct {
-	ID                                           string                          `json:"id"`
-	CreatedAt                                    time.Time                       `json:"createdAt"`
-	UpdatedAt                                    time.Time                       `json:"updatedAt"`
-	DateSubmitted                                time.Time                       `json:"dateSubmitted"`
-	DateOfApproval                               time.Time                       `json:"dateOfApproval"`
-	MintingDate                                  time.Time                       `json:"mintingDate"`
-	InitiatorUsername                            string                          `gorm:"size:50;not null" json:"initiatorUsername"`
-	AssetSector                                  *string                         `json:"assetSector"`
-	AssetSubSector                               *string                         `json:"assetSubSector"`
-	AssetType                                    *string                         `json:"assetType"`
-	AssetName                                    *string                         `json:"assetName"`
-	ApprovedAssetCustodianID                     uint64                          `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
-	ApprovedAssetCustodian                       ApprovedAssetCustodian          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
-	OfferingType                                 *string                         `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                                *string                         `gorm:"null" json:"closedGroupId"`
-	ClosedGroup                                  ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
-	SecApproval                                  int                             `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                          *string                         `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                       *string                         `gorm:"size:60" json:"issuingWalletPublicKey"`
-	IssuingWalletAlias                           *string                         `gorm:"size:60" json:"issuingWalletAlias"`
-	MarketMakingWallet                           *string                         `json:"marketMakingWallet"`
-	AssetDescription                             *string                         `json:"assetDescription"`
-	AssetCountryLocation                         *string                         `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
-	AssetPhysicalAddress                         *string                         `json:"assetPhysicalAddress"`
-	AssetLongitude                               *string                         `json:"assetLongitude"`
-	AssetLatitude                                *string                         `json:"assetLatitude"`
-	OwnershipType                                *string                         `json:"ownershipType"` //DIRECT,THIRD-PARTY
-	OwnershipKind                                *string                         `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
-	InitialOwnerPreferredWalletAddress           *string                         `json:"initialOwnerPreferredWalletAddress"`
-	AssetOwnerName                               *string                         `json:"assetOwnerName"`
-	AssetOwnerAddress                            *string                         `json:"assetOwnerAddress"`
-	AssetManagerID                               uint64                          `gorm:"default:0" json:"assetManagerId"`
-	AssetManager                                 AssetManager                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
-	AssetIssuingHouseID                          uint64                          `gorm:"not null;default:0" json:"assetIssuingHouseId"`
-	AssetIssuingHouse                            AssetIssuingHouse               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
-	LegalAndProfesionalPartnerID                 uint64                          `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
-	LegalAndProfesionalPartner                   LegalAndProfesionalPartner      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
-	RatingAgencyID                               uint64                          `gorm:"not null;default:0" json:"ratingAgencyId"`
-	RatingAgency                                 RatingAgency                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
-	TrusteeID                                    uint64                          `gorm:"not null;default:0" json:"trusteeId"`
-	Trustee                                      Trustee                         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
+	ID                                 string                     `json:"id"`
+	CreatedAt                          time.Time                  `json:"createdAt"`
+	UpdatedAt                          time.Time                  `json:"updatedAt"`
+	DateSubmitted                      time.Time                  `json:"dateSubmitted"`
+	DateOfApproval                     time.Time                  `json:"dateOfApproval"`
+	MintingDate                        time.Time                  `json:"mintingDate"`
+	InitiatorUsername                  string                     `gorm:"size:50;not null" json:"initiatorUsername"`
+	AssetSector                        *string                    `json:"assetSector"`
+	AssetSubSector                     *string                    `json:"assetSubSector"`
+	AssetType                          *string                    `json:"assetType"`
+	AssetName                          *string                    `json:"assetName"`
+	ApprovedAssetCustodianID           uint64                     `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodian             ApprovedAssetCustodian     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
+	OfferingType                       *string                    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID                      *string                    `gorm:"null" json:"closedGroupId"`
+	ClosedGroup                        ClosedGroup                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
+	SecApproval                        int                        `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber                *string                    `json:"secApprovalIdNumber"`
+	IssuingWalletPublicKey             *string                    `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAlias                 *string                    `gorm:"size:60" json:"issuingWalletAlias"`
+	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
+	AssetDescription                   *string                    `json:"assetDescription"`
+	AssetCountryLocation               *string                    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
+	AssetPhysicalAddress               *string                    `json:"assetPhysicalAddress"`
+	AssetLongitude                     *string                    `json:"assetLongitude"`
+	AssetLatitude                      *string                    `json:"assetLatitude"`
+	OwnershipType                      *string                    `json:"ownershipType"` //DIRECT,THIRD-PARTY
+	OwnershipKind                      *string                    `json:"ownershipKind"` //INDIVIDUAL,CORPORATE,
+	InitialOwnerPreferredWalletAddress *string                    `json:"initialOwnerPreferredWalletAddress"`
+	AssetOwnerName                     *string                    `json:"assetOwnerName"`
+	AssetOwnerAddress                  *string                    `json:"assetOwnerAddress"`
+	AssetManagerID                     uint64                     `gorm:"default:0" json:"assetManagerId"`
+	AssetManager                       AssetManager               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetManagerInfo"`
+	AssetIssuingHouseID                uint64                     `gorm:"not null;default:0" json:"assetIssuingHouseId"`
+	AssetIssuingHouse                  AssetIssuingHouse          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetIssuingHouseInfo"`
+	LegalAndProfesionalPartnerID       uint64                     `gorm:"not null;default:0" json:"legalAndProfesionalPartnerId"`
+	LegalAndProfesionalPartner         LegalAndProfesionalPartner `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"legalAndProfesionalPartnerInfo"`
+	RatingAgencyID                     uint64                     `gorm:"not null;default:0" json:"ratingAgencyId"`
+	RatingAgency                       RatingAgency               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"ratingAgencyInfo"`
+	TrusteeID                          uint64                     `gorm:"not null;default:0" json:"trusteeId"`
+	Trustee                            Trustee                    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"trusteeInfo"`
 	// Legal Adviser and Financial Adviser are distinct A5 stakeholder roles (optional
 	// per-asset assignment). Stored as scalar IDs only; they reference partner records
 	// in the legal_advisers / financial_advisers tables.
@@ -553,6 +553,76 @@ type TokenizedAsset struct {
 	InvestorCategory                             *string                         `json:"investorCategory"`
 	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
 	ExitWithFiat                                 int                             `gorm:"default:0" json:"exitWithFiat"`
+
+	TypeOfREIT                       *string `json:"typeOfREIT"`
+	NavPerUnit                       float64 `gorm:"default:0" json:"navPerUnit"`
+	TotalUnitsOutstanding            int     `gorm:"default:0" json:"totalUnitsOutstanding"`
+	DistributionPolicy               *string `json:"distributionPolicy"`
+	DebtOutstanding                  float64 `gorm:"default:0" json:"debtOutstanding"`
+	ESGClassification                *string `json:"esgClassification"`
+	PortfolioSummary                 *string `json:"portfolioSummary"`
+	NoOfProperties                   int     `gorm:"default:0" json:"noOfProperties"`
+	PropertyCategories               *string `json:"propertyCategories"`
+	GeographicDistribution           *string `json:"geographicDistribution"`
+	TotalGrossAssetValue             float64 `gorm:"default:0" json:"totalGrossAssetValue"`
+	IndependentValuationFirm         *string `json:"independentValuationFirm"`
+	OccupancyRate                    float64 `gorm:"default:0" json:"occupancyRate"`
+	WeightedAverageLeaseExpiry       int     `gorm:"default:0" json:"weightedAverageLeaseExpiry"`
+	AnnualRentalIncome               float64 `gorm:"default:0" json:"annualRentalIncome"`
+	NetOperatingIncome               float64 `gorm:"default:0" json:"netOperatingIncome"`
+	FundsFromOperations              float64 `gorm:"default:0" json:"fundsFromOperations"`
+	Top10Properties                  *string `json:"top10Properties"`
+	Top10Tenants                     *string `json:"top10Tenants"`
+	TenantConcentrationRatio         *string `json:"tenantConcentrationRatio"`
+	PropertyTypeAllocation           *string `json:"propertyTypeAllocation"`
+	GeographicAllocation             *string `json:"geographicAllocation"`
+	DevelopmentProjects              *string `json:"developmentProjects"`
+	PartiesInvolvedRegistrar         *string `json:"partiesInvolvedRegistrar"`
+	PartiesInvolvedIndependentValuer *string `json:"partiesInvolvedIndependentValuer"`
+	ReitSponsor                      *string `json:"reitSponsor"`
+	OccupancyRisk                    *string `json:"occupancyRisk"`
+	TenantConcentrationRisk          *string `json:"tenantConcentrationRisk"`
+	RefinancingRisk                  *string `json:"refinancingRisk"`
+	EarlyExitPenalty                 *string `json:"EarlyExitPenalty"`
+	EarlyExitFee                     *string `json:"EarlyExitFee"`
+
+	TypeOfFund                         *string `json:"typeOfFund"`
+	InvestmentStrategy                 *string `json:"investmentStrategy"`
+	Structure                          *string `json:"structure"`
+	TargetReturnRange                  *string `json:"targetReturnRange"`
+	PrivateEquityAllocation            float64 `gorm:"default:0" json:"privateEquityAllocation"`
+	YieldInstrumentAllocation          float64 `gorm:"default:0" json:"yieldInstrumentAllocation"`
+	CashAllocation                     float64 `gorm:"default:0" json:"cashAllocation"`
+	WeightedPortfolioYield             float64 `gorm:"default:0" json:"weightedPortfolioYield"`
+	AveragePortfolioDuration           int     `gorm:"default:0" json:"averagePortfolioDuration"`
+	AverageHoldingPeriod               int     `gorm:"default:0" json:"averageHoldingPeriod"`
+	PortfolioGrowthStrategy            *string `json:"portfolioGrowthStrategy"`
+	ExitStrategy                       *string `json:"exitStrategy"`
+	PCHCompanyName                     *string `json:"pchCompanyName"`
+	PCHIndustry                        *string `json:"pchIndustry"`
+	PCHCountry                         *string `json:"pchCountry"`
+	PCHInvestmentDate                  *string `json:"pchInvestmentDate"`
+	PCHOwnershipPercentage             *string `json:"pchOwnershipPercentage"`
+	PCHCostBasis                       float64 `gorm:"default:0" json:"pchCostBasis"`
+	PCHCurrentFairValue                float64 `gorm:"default:0" json:"pchCurrentFairValue"`
+	PCHRevenueGrowthRate               float64 `gorm:"default:0" json:"pchRevenueGrowthRate"`
+	PCHEBITDAGrowthRate                float64 `gorm:"default:0" json:"pchEBITDAGrowthRate"`
+	PCHExitStatus                      float64 `gorm:"default:0" json:"pchExitStatus"`
+	PCHExpectedExitTimeline            float64 `gorm:"default:0" json:"pchExpectedExitTimeline"`
+	YIHIssuer                          *string `json:"yihIssuer"`
+	PrincipalAmount                    float64 `gorm:"default:0" json:"principalAmount"`
+	CurrentMarketValue                 float64 `gorm:"default:0" json:"currentMarketValue"`
+	YIHDuration                        int     `gorm:"default:0" json:"yihDuration"`
+	LiquidityClassification            *string `json:"liquidityClassification"`
+	PartiesInvolvedInvestmentCommittee *string `json:"partiesInvolvedInvestmentCommittee"`
+	PartiesInvolvedRiskCommittee       *string `json:"partiesInvolvedRiskCommittee"`
+	AssetPerformanceRisk               *string `json:"assetPerformanceRisk"`
+	CashFlowVolatilityRisk             *string `json:"cashFlowVolatilityRisk"`
+	CounterpartyConcentrationRisk      *string `json:"counterpartyConcentrationRisk"`
+	ValuationRisk                      *string `json:"valuationRisk"`
+	DefaultRecoveryRisk                *string `json:"defaultRecoveryRisk"`
+	CurrentNAV                         float64 `gorm:"default:0" json:"currentNAV"`
+	CurrentNAVPerToken                 float64 `gorm:"default:0" json:"CurrentNAVPerToken"`
 }
 
 type TokenizedAssetID string
@@ -977,6 +1047,74 @@ type TokenizedAssetJSONInput struct {
 	InvestorCategory                        string    `json:"investorCategory"`
 	WithholdingTaxDisclosure                int       `gorm:"default:0" json:"withholdingTaxDisclosure"`
 	ExitWithFiat                            int       `gorm:"default:0" json:"exitWithFiat"`
+
+	TypeOfREIT                       string  `json:"typeOfREIT"`
+	NavPerUnit                       float64 `gorm:"default:0" json:"navPerUnit"`
+	TotalUnitsOutstanding            int     `gorm:"default:0" json:"totalUnitsOutstanding"`
+	DistributionPolicy               string  `json:"distributionPolicy"`
+	DebtOutstanding                  float64 `gorm:"default:0" json:"debtOutstanding"`
+	ESGClassification                string  `json:"esgClassification"`
+	PortfolioSummary                 string  `json:"portfolioSummary"`
+	NoOfProperties                   int     `gorm:"default:0" json:"noOfProperties"`
+	PropertyCategories               string  `json:"propertyCategories"`
+	GeographicDistribution           string  `json:"geographicDistribution"`
+	TotalGrossAssetValue             float64 `gorm:"default:0" json:"totalGrossAssetValue"`
+	IndependentValuationFirm         string  `json:"independentValuationFirm"`
+	OccupancyRate                    float64 `gorm:"default:0" json:"occupancyRate"`
+	WeightedAverageLeaseExpiry       int     `gorm:"default:0" json:"weightedAverageLeaseExpiry"`
+	AnnualRentalIncome               float64 `gorm:"default:0" json:"annualRentalIncome"`
+	NetOperatingIncome               float64 `gorm:"default:0" json:"netOperatingIncome"`
+	FundsFromOperations              float64 `gorm:"default:0" json:"fundsFromOperations"`
+	Top10Properties                  string  `json:"top10Properties"`
+	Top10Tenants                     string  `json:"top10Tenants"`
+	TenantConcentrationRatio         string  `json:"tenantConcentrationRatio"`
+	PropertyTypeAllocation           string  `json:"propertyTypeAllocation"`
+	GeographicAllocation             string  `json:"geographicAllocation"`
+	DevelopmentProjects              string  `json:"developmentProjects"`
+	PartiesInvolvedRegistrar         string  `json:"partiesInvolvedRegistrar"`
+	PartiesInvolvedIndependentValuer string  `json:"partiesInvolvedIndependentValuer"`
+	ReitSponsor                      string  `json:"reitSponsor"`
+	OccupancyRisk                    string  `json:"occupancyRisk"`
+	TenantConcentrationRisk          string  `json:"tenantConcentrationRisk"`
+	RefinancingRisk                  string  `json:"refinancingRisk"`
+	EarlyExitPenalty                 string  `json:"EarlyExitPenalty"`
+	EarlyExitFee                     string  `json:"EarlyExitFee"`
+
+	TypeOfFund                         string  `json:"typeOfFund"`
+	InvestmentStrategy                 string  `json:"investmentStrategy"`
+	Structure                          string  `json:"structure"`
+	TargetReturnRange                  string  `json:"targetReturnRange"`
+	PrivateEquityAllocation            float64 `gorm:"default:0" json:"privateEquityAllocation"`
+	YieldInstrumentAllocation          float64 `gorm:"default:0" json:"yieldInstrumentAllocation"`
+	CashAllocation                     float64 `gorm:"default:0" json:"cashAllocation"`
+	WeightedPortfolioYield             float64 `gorm:"default:0" json:"weightedPortfolioYield"`
+	AveragePortfolioDuration           int     `gorm:"default:0" json:"averagePortfolioDuration"`
+	AverageHoldingPeriod               int     `gorm:"default:0" json:"averageHoldingPeriod"`
+	PortfolioGrowthStrategy            string  `json:"portfolioGrowthStrategy"`
+	ExitStrategy                       string  `json:"exitStrategy"`
+	PCHCompanyName                     string  `json:"pchCompanyName"`
+	PCHIndustry                        string  `json:"pchIndustry"`
+	PCHCountry                         string  `json:"pchCountry"`
+	PCHInvestmentDate                  string  `json:"pchInvestmentDate"`
+	PCHOwnershipPercentage             string  `json:"pchOwnershipPercentage"`
+	PCHCostBasis                       float64 `gorm:"default:0" json:"pchCostBasis"`
+	PCHCurrentFairValue                float64 `gorm:"default:0" json:"pchCurrentFairValue"`
+	PCHRevenueGrowthRate               float64 `gorm:"default:0" json:"pchRevenueGrowthRate"`
+	PCHEBITDAGrowthRate                float64 `gorm:"default:0" json:"pchEBITDAGrowthRate"`
+	PCHExitStatus                      float64 `gorm:"default:0" json:"pchExitStatus"`
+	PCHExpectedExitTimeline            float64 `gorm:"default:0" json:"pchExpectedExitTimeline"`
+	YIHIssuer                          string  `json:"yihIssuer"`
+	PrincipalAmount                    float64 `gorm:"default:0" json:"principalAmount"`
+	CurrentMarketValue                 float64 `gorm:"default:0" json:"currentMarketValue"`
+	YIHDuration                        int     `gorm:"default:0" json:"yihDuration"`
+	LiquidityClassification            string  `json:"liquidityClassification"`
+	PartiesInvolvedInvestmentCommittee string  `json:"partiesInvolvedInvestmentCommittee"`
+	PartiesInvolvedRiskCommittee       string  `json:"partiesInvolvedRiskCommittee"`
+	AssetPerformanceRisk               string  `json:"assetPerformanceRisk"`
+	CashFlowVolatilityRisk             string  `json:"cashFlowVolatilityRisk"`
+	CounterpartyConcentrationRisk      string  `json:"counterpartyConcentrationRisk"`
+	ValuationRisk                      string  `json:"valuationRisk"`
+	DefaultRecoveryRisk                string  `json:"defaultRecoveryRisk"`
 }
 
 type ConfirmTokenizedAssetJSONInput struct {
@@ -1496,6 +1634,76 @@ type TokenizedAssetJSON struct {
 	InvestorCategory                             string                          `json:"investorCategory"`
 	WithholdingTaxDisclosure                     int                             `gorm:"default:0" json:"withholdingTaxDisclosure"`
 	ExitWithFiat                                 int                             `gorm:"default:0" json:"exitWithFiat"`
+
+	TypeOfREIT                       string  `json:"typeOfREIT"`
+	NavPerUnit                       float64 `gorm:"default:0" json:"navPerUnit"`
+	TotalUnitsOutstanding            int     `gorm:"default:0" json:"totalUnitsOutstanding"`
+	DistributionPolicy               string  `json:"distributionPolicy"`
+	DebtOutstanding                  float64 `gorm:"default:0" json:"debtOutstanding"`
+	ESGClassification                string  `json:"esgClassification"`
+	PortfolioSummary                 string  `json:"portfolioSummary"`
+	NoOfProperties                   int     `gorm:"default:0" json:"noOfProperties"`
+	PropertyCategories               string  `json:"propertyCategories"`
+	GeographicDistribution           string  `json:"geographicDistribution"`
+	TotalGrossAssetValue             float64 `gorm:"default:0" json:"totalGrossAssetValue"`
+	IndependentValuationFirm         string  `json:"independentValuationFirm"`
+	OccupancyRate                    float64 `gorm:"default:0" json:"occupancyRate"`
+	WeightedAverageLeaseExpiry       int     `gorm:"default:0" json:"weightedAverageLeaseExpiry"`
+	AnnualRentalIncome               float64 `gorm:"default:0" json:"annualRentalIncome"`
+	NetOperatingIncome               float64 `gorm:"default:0" json:"netOperatingIncome"`
+	FundsFromOperations              float64 `gorm:"default:0" json:"fundsFromOperations"`
+	Top10Properties                  string  `json:"top10Properties"`
+	Top10Tenants                     string  `json:"top10Tenants"`
+	TenantConcentrationRatio         string  `json:"tenantConcentrationRatio"`
+	PropertyTypeAllocation           string  `json:"propertyTypeAllocation"`
+	GeographicAllocation             string  `json:"geographicAllocation"`
+	DevelopmentProjects              string  `json:"developmentProjects"`
+	PartiesInvolvedRegistrar         string  `json:"partiesInvolvedRegistrar"`
+	PartiesInvolvedIndependentValuer string  `json:"partiesInvolvedIndependentValuer"`
+	ReitSponsor                      string  `json:"reitSponsor"`
+	OccupancyRisk                    string  `json:"occupancyRisk"`
+	TenantConcentrationRisk          string  `json:"tenantConcentrationRisk"`
+	RefinancingRisk                  string  `json:"refinancingRisk"`
+	EarlyExitPenalty                 string  `json:"EarlyExitPenalty"`
+	EarlyExitFee                     string  `json:"EarlyExitFee"`
+
+	TypeOfFund                         string  `json:"typeOfFund"`
+	InvestmentStrategy                 string  `json:"investmentStrategy"`
+	Structure                          string  `json:"structure"`
+	TargetReturnRange                  string  `json:"targetReturnRange"`
+	PrivateEquityAllocation            float64 `gorm:"default:0" json:"privateEquityAllocation"`
+	YieldInstrumentAllocation          float64 `gorm:"default:0" json:"yieldInstrumentAllocation"`
+	CashAllocation                     float64 `gorm:"default:0" json:"cashAllocation"`
+	WeightedPortfolioYield             float64 `gorm:"default:0" json:"weightedPortfolioYield"`
+	AveragePortfolioDuration           int     `gorm:"default:0" json:"averagePortfolioDuration"`
+	AverageHoldingPeriod               int     `gorm:"default:0" json:"averageHoldingPeriod"`
+	PortfolioGrowthStrategy            string  `json:"portfolioGrowthStrategy"`
+	ExitStrategy                       string  `json:"exitStrategy"`
+	PCHCompanyName                     string  `json:"pchCompanyName"`
+	PCHIndustry                        string  `json:"pchIndustry"`
+	PCHCountry                         string  `json:"pchCountry"`
+	PCHInvestmentDate                  string  `json:"pchInvestmentDate"`
+	PCHOwnershipPercentage             string  `json:"pchOwnershipPercentage"`
+	PCHCostBasis                       float64 `gorm:"default:0" json:"pchCostBasis"`
+	PCHCurrentFairValue                float64 `gorm:"default:0" json:"pchCurrentFairValue"`
+	PCHRevenueGrowthRate               float64 `gorm:"default:0" json:"pchRevenueGrowthRate"`
+	PCHEBITDAGrowthRate                float64 `gorm:"default:0" json:"pchEBITDAGrowthRate"`
+	PCHExitStatus                      float64 `gorm:"default:0" json:"pchExitStatus"`
+	PCHExpectedExitTimeline            float64 `gorm:"default:0" json:"pchExpectedExitTimeline"`
+	YIHIssuer                          string  `json:"yihIssuer"`
+	PrincipalAmount                    float64 `gorm:"default:0" json:"principalAmount"`
+	CurrentMarketValue                 float64 `gorm:"default:0" json:"currentMarketValue"`
+	YIHDuration                        int     `gorm:"default:0" json:"yihDuration"`
+	LiquidityClassification            string  `json:"liquidityClassification"`
+	PartiesInvolvedInvestmentCommittee string  `json:"partiesInvolvedInvestmentCommittee"`
+	PartiesInvolvedRiskCommittee       string  `json:"partiesInvolvedRiskCommittee"`
+	AssetPerformanceRisk               string  `json:"assetPerformanceRisk"`
+	CashFlowVolatilityRisk             string  `json:"cashFlowVolatilityRisk"`
+	CounterpartyConcentrationRisk      string  `json:"counterpartyConcentrationRisk"`
+	ValuationRisk                      string  `json:"valuationRisk"`
+	DefaultRecoveryRisk                string  `json:"defaultRecoveryRisk"`
+	CurrentNAV                         float64 `gorm:"default:0" json:"currentNAV"`
+	CurrentNAVPerToken                 float64 `gorm:"default:0" json:"CurrentNAVPerToken"`
 }
 
 type TokenizedAssetSector struct {
@@ -2560,6 +2768,8 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 				finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
 				t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
+				t.CurrentNAV = t.ValueOfTokenizedAsset
+				t.CurrentNAVPerToken = t.PricePerToken
 				log.Printf("[UpdateTokenizedAssetFromInput] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset.String(), decimal.NewFromFloat(t.ValueOfTokenizedAsset).String())
 
 			}
@@ -4287,6 +4497,287 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 
 	//////////
 
+	if len(ti.TypeOfREIT) > 0 {
+		t.TypeOfREIT = &ti.TypeOfREIT
+	} else {
+		t.TypeOfREIT = nil
+	}
+
+	t.NavPerUnit = ti.NavPerUnit
+	t.TotalUnitsOutstanding = ti.TotalUnitsOutstanding
+
+	if len(ti.DistributionPolicy) > 0 {
+		t.DistributionPolicy = &ti.DistributionPolicy
+	} else {
+		t.DistributionPolicy = nil
+	}
+
+	t.DebtOutstanding = ti.DebtOutstanding
+
+	if len(ti.ESGClassification) > 0 {
+		t.ESGClassification = &ti.ESGClassification
+	} else {
+		t.ESGClassification = nil
+	}
+
+	if len(ti.PortfolioSummary) > 0 {
+		t.PortfolioSummary = &ti.PortfolioSummary
+	} else {
+		t.PortfolioSummary = nil
+	}
+
+	t.NoOfProperties = ti.NoOfProperties
+
+	if len(ti.PropertyCategories) > 0 {
+		t.PropertyCategories = &ti.PropertyCategories
+	} else {
+		t.PropertyCategories = nil
+	}
+
+	if len(ti.GeographicDistribution) > 0 {
+		t.GeographicDistribution = &ti.GeographicDistribution
+	} else {
+		t.GeographicDistribution = nil
+	}
+
+	t.TotalGrossAssetValue = ti.TotalGrossAssetValue
+
+	if len(ti.IndependentValuationFirm) > 0 {
+		t.IndependentValuationFirm = &ti.IndependentValuationFirm
+	} else {
+		t.IndependentValuationFirm = nil
+	}
+
+	t.OccupancyRate = ti.OccupancyRate
+	t.WeightedAverageLeaseExpiry = ti.WeightedAverageLeaseExpiry
+	t.AnnualRentalIncome = ti.AnnualRentalIncome
+	t.NetOperatingIncome = ti.NetOperatingIncome
+	t.FundsFromOperations = ti.FundsFromOperations
+
+	if len(ti.Top10Properties) > 0 {
+		t.Top10Properties = &ti.Top10Properties
+	} else {
+		t.Top10Properties = nil
+	}
+
+	if len(ti.Top10Tenants) > 0 {
+		t.Top10Tenants = &ti.Top10Tenants
+	} else {
+		t.Top10Tenants = nil
+	}
+
+	if len(ti.TenantConcentrationRatio) > 0 {
+		t.TenantConcentrationRatio = &ti.TenantConcentrationRatio
+	} else {
+		t.TenantConcentrationRatio = nil
+	}
+
+	if len(ti.PropertyTypeAllocation) > 0 {
+		t.PropertyTypeAllocation = &ti.PropertyTypeAllocation
+	} else {
+		t.PropertyTypeAllocation = nil
+	}
+
+	if len(ti.GeographicAllocation) > 0 {
+		t.GeographicAllocation = &ti.GeographicAllocation
+	} else {
+		t.GeographicAllocation = nil
+	}
+
+	if len(ti.DevelopmentProjects) > 0 {
+		t.DevelopmentProjects = &ti.DevelopmentProjects
+	} else {
+		t.DevelopmentProjects = nil
+	}
+
+	if len(ti.PartiesInvolvedRegistrar) > 0 {
+		t.PartiesInvolvedRegistrar = &ti.PartiesInvolvedRegistrar
+	} else {
+		t.PartiesInvolvedRegistrar = nil
+	}
+
+	if len(ti.PartiesInvolvedIndependentValuer) > 0 {
+		t.PartiesInvolvedIndependentValuer = &ti.PartiesInvolvedIndependentValuer
+	} else {
+		t.PartiesInvolvedIndependentValuer = nil
+	}
+
+	if len(ti.ReitSponsor) > 0 {
+		t.ReitSponsor = &ti.ReitSponsor
+	} else {
+		t.ReitSponsor = nil
+	}
+
+	if len(ti.OccupancyRisk) > 0 {
+		t.OccupancyRisk = &ti.OccupancyRisk
+	} else {
+		t.OccupancyRisk = nil
+	}
+
+	if len(ti.TenantConcentrationRisk) > 0 {
+		t.TenantConcentrationRisk = &ti.TenantConcentrationRisk
+	} else {
+		t.TenantConcentrationRisk = nil
+	}
+
+	if len(ti.RefinancingRisk) > 0 {
+		t.RefinancingRisk = &ti.RefinancingRisk
+	} else {
+		t.RefinancingRisk = nil
+	}
+
+	if len(ti.EarlyExitPenalty) > 0 {
+		t.EarlyExitPenalty = &ti.EarlyExitPenalty
+	} else {
+		t.EarlyExitPenalty = nil
+	}
+
+	if len(ti.EarlyExitFee) > 0 {
+		t.EarlyExitFee = &ti.EarlyExitFee
+	} else {
+		t.EarlyExitFee = nil
+	}
+
+	if len(ti.TypeOfFund) > 0 {
+		t.TypeOfFund = &ti.TypeOfFund
+	} else {
+		t.TypeOfFund = nil
+	}
+
+	if len(ti.InvestmentStrategy) > 0 {
+		t.InvestmentStrategy = &ti.InvestmentStrategy
+	} else {
+		t.InvestmentStrategy = nil
+	}
+
+	if len(ti.Structure) > 0 {
+		t.Structure = &ti.Structure
+	} else {
+		t.Structure = nil
+	}
+
+	if len(ti.TargetReturnRange) > 0 {
+		t.TargetReturnRange = &ti.TargetReturnRange
+	} else {
+		t.TargetReturnRange = nil
+	}
+
+	t.PrivateEquityAllocation = ti.PrivateEquityAllocation
+	t.YieldInstrumentAllocation = ti.YieldInstrumentAllocation
+	t.CashAllocation = ti.CashAllocation
+	t.WeightedPortfolioYield = ti.WeightedPortfolioYield
+	t.AveragePortfolioDuration = ti.AveragePortfolioDuration
+	t.AverageHoldingPeriod = ti.AverageHoldingPeriod
+
+	if len(ti.PortfolioGrowthStrategy) > 0 {
+		t.PortfolioGrowthStrategy = &ti.PortfolioGrowthStrategy
+	} else {
+		t.PortfolioGrowthStrategy = nil
+	}
+
+	if len(ti.ExitStrategy) > 0 {
+		t.ExitStrategy = &ti.ExitStrategy
+	} else {
+		t.ExitStrategy = nil
+	}
+
+	if len(ti.PCHCompanyName) > 0 {
+		t.PCHCompanyName = &ti.PCHCompanyName
+	} else {
+		t.PCHCompanyName = nil
+	}
+
+	if len(ti.PCHIndustry) > 0 {
+		t.PCHIndustry = &ti.PCHIndustry
+	} else {
+		t.PCHIndustry = nil
+	}
+
+	if len(ti.PCHCountry) > 0 {
+		t.PCHCountry = &ti.PCHCountry
+	} else {
+		t.PCHCountry = nil
+	}
+
+	if len(ti.PCHInvestmentDate) > 0 {
+		t.PCHInvestmentDate = &ti.PCHInvestmentDate
+	} else {
+		t.PCHInvestmentDate = nil
+	}
+
+	if len(ti.PCHOwnershipPercentage) > 0 {
+		t.PCHOwnershipPercentage = &ti.PCHOwnershipPercentage
+	} else {
+		t.PCHOwnershipPercentage = nil
+	}
+
+	t.PCHCostBasis = ti.PCHCostBasis
+	t.PCHCurrentFairValue = ti.PCHCurrentFairValue
+	t.PCHRevenueGrowthRate = ti.PCHRevenueGrowthRate
+	t.PCHEBITDAGrowthRate = ti.PCHEBITDAGrowthRate
+	t.PCHExitStatus = ti.PCHExitStatus
+	t.PCHExpectedExitTimeline = ti.PCHExpectedExitTimeline
+
+	if len(ti.YIHIssuer) > 0 {
+		t.YIHIssuer = &ti.YIHIssuer
+	} else {
+		t.YIHIssuer = nil
+	}
+
+	t.PrincipalAmount = ti.PrincipalAmount
+	t.CurrentMarketValue = ti.CurrentMarketValue
+	t.YIHDuration = ti.YIHDuration
+
+	if len(ti.LiquidityClassification) > 0 {
+		t.LiquidityClassification = &ti.LiquidityClassification
+	} else {
+		t.LiquidityClassification = nil
+	}
+
+	if len(ti.PartiesInvolvedInvestmentCommittee) > 0 {
+		t.PartiesInvolvedInvestmentCommittee = &ti.PartiesInvolvedInvestmentCommittee
+	} else {
+		t.PartiesInvolvedInvestmentCommittee = nil
+	}
+
+	if len(ti.PartiesInvolvedRiskCommittee) > 0 {
+		t.PartiesInvolvedRiskCommittee = &ti.PartiesInvolvedRiskCommittee
+	} else {
+		t.PartiesInvolvedRiskCommittee = nil
+	}
+
+	if len(ti.AssetPerformanceRisk) > 0 {
+		t.AssetPerformanceRisk = &ti.AssetPerformanceRisk
+	} else {
+		t.AssetPerformanceRisk = nil
+	}
+
+	if len(ti.CashFlowVolatilityRisk) > 0 {
+		t.CashFlowVolatilityRisk = &ti.CashFlowVolatilityRisk
+	} else {
+		t.CashFlowVolatilityRisk = nil
+	}
+
+	if len(ti.CounterpartyConcentrationRisk) > 0 {
+		t.CounterpartyConcentrationRisk = &ti.CounterpartyConcentrationRisk
+	} else {
+		t.CounterpartyConcentrationRisk = nil
+	}
+
+	if len(ti.ValuationRisk) > 0 {
+		t.ValuationRisk = &ti.ValuationRisk
+	} else {
+		t.ValuationRisk = nil
+	}
+
+	if len(ti.DefaultRecoveryRisk) > 0 {
+		t.DefaultRecoveryRisk = &ti.DefaultRecoveryRisk
+	} else {
+		t.DefaultRecoveryRisk = nil
+	}
+
+	/////////
+
 	return *t
 
 }
@@ -4468,6 +4959,8 @@ func (t *TokenizedAsset) UpdateCalculation(gc *sharedconfig.GlobalConfig) {
 
 		finalValueOfTokenizedAsset := decimal.NewFromFloat(t.NumberOfTokenToBeIssued * t.PricePerToken)
 		t.ValueOfTokenizedAsset = finalValueOfTokenizedAsset.Truncate(7).InexactFloat64()
+		t.CurrentNAV = t.ValueOfTokenizedAsset
+		t.CurrentNAVPerToken = t.PricePerToken
 		log.Printf("[UpdateCalculation] Calculated Final Value of tokenized Asset:= %v, TRUNCATED 7DP value := %v\n", finalValueOfTokenizedAsset.String(), decimal.NewFromFloat(t.ValueOfTokenizedAsset).String())
 	}
 
@@ -4831,6 +5324,10 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	}
 	if ti.AccountNumber != nil {
 		t.AccountNumber = *ti.AccountNumber
+	}
+	if t.CurrentNAV == 0 {
+		t.CurrentNAV = ti.ValueOfTokenizedAsset
+		t.CurrentNAVPerToken = ti.PricePerToken
 	}
 
 	t.UndertakingNoLien = ti.UndertakingNoLien
@@ -5769,6 +6266,207 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	t.WithholdingTaxDisclosure = ti.WithholdingTaxDisclosure
 	t.ExitWithFiat = ti.ExitWithFiat
 
+	//////////
+
+	if ti.TypeOfREIT != nil {
+		t.TypeOfREIT = *ti.TypeOfREIT
+	}
+
+	t.NavPerUnit = ti.NavPerUnit
+	t.TotalUnitsOutstanding = ti.TotalUnitsOutstanding
+
+	if ti.DistributionPolicy != nil {
+		t.DistributionPolicy = *ti.DistributionPolicy
+	}
+
+	t.DebtOutstanding = ti.DebtOutstanding
+
+	if ti.ESGClassification != nil {
+		t.ESGClassification = *ti.ESGClassification
+	}
+
+	if ti.PortfolioSummary != nil {
+		t.PortfolioSummary = *ti.PortfolioSummary
+	}
+
+	t.NoOfProperties = ti.NoOfProperties
+
+	if ti.PropertyCategories != nil {
+		t.PropertyCategories = *ti.PropertyCategories
+	}
+
+	if ti.GeographicDistribution != nil {
+		t.GeographicDistribution = *ti.GeographicDistribution
+	}
+
+	t.TotalGrossAssetValue = ti.TotalGrossAssetValue
+
+	if ti.IndependentValuationFirm != nil {
+		t.IndependentValuationFirm = *ti.IndependentValuationFirm
+	}
+
+	t.OccupancyRate = ti.OccupancyRate
+	t.WeightedAverageLeaseExpiry = ti.WeightedAverageLeaseExpiry
+	t.AnnualRentalIncome = ti.AnnualRentalIncome
+	t.NetOperatingIncome = ti.NetOperatingIncome
+	t.FundsFromOperations = ti.FundsFromOperations
+
+	if ti.Top10Properties != nil {
+		t.Top10Properties = *ti.Top10Properties
+	}
+
+	if ti.Top10Tenants != nil {
+		t.Top10Tenants = *ti.Top10Tenants
+	}
+
+	if ti.TenantConcentrationRatio != nil {
+		t.TenantConcentrationRatio = *ti.TenantConcentrationRatio
+	}
+
+	if ti.PropertyTypeAllocation != nil {
+		t.PropertyTypeAllocation = *ti.PropertyTypeAllocation
+	}
+
+	if ti.GeographicAllocation != nil {
+		t.GeographicAllocation = *ti.GeographicAllocation
+	}
+
+	if ti.DevelopmentProjects != nil {
+		t.DevelopmentProjects = *ti.DevelopmentProjects
+	}
+
+	if ti.PartiesInvolvedRegistrar != nil {
+		t.PartiesInvolvedRegistrar = *ti.PartiesInvolvedRegistrar
+	}
+
+	if ti.PartiesInvolvedIndependentValuer != nil {
+		t.PartiesInvolvedIndependentValuer = *ti.PartiesInvolvedIndependentValuer
+	}
+
+	if ti.ReitSponsor != nil {
+		t.ReitSponsor = *ti.ReitSponsor
+	}
+
+	if ti.OccupancyRisk != nil {
+		t.OccupancyRisk = *ti.OccupancyRisk
+	}
+
+	if ti.TenantConcentrationRisk != nil {
+		t.TenantConcentrationRisk = *ti.TenantConcentrationRisk
+	}
+
+	if ti.RefinancingRisk != nil {
+		t.RefinancingRisk = *ti.RefinancingRisk
+	}
+
+	if ti.EarlyExitPenalty != nil {
+		t.EarlyExitPenalty = *ti.EarlyExitPenalty
+	}
+
+	if ti.EarlyExitFee != nil {
+		t.EarlyExitFee = *ti.EarlyExitFee
+	}
+
+	if ti.TypeOfFund != nil {
+		t.TypeOfFund = *ti.TypeOfFund
+	}
+
+	if ti.InvestmentStrategy != nil {
+		t.InvestmentStrategy = *ti.InvestmentStrategy
+	}
+
+	if ti.Structure != nil {
+		t.Structure = *ti.Structure
+	}
+
+	if ti.TargetReturnRange != nil {
+		t.TargetReturnRange = *ti.TargetReturnRange
+	}
+
+	t.PrivateEquityAllocation = ti.PrivateEquityAllocation
+	t.YieldInstrumentAllocation = ti.YieldInstrumentAllocation
+	t.CashAllocation = ti.CashAllocation
+	t.WeightedPortfolioYield = ti.WeightedPortfolioYield
+	t.AveragePortfolioDuration = ti.AveragePortfolioDuration
+	t.AverageHoldingPeriod = ti.AverageHoldingPeriod
+
+	if ti.PortfolioGrowthStrategy != nil {
+		t.PortfolioGrowthStrategy = *ti.PortfolioGrowthStrategy
+	}
+
+	if ti.ExitStrategy != nil {
+		t.ExitStrategy = *ti.ExitStrategy
+	}
+
+	if ti.PCHCompanyName != nil {
+		t.PCHCompanyName = *ti.PCHCompanyName
+	}
+
+	if ti.PCHIndustry != nil {
+		t.PCHIndustry = *ti.PCHIndustry
+	}
+
+	if ti.PCHCountry != nil {
+		t.PCHCountry = *ti.PCHCountry
+	}
+
+	if ti.PCHInvestmentDate != nil {
+		t.PCHInvestmentDate = *ti.PCHInvestmentDate
+	}
+
+	if ti.PCHOwnershipPercentage != nil {
+		t.PCHOwnershipPercentage = *ti.PCHOwnershipPercentage
+	}
+
+	t.PCHCostBasis = ti.PCHCostBasis
+	t.PCHCurrentFairValue = ti.PCHCurrentFairValue
+	t.PCHRevenueGrowthRate = ti.PCHRevenueGrowthRate
+	t.PCHEBITDAGrowthRate = ti.PCHEBITDAGrowthRate
+	t.PCHExitStatus = ti.PCHExitStatus
+	t.PCHExpectedExitTimeline = ti.PCHExpectedExitTimeline
+
+	if ti.YIHIssuer != nil {
+		t.YIHIssuer = *ti.YIHIssuer
+	}
+
+	t.PrincipalAmount = ti.PrincipalAmount
+	t.CurrentMarketValue = ti.CurrentMarketValue
+	t.YIHDuration = ti.YIHDuration
+
+	if ti.LiquidityClassification != nil {
+		t.LiquidityClassification = *ti.LiquidityClassification
+	}
+
+	if ti.PartiesInvolvedInvestmentCommittee != nil {
+		t.PartiesInvolvedInvestmentCommittee = *ti.PartiesInvolvedInvestmentCommittee
+	}
+
+	if ti.PartiesInvolvedRiskCommittee != nil {
+		t.PartiesInvolvedRiskCommittee = *ti.PartiesInvolvedRiskCommittee
+	}
+
+	if ti.AssetPerformanceRisk != nil {
+		t.AssetPerformanceRisk = *ti.AssetPerformanceRisk
+	}
+
+	if ti.CashFlowVolatilityRisk != nil {
+		t.CashFlowVolatilityRisk = *ti.CashFlowVolatilityRisk
+	}
+
+	if ti.CounterpartyConcentrationRisk != nil {
+		t.CounterpartyConcentrationRisk = *ti.CounterpartyConcentrationRisk
+	}
+
+	if ti.ValuationRisk != nil {
+		t.ValuationRisk = *ti.ValuationRisk
+	}
+
+	if ti.DefaultRecoveryRisk != nil {
+		t.DefaultRecoveryRisk = *ti.DefaultRecoveryRisk
+	}
+
+	///////
+
 	return t
 
 }
@@ -6041,4 +6739,48 @@ type TokenizationStatForTM struct {
 	} `json:"data"`
 	Timestamp string `json:"timestamp"`
 	Status    string `json:"status"`
+}
+
+type TokenizedAssetEarlyExit struct {
+	ID               string    `gorm:"" json:"-" form:"-"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+	TokenizedAssetID string    `gorm:"not null;size:100" json:"tokenizedAssetId"`
+
+	WalletUsername  string `json:"walletUsername"`
+	WalletPublicKey string `gorm:"not null;size:100" json:"walletPublicKey"`
+	AccountNumber   string `json:"accountNumber"`
+	AccountName     string `json:"accountName"`
+	PayoutCurrency  string `json:"payoutCurrency"`
+	BankID          uint64 `json:"bankId"`
+	Bank            Bank   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	SettlementTime  string `json:"settlementTime"`
+	TransactionID   string `json:"transactionId"`
+
+	TokenQuantityToExit     float64 `json:"tokenQuantityToExit"`
+	CurrentNAVPerToken      float64 `json:"CurrentNAVPerToken"`
+	EarlyExitPenaltyAndFees float64 `json:"earlyExitPenaltyAndFees"` //percentage
+	PayoutPricePerToken     float64 `json:"payoutPricePerToken"`
+	EstimatedPayoutAmount   float64 `json:"estimatedPayoutAmount"`
+}
+
+type TokenizedAssetEarlyExitInput struct {
+	TokenizedAssetID     string   `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	WalletPublicKey      string   `json:"walletPublicKey"`
+	AccountNumber        string   `json:"accountNumber"`
+	AccountName          string   `json:"accountName"`
+	BankID               uint64   `json:"bankId"`
+	TokenQuantityToExit  float64  `json:"tokenQuantityToExit"`
+	SwappedEstimate      string   `json:"swappedEstimate"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+	Memo                 string   `json:"memo"`
+	Multiparty           int      `json:"-"`
+	TransactionSource    string   `json:"-"`
+	SignatureRequired    int      `json:"signatureRequired"`
+	Commit               int      `json:"commit"`
+	ReturnedDescription  string   `json:"-"`
 }

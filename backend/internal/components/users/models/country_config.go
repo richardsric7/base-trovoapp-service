@@ -39,6 +39,8 @@ type CountryConfig struct {
 	VATPercent                               float64   `gorm:"default:0" json:"vatPercent"`
 	FiatActivationAmount                     float64   `gorm:"default:1000" json:"fiatActivationAmount"`
 	TrovTokenActivationPercent               float64   `gorm:"default:50" json:"trovTokenActivationPercent"` //the rest is for gas/nativetoken
+	InternalBalanceTokenCode                 *string   `gorm:"size:12;default:null" json:"internalBalanceTokenCode"`
+	InternalTokenIssuer                      *string   `gorm:"size:68;default:null" json:"internalTokenIssuer"`
 }
 
 type CountryCode string
