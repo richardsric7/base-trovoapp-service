@@ -1,14 +1,22 @@
 package users
 
 import (
-	"os"
-	userModels "trovo-wallet-api/internal/components/users/models"
-
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
+
+	usersDB "trovo-wallet-api/internal/components/users/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 // Init initializes /v1/users endpoint
