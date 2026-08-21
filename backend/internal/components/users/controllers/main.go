@@ -1,5 +1,7 @@
 package users
 
+// build-marker: CI/deploy pipeline test (2026-08-21) — safe to remove
+
 import (
 	"encoding/json"
 	"fmt"
