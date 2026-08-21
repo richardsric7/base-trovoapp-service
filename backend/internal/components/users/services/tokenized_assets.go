@@ -4143,3 +4143,317 @@ func GetSwapEstimate(sourceAssetCode, sourceAssetIssuer, amount, destinationAsse
 func fitsInInt32(x *big.Int) bool {
 	return x.Cmp(big.NewInt(math.MaxInt32)) <= 0 && x.Cmp(big.NewInt(math.MinInt32)) >= 0
 }
+
+// parseEarlyExitPercentage parses a tokenization's free-text EarlyExitPenalty/EarlyExitFee field
+// (e.g. "5" or "5%") into a float64 percentage, returning 0 when nil or not a plain number.
+func parseEarlyExitPercentage(s *string) float64 {
+	if s == nil {
+		return 0
+	}
+	trimmed := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(*s), "%"))
+	if len(trimmed) == 0 {
+		return 0
+	}
+	v, err := strconv.ParseFloat(trimmed, 64)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// buildTokenizedAssetEarlyExit computes the NAV/penalty/payout figures for an early exit and assembles the
+// TokenizedAssetEarlyExit record. Shared between EarlyExit (building the record on the initial request) and
+// ApproveTransaction (rebuilding the same record once a shared-access wallet's approvals are complete).
+func buildTokenizedAssetEarlyExit(walletOwnerUsername, walletPublicKey string, input *userModels.TokenizedAssetEarlyExitInput, ta *userModels.TokenizedAsset, bank *userModels.Bank, gc *sharedconfig.GlobalConfig) (ee userModels.TokenizedAssetEarlyExit) {
+	navPerToken := ta.CurrentNAVPerToken
+	if navPerToken <= 0 {
+		navPerToken = ta.PricePerToken
+	}
+	penaltyPct := parseEarlyExitPercentage(ta.EarlyExitPenalty) + parseEarlyExitPercentage(ta.EarlyExitFee)
+	payoutPricePerToken := decimal.NewFromFloat(navPerToken).Mul(decimal.NewFromFloat(1).Sub(decimal.NewFromFloat(penaltyPct).Div(decimal.NewFromInt(100))))
+	estimatedPayout := payoutPricePerToken.Mul(decimal.NewFromFloat(input.TokenQuantityToExit)).Truncate(7)
+
+	ee.ID = gc.GenerateUUIDString()
+	ee.TokenizedAssetID = ta.ID
+	ee.WalletUsername = walletOwnerUsername
+	ee.WalletPublicKey = walletPublicKey
+	ee.AccountNumber = input.AccountNumber
+	ee.AccountName = input.AccountName
+	ee.PayoutCurrency = *ta.AssetQuoteCurrency
+	ee.BankID = input.BankID
+	ee.Bank = *bank
+	ee.TokenQuantityToExit = input.TokenQuantityToExit
+	ee.CurrentNAVPerToken = navPerToken
+	ee.EarlyExitPenaltyAndFees = penaltyPct
+	ee.PayoutPricePerToken, _ = payoutPricePerToken.Float64()
+	ee.EstimatedPayoutAmount, _ = estimatedPayout.Float64()
+	return
+}
+
+// generateEarlyExitPaymentXdr builds a plain Payment operation moving the exiting token quantity from the
+// holder's wallet into the tokenization's distribution wallet (the issuing wallet's LinkedWalletPublicKey).
+// There is no on-chain buy-back/liquidity for an early exit — the tokens simply return to issuer custody,
+// and the holder is settled to their bank account off-chain from the persisted TokenizedAssetEarlyExit record.
+func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, amount string, multiparty int, gc *sharedconfig.GlobalConfig) (xdrBase64, transactionSource string, err error) {
+	client := gc.BantuExpansionClient
+	asset := txnbuild.CreditAsset{Code: strings.ToUpper(*ta.AssetCode), Issuer: strings.ToUpper(*ta.IssuingWalletPublicKey)}
+
+	var chanAccount *keypair.Full
+	var chanSourceAccount *horizon.Account
+	if multiparty == 1 {
+		chanAccount = <-gc.ChannelAccounts
+		defer func(c *keypair.Full) {
+			gc.ChannelAccounts <- c
+		}(chanAccount)
+		_, _, _, _, chanSourceAccount, _ = network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	}
+
+	sourceAccountExists, sourceAccountTrustsAsset, _, sourceAccountBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
+	if sourceAccountErr != nil {
+		return "", "", sourceAccountErr
+	}
+	if !sourceAccountExists {
+		return "", "", &tErrors.ErrorUnderfundedAccount{}
+	}
+	if !sourceAccountTrustsAsset {
+		return "", "", &tErrors.CustomError{Param: "walletPublicKey", Err: "error-no-trustline", ErrMessage: fmt.Sprintf("Your wallet does not hold %v.", *ta.AssetCode)}
+	}
+
+	amountDec, e := decimal.NewFromString(amount)
+	if e != nil {
+		return "", "", &tErrors.CustomError{Param: "tokenQuantityToExit", Err: "error-invalid-amount", ErrMessage: "Invalid token quantity."}
+	}
+	if sourceAccountBalance.LessThan(amountDec) {
+		return "", "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("You only have %v %v available; cannot exit %v %v.", sourceAccountBalance.String(), *ta.AssetCode, amountDec.String(), *ta.AssetCode)}
+	}
+
+	ops := []txnbuild.Operation{
+		&txnbuild.Payment{
+			Destination:   distributionWallet.ID,
+			Amount:        amountDec.String(),
+			Asset:         asset,
+			SourceAccount: wallet.ID,
+		},
+	}
+
+	var tx *txnbuild.Transaction
+	if multiparty == 1 {
+		transactionSource = chanSourceAccount.AccountID
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("EARLYEXIT"),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("EARLYEXIT"),
+			},
+		)
+	}
+	if err != nil {
+		log.Println("[generateEarlyExitPaymentXdr] error constructing transaction", err)
+		return "", "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if multiparty == 1 {
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+		if err != nil {
+			log.Println("[generateEarlyExitPaymentXdr] error signing transaction with channelAccount key", err)
+			return "", "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		return "", "", err
+	}
+	return xdrBase64, transactionSource, nil
+}
+
+// EarlyExit processes a holder's early exit (pre-maturity redemption) from a tokenized asset market fund.
+// It debits the exiting token quantity from the holder's own wallet into the tokenization's distribution
+// wallet via a plain Payment operation (there is no on-chain buy-back/liquidity for an early exit) and
+// records the payout/settlement details for the requested bank account so it can be settled manually.
+func EarlyExit(initiator *userModels.User, wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetEarlyExitInput, gc *sharedconfig.GlobalConfig) (ee userModels.TokenizedAssetEarlyExit, err error) {
+	input.TokenizedAssetID = ta.ID
+	input.WalletPublicKey = wallet.ID
+	input.TokenQuantityToExit = decimal.NewFromFloat(input.TokenQuantityToExit).Truncate(7).InexactFloat64()
+
+	walletOwner, e := wallet.GetWalletOwner(gc.DB, gc)
+	if e != nil {
+		log.Printf("[EarlyExit] Error Unable to verify wallet owner of exiting wallet %v\n", wallet.Alias)
+		err = &tErrors.CustomError{Param: "walletPublicKey", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
+		return
+	}
+
+	if walletOwner.KYCVerified == 0 {
+		log.Printf("[EarlyExit] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, *ta.AssetCode)
+		err = &tErrors.CustomError{Param: "walletPublicKey", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to exit this tokenized asset %v.", walletOwner.Username, *ta.AssetCode)}
+		return
+	}
+
+	if ta.AssetTokenizationStatus != 5 && ta.AssetTokenizationStatus != 6 {
+		log.Printf("[EarlyExit] Error Tokenized asset not open for trading yet: %v\n", ta.ID)
+		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-request", ErrMessage: "Only projects that are on sale or trading can accept an early exit."}
+		return
+	}
+
+	if !ta.MaturityDate.IsZero() && !time.Now().Before(ta.MaturityDate) {
+		log.Printf("[EarlyExit] Error Tokenized asset has already matured: %v\n", ta.ID)
+		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-asset-matured", ErrMessage: "This asset has reached maturity. Please use the standard redemption instead of an early exit."}
+		return
+	}
+
+	if input.TokenQuantityToExit <= 0 {
+		err = &tErrors.CustomError{Param: "tokenQuantityToExit", Err: "error-invalid-amount", ErrMessage: "You must specify a token quantity greater than zero to exit."}
+		return
+	}
+
+	var bank userModels.Bank
+	if e := gc.DB.Where("id = ?", input.BankID).First(&bank).Error; e != nil {
+		log.Printf("[EarlyExit] Error locating bank %v: %v\n", input.BankID, e)
+		err = &tErrors.CustomError{Param: "bankId", Err: "error-invalid-bank", ErrMessage: "Please select a valid bank for payout."}
+		return
+	}
+
+	ee = buildTokenizedAssetEarlyExit(walletOwner.Username, wallet.ID, input, ta, &bank, gc)
+	estimatedPayout := decimal.NewFromFloat(ee.EstimatedPayoutAmount)
+
+	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+		input.Multiparty = 1
+	}
+	if wallet.HasViewOnlyAccess(gc) {
+		input.SignatureRequired = 1
+	}
+
+	issuingWallet, e := userModels.UserWalletID(*ta.IssuingWalletPublicKey).GetWallet(gc.DB, gc)
+	if e != nil {
+		log.Printf("[EarlyExit] Error locating issuing wallet for tokenized asset %v: %v\n", ta.ID, e)
+		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "Unable to validate issuing wallet."}
+		return
+	}
+	if issuingWallet.LinkedWalletPublicKey == nil {
+		log.Printf("[EarlyExit] Error issuing wallet has no distribution wallet linked for tokenized asset %v\n", ta.ID)
+		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "This asset has no distribution wallet configured."}
+		return
+	}
+	distributionWallet, e := userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+	if e != nil {
+		log.Printf("[EarlyExit] Error locating distribution wallet for tokenized asset %v: %v\n", ta.ID, e)
+		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "Unable to validate distribution wallet."}
+		return
+	}
+
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+
+	if input.Multiparty == 0 {
+		e := dbTX.Omit(clause.Associations).Create(&ee).Error
+		if e != nil {
+			log.Printf("[EarlyExit] error saving tokenized asset early exit to database [%+v] for %v: %v\n", ee, walletOwner.Username, e)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
+	}
+
+	if len(input.TransactionSignature) == 0 {
+		xdrBase64, transactionSource, e := generateEarlyExitPaymentXdr(wallet, &distributionWallet, ta, decimal.NewFromFloat(input.TokenQuantityToExit).Truncate(7).String(), input.Multiparty, gc)
+		if e != nil {
+			log.Printf("[EarlyExit] error generating early exit xdr [%+v] for %v: %v\n", ee, walletOwner.Username, e)
+			err = e
+			return
+		}
+		input.Transaction = xdrBase64
+		input.TransactionSource = transactionSource
+		input.Memo = "EARLYEXIT"
+	}
+
+	input.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+
+	if len(input.TransactionSignature) == 0 && input.Commit == 0 {
+		err = nil
+		return ee, nil
+	}
+
+	client := gc.BantuExpansionClient
+
+	if len(input.TransactionSignature) > 0 && (input.Commit == 0 || wallet.HasViewOnlyAccess(gc)) {
+		txnHash, e := network.SubmitXdrWithSignature(client, initiator.PrimarySigner, input.Transaction, input.TransactionSignature)
+		if e != nil {
+			log.Printf("[EarlyExit] error submitting early exit transaction to blockchain [%+v] for %v: %v\n", ee, walletOwner.Username, e)
+			err = e
+			return
+		}
+		input.TransactionID = txnHash
+		ee.TransactionID = txnHash
+		dbTX.Omit(clause.Associations).Save(&ee)
+		dbTX.Commit()
+		wallet.InvalidateUserCache(gc)
+		initiator.InvalidateUserWalletCache(gc)
+		return ee, nil
+	}
+
+	//multi party
+	if input.Multiparty == 1 {
+		input.TransactionID = "PENDING_AUTH"
+		ee.TransactionID = "PENDING_AUTH"
+
+		id := uuid.NewString()
+		description := fmt.Sprintf("Early exit of Tokenized asset [%v]\nQuantity: %v %v,\nEstimated payout: %v %v", *ta.AssetName, decimal.NewFromFloat(input.TokenQuantityToExit).String(), *ta.AssetCode, estimatedPayout.String(), *ta.AssetQuoteCurrency)
+		if len(input.Messages) > 0 {
+			var msgs string
+			for i, m := range input.Messages {
+				msgs = m
+				if i < len(input.Messages)-1 {
+					msgs = fmt.Sprintf("%s\n", msgs)
+				}
+			}
+			description = fmt.Sprintf("%v\nMessages: %v", description, msgs)
+		}
+		input.ReturnedDescription = description
+		transactionByte, _ := json.Marshal(*input)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                initiator.Username,
+			InitiatorSignerPublicKey: initiator.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "TOKENIZED ASSET EARLY EXIT",
+			Description:              description,
+			TransactionSource:        input.TransactionSource,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           input.Transaction,
+			TransactionInfoStr:       &transactionStr,
+		}
+		e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[EarlyExit] Error saving early exit txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return
+		}
+		dbTX.Omit(clause.Associations).Save(&ee)
+		dbTX.Commit()
+		wallet.InvalidateUserCache(gc)
+		initiator.InvalidateUserWalletCache(gc)
+		return ee, nil
+	}
+
+	log.Println("[EarlyExit]UNKNOWN OPTION FOR ACTION")
+	err = &tErrors.ErrorTemporaryServerError{}
+	return
+}

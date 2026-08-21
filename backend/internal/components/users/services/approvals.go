@@ -220,6 +220,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var wdlInput userModels.WithdrawalRequestInput
 	var tkInput userModels.TokenMinting
 	var assetSubscription userModels.TokenizedAssetSubscriptionInput
+	var earlyExitInput userModels.TokenizedAssetEarlyExitInput
 	var wdlRequest userModels.WithdrawalRequest
 	var paymentFee, swapFee, vatFeeCollection sharedconfig.FeeCollection
 	sendPushNotificationToApprover := true
@@ -459,6 +460,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		e = json.Unmarshal(tbyte, &assetSubscription)
 		if e != nil {
 			log.Println("[ApproveTransaction] error decoding json for asset subscription")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+	} else if p.TransactionType == "TOKENIZED ASSET EARLY EXIT" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &earlyExitInput)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for tokenized asset early exit")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
@@ -1099,6 +1109,55 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			e = dbTX.Omit(clause.Associations).Save(&taSubscription).Error
 			if e != nil {
 				log.Println("[ApproveTransaction] Error creating asset subscription record:", e)
+			}
+
+			dbTX.Commit()
+			accessList := wallet.GetPermissionList(gc.DB)
+			notificationList := make(map[string]string)
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingApproval"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+				if v.TargetUsername == signerUser.Username {
+					sendPushNotificationToApprover = false
+				}
+				if u.PushNotificationToken != nil {
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+					u.InvalidateUserCache(gc)
+				}
+				if sendPushNotificationToApprover {
+
+					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					signerUser.InvalidateUserCache(gc)
+				}
+			}
+			return nil
+
+		} else if p.TransactionType == "TOKENIZED ASSET EARLY EXIT" {
+			//get tokenization obj
+			ta, _, e := GetTokenizedAssetByID(earlyExitInput.TokenizedAssetID, dbTX)
+			if e != nil {
+				log.Println("[ApproveTransaction] error retrieving tokenized asset")
+			}
+			var bank userModels.Bank
+			if e := dbTX.Where("id = ?", earlyExitInput.BankID).First(&bank).Error; e != nil {
+				log.Println("[ApproveTransaction] error retrieving bank for tokenized asset early exit", earlyExitInput.BankID)
+			}
+
+			ee := buildTokenizedAssetEarlyExit(walletOwner.Username, wallet.ID, &earlyExitInput, &ta, &bank, gc)
+			ee.TransactionID = txnResult.Hash
+			e = dbTX.Omit(clause.Associations).Create(&ee).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] Error creating tokenized asset early exit record:", e)
 			}
 
 			dbTX.Commit()
