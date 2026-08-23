@@ -193,8 +193,10 @@ jobs:
       - name: Run migrations (one-shot, exits when done)
         env:
           IMAGE: registry.digitalocean.com/service-images/trovo-wallet:api-${{ needs.resolve.outputs.image_tag }}
+          # No CDB_CONNECTION_STRING: RoachDB belongs to the payment-history
+          # service. Under MIGRATE_ONLY the app neither opens nor migrates it,
+          # so CI needs no credentials for a second service's database.
           DB_CONNECTION_STRING: ${{ secrets.MIGRATION_DB_CONNECTION_STRING }}
-          CDB_CONNECTION_STRING: ${{ secrets.MIGRATION_CDB_CONNECTION_STRING }}
         run: |
           if [ -z "$DB_CONNECTION_STRING" ]; then
             echo "::error::MIGRATION_DB_CONNECTION_STRING secret is not set"
@@ -235,7 +237,9 @@ jobs:
           # quotes can be mangled before Docker ever sees it; --env-file is read
           # verbatim by Docker. Written under $RUNNER_TEMP and removed on exit.
           # MIGRATE_ONLY=1 -> run migrations then exit 0/1 without serving.
-          # DB_AUTOMIGRATE=1 -> run the Postgres migration block.
+          # DB_AUTOMIGRATE=1 -> set HERE, independently of the server's env file.
+          # The serving container keeps DB_AUTOMIGRATE=0 (that is what removes the
+          # user-facing startup wait); the migrator needs it on to do the work.
           ENV_FILE="$RUNNER_TEMP/migrate.env"
           umask 077
           {
@@ -243,9 +247,6 @@ jobs:
             echo "DB_AUTOMIGRATE=1"
             echo "DB_TYPE=postgres"
             printf 'DB_CONNECTION_STRING=%s\n' "$DSN"
-            if [ -n "$CDB_CONNECTION_STRING" ]; then
-              printf 'CDB_CONNECTION_STRING=%s\n' "$(printf '%s' "$CDB_CONNECTION_STRING" | tr -d '\r\n')"
-            fi
           } > "$ENV_FILE"
 
           trap 'rm -f "$ENV_FILE"' EXIT
