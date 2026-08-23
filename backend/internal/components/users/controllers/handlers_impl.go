@@ -887,7 +887,7 @@ func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCall
 		tInput.Status = "PENDING"
 		tInput.Username = user.Username
 
-		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", &user.Username, &user.PublicKey, nil, tInput.Amount, gc)
+		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", &user.Username, &user.PublicKey, nil, nil, nil, tInput.Amount, gc)
 		if err != nil {
 
 			var ex tErrors.GenericError

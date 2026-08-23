@@ -48,8 +48,8 @@ type FiatPaymentInvoice struct {
 	TokenizedAssetID     *string   `gorm:"null;size:100" json:"tokenizedAssetId"`
 	WalletAlias          *string   `gorm:"null;size:100" json:"walletAlias"`
 	WalletPublicKey      *string   `gorm:"null;size:100" json:"walletPublicKey"`
-	Transaction          string    `json:"transaction"`
-	TransactionSignature string    `json:"transactionSignature"`
+	Transaction          *string   `json:"transaction"`
+	TransactionSignature *string   `json:"transactionSignature"`
 }
 
 type FlutterwaveWebhook struct {
