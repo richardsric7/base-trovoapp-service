@@ -148,6 +148,7 @@ type TokenizedAsset struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 *string                         `json:"walletToHoldAssetsNotForSale"`
+	FundsHoldingWalletPublicKey                  *string                         `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -673,6 +674,7 @@ type TokenizedAssetJSONInput struct {
 	NumberOfTokenToBeSold                        float64   `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64   `json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string    `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
+	FundsHoldingWalletPublicKey                  string    `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64   `json:"pricePerToken"`
 	SalesStart                                   time.Time `json:"salesStart"`
 	SalesEnd                                     time.Time `json:"salesEnd"`
@@ -1224,6 +1226,7 @@ type TokenizedAssetJSON struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string                          `json:"walletToHoldAssetsNotForSale"`
+	FundsHoldingWalletPublicKey                  string                          `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -2787,6 +2790,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
 			} else {
 				t.WalletToHoldAssetsNotForSale = nil
+			}
+
+			if len(ti.FundsHoldingWalletPublicKey) > 0 {
+
+				t.FundsHoldingWalletPublicKey = &ti.FundsHoldingWalletPublicKey
+			} else {
+				t.FundsHoldingWalletPublicKey = nil
 			}
 
 		}
@@ -5256,6 +5266,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 
 	if ti.WalletToHoldAssetsNotForSale != nil {
 		t.WalletToHoldAssetsNotForSale = *ti.WalletToHoldAssetsNotForSale
+	}
+	if ti.FundsHoldingWalletPublicKey != nil {
+		t.FundsHoldingWalletPublicKey = *ti.FundsHoldingWalletPublicKey
 	}
 	t.PricePerToken = ti.PricePerToken
 	t.SalesStart = ti.SalesStart

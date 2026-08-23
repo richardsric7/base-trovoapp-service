@@ -2771,7 +2771,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		}
 	}
 	if len(input.TransactionSignature) == 0 {
-		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, &swapInfo, gc)
+		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, ta, &swapInfo, gc)
 		if e != nil {
 			log.Printf("[SubscribeToTokenizedAsset] error generating tokenized asset subscription xdr [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
 			if strings.Contains(e.Error(), "liquid") || strings.Contains(e.Error(), "market") {
@@ -2917,7 +2917,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 
 }
 
-func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
 	client := gc.BantuExpansionClient
@@ -2930,6 +2930,25 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
 	// newAmountToSwap := amountToSwap.Truncate(7).String()
+
+	if ta.FundsHoldingWalletPublicKey == nil {
+		return "", &tErrors.CustomError{Param: "fundsHoldingWalletPublicKey", Err: "error-funds-holding-wallet-not-set", ErrMessage: "This tokenized asset is not yet configured to accept purchases."}
+	}
+	if ta.AssetCountryLocation == nil {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have a valid country of location."}
+	}
+	// resolve the internal balance token (issued 1:1 on-demand to the buyer) from the asset's country config
+	countryConfig := userModels.CountryCode(*ta.AssetCountryLocation).GetConfig(gc)
+	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have valid tokenization currency."}
+	}
+	internalBalanceAsset := txnbuild.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
+
+	internalBalanceIssuingSigners, err := getInternalBalanceIssuingSigners()
+	if err != nil {
+		log.Println("[generateAssetSubscriptionXdr] error parsing internal balance issuing signers", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
 
 	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -2958,6 +2977,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
 
 	}
+	_, sourceAccountTrustsInternalBalanceAsset, _, _, _, _ := network.BlockchainAccountProperties(client, wallet.ID, internalBalanceAsset)
 
 	if sourceAccountErr != nil {
 		return "", sourceAccountErr
@@ -2967,11 +2987,49 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		return "", &tErrors.ErrorUnderfundedAccount{}
 	}
 
+	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
+
+	if sourceAccountCustomBalance.LessThan(amountToSwap) {
+		return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwap).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
+	}
+
+	// 1. send the stablecoin to the tokenized asset's funds holding wallet
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   *ta.FundsHoldingWalletPublicKey,
+		Amount:        swapInfo.SourceAmount,
+		Asset:         sourceAsset,
+		SourceAccount: wallet.ID,
+	})
+
+	if !sourceAccountTrustsInternalBalanceAsset {
+		// 2. establish the buyer's trustline to the internal balance token
+		ops = append(ops, &txnbuild.ChangeTrust{
+			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+			Limit:         gc.TokenLimitAsString(),
+			SourceAccount: wallet.ID,
+		})
+		// 3. authorize that trustline
+		ops = append(ops, &txnbuild.SetTrustLineFlags{
+			Trustor:       wallet.ID,
+			Asset:         internalBalanceAsset,
+			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SourceAccount: *countryConfig.InternalTokenIssuer,
+		})
+	}
+
+	// 4. issue the internal balance token 1:1 to the buyer
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   wallet.ID,
+		Amount:        swapInfo.SwapAmount,
+		Asset:         internalBalanceAsset,
+		SourceAccount: *countryConfig.InternalTokenIssuer,
+	})
+
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
 
-			//establish trustline
+			// 5. establish trustline to the tokenized asset
 			ops = append(ops, &txnbuild.ChangeTrust{
 				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
 				Limit:         gc.TokenLimitAsString(),
@@ -2988,13 +3046,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		}
 	}
 
-	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
-
-	if sourceAccountCustomBalance.LessThan(amountToSwap) {
-		return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwap).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
-	}
-
-	//get sendPath
+	//get sendPath from the internal balance token to the tokenized asset
 	//using DestinationAccount will get paths to all assets in the destination account.
 	//using destinationAssets gets path to only the asset
 	destAsset := ""
@@ -3003,8 +3055,8 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	}
 	pathInput := swapModels.SwapSendPathInput{
 		DestinationAssets: destAsset,
-		SourceAssetCode:   swapInfo.SourceAssetCode,
-		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
+		SourceAssetCode:   internalBalanceAsset.Code,
+		SourceAssetIssuer: internalBalanceAsset.Issuer,
 		SourceAmount:      swapInfo.SwapAmount,
 	}
 	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
@@ -3013,14 +3065,21 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		return "", err
 	}
 
-	//native asset
+	// 6. swap the internal balance token for the tokenized asset
 	ops = append(ops, &txnbuild.PathPaymentStrictSend{
-		SendAsset:     sourceAsset,
+		SendAsset:     internalBalanceAsset,
 		SendAmount:    swapInfo.SwapAmount,
 		Destination:   wallet.ID,
 		DestAsset:     destinationAsset,
 		DestMin:       swapDestMin.String(),
 		Path:          path,
+		SourceAccount: wallet.ID,
+	})
+
+	// 7. remove the internal balance trustline so it never persists outside of this transaction
+	ops = append(ops, &txnbuild.ChangeTrust{
+		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+		Limit:         "0",
 		SourceAccount: wallet.ID,
 	})
 
@@ -3079,6 +3138,13 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 		}
 	}
 
+	// sign for the internal balance issuer (multisig) to authorize the buyer's trustline and issue the internal balance token
+	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), internalBalanceIssuingSigners...)
+	if err != nil {
+		log.Println("[generateAssetSubscriptionXdr] error signing transaction with internal balance issuing signers ", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
 	if !sourceAccountTrustsDestinationAsset {
 		log.Printf("[generateAssetSubscriptionXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", destinationAsset)
 		//get atprofile
@@ -3108,6 +3174,29 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, swapInfo *swapM
 	swapInfo.Messages = messages
 	swapInfo.SwappedEstimate = swappedEstimate
 	return xdrBase64, nil
+}
+
+// getInternalBalanceIssuingSigners parses the multisig internal balance issuer's signers from the
+// INTERNAL_BALANCE_ISSUING_SIGNERS env var, a CSV of secret seeds. All parsed signers are returned so
+// the caller can sign with each of them - extra valid signatures beyond the account's multisig threshold
+// are harmless on Stellar.
+func getInternalBalanceIssuingSigners() ([]*keypair.Full, error) {
+	var signers []*keypair.Full
+	for _, v := range strings.Split(os.Getenv("INTERNAL_BALANCE_ISSUING_SIGNERS"), ",") {
+		v = strings.TrimSpace(v)
+		if len(v) == 0 {
+			continue
+		}
+		kp, e := keypair.ParseFull(v)
+		if e != nil {
+			return nil, e
+		}
+		signers = append(signers, kp)
+	}
+	if len(signers) == 0 {
+		return nil, errors.New("INTERNAL_BALANCE_ISSUING_SIGNERS not configured")
+	}
+	return signers, nil
 }
 
 // GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
