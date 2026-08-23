@@ -165,11 +165,55 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
 
+  # -- DB migration (runs BEFORE deploy; gates the app redeploy) --------------
+  # Runs migrations against the (externally reachable) DB using the freshly-built
+  # api image in MIGRATE_ONLY mode, WHILE the old app keeps serving users. If this
+  # fails, notify-portainer for `api` is skipped -> the old app stays up. Only runs
+  # when the backend changed.
+  #
+  # SECURITY: this connects to the DB from the GitHub runner, so the DB must be
+  # reachable from GitHub Actions IPs. Intended for the dev environment; for
+  # staging/prod prefer an on-server migrator so the DB stays private.
+  migrate:
+    name: DB migrate (backend)
+    needs: [resolve, changes, build]
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to DigitalOcean Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Run migrations (one-shot, exits when done)
+        env:
+          IMAGE: registry.digitalocean.com/service-images/trovo-wallet:api-${{ needs.resolve.outputs.image_tag }}
+          DB_CONNECTION_STRING: ${{ secrets.MIGRATION_DB_CONNECTION_STRING }}
+          CDB_CONNECTION_STRING: ${{ secrets.MIGRATION_CDB_CONNECTION_STRING }}
+        run: |
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "::error::MIGRATION_DB_CONNECTION_STRING secret is not set"
+            exit 1
+          fi
+          docker pull "$IMAGE"
+          # MIGRATE_ONLY=1 -> the app runs migrations then exits 0/1 without serving.
+          # DB_AUTOMIGRATE=1 -> run the Postgres migration block.
+          docker run --rm \
+            -e MIGRATE_ONLY=1 \
+            -e DB_AUTOMIGRATE=1 \
+            -e DB_TYPE=postgres \
+            -e DB_CONNECTION_STRING="$DB_CONNECTION_STRING" \
+            -e CDB_CONNECTION_STRING="$CDB_CONNECTION_STRING" \
+            "$IMAGE"
+          echo "::notice::Migrations completed successfully."
+
   # -- Trigger Portainer redeploy via per-stack webhooks ---------------------
   notify-portainer:
     name: Trigger Portainer - ${{ matrix.component }}
-    needs: [resolve, changes, build]
-    if: ${{ always() && needs.build.result != 'cancelled' }}
+    needs: [resolve, changes, build, migrate]
+    if: ${{ always() && needs.build.result != 'cancelled' && (needs.migrate.result == 'success' || needs.migrate.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

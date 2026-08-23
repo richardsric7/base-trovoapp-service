@@ -208,6 +208,17 @@ func main() {
 
 	//setup redis
 	log.Println("migration done...")
+
+	// MIGRATE_ONLY: when set, this process is a one-shot migrator run by CI
+	// BEFORE the app is deployed. Migrations have completed above (DB_AUTOMIGRATE
+	// controls the Postgres block; roachDB migrations run above). Exit 0 so the
+	// CI migrate step passes and the deploy proceeds. Any migration failure above
+	// already log.Fatal-ed (non-zero exit) and blocks the deploy. The serving app
+	// runs WITHOUT MIGRATE_ONLY (and with DB_AUTOMIGRATE=0) so it never migrates.
+	if os.Getenv("MIGRATE_ONLY") == "1" {
+		log.Println("MIGRATE_ONLY=1 set — migrations complete, exiting without starting the server")
+		os.Exit(0)
+	}
 	enableCaching := false
 
 	if os.Getenv("ENABLE_CACHING") == "1" {
