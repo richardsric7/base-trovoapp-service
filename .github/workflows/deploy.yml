@@ -200,16 +200,56 @@ jobs:
             echo "::error::MIGRATION_DB_CONNECTION_STRING secret is not set"
             exit 1
           fi
+          # Fail fast with a clear message if the DSN looks wrong. pgx does NOT
+          # error on a bad connection string: sql.Open swallows it and falls back
+          # to libpq defaults, surfacing as the confusing
+          # `host=/tmp user=root database=` error far from the real cause.
+          # Only the SHAPE of the value is printed, never the secret itself.
+          DSN="$(printf '%s' "$DB_CONNECTION_STRING" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+          case "$DSN" in
+            postgres://*|postgresql://*) ;;
+            *=postgres://*|*=postgresql://*)
+              echo "::error::The secret contains a 'NAME=' prefix. Paste ONLY the URL, e.g. postgres://user:pass@IP:5432/db"
+              exit 1 ;;
+            \"*|\'*)
+              echo "::error::The secret is wrapped in quotes. Paste the bare URL with no surrounding quotes."
+              exit 1 ;;
+            *)
+              echo "::error::DSN must start with postgres:// or postgresql://. Paste only the URL into the secret."
+              exit 1 ;;
+          esac
+          # host:port sits between the last '@' and the following '/' or '?'.
+          hostport="${DSN#*://}"; hostport="${hostport##*@}"
+          hostport="${hostport%%/*}"; hostport="${hostport%%\?*}"
+          echo "DSN shape: host:port=${hostport} db=$(echo "$DSN" | sed 's|.*://[^/]*/||; s|?.*||') length=${#DSN}"
+          case "$hostport" in
+            localhost*|127.0.0.1*|postgres:*|db:*)
+              echo "::error::host '${hostport}' is not reachable from a GitHub runner. Use the public server IP."
+              exit 1 ;;
+          esac
+
           docker pull "$IMAGE"
-          # MIGRATE_ONLY=1 -> the app runs migrations then exits 0/1 without serving.
+
+          # Pass the secret via --env-file rather than -e VAR="$VAR". An inline -e
+          # value goes through the shell, so a DSN containing $, !, backticks or
+          # quotes can be mangled before Docker ever sees it; --env-file is read
+          # verbatim by Docker. Written under $RUNNER_TEMP and removed on exit.
+          # MIGRATE_ONLY=1 -> run migrations then exit 0/1 without serving.
           # DB_AUTOMIGRATE=1 -> run the Postgres migration block.
-          docker run --rm \
-            -e MIGRATE_ONLY=1 \
-            -e DB_AUTOMIGRATE=1 \
-            -e DB_TYPE=postgres \
-            -e DB_CONNECTION_STRING="$DB_CONNECTION_STRING" \
-            -e CDB_CONNECTION_STRING="$CDB_CONNECTION_STRING" \
-            "$IMAGE"
+          ENV_FILE="$RUNNER_TEMP/migrate.env"
+          umask 077
+          {
+            echo "MIGRATE_ONLY=1"
+            echo "DB_AUTOMIGRATE=1"
+            echo "DB_TYPE=postgres"
+            printf 'DB_CONNECTION_STRING=%s\n' "$DSN"
+            if [ -n "$CDB_CONNECTION_STRING" ]; then
+              printf 'CDB_CONNECTION_STRING=%s\n' "$(printf '%s' "$CDB_CONNECTION_STRING" | tr -d '\r\n')"
+            fi
+          } > "$ENV_FILE"
+
+          trap 'rm -f "$ENV_FILE"' EXIT
+          docker run --rm --env-file "$ENV_FILE" "$IMAGE"
           echo "::notice::Migrations completed successfully."
 
   # -- Trigger Portainer redeploy via per-stack webhooks ---------------------
