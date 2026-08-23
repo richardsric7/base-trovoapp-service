@@ -1995,6 +1995,8 @@ type TokenizedAssetSubscriptionInput struct {
 	SignatureRequired    int      `json:"signatureRequired"`
 	Commit               int      `json:"commit"`
 	ReturnedDescription  string   `json:"-"`
+	PaymentAssetCode     string   `json:"paymentAssetCode"`   //optional: stablecoin to pay in. Defaults to CNGN.
+	PaymentAssetIssuer   string   `json:"paymentAssetIssuer"` //optional: never trusted verbatim, always re-resolved server-side.
 }
 type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	TokenizedAssetID           string   `json:"tokenizedAssetId"`
@@ -2010,6 +2012,8 @@ type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	Memo                       string   `json:"memo"`
 	SignatureRequired          int      `json:"signatureRequired"`
 	Commit                     int      `json:"commit"`
+	PaymentAssetCode           string   `json:"paymentAssetCode"`
+	PaymentAssetIssuer         string   `json:"paymentAssetIssuer"`
 }
 
 func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPrimarySalesPurchaseInputForServiceLink) {
@@ -2026,6 +2030,8 @@ func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.Gl
 	si.Memo = i.Memo
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
+	si.PaymentAssetCode = i.PaymentAssetCode
+	si.PaymentAssetIssuer = i.PaymentAssetIssuer
 	return si
 }
 
@@ -2043,6 +2049,8 @@ func (i *TokenizedAssetPrimarySalesPurchaseInputForServiceLink) ToSubscriptionIn
 	si.Memo = i.Memo
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
+	si.PaymentAssetCode = i.PaymentAssetCode
+	si.PaymentAssetIssuer = i.PaymentAssetIssuer
 	return si
 }
 

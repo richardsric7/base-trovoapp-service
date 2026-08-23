@@ -722,11 +722,6 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		return
 	}
 
-	if len(GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB).AssetCode) == 0 {
-		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Asset quote currency you supplied is invalid."}
-		return
-	}
-
 	if decimal.NewFromFloat(input.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
 		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
@@ -734,10 +729,15 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 
 	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
 	if len(input.ProceedPayoutCurrency) == 0 {
-		input.ProceedPayoutCurrency = strings.ToUpper(input.AssetQuoteCurrency)
+		input.ProceedPayoutCurrency = "CNGN"
 	}
-	if len(GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB).AssetCode) == 0 {
+	proceedPayoutCurrency := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
+	if len(proceedPayoutCurrency.AssetCode) == 0 {
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
+		return
+	}
+	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.AssetIssuer, gc) {
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency cannot be the internal balance token."}
 		return
 	}
 
@@ -786,8 +786,15 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		err = &tErrors.CustomError{Err: "error country not provided", ErrMessage: "country of location not provided in corect format. Expects 2-character formart, eg. NG"}
 		return
 	}
-	//check Trov balance
 	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
+	if countryConfig.InternalBalanceTokenCode == nil {
+		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error internal balance token not configured for country: %v\n", *ato.AssetCountryLocation)
+		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Internal balance token is not configured for this country."}
+		return
+	}
+	ato.AssetQuoteCurrency = countryConfig.InternalBalanceTokenCode
+
+	//check Trov balance
 	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
 	if errCheckBalance != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error checking wallet balance for initiator. error: %v", errCheckBalance)
@@ -827,23 +834,18 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
 		return
 	}
-	input.AssetQuoteCurrency = strings.ToUpper(input.AssetQuoteCurrency)
-	ac := GetTokenizationCurrencyByCode(input.AssetQuoteCurrency, gc.DB)
-	if len(ac.AssetCode) == 0 {
-		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: quote currency is invalid: %v, received object: %+v\n\n", ac.AssetCode, input)
-
-		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: fmt.Sprintf("Asset quote currency [%v] you supplied is invalid.", input.AssetQuoteCurrency)}
-		return
-	}
-
 	input.ProceedPayoutCurrency = strings.ToUpper(input.ProceedPayoutCurrency)
 	if len(input.ProceedPayoutCurrency) == 0 {
-		input.ProceedPayoutCurrency = strings.ToUpper(input.AssetQuoteCurrency)
+		input.ProceedPayoutCurrency = "CNGN"
 	}
-	tc := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
-	if len(tc.AssetCode) == 0 {
-		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: payout currency is invalid: %v, received object: %+v\n\n", tc.AssetCode, input)
+	proceedPayoutCurrency := GetTokenizationCurrencyByCode(input.ProceedPayoutCurrency, gc.DB)
+	if len(proceedPayoutCurrency.AssetCode) == 0 {
+		log.Printf("\n\n[SubmitTokenizationAssetInfo] error: payout currency is invalid: %v, received object: %+v\n\n", proceedPayoutCurrency.AssetCode, input)
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: fmt.Sprintf("Proceed Payout currency code [%v] you supplied is invalid.", input.ProceedPayoutCurrency)}
+		return
+	}
+	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.AssetIssuer, gc) {
+		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency cannot be the internal balance token."}
 		return
 	}
 	//referesh issuing wallet profile
@@ -907,6 +909,14 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "Id", Err: "error-asset-location-country-not-found", ErrMessage: "You must specify the asset country of location in the formart: NG, SA, UK"}
 		return
 	}
+
+	countryConfig := userModels.CountryCode(*ato.AssetCountryLocation).GetConfig(gc)
+	if countryConfig.InternalBalanceTokenCode == nil {
+		log.Printf("[SubmitTokenizationAssetInfo]error internal balance token not configured for country: %v\n", *ato.AssetCountryLocation)
+		err = &tErrors.CustomError{Param: "assetQuoteCurrency", Err: "error-invalid-asset-quote-currency", ErrMessage: "Internal balance token is not configured for this country."}
+		return
+	}
+	ato.AssetQuoteCurrency = countryConfig.InternalBalanceTokenCode
 
 	if ato.ExemptedCountries != nil {
 		exc := strings.Split(replacer.Replace(*ato.ExemptedCountries), ",")
@@ -2700,10 +2710,28 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
 	swapInfo.DestinationAssetIssuer = strings.ToUpper(*ta.IssuingWalletPublicKey)
-	swapInfo.SourceAssetCode = strings.ToUpper(*ta.AssetQuoteCurrency)
-	// get currency
-	quoteCurrency := GetTokenizationCurrencyByCode(*ta.AssetQuoteCurrency, dbTX)
-	swapInfo.SourceAssetIssuer = strings.ToUpper(quoteCurrency.AssetIssuer)
+
+	// resolve payment asset: any approved stablecoin, defaulting to CNGN for unchanged clients.
+	// a client-supplied issuer is never trusted verbatim - the issuer is always re-resolved server-side.
+	paymentAssetCode := strings.ToUpper(strings.TrimSpace(input.PaymentAssetCode))
+	if len(paymentAssetCode) == 0 {
+		paymentAssetCode = "CNGN"
+	}
+	paymentCurrency := GetTokenizationCurrencyByCode(paymentAssetCode, dbTX)
+	if len(paymentCurrency.AssetCode) == 0 {
+		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: fmt.Sprintf("Payment asset code [%v] you supplied is invalid.", paymentAssetCode)}
+		return
+	}
+	if len(input.PaymentAssetIssuer) > 0 && !strings.EqualFold(input.PaymentAssetIssuer, paymentCurrency.AssetIssuer) {
+		err = &tErrors.CustomError{Param: "paymentAssetIssuer", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset issuer does not match the registered issuer for this currency."}
+		return
+	}
+	if userModels.IsInternalBalanceAsset(paymentCurrency.AssetCode, paymentCurrency.AssetIssuer, gc) || strings.EqualFold(paymentCurrency.AssetCode, strings.ToUpper(*ta.AssetCode)) {
+		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset cannot be the internal balance token or the tokenized asset itself."}
+		return
+	}
+	swapInfo.SourceAssetCode = strings.ToUpper(paymentCurrency.AssetCode)
+	swapInfo.SourceAssetIssuer = strings.ToUpper(paymentCurrency.AssetIssuer)
 	if e := swapServices.ValidateSwapSendInfo(&swapInfo); e != nil {
 		log.Printf("[SubscribeToTokenizedAsset] error validating tokenized asset subscription [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
 
@@ -3296,10 +3324,20 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		}
 		return "", "", messages, issuingWallet, err
 	}
-	// get currency
-	quoteCurrency := GetTokenizationCurrencyByCode(*t.AssetQuoteCurrency, gc.DB)
+	if t.AssetCountryLocation == nil {
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] Error locating asset country location")
 
-	if len(quoteCurrency.AssetIssuer) == 0 {
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-invalid-quote-currency",
+			ErrMessage: "Tokenization does not have a valid country of location.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+	// resolve quote currency + issuer from the country's internal balance token config
+	countryConfig := userModels.CountryCode(*t.AssetCountryLocation).GetConfig(gc)
+	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
 		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error locating quote currency %v\n", *t.AssetQuoteCurrency)
 
 		err = &tErrors.CustomError{
@@ -3310,6 +3348,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		}
 		return "", "", messages, issuingWallet, err
 	}
+	quoteCurrency := userModels.TokenizationCurrency{AssetCode: *countryConfig.InternalBalanceTokenCode, AssetIssuer: *countryConfig.InternalTokenIssuer}
 
 	if t.MintingApprovers == nil {
 		// set default
@@ -3368,6 +3407,12 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 	distributionWallet, _ := userModels.UserWalletID(*issuingWallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
 
+	if len(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET"))) == 0 {
+		err = &tErrors.CustomError{Param: "publicKey", Err: "error-internal-balance-authorizer-not-set", ErrMessage: "Internal balance token authorizer wallet not set."}
+		return
+	}
+	authorizerKP := keypair.MustParseFull(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET")))
+
 	tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 	for _, v := range aps {
@@ -3390,7 +3435,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		NumberOfApprovalsNeeded: len(aps) - 2,
 		Permissions:             permInfo,
 	}
-	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(*t.AssetQuoteCurrency, &distributionWallet, gc); err != nil {
+	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.AssetIssuer, &distributionWallet, gc); err != nil {
 		return "", "", messages, issuingWallet, err
 	}
 
@@ -3477,6 +3522,19 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
 		SourceAccount: *t.IssuingWalletPublicKey,
+	})
+
+	// create + authorize distributionWallet trustline to the quote currency (internal balance token)
+	ops = append(ops, &txnbuild.ChangeTrust{
+		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer}},
+		Limit:         gc.TokenLimitAsString(),
+		SourceAccount: distributionWallet.ID,
+	})
+	ops = append(ops, &txnbuild.SetTrustLineFlags{
+		Trustor:       distributionWallet.ID,
+		Asset:         txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		SourceAccount: quoteCurrency.AssetIssuer,
 	})
 
 	//mint the token to distribution wallet
@@ -3599,10 +3657,10 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		return "", transactionSource, messages, issuingWallet, err
 	}
 
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount, feeWallet)
+	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount, feeWallet, authorizerKP)
 
 	if err != nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount & fee wallet key ", err)
+		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount, fee wallet & internal balance authorizer key ", err)
 		return "", transactionSource, messages, issuingWallet, &tErrors.ErrorTemporaryServerError{}
 	}
 	var xdrBase64 string
@@ -4031,83 +4089,77 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 }
 
-func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrency string, distributionWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (err error) {
-	//check if it has naira asset balance and check if the naira asset has authorization
+func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrencyCode, assetQuoteCurrencyIssuer string, distributionWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (err error) {
+	//check if the distribution wallet has the quote currency trustline and, if the quote currency requires authorization, that it is authorized
 
-	ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-	nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
-	_, ntrusted, _, _, dwalletSource, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, nairaAsset)
+	quoteAsset := txnbuild.CreditAsset{Code: assetQuoteCurrencyCode, Issuer: assetQuoteCurrencyIssuer}
+	_, trusted, _, _, dwalletSource, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, quoteAsset)
 
-	if strings.EqualFold(assetQuoteCurrency, ndab[0]) {
-		//it has naira asset
+	if !trusted {
+		//distributor wallet does not trust the quote currency yet.
+		log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, assetQuoteCurrencyCode)
 
-		if !ntrusted {
-
-			//adistributor wallet does not trust naura asset yet..
-			log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, ndab[0])
-
-			err = &tErrors.CustomError{
-				Param:      "IssuingWalletPublicKey",
-				Err:        "error-asset-trustline-not-authorized",
-				ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
-				Code:       404,
-			}
-			return err
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletPublicKey",
+			Err:        "error-asset-trustline-not-authorized",
+			ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
+			Code:       404,
 		}
+		return err
+	}
 
-		//get the naira asset balance
-		for _, bal := range dwalletSource.Balances {
-			if strings.EqualFold(ndab[0], bal.Code) {
-				//naira bal....perform the critical check
+	//get the quote currency balance entry
+	for _, bal := range dwalletSource.Balances {
+		if strings.EqualFold(assetQuoteCurrencyCode, bal.Code) {
+			//perform the critical check
 
-				bantuAsset := userModels.BantuAsset{
-					AssetCode:   ndab[0],
-					AssetIssuer: ndab[1],
-				}
-				bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
-				if e != nil {
-					err = &tErrors.ErrorTemporaryServerError{}
-					return err
+			bantuAsset := userModels.BantuAsset{
+				AssetCode:   assetQuoteCurrencyCode,
+				AssetIssuer: assetQuoteCurrencyIssuer,
+			}
+			bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
+			if e != nil {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
 
-				}
-				if len(bcAsset.Code) == 0 {
-					err = &tErrors.ErrorTemporaryServerError{}
-					return err
+			}
+			if len(bcAsset.Code) == 0 {
+				err = &tErrors.ErrorTemporaryServerError{}
+				return err
 
-				}
+			}
 
-				if bcAsset.Flags.AuthRequired {
-					if bal.IsAuthorized != nil {
-						if !*bal.IsAuthorized {
-							//authorization has not been given. abort process.
-							log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", ndab[0], distributionWallet.Alias)
-
-							err = &tErrors.CustomError{
-								Param:      "IssuingWalletPublicKey",
-								Err:        "error-asset-trustline-not-authorized",
-								ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
-								Code:       404,
-							}
-							return err
-						}
-					} else {
+			if bcAsset.Flags.AuthRequired {
+				if bal.IsAuthorized != nil {
+					if !*bal.IsAuthorized {
 						//authorization has not been given. abort process.
-						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", ndab[0], distributionWallet.Alias)
+						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", assetQuoteCurrencyCode, distributionWallet.Alias)
 
 						err = &tErrors.CustomError{
 							Param:      "IssuingWalletPublicKey",
 							Err:        "error-asset-trustline-not-authorized",
-							ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, ndab[0]),
+							ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
 							Code:       404,
 						}
 						return err
 					}
+				} else {
+					//authorization has not been given. abort process.
+					log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", assetQuoteCurrencyCode, distributionWallet.Alias)
 
+					err = &tErrors.CustomError{
+						Param:      "IssuingWalletPublicKey",
+						Err:        "error-asset-trustline-not-authorized",
+						ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
+						Code:       404,
+					}
+					return err
 				}
 
 			}
 
 		}
+
 	}
 	return nil
 }

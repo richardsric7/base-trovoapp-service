@@ -14,6 +14,10 @@ import (
 
 // Function to initiate offramp
 func StableRailInitiateAssetWithdrawal(reqData *userModels.StablerailAssetWithdrawalRequest, gc *sharedconfig.GlobalConfig) (*userModels.StablerailUserAssetWithdrawalResponse, error) {
+	if userModels.IsInternalBalanceAssetCode(reqData.Ticker, gc) {
+		return nil, fmt.Errorf("%v cannot be withdrawn externally", reqData.Ticker)
+	}
+
 	// get config
 	var config userModels.StablerailConfig
 	if len(reqData.Status) == 0 {
