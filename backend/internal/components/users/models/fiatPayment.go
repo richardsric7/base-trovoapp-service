@@ -37,17 +37,19 @@ type FiatPayment struct {
 }
 
 type FiatPaymentInvoice struct {
-	ID               string    `json:"id"`
-	CreatedAt        time.Time `gorm:"default:now()" json:"createdAt"`
-	ServiceProvider  string    `json:"serviceProvider"`
-	Username         string    `json:"username"`
-	Amount           float64   `json:"amount"`
-	PaymentType      string    `json:"paymentType"`
-	Status           string    `gorm:"default:'PENDING'" json:"status"`
-	Refunded         int       `gorm:"default:0" json:"refunded"`
-	TokenizedAssetID *string   `gorm:"null;size:100" json:"tokenizedAssetId"`
-	WalletAlias      *string    `gorm:"not null;size:100" json:"walletAlias"`
-	WalletPublicKey  *string    `gorm:"not null;size:100" json:"walletPublicKey"`
+	ID                   string    `json:"id"`
+	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
+	ServiceProvider      string    `json:"serviceProvider"`
+	Username             string    `json:"username"`
+	Amount               float64   `json:"amount"`
+	PaymentType          string    `json:"paymentType"`
+	Status               string    `gorm:"default:'PENDING'" json:"status"`
+	Refunded             int       `gorm:"default:0" json:"refunded"`
+	TokenizedAssetID     *string   `gorm:"null;size:100" json:"tokenizedAssetId"`
+	WalletAlias          *string   `gorm:"null;size:100" json:"walletAlias"`
+	WalletPublicKey      *string   `gorm:"null;size:100" json:"walletPublicKey"`
+	Transaction          string    `json:"transaction"`
+	TransactionSignature string    `json:"transactionSignature"`
 }
 
 type FlutterwaveWebhook struct {
