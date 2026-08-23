@@ -165,10 +165,57 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
 
+  # -- DB migration (runs BEFORE deploy; gates the app redeploy) --------------
+  # Runs migrations against the (externally reachable) DB using the freshly-built
+  # api image in MIGRATE_ONLY mode, WHILE the old app keeps serving users. If this
+  # fails, notify-portainer for `api` is skipped -> the old app stays up. Only runs
+  # when the backend changed.
+  #
+  # SECURITY: this connects to the DB from the GitHub runner, so the DB must be
+  # reachable from GitHub Actions IPs. Intended for the dev environment; for
+  # staging/prod prefer an on-server migrator so the DB stays private.
+  migrate:
+    name: DB migrate (backend)
+    needs: [resolve, changes, build]
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    # GORM AutoMigrate re-inspects all ~107 models on every run, so this is slow
+    # by nature. The cap stops a lock-blocked migration from hanging the pipeline.
+    timeout-minutes: 20
+    steps:
+      - name: Log in to DigitalOcean Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Run migrations (one-shot, exits when done)
+        env:
+          IMAGE: registry.digitalocean.com/service-images/trovo-wallet:api-${{ needs.resolve.outputs.image_tag }}
+          DB_CONNECTION_STRING: ${{ secrets.MIGRATION_DB_CONNECTION_STRING }}
+          CDB_CONNECTION_STRING: ${{ secrets.MIGRATION_CDB_CONNECTION_STRING }}
+        run: |
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "::error::MIGRATION_DB_CONNECTION_STRING secret is not set"
+            exit 1
+          fi
+          docker pull "$IMAGE"
+          # MIGRATE_ONLY=1 -> the app runs migrations then exits 0/1 without serving.
+          # DB_AUTOMIGRATE=1 -> run the Postgres migration block.
+          docker run --rm \
+            -e MIGRATE_ONLY=1 \
+            -e DB_AUTOMIGRATE=1 \
+            -e DB_TYPE=postgres \
+            -e DB_CONNECTION_STRING="$DB_CONNECTION_STRING" \
+            -e CDB_CONNECTION_STRING="$CDB_CONNECTION_STRING" \
+            "$IMAGE"
+          echo "::notice::Migrations completed successfully."
+
   # -- Trigger Portainer redeploy via per-stack webhooks ---------------------
   notify-portainer:
     name: Trigger Portainer - ${{ matrix.component }}
-    needs: [resolve, changes, build]
+    needs: [resolve, changes, build, migrate]
     if: ${{ always() && needs.build.result != 'cancelled' }}
     runs-on: ubuntu-latest
     strategy:
@@ -196,6 +243,7 @@ jobs:
           WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
           APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
           FLAG: ${{ matrix.changed_flag }}
+          MIGRATE_RESULT: ${{ needs.migrate.result }}
         run: |
           case "$FLAG" in
             backend)     changed="$BACKEND_CHANGED" ;;
@@ -203,6 +251,16 @@ jobs:
             website)     changed="$WEBSITE_CHANGED" ;;
             app_website) changed="$APP_WEBSITE_CHANGED" ;;
           esac
+
+          # Only the api deploy depends on migrations. A failed migration must not
+          # hold the frontends hostage, so the gate is applied per-component here
+          # rather than on the whole matrix job.
+          if [ "$FLAG" = "backend" ] && [ "$changed" = "true" ]; then
+            if [ "$MIGRATE_RESULT" != "success" ] && [ "$MIGRATE_RESULT" != "skipped" ]; then
+              echo "::error::DB migration did not succeed (result=$MIGRATE_RESULT) - not deploying the api. The previous version keeps serving."
+              exit 1
+            fi
+          fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Skip notice

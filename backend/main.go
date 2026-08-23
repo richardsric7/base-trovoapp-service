@@ -61,6 +61,13 @@ func main() {
 		log.Printf("could not find or load any .env file from %v...skipping...\n", path)
 	}
 
+	// MIGRATE_ONLY: this process is a one-shot migrator run by CI BEFORE the app
+	// is deployed, while the previous version keeps serving users. It opens only
+	// the databases, runs the migrations, and exits — deliberately skipping the
+	// ~50 required-env-var check below, which the app needs to serve but a
+	// migrator does not. Exits non-zero on any failure so CI blocks the deploy.
+	migrateOnly := os.Getenv("MIGRATE_ONLY") == "1"
+
 	//setup DB
 
 	var database, roachDB *gorm.DB
@@ -80,14 +87,26 @@ func main() {
 		roachDB, err = db.OpenRoachDB()
 
 		if err != nil {
-			log.Fatalf("[main]Error opening RoachDB %s", err)
-			return
+			// When migrating from CI, CockroachDB may not be reachable from the
+			// runner. Skip its migrations rather than failing the whole run; the
+			// Postgres migrations (the ones that gate the deploy) still proceed.
+			if migrateOnly {
+				log.Printf("[migrate-only] RoachDB unavailable (%s) — skipping RoachDB migrations", err)
+				roachDB = nil
+			} else {
+				log.Fatalf("[main]Error opening RoachDB %s", err)
+				return
+			}
 		}
 	}
 
 	//check other required environment variables.
 
-	{
+	// A one-shot migrator only needs DB connectivity, so skip the serving app's
+	// required-env-var wall. Without this the migrator would hit `exit = true`
+	// and `return` (exit code 0) BEFORE reaching the migrations below — a green
+	// CI step that migrated nothing.
+	if !migrateOnly {
 		exit := false
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
@@ -156,7 +175,9 @@ func main() {
 		// }
 
 		if exit {
-			return
+			// Non-zero: a missing required env var is a startup failure, and an
+			// exit code of 0 would read as success to orchestrators and CI.
+			os.Exit(1)
 		}
 
 		if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") == "" {
@@ -191,23 +212,40 @@ func main() {
 	//migrate DB models if any
 	db.MigrateDB(database)
 
-	errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
-	if errMigrate != nil {
-		if !strings.Contains(errMigrate.Error(), "constraint") {
-			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+	// Gated by DB_AUTOMIGRATE like the Postgres block above, so that a serving
+	// container started with DB_AUTOMIGRATE=0 performs NO migration at all and
+	// boots straight into serving traffic.
+	if roachDB != nil && os.Getenv("DB_AUTOMIGRATE") != "0" {
+		errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
+		if errMigrate != nil {
+			if !strings.Contains(errMigrate.Error(), "constraint") {
+				log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+			}
 		}
-	}
-	log.Println("migrating tracked wallet done...")
-	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
-	if errMigrate != nil {
-		if !strings.Contains(errMigrate.Error(), "constraint") {
-			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+		log.Println("migrating tracked wallet done...")
+		errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+		if errMigrate != nil {
+			if !strings.Contains(errMigrate.Error(), "constraint") {
+				log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+			}
 		}
+		log.Println("migrating tracked public key done...")
+	} else {
+		log.Println("skipping RoachDB migrations (DB_AUTOMIGRATE=0 or RoachDB unavailable)")
 	}
-	log.Println("migrating tracked public key done...")
 
 	//setup redis
 	log.Println("migration done...")
+
+	// Migrations are done. Exit 0 so the CI migrate step passes and the deploy
+	// proceeds. Any migration failure above already log.Fatal-ed (non-zero exit)
+	// and blocks the deploy, leaving the previous version serving. The serving
+	// app runs WITHOUT MIGRATE_ONLY and with DB_AUTOMIGRATE=0, so it never
+	// migrates and boots straight into serving traffic.
+	if migrateOnly {
+		log.Println("MIGRATE_ONLY=1 set — migrations complete, exiting without starting the server")
+		os.Exit(0)
+	}
 	enableCaching := false
 
 	if os.Getenv("ENABLE_CACHING") == "1" {
