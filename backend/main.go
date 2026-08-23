@@ -82,18 +82,16 @@ func main() {
 		}
 	}
 	{
+		// The CI migrator only owns the wallet's own Postgres schema. RoachDB is
+		// the payment-history service's database, so the migrator neither opens
+		// nor migrates it — that stays a boot-time concern on the server, exactly
+		// as before. Skipping the open matters: OpenRoachDB log.Fatal-s internally,
+		// and with no CDB_CONNECTION_STRING it fails as `host=/tmp user=root`.
+		if !migrateOnly {
+			var err error
+			roachDB, err = db.OpenRoachDB()
 
-		var err error
-		roachDB, err = db.OpenRoachDB()
-
-		if err != nil {
-			// When migrating from CI, CockroachDB may not be reachable from the
-			// runner. Skip its migrations rather than failing the whole run; the
-			// Postgres migrations (the ones that gate the deploy) still proceed.
-			if migrateOnly {
-				log.Printf("[migrate-only] RoachDB unavailable (%s) — skipping RoachDB migrations", err)
-				roachDB = nil
-			} else {
+			if err != nil {
 				log.Fatalf("[main]Error opening RoachDB %s", err)
 				return
 			}
@@ -212,10 +210,11 @@ func main() {
 	//migrate DB models if any
 	db.MigrateDB(database)
 
-	// Gated by DB_AUTOMIGRATE like the Postgres block above, so that a serving
-	// container started with DB_AUTOMIGRATE=0 performs NO migration at all and
-	// boots straight into serving traffic.
-	if roachDB != nil && os.Getenv("DB_AUTOMIGRATE") != "0" {
+	// RoachDB migrations are left exactly as they were originally: ungated by
+	// DB_AUTOMIGRATE, run on every server boot. They are two small tables, so
+	// they cost ~nothing at startup. Only the CI migrator skips them, because it
+	// never opened this database.
+	if !migrateOnly {
 		errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
 		if errMigrate != nil {
 			if !strings.Contains(errMigrate.Error(), "constraint") {
@@ -230,8 +229,6 @@ func main() {
 			}
 		}
 		log.Println("migrating tracked public key done...")
-	} else {
-		log.Println("skipping RoachDB migrations (DB_AUTOMIGRATE=0 or RoachDB unavailable)")
 	}
 
 	//setup redis
