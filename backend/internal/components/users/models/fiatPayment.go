@@ -50,6 +50,7 @@ type FiatPaymentInvoice struct {
 	WalletPublicKey      *string   `gorm:"null;size:100" json:"walletPublicKey"`
 	Transaction          *string   `json:"transaction"`
 	TransactionSignature *string   `json:"transactionSignature"`
+	TransactionSource    *string   `gorm:"null;size:100" json:"-"`
 }
 
 type FlutterwaveWebhook struct {

@@ -1967,6 +1967,8 @@ type TokenizedAssetSubscription struct {
 	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 	TransactionID      string         `json:"transactionId"`
+	PaymentAssetCode   string         `json:"paymentAssetCode"`
+	PaymentAssetIssuer string         `json:"paymentAssetIssuer"`
 }
 type ExpressionOfInterest struct {
 	ID                 uint64         `gorm:"" json:"-" form:"-"`
@@ -2001,6 +2003,25 @@ type TokenizedAssetSubscriptionInput struct {
 	PaymentAssetCode     string   `json:"paymentAssetCode"`   //optional: stablecoin to pay in. Defaults to CNGN.
 	PaymentAssetIssuer   string   `json:"paymentAssetIssuer"` //optional: never trusted verbatim, always re-resolved server-side.
 }
+
+// FiatTokenizedAssetSubscriptionInput drives the two-call fiat asset purchase flow
+// (SubscribeToTokenizedAssetByFiat). ID is required on every call: it is set as the primary key of both
+// the created FiatPaymentInvoice and TokenizedAssetSubscription rows, and is expected to double as the
+// payment provider's transaction reference so postCallbacksFlutterwaveWebhookHandler can find its way
+// back to the right invoice once fiat payment is confirmed. There is no client-supplied payment asset or
+// wallet public key here (unlike TokenizedAssetSubscriptionInput) - the payment asset is always resolved
+// server-side to the country's internal balance token, and the wallet is always the caller's own wallet
+// resolved from the authenticated request, never a client-supplied value.
+type FiatTokenizedAssetSubscriptionInput struct {
+	ID                   string  `json:"id"`
+	Amount               float64 `json:"amount"` // fiat amount in tokenized asset quote currency
+	TransactionSignature string  `json:"transactionSignature"`
+
+	// server-populated, not client input
+	TokenizedAssetID   string `json:"-"`
+	SubscriberUsername string `json:"-"`
+}
+
 type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	TokenizedAssetID           string   `json:"tokenizedAssetId"`
 	PurchaserUsername          string   `json:"purchaserUsername"`
@@ -6532,6 +6553,8 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	tas.Price = ta.PricePerToken
 	tas.SubscriberUsername = subscriberUsername
+	tas.PaymentAssetCode = input.PaymentAssetCode
+	tas.PaymentAssetIssuer = input.PaymentAssetIssuer
 	return *tas
 }
 

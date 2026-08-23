@@ -6248,6 +6248,116 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 	}
 }
 
+// postTokenizationSubscriptionsFiatTokenizedAssetIDHandler godoc
+// @Summary POST /v1/tokenization/subscriptions/fiat/:tokenizedAssetID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param body body userModels.FiatTokenizedAssetSubscriptionInput true "Fiat subscription payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /v1/tokenization/subscriptions/fiat/{tokenizedAssetID} [post]
+//
+// Drives the two-call fiat asset purchase flow. Call 1 (no transactionSignature in the body) generates
+// and returns the transaction xdr for the caller to sign; call 2 (same id, transactionSignature set)
+// persists that signature and creates the pending FiatPaymentInvoice. Neither call submits anything to
+// the blockchain - that only happens later, from postCallbacksFlutterwaveWebhookHandler once Flutterwave
+// confirms the fiat payment.
+func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		//get the wallet you are subscribing from
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if getWalletError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-temporary-wallet",
+				ErrMessage: "Only normal/standard wallets are allowed for this request.",
+				Code:       http.StatusForbidden,
+			}
+
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
+
+		}
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.FiatTokenizedAssetSubscriptionInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		invoice, err := userServices.SubscribeToTokenizedAssetByFiat(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, invoice)
+	}
+}
+
 // postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler godoc
 // @Summary POST /v1/shared-access/tokenization/subscriptions/:tokenizedAssetID
 // @Tags users

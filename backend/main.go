@@ -383,6 +383,36 @@ func main() {
 					}
 
 				}
+				{
+					//check if channel account is currently reserved by a fiat asset purchase invoice
+					//(the async fiat purchase flow never creates a PendingAuth row, so it isn't caught
+					//by the check above)
+					var fiatInvoice userModels.FiatPaymentInvoice
+					errFetchFiat := database.Where("transaction_source = ?", k.Address()).First(&fiatInvoice).Error
+
+					if errFetchFiat == nil {
+						if fiatInvoice.Status == "PENDING" {
+							//still mid-flight, awaiting the payment provider's webhook - genuinely in use
+							log.Printf("[ADDING KEY TO IN-USE CHANNEL ACCOUNT LIST] %v\n", k.Address())
+
+							globalConfig.StoreInUseChannelAccount(k)
+							//skip adding it to available channel accounts
+							continue
+
+						}
+						if fiatInvoice.Status == "COMPLETED" {
+							//the webhook's success path should already have released this account - its
+							//presence here means that release didn't run for some reason (e.g. a crash
+							//between the status flip and the release call). self-heal: don't mark it
+							//in-use, fall through to the available pool below, and clear the stale
+							//reference so this isn't re-detected on every future restart.
+							log.Printf("[CHANNEL ACCOUNT RELEASE NOT PERSISTED - SELF-HEALING] %v (invoice %v was COMPLETED but still held a channel account)\n", k.Address(), fiatInvoice.ID)
+							database.Model(&userModels.FiatPaymentInvoice{}).Where("id = ?", fiatInvoice.ID).Update("transaction_source", nil)
+						}
+						//any other status (e.g. EXPIRED) already had its channel account released by
+						//the ExpireStalePaymentInvoices sweep - nothing to do, falls through to the pool
+					}
+				}
 				// log.Printf("Channel Account to be used:%v\n", k.Address())
 				//check minimum balance
 				if len(channelAccountsCSV) == 0 {
@@ -815,6 +845,19 @@ func main() {
 					log.Printf("[Error Fetching stablerail banks] %v\n", e)
 				}
 				time.Sleep(10 * time.Minute)
+			}
+		}()
+	}
+
+	{
+		//Expire fiat payment invoices (e.g. fiat asset purchases) that have been stuck PENDING for
+		//more than 2 days without a webhook confirmation
+		go func() {
+			for {
+				if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
+					log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
+				}
+				time.Sleep(30 * time.Minute)
 			}
 		}()
 	}
