@@ -179,6 +179,9 @@ jobs:
     needs: [resolve, changes, build]
     if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
+    # GORM AutoMigrate re-inspects all ~107 models on every run, so this is slow
+    # by nature. The cap stops a lock-blocked migration from hanging the pipeline.
+    timeout-minutes: 20
     steps:
       - name: Log in to DigitalOcean Container Registry
         uses: docker/login-action@v3
@@ -213,7 +216,7 @@ jobs:
   notify-portainer:
     name: Trigger Portainer - ${{ matrix.component }}
     needs: [resolve, changes, build, migrate]
-    if: ${{ always() && needs.build.result != 'cancelled' && (needs.migrate.result == 'success' || needs.migrate.result == 'skipped') }}
+    if: ${{ always() && needs.build.result != 'cancelled' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -240,6 +243,7 @@ jobs:
           WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
           APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
           FLAG: ${{ matrix.changed_flag }}
+          MIGRATE_RESULT: ${{ needs.migrate.result }}
         run: |
           case "$FLAG" in
             backend)     changed="$BACKEND_CHANGED" ;;
@@ -247,6 +251,16 @@ jobs:
             website)     changed="$WEBSITE_CHANGED" ;;
             app_website) changed="$APP_WEBSITE_CHANGED" ;;
           esac
+
+          # Only the api deploy depends on migrations. A failed migration must not
+          # hold the frontends hostage, so the gate is applied per-component here
+          # rather than on the whole matrix job.
+          if [ "$FLAG" = "backend" ] && [ "$changed" = "true" ]; then
+            if [ "$MIGRATE_RESULT" != "success" ] && [ "$MIGRATE_RESULT" != "skipped" ]; then
+              echo "::error::DB migration did not succeed (result=$MIGRATE_RESULT) - not deploying the api. The previous version keeps serving."
+              exit 1
+            fi
+          fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Skip notice
