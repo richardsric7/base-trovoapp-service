@@ -81,7 +81,6 @@ func postCallbacks1lHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
-
 // postCallbacksDojaWebhookHandler godoc
 // @Summary POST /v1/callbacks/doja/webhook
 // @Tags callbacks
@@ -508,7 +507,6 @@ func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 	}
 }
 
-
 // postCallbacksFlutterwaveWebhookHandler godoc
 // @Summary POST /v1/callbacks/flutterwave/webhook
 // @Tags callbacks
@@ -755,7 +753,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data [%+v]. Err: %v\n", event, err)
 			}
 			//save payment invoices
-			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", float64(event.Data.Amount), gc)
+			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", &user.Username, &user.PublicKey, nil, float64(event.Data.Amount), gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err)
@@ -767,6 +765,11 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 
 			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense, trovToDispense, "TROV", user.Username)
 			user.SendPushMessage(title, msg, "", dataPayload, gc)
+		}
+
+		//Condition to process asset purchase
+		if strings.EqualFold(event.MetaData.Product, "ASSET PURCHASE") && strings.EqualFold(event.Data.Status, "successful") {
+			//TODO: perform asset purchase logic here
 		}
 		user.InvalidateUserCache(gc)
 		c.JSON(http.StatusOK, "success")
