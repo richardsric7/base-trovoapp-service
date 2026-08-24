@@ -26,7 +26,7 @@ import { Encryptor } from '../../../utils/encryptor';
 import { signBase64Txn } from '../../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../../utils/showToaster';
 import styles from './landing.module.css';
-import { getExplorerBaseUrl } from '../../../utils/utilities';
+// import { getExplorerBaseUrl } from '../../../utils/utilities';
 
 type SharedAccessRow = {
   wallet: string;
@@ -195,7 +195,7 @@ const getDateRangeQueryValue = (dateRange: string) => {
 
 export default function SharedAccessLanding() {
   const appUser = useSelector((state: RootState) => state.auth.user);
-  const appState = useSelector((state: RootState) => state.appState!);
+  // const appState = useSelector((state: RootState) => state.appState!);
   const [fetchApprovals] = useLazyGetApprovalsQuery();
   const [selectedFilter, setSelectedFilter] = useState<string>(filter[0].value);
   const [selectedAccessMode, setSelectedAccessMode] = useState<string>(
@@ -247,7 +247,8 @@ export default function SharedAccessLanding() {
     | null
   >(null);
   const [selectedRow, setSelectedRow] = useState<SharedAccessRow | null>(null);
-  const [selectedActivityRecord, setSelectedActivityRecord] = useState<SharedAccessApprovalRecord | null>(null);
+  const [selectedActivityRecord, setSelectedActivityRecord] =
+    useState<SharedAccessApprovalRecord | null>(null);
   const [approvalPassword, setApprovalPassword] = useState('');
   const [approvalPasswordErr, setApprovalPasswordErr] = useState('');
   const [approvalReason, setApprovalReason] = useState('');
@@ -255,7 +256,8 @@ export default function SharedAccessLanding() {
   const [isRejecting, setIsRejecting] = useState(false);
   const [showApprovalPassword, setShowApprovalPassword] = useState(false);
   const [showRejectReason, setShowRejectReason] = useState(false);
-  const [includeSignedTransactions, setIncludeSignedTransactions] = useState(false);
+  const [includeSignedTransactions, setIncludeSignedTransactions] =
+    useState(false);
 
   const [disableSharedAccess] = useDisableSharedAccessMutation();
   const [approveSharedAccess] = useApproveSharedAccessMutation();
@@ -269,8 +271,10 @@ export default function SharedAccessLanding() {
   const [isDisabling, setIsDisabling] = useState(false);
   const [disableSuccessMessage, setDisableSuccessMessage] = useState('');
 
-  const [addSharedAccess, { isLoading: isAdding }] = useAddSharedAccessMutation();
-  const [updateSharedAccess, { isLoading: isUpdating }] = useUpdateSharedAccessMutation();
+  const [addSharedAccess, { isLoading: isAdding }] =
+    useAddSharedAccessMutation();
+  const [updateSharedAccess, { isLoading: isUpdating }] =
+    useUpdateSharedAccessMutation();
   const [checkUsernameQuery] = useLazyCheckUsernameQuery();
 
   // Selector for shareable wallets
@@ -278,8 +282,10 @@ export default function SharedAccessLanding() {
     if (!appUser?.userWallets) return [];
     return appUser.userWallets.filter(
       (wallet) =>
-        (wallet.walletType === 0 || wallet.walletType === 1 || wallet.walletType === 2) &&
-        (!wallet.isSharedWallet),
+        (wallet.walletType === 0 ||
+          wallet.walletType === 1 ||
+          wallet.walletType === 2) &&
+        !wallet.isSharedWallet,
     );
   }, [appUser]);
 
@@ -288,7 +294,9 @@ export default function SharedAccessLanding() {
   const [grantViewers, setGrantViewers] = useState<string[]>([]);
   const [grantApprovers, setGrantApprovers] = useState<string[]>([]);
   const [grantInitiators, setGrantInitiators] = useState<string[]>([]);
-  const [grantUserFullnames, setGrantUserFullnames] = useState<Record<string, string>>({});
+  const [grantUserFullnames, setGrantUserFullnames] = useState<
+    Record<string, string>
+  >({});
   const [grantAddApprovers, setGrantAddApprovers] = useState(false);
   const [grantNoOfApprovers, setGrantNoOfApprovers] = useState(3);
   const [grantNoOfApprovalsNeeded, setGrantNoOfApprovalsNeeded] = useState(2);
@@ -332,7 +340,9 @@ export default function SharedAccessLanding() {
       if (appUser) {
         setGrantApprovers([appUser.username]);
         setGrantInitiators([appUser.username]);
-        setGrantUserFullnames({ [appUser.username]: `${appUser.firstName} ${appUser.lastName}` });
+        setGrantUserFullnames({
+          [appUser.username]: `${appUser.firstName} ${appUser.lastName}`,
+        });
       } else {
         setGrantApprovers([]);
         setGrantInitiators([]);
@@ -356,18 +366,22 @@ export default function SharedAccessLanding() {
 
   useEffect(() => {
     if (activeModal === 'modify' && selectedRow && appUser) {
-      const wallet = appUser.userWallets.find(w => w.publicKey === selectedRow.publicKey);
+      const wallet = appUser.userWallets.find(
+        (w) => w.publicKey === selectedRow.publicKey,
+      );
       if (wallet) {
         const rawPermissions = wallet.permissions ?? [];
         const viewersList: Permission[] = rawPermissions
-          .filter(p => p.permission === 'VIEW-ONLY' || p.permission === 'VIEWER')
-          .map(p => ({ ...p, permissionState: null }));
+          .filter(
+            (p) => p.permission === 'VIEW-ONLY' || p.permission === 'VIEWER',
+          )
+          .map((p) => ({ ...p, permissionState: null }));
         const approversList: Permission[] = rawPermissions
-          .filter(p => p.permission === 'APPROVER')
-          .map(p => ({ ...p, permissionState: null }));
+          .filter((p) => p.permission === 'APPROVER')
+          .map((p) => ({ ...p, permissionState: null }));
         const initiatorsList: Permission[] = rawPermissions
-          .filter(p => p.permission === 'INITIATOR')
-          .map(p => ({ ...p, permissionState: null }));
+          .filter((p) => p.permission === 'INITIATOR')
+          .map((p) => ({ ...p, permissionState: null }));
 
         setModifyViewers(viewersList);
         setModifyApprovers(approversList);
@@ -464,15 +478,17 @@ export default function SharedAccessLanding() {
 
     const userInfo = await checkUsername(username, grantWallet!);
     if (!userInfo) {
-      setGrantViewerErr('This username does not exist. Please enter a valid username.');
+      setGrantViewerErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
-    setGrantUserFullnames(prev => ({
+    setGrantUserFullnames((prev) => ({
       ...prev,
       [username]: `${userInfo.firstName} ${userInfo.lastName}`,
     }));
-    setGrantViewers(prev => [...prev, username]);
+    setGrantViewers((prev) => [...prev, username]);
     setGrantViewerInput('');
   };
 
@@ -502,32 +518,34 @@ export default function SharedAccessLanding() {
         'This user is currently a Viewer. Adding them as an Approver will remove them from the Viewer list. Proceed?',
       );
       if (confirmed) {
-        setGrantViewers(prev => prev.filter(u => u !== username));
-        setGrantApprovers(prev => [...prev, username]);
-        setGrantInitiators(prev => [...prev, username]);
+        setGrantViewers((prev) => prev.filter((u) => u !== username));
+        setGrantApprovers((prev) => [...prev, username]);
+        setGrantInitiators((prev) => [...prev, username]);
         setGrantApproverInput('');
       }
       return;
     }
 
     if (grantInitiators.includes(username)) {
-      setGrantApprovers(prev => [...prev, username]);
+      setGrantApprovers((prev) => [...prev, username]);
       setGrantApproverInput('');
       return;
     }
 
     const userInfo = await checkUsername(username, grantWallet!);
     if (!userInfo) {
-      setGrantApproverErr('This username does not exist. Please enter a valid username.');
+      setGrantApproverErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
-    setGrantUserFullnames(prev => ({
+    setGrantUserFullnames((prev) => ({
       ...prev,
       [username]: `${userInfo.firstName} ${userInfo.lastName}`,
     }));
-    setGrantApprovers(prev => [...prev, username]);
-    setGrantInitiators(prev => [...prev, username]);
+    setGrantApprovers((prev) => [...prev, username]);
+    setGrantInitiators((prev) => [...prev, username]);
     setGrantApproverInput('');
   };
 
@@ -549,30 +567,32 @@ export default function SharedAccessLanding() {
         'This user is currently a Viewer. Adding them as an Initiator will remove them from the Viewer list. Proceed?',
       );
       if (confirmed) {
-        setGrantViewers(prev => prev.filter(u => u !== username));
-        setGrantInitiators(prev => [...prev, username]);
+        setGrantViewers((prev) => prev.filter((u) => u !== username));
+        setGrantInitiators((prev) => [...prev, username]);
         setGrantInitiatorInput('');
       }
       return;
     }
 
     if (grantApprovers.includes(username)) {
-      setGrantInitiators(prev => [...prev, username]);
+      setGrantInitiators((prev) => [...prev, username]);
       setGrantInitiatorInput('');
       return;
     }
 
     const userInfo = await checkUsername(username, grantWallet!);
     if (!userInfo) {
-      setGrantInitiatorErr('This username does not exist. Please enter a valid username.');
+      setGrantInitiatorErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
-    setGrantUserFullnames(prev => ({
+    setGrantUserFullnames((prev) => ({
       ...prev,
       [username]: `${userInfo.firstName} ${userInfo.lastName}`,
     }));
-    setGrantInitiators(prev => [...prev, username]);
+    setGrantInitiators((prev) => [...prev, username]);
     setGrantInitiatorInput('');
   };
 
@@ -594,12 +614,18 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    if (modifyViewers.some(v => v.targetUsername === username)) {
+    if (modifyViewers.some((v) => v.targetUsername === username)) {
       setModifyViewerErr('Username already added');
       return;
     }
 
-    if (modifyApprovers.some(a => a.targetUsername === username && a.permissionState !== PermissionState.Revoked)) {
+    if (
+      modifyApprovers.some(
+        (a) =>
+          a.targetUsername === username &&
+          a.permissionState !== PermissionState.Revoked,
+      )
+    ) {
       showNotification(
         'error',
         'This user is already an Approver on this wallet. An Approver cannot be added as a Viewer.',
@@ -607,7 +633,13 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    if (modifyInitiators.some(i => i.targetUsername === username && i.permissionState !== PermissionState.Revoked)) {
+    if (
+      modifyInitiators.some(
+        (i) =>
+          i.targetUsername === username &&
+          i.permissionState !== PermissionState.Revoked,
+      )
+    ) {
       showNotification(
         'error',
         'This user is already an Initiator on this wallet. An Initiator cannot be added as a Viewer.',
@@ -615,14 +647,18 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    const wallet = appUser?.userWallets.find(w => w.publicKey === selectedRow?.publicKey);
+    const wallet = appUser?.userWallets.find(
+      (w) => w.publicKey === selectedRow?.publicKey,
+    );
     if (!wallet) return;
 
     console.log('got here 2');
     const userInfo = await checkUsername(username, wallet);
     console.log('got here 3', userInfo);
     if (!userInfo) {
-      setModifyViewerErr('This username does not exist. Please enter a valid username.');
+      setModifyViewerErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
@@ -633,7 +669,7 @@ export default function SharedAccessLanding() {
       permission: 'VIEW-ONLY',
       permissionState: PermissionState.Added,
     };
-    setModifyViewers(prev => [...prev, newPerm]);
+    setModifyViewers((prev) => [...prev, newPerm]);
     setModifyViewerInput('');
   };
 
@@ -645,12 +681,14 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    if (modifyApprovers.some(a => a.targetUsername === username)) {
+    if (modifyApprovers.some((a) => a.targetUsername === username)) {
       setModifyApproverErr('Username already added');
       return;
     }
 
-    const activeApproversCount = modifyApprovers.filter(a => a.permissionState !== PermissionState.Revoked).length;
+    const activeApproversCount = modifyApprovers.filter(
+      (a) => a.permissionState !== PermissionState.Revoked,
+    ).length;
     if (activeApproversCount === modifyNoOfApprovers) {
       showNotification(
         'error',
@@ -659,11 +697,15 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    const wallet = appUser?.userWallets.find(w => w.publicKey === selectedRow?.publicKey);
+    const wallet = appUser?.userWallets.find(
+      (w) => w.publicKey === selectedRow?.publicKey,
+    );
     if (!wallet) return;
 
     const existingViewerIndex = modifyViewers.findIndex(
-      v => v.targetUsername === username && v.permissionState !== PermissionState.Revoked
+      (v) =>
+        v.targetUsername === username &&
+        v.permissionState !== PermissionState.Revoked,
     );
     if (existingViewerIndex !== -1) {
       const viewer = modifyViewers[existingViewerIndex];
@@ -671,7 +713,7 @@ export default function SharedAccessLanding() {
         'This user is currently a Viewer. Adding them as an Approver will revoke their Viewer access. Proceed?',
       );
       if (confirmed) {
-        setModifyApprovers(prev => [
+        setModifyApprovers((prev) => [
           ...prev,
           {
             walletPublicKey: wallet.publicKey,
@@ -681,7 +723,7 @@ export default function SharedAccessLanding() {
             permissionState: PermissionState.Added,
           },
         ]);
-        setModifyInitiators(prev => [
+        setModifyInitiators((prev) => [
           ...prev,
           {
             walletPublicKey: wallet.publicKey,
@@ -694,19 +736,27 @@ export default function SharedAccessLanding() {
         setModifyApproverInput('');
 
         if (viewer.permissionState === PermissionState.Added) {
-          setModifyViewers(prev => prev.filter(v => v.targetUsername !== username));
+          setModifyViewers((prev) =>
+            prev.filter((v) => v.targetUsername !== username),
+          );
         } else {
-          setModifyViewers(prev =>
-            prev.map(v => (v.targetUsername === username ? { ...v, permissionState: PermissionState.Revoked } : v))
+          setModifyViewers((prev) =>
+            prev.map((v) =>
+              v.targetUsername === username
+                ? { ...v, permissionState: PermissionState.Revoked }
+                : v,
+            ),
           );
         }
       }
       return;
     }
 
-    const existingInitiator = modifyInitiators.find(i => i.targetUsername === username);
+    const existingInitiator = modifyInitiators.find(
+      (i) => i.targetUsername === username,
+    );
     if (existingInitiator) {
-      setModifyApprovers(prev => [
+      setModifyApprovers((prev) => [
         ...prev,
         {
           walletPublicKey: wallet.publicKey,
@@ -722,11 +772,13 @@ export default function SharedAccessLanding() {
 
     const userInfo = await checkUsername(username, wallet);
     if (!userInfo) {
-      setModifyApproverErr('This username does not exist. Please enter a valid username.');
+      setModifyApproverErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
-    setModifyApprovers(prev => [
+    setModifyApprovers((prev) => [
       ...prev,
       {
         walletPublicKey: wallet.publicKey,
@@ -736,7 +788,7 @@ export default function SharedAccessLanding() {
         permissionState: PermissionState.Added,
       },
     ]);
-    setModifyInitiators(prev => [
+    setModifyInitiators((prev) => [
       ...prev,
       {
         walletPublicKey: wallet.publicKey,
@@ -757,16 +809,20 @@ export default function SharedAccessLanding() {
       return;
     }
 
-    if (modifyInitiators.some(i => i.targetUsername === username)) {
+    if (modifyInitiators.some((i) => i.targetUsername === username)) {
       setModifyInitiatorErr('Username already added');
       return;
     }
 
-    const wallet = appUser?.userWallets.find(w => w.publicKey === selectedRow?.publicKey);
+    const wallet = appUser?.userWallets.find(
+      (w) => w.publicKey === selectedRow?.publicKey,
+    );
     if (!wallet) return;
 
     const existingViewerIndex = modifyViewers.findIndex(
-      v => v.targetUsername === username && v.permissionState !== PermissionState.Revoked
+      (v) =>
+        v.targetUsername === username &&
+        v.permissionState !== PermissionState.Revoked,
     );
     if (existingViewerIndex !== -1) {
       const viewer = modifyViewers[existingViewerIndex];
@@ -774,7 +830,7 @@ export default function SharedAccessLanding() {
         'This user is currently a Viewer. Adding them as an Initiator will revoke their Viewer access. Proceed?',
       );
       if (confirmed) {
-        setModifyInitiators(prev => [
+        setModifyInitiators((prev) => [
           ...prev,
           {
             walletPublicKey: wallet.publicKey,
@@ -787,19 +843,27 @@ export default function SharedAccessLanding() {
         setModifyInitiatorInput('');
 
         if (viewer.permissionState === PermissionState.Added) {
-          setModifyViewers(prev => prev.filter(v => v.targetUsername !== username));
+          setModifyViewers((prev) =>
+            prev.filter((v) => v.targetUsername !== username),
+          );
         } else {
-          setModifyViewers(prev =>
-            prev.map(v => (v.targetUsername === username ? { ...v, permissionState: PermissionState.Revoked } : v))
+          setModifyViewers((prev) =>
+            prev.map((v) =>
+              v.targetUsername === username
+                ? { ...v, permissionState: PermissionState.Revoked }
+                : v,
+            ),
           );
         }
       }
       return;
     }
 
-    const existingApprover = modifyApprovers.find(a => a.targetUsername === username);
+    const existingApprover = modifyApprovers.find(
+      (a) => a.targetUsername === username,
+    );
     if (existingApprover) {
-      setModifyInitiators(prev => [
+      setModifyInitiators((prev) => [
         ...prev,
         {
           walletPublicKey: wallet.publicKey,
@@ -815,11 +879,13 @@ export default function SharedAccessLanding() {
 
     const userInfo = await checkUsername(username, wallet);
     if (!userInfo) {
-      setModifyInitiatorErr('This username does not exist. Please enter a valid username.');
+      setModifyInitiatorErr(
+        'This username does not exist. Please enter a valid username.',
+      );
       return;
     }
 
-    setModifyInitiators(prev => [
+    setModifyInitiators((prev) => [
       ...prev,
       {
         walletPublicKey: wallet.publicKey,
@@ -836,22 +902,26 @@ export default function SharedAccessLanding() {
     permList: Permission[],
     setPermList: React.Dispatch<React.SetStateAction<Permission[]>>,
     index: number,
-    relation: string
+    relation: string,
   ) => {
     const perm = permList[index];
     if (perm.permissionState === PermissionState.Revoked) {
-      setPermList(prev =>
-        prev.map((p, i) => (i === index ? { ...p, permissionState: null } : p))
+      setPermList((prev) =>
+        prev.map((p, i) => (i === index ? { ...p, permissionState: null } : p)),
       );
     } else if (perm.permissionState === PermissionState.Added) {
-      setPermList(prev => prev.filter((_, i) => i !== index));
+      setPermList((prev) => prev.filter((_, i) => i !== index));
     } else {
       const confirmed = window.confirm(
-        `You are about to revoke ${relation.toLowerCase()} access for ${perm.targetUsername}. Proceed?`
+        `You are about to revoke ${relation.toLowerCase()} access for ${perm.targetUsername}. Proceed?`,
       );
       if (confirmed) {
-        setPermList(prev =>
-          prev.map((p, i) => (i === index ? { ...p, permissionState: PermissionState.Revoked } : p))
+        setPermList((prev) =>
+          prev.map((p, i) =>
+            i === index
+              ? { ...p, permissionState: PermissionState.Revoked }
+              : p,
+          ),
         );
       }
     }
@@ -863,22 +933,30 @@ export default function SharedAccessLanding() {
         'All existing approvers and initiators will be revoked/removed. Proceed?',
       );
       if (confirmed) {
-        setModifyApprovers(prev =>
-          prev.map(p => ({ ...p, permissionState: PermissionState.Revoked }))
+        setModifyApprovers((prev) =>
+          prev.map((p) => ({ ...p, permissionState: PermissionState.Revoked })),
         );
-        setModifyInitiators(prev =>
-          prev.map(p => ({ ...p, permissionState: PermissionState.Revoked }))
+        setModifyInitiators((prev) =>
+          prev.map((p) => ({ ...p, permissionState: PermissionState.Revoked })),
         );
         setModifyAddApprovers(false);
       }
     } else {
       setModifyAddApprovers(checked);
       if (checked) {
-        setModifyApprovers(prev =>
-          prev.map(p => (p.permissionState === PermissionState.Revoked ? { ...p, permissionState: null } : p))
+        setModifyApprovers((prev) =>
+          prev.map((p) =>
+            p.permissionState === PermissionState.Revoked
+              ? { ...p, permissionState: null }
+              : p,
+          ),
         );
-        setModifyInitiators(prev =>
-          prev.map(p => (p.permissionState === PermissionState.Revoked ? { ...p, permissionState: null } : p))
+        setModifyInitiators((prev) =>
+          prev.map((p) =>
+            p.permissionState === PermissionState.Revoked
+              ? { ...p, permissionState: null }
+              : p,
+          ),
         );
         setActiveModal('update');
       }
@@ -887,10 +965,10 @@ export default function SharedAccessLanding() {
 
   const isModifyValid = () => {
     const activeApprovers = modifyApprovers.filter(
-      p => p.permissionState !== PermissionState.Revoked
+      (p) => p.permissionState !== PermissionState.Revoked,
     );
     const activeInitiators = modifyInitiators.filter(
-      p => p.permissionState !== PermissionState.Revoked
+      (p) => p.permissionState !== PermissionState.Revoked,
     );
 
     if (modifyAddApprovers) {
@@ -901,7 +979,10 @@ export default function SharedAccessLanding() {
       }
 
       if (activeApprovers.length !== modifyNoOfApprovers) {
-        showNotification('error', 'Please add the required number of approvers');
+        showNotification(
+          'error',
+          'Please add the required number of approvers',
+        );
         setActiveModal('update');
         return false;
       }
@@ -915,7 +996,10 @@ export default function SharedAccessLanding() {
     return true;
   };
 
-  const refreshUserInfo = async (decryptedSecretKey: string, passwordUsed: string) => {
+  const refreshUserInfo = async (
+    decryptedSecretKey: string,
+    passwordUsed: string,
+  ) => {
     try {
       const encryptor = new Encryptor();
       const importedPayload = {
@@ -999,11 +1083,22 @@ export default function SharedAccessLanding() {
       }
 
       const permissions = [
-        ...grantViewers.map(username => ({ targetUsername: username, permission: 'VIEW-ONLY' })),
-        ...(grantAddApprovers ? [
-          ...grantApprovers.map(username => ({ targetUsername: username, permission: 'APPROVER' })),
-          ...grantInitiators.map(username => ({ targetUsername: username, permission: 'INITIATOR' })),
-        ] : [])
+        ...grantViewers.map((username) => ({
+          targetUsername: username,
+          permission: 'VIEW-ONLY',
+        })),
+        ...(grantAddApprovers
+          ? [
+              ...grantApprovers.map((username) => ({
+                targetUsername: username,
+                permission: 'APPROVER',
+              })),
+              ...grantInitiators.map((username) => ({
+                targetUsername: username,
+                permission: 'INITIATOR',
+              })),
+            ]
+          : []),
       ];
 
       const body = grantAddApprovers
@@ -1019,7 +1114,7 @@ export default function SharedAccessLanding() {
 
       const response = await addSharedAccess(payload);
       if ('data' in response && response.data) {
-        const txData = (response.data as any);
+        const txData = response.data as any;
         const signature = signBase64Txn(
           decryptedSecretKey,
           txData.transaction,
@@ -1047,14 +1142,23 @@ export default function SharedAccessLanding() {
           setActiveModal('success');
         } else {
           const err = (secondResponse as any).error;
-          showNotification('error', err?.data?.message || 'Unable to submit signed transaction');
+          showNotification(
+            'error',
+            err?.data?.message || 'Unable to submit signed transaction',
+          );
         }
       } else {
         const err = (response as any).error;
-        showNotification('error', err?.data?.message || 'Unable to enable shared access');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to enable shared access',
+        );
       }
     } catch (error: any) {
-      showNotification('error', error?.message || 'Unable to grant shared access');
+      showNotification(
+        'error',
+        error?.message || 'Unable to grant shared access',
+      );
     } finally {
       setIsApprovalsLoading(false);
     }
@@ -1091,7 +1195,9 @@ export default function SharedAccessLanding() {
         return;
       }
 
-      const wallet = appUser.userWallets.find(w => w.publicKey === selectedRow.publicKey);
+      const wallet = appUser.userWallets.find(
+        (w) => w.publicKey === selectedRow.publicKey,
+      );
       if (!wallet) {
         setIsApprovalsLoading(false);
         return;
@@ -1100,32 +1206,52 @@ export default function SharedAccessLanding() {
       const addedPermissions: any[] = [];
       const revokedPermissions: any[] = [];
 
-      modifyViewers.forEach(v => {
+      modifyViewers.forEach((v) => {
         if (v.permissionState === PermissionState.Added) {
-          addedPermissions.push({ targetUsername: v.targetUsername, permission: 'VIEW-ONLY' });
+          addedPermissions.push({
+            targetUsername: v.targetUsername,
+            permission: 'VIEW-ONLY',
+          });
         } else if (v.permissionState === PermissionState.Revoked) {
-          revokedPermissions.push({ targetUsername: v.targetUsername, permission: 'VIEW-ONLY' });
+          revokedPermissions.push({
+            targetUsername: v.targetUsername,
+            permission: 'VIEW-ONLY',
+          });
         }
       });
 
-      modifyApprovers.forEach(a => {
+      modifyApprovers.forEach((a) => {
         if (a.permissionState === PermissionState.Added) {
-          addedPermissions.push({ targetUsername: a.targetUsername, permission: 'APPROVER' });
+          addedPermissions.push({
+            targetUsername: a.targetUsername,
+            permission: 'APPROVER',
+          });
         } else if (a.permissionState === PermissionState.Revoked) {
-          revokedPermissions.push({ targetUsername: a.targetUsername, permission: 'APPROVER' });
+          revokedPermissions.push({
+            targetUsername: a.targetUsername,
+            permission: 'APPROVER',
+          });
         }
       });
 
-      modifyInitiators.forEach(i => {
+      modifyInitiators.forEach((i) => {
         if (i.permissionState === PermissionState.Added) {
-          addedPermissions.push({ targetUsername: i.targetUsername, permission: 'INITIATOR' });
+          addedPermissions.push({
+            targetUsername: i.targetUsername,
+            permission: 'INITIATOR',
+          });
         } else if (i.permissionState === PermissionState.Revoked) {
-          revokedPermissions.push({ targetUsername: i.targetUsername, permission: 'INITIATOR' });
+          revokedPermissions.push({
+            targetUsername: i.targetUsername,
+            permission: 'INITIATOR',
+          });
         }
       });
 
       const body = {
-        numberOfApprovalsNeeded: modifyAddApprovers ? modifyNoOfApprovalsNeeded : 0,
+        numberOfApprovalsNeeded: modifyAddApprovers
+          ? modifyNoOfApprovalsNeeded
+          : 0,
         revokedPermissions,
         addedPermissions,
       };
@@ -1169,14 +1295,23 @@ export default function SharedAccessLanding() {
           setActiveModal('modifySuccess');
         } else {
           const err = (secondResponse as any).error;
-          showNotification('error', err?.data?.message || 'Unable to submit update transaction');
+          showNotification(
+            'error',
+            err?.data?.message || 'Unable to submit update transaction',
+          );
         }
       } else {
         const err = (response as any).error;
-        showNotification('error', err?.data?.message || 'Unable to update shared access');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to update shared access',
+        );
       }
     } catch (error: any) {
-      showNotification('error', error?.message || 'Unable to modify shared access');
+      showNotification(
+        'error',
+        error?.message || 'Unable to modify shared access',
+      );
     } finally {
       setIsApprovalsLoading(false);
     }
@@ -1229,10 +1364,16 @@ export default function SharedAccessLanding() {
         setActiveModal('disableConfirm');
       } else if ('error' in response) {
         const err = response.error as any;
-        showNotification('error', err?.data?.message || 'Unable to disable shared access');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to disable shared access',
+        );
       }
     } catch (error: any) {
-      showNotification('error', error?.message || 'Unable to disable shared access');
+      showNotification(
+        'error',
+        error?.message || 'Unable to disable shared access',
+      );
       setActiveModal('details');
     } finally {
       setIsDisabling(false);
@@ -1349,10 +1490,16 @@ export default function SharedAccessLanding() {
         setActiveModal('disableSuccess');
       } else if ('error' in response) {
         const err = response.error as any;
-        showNotification('error', err?.data?.message || 'Unable to submit disable transaction');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to submit disable transaction',
+        );
       }
     } catch (error: any) {
-      showNotification('error', error?.message || 'Unable to submit disable transaction');
+      showNotification(
+        'error',
+        error?.message || 'Unable to submit disable transaction',
+      );
     } finally {
       setIsDisabling(false);
     }
@@ -1419,13 +1566,21 @@ export default function SharedAccessLanding() {
 
         const secondResponse = await approveSharedAccess(secondPayload);
         if ('data' in secondResponse) {
-          showNotification('success', 'Transaction approval submitted successfully');
+          showNotification(
+            'success',
+            'Transaction approval submitted successfully',
+          );
           setActiveModal(null);
           setApprovalPassword('');
           setApprovalPasswordErr('');
           setShowRejectReason(false);
           // Refresh list locally
-          setApprovalRecords((prev) => prev.filter(record => (record as any).id !== (selectedActivityRecord as any).id));
+          setApprovalRecords((prev) =>
+            prev.filter(
+              (record) =>
+                (record as any).id !== (selectedActivityRecord as any).id,
+            ),
+          );
           // Refresh list
           fetchApprovals({
             signer: appUser.primarySigner,
@@ -1439,11 +1594,17 @@ export default function SharedAccessLanding() {
           });
         } else {
           const err = (secondResponse as any).error;
-          showNotification('error', err?.data?.message || 'Unable to submit approval transaction');
+          showNotification(
+            'error',
+            err?.data?.message || 'Unable to submit approval transaction',
+          );
         }
       } else {
         const err = (response as any).error;
-        showNotification('error', err?.data?.message || 'Unable to get transaction for approval');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to get transaction for approval',
+        );
       }
     } catch (error: any) {
       showNotification('error', error?.message || 'Unable to submit approval');
@@ -1511,7 +1672,12 @@ export default function SharedAccessLanding() {
         setApprovalReason('');
         setShowRejectReason(false);
         // Refresh list locally
-        setApprovalRecords((prev) => prev.filter(record => (record as any).id !== (selectedActivityRecord as any).id));
+        setApprovalRecords((prev) =>
+          prev.filter(
+            (record) =>
+              (record as any).id !== (selectedActivityRecord as any).id,
+          ),
+        );
         // Refresh list
         fetchApprovals({
           signer: appUser.primarySigner,
@@ -1525,7 +1691,10 @@ export default function SharedAccessLanding() {
         });
       } else {
         const err = (response as any).error;
-        showNotification('error', err?.data?.message || 'Unable to reject transaction');
+        showNotification(
+          'error',
+          err?.data?.message || 'Unable to reject transaction',
+        );
       }
     } catch (error: any) {
       showNotification('error', error?.message || 'Unable to submit rejection');
@@ -1831,7 +2000,9 @@ export default function SharedAccessLanding() {
     includeSignedTransactions,
   ]);
 
-  const activityRows = useMemo<(SharedAccessActivityRow & { _record: SharedAccessApprovalRecord })[]>(() => {
+  const activityRows = useMemo<
+    (SharedAccessActivityRow & { _record: SharedAccessApprovalRecord })[]
+  >(() => {
     return approvalRecords.map((record) => {
       const approvalsGotten = Number(record.approvalsGotten ?? 0);
       const approvalsNeeded = Number(record.approvalsNeeded ?? 0);
@@ -1863,9 +2034,7 @@ export default function SharedAccessLanding() {
       const walletsMap = new Map<string, SharedAccessRow>();
 
       for (const wallet of appUser.userWallets) {
-        if (
-          !wallet.isSharedWallet
-        ) {
+        if (!wallet.isSharedWallet) {
           continue;
         }
 
@@ -1937,8 +2106,8 @@ export default function SharedAccessLanding() {
 
         const filteredPermissionCodes = selectedPermissionCode
           ? permissionCodes.filter(
-            (permissionCode) => permissionCode === selectedPermissionCode,
-          )
+              (permissionCode) => permissionCode === selectedPermissionCode,
+            )
           : permissionCodes;
 
         return {
@@ -1958,15 +2127,16 @@ export default function SharedAccessLanding() {
     index: number,
     permList: Permission[],
     setPermList: React.Dispatch<React.SetStateAction<Permission[]>>,
-    relation: string
+    relation: string,
   ) => {
-    let chipClass = "inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium transition cursor-pointer ";
+    let chipClass =
+      'inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium transition cursor-pointer ';
     if (perm.permissionState === PermissionState.Revoked) {
-      chipClass += "bg-red-500 text-white hover:bg-red-600 line-through";
+      chipClass += 'bg-red-500 text-white hover:bg-red-600 line-through';
     } else if (perm.permissionState === PermissionState.Added) {
-      chipClass += "bg-green-500 text-white hover:bg-green-600";
+      chipClass += 'bg-green-500 text-white hover:bg-green-600';
     } else {
-      chipClass += "bg-primary-800 text-white hover:bg-white-700";
+      chipClass += 'bg-primary-800 text-white hover:bg-white-700';
     }
 
     const isOwner = perm.targetUsername === selectedRow?.owner;
@@ -1976,24 +2146,29 @@ export default function SharedAccessLanding() {
         key={`${perm.targetUsername}-${index}`}
         className={chipClass}
         onClick={() => {
-          if (isOwner && (relation === 'Approver' || relation === 'Initiator')) {
-            showNotification('error', 'The owner cannot be removed/revoked from Approver or Initiator lists.');
+          if (
+            isOwner &&
+            (relation === 'Approver' || relation === 'Initiator')
+          ) {
+            showNotification(
+              'error',
+              'The owner cannot be removed/revoked from Approver or Initiator lists.',
+            );
             return;
           }
           handlePermissionItemClick(permList, setPermList, index, relation);
         }}
         title={
           isOwner && (relation === 'Approver' || relation === 'Initiator')
-            ? "Owner cannot be revoked"
+            ? 'Owner cannot be revoked'
             : perm.permissionState === PermissionState.Revoked
-              ? "Click to restore access"
-              : "Click to revoke access"
+              ? 'Click to restore access'
+              : 'Click to revoke access'
         }
       >
         {perm.targetUsername} [{perm.fullName}]
-        {!(isOwner && (relation === 'Approver' || relation === 'Initiator')) && (
-          perm.permissionState === PermissionState.Revoked ? " ⟲" : "×"
-        )}
+        {!(isOwner && (relation === 'Approver' || relation === 'Initiator')) &&
+          (perm.permissionState === PermissionState.Revoked ? ' ⟲' : '×')}
       </span>
     );
   };
@@ -2001,28 +2176,42 @@ export default function SharedAccessLanding() {
   const renderModalContent = () => {
     if (activeModal === 'approvalDetails' && selectedActivityRecord) {
       const record = selectedActivityRecord;
-      const isPending = normalizeTransactionStatus(record.transactionStatus) === 'Pending';
+      const isPending =
+        normalizeTransactionStatus(record.transactionStatus) === 'Pending';
       console.log('record', record);
 
       const approvalsGotten = Number(record.approvalsGotten ?? 0);
       const approvalsNeeded = Number(record.approvalsNeeded ?? 0);
-      const approvalStatusText = approvalsNeeded > 0
-        ? `${approvalsGotten} out of ${approvalsNeeded} approvals received`
-        : '-';
+      const approvalStatusText =
+        approvalsNeeded > 0
+          ? `${approvalsGotten} out of ${approvalsNeeded} approvals received`
+          : '-';
 
-      const hasApproved = (record as any).approvedBy?.includes(appUser?.username || '');
-      const hasRejected = (record as any).rejectedBy?.includes(appUser?.username || '');
+      const hasApproved = (record as any).approvedBy?.includes(
+        appUser?.username || '',
+      );
+      const hasRejected = (record as any).rejectedBy?.includes(
+        appUser?.username || '',
+      );
       const hasSigned = hasApproved || hasRejected;
 
-      const relatedWallet = appUser?.userWallets.find(w => w.publicKey === record.walletAlias || w.alias === record.alias);
+      const relatedWallet = appUser?.userWallets.find(
+        (w) => w.publicKey === record.walletAlias || w.alias === record.alias,
+      );
       const isApprover = relatedWallet?.isApprover ?? false;
 
       let headline = '';
       if (isPending) {
-        headline = hasSigned ? 'You have already signed' : 'Your approval is requested';
-      } else if (normalizeTransactionStatus(record.transactionStatus) === 'Rejected') {
+        headline = hasSigned
+          ? 'You have already signed'
+          : 'Your approval is requested';
+      } else if (
+        normalizeTransactionStatus(record.transactionStatus) === 'Rejected'
+      ) {
         headline = 'This transaction is rejected';
-      } else if (normalizeTransactionStatus(record.transactionStatus) === 'Completed') {
+      } else if (
+        normalizeTransactionStatus(record.transactionStatus) === 'Completed'
+      ) {
         headline = 'Transaction completed';
       }
 
@@ -2043,55 +2232,93 @@ export default function SharedAccessLanding() {
 
             <div className="rounded-xl border border-primary-200 bg-[#f5f9fc] p-5 space-y-4">
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Wallet:</span>
-                <span className="text-sm text-primary-700 break-words">{record.alias || record.walletAlias || '-'}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Wallet:
+                </span>
+                <span className="text-sm text-primary-700 break-words">
+                  {record.alias || record.walletAlias || '-'}
+                </span>
               </div>
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Transaction Type:</span>
-                <span className="text-sm text-primary-700">{normalizeTransactionType(record.transactionType)}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Transaction Type:
+                </span>
+                <span className="text-sm text-primary-700">
+                  {normalizeTransactionType(record.transactionType)}
+                </span>
               </div>
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Initiator:</span>
-                <span className="text-sm text-primary-700 break-words">{record.initiator || '-'}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Initiator:
+                </span>
+                <span className="text-sm text-primary-700 break-words">
+                  {record.initiator || '-'}
+                </span>
               </div>
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Initiated:</span>
-                <span className="text-sm text-primary-700">{formatApprovalDate(record.createdAt)}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Initiated:
+                </span>
+                <span className="text-sm text-primary-700">
+                  {formatApprovalDate(record.createdAt)}
+                </span>
               </div>
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Description:</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Description:
+                </span>
                 <span className="text-sm text-primary-700 whitespace-pre-wrap break-words">
                   {(record as any).description || '-'}
                 </span>
               </div>
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Approval Status:</span>
-                <span className="text-sm text-primary-700">{approvalStatusText}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Approval Status:
+                </span>
+                <span className="text-sm text-primary-700">
+                  {approvalStatusText}
+                </span>
               </div>
 
               {(record as any).approvedBy && (
                 <div className="flex flex-col text-center">
-                  <span className="text-sm font-bold text-primary-800">Approved By:</span>
-                  <span className="text-sm text-primary-700 break-words">{(record as any).approvedBy}</span>
+                  <span className="text-sm font-bold text-primary-800">
+                    Approved By:
+                  </span>
+                  <span className="text-sm text-primary-700 break-words">
+                    {(record as any).approvedBy}
+                  </span>
                 </div>
               )}
 
               {(record as any).rejectedBy && (
                 <>
                   <div className="flex flex-col text-center">
-                    <span className="text-sm font-bold text-primary-800">Rejected By:</span>
-                    <span className="text-sm text-primary-700 break-words">{(record as any).rejectedBy}</span>
+                    <span className="text-sm font-bold text-primary-800">
+                      Rejected By:
+                    </span>
+                    <span className="text-sm text-primary-700 break-words">
+                      {(record as any).rejectedBy}
+                    </span>
                   </div>
                   <div className="flex flex-col text-center">
-                    <span className="text-sm font-bold text-primary-800">Reason for Rejection:</span>
-                    <span className="text-sm text-primary-700 break-words">{(record as any).reasonForRejection || '-'}</span>
+                    <span className="text-sm font-bold text-primary-800">
+                      Reason for Rejection:
+                    </span>
+                    <span className="text-sm text-primary-700 break-words">
+                      {(record as any).reasonForRejection || '-'}
+                    </span>
                   </div>
                 </>
               )}
 
               <div className="flex flex-col text-center">
-                <span className="text-sm font-bold text-primary-800">Transaction Status:</span>
-                <span className="text-sm text-primary-700">{normalizeTransactionStatus(record.transactionStatus)}</span>
+                <span className="text-sm font-bold text-primary-800">
+                  Transaction Status:
+                </span>
+                <span className="text-sm text-primary-700">
+                  {normalizeTransactionStatus(record.transactionStatus)}
+                </span>
               </div>
 
               {/* <div className="flex flex-col text-center">
@@ -2142,18 +2369,27 @@ export default function SharedAccessLanding() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
                     </svg>
                     <button
                       type="button"
-                      onClick={() => setShowApprovalPassword(!showApprovalPassword)}
+                      onClick={() =>
+                        setShowApprovalPassword(!showApprovalPassword)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-primary-600 hover:text-primary-800"
                     >
                       {showApprovalPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
                   {approvalPasswordErr && (
-                    <p className="text-xs text-red-500">{approvalPasswordErr}</p>
+                    <p className="text-xs text-red-500">
+                      {approvalPasswordErr}
+                    </p>
                   )}
                 </div>
 
@@ -2188,10 +2424,7 @@ export default function SharedAccessLanding() {
               </div>
             ) : (
               <div className="pt-4 flex justify-end">
-                <Button
-                  label="Done"
-                  onclick={() => setActiveModal(null)}
-                />
+                <Button label="Done" onclick={() => setActiveModal(null)} />
               </div>
             )}
           </div>
@@ -2219,14 +2452,17 @@ export default function SharedAccessLanding() {
                   value={grantWallet?.publicKey || ''}
                   onChange={(e) => {
                     const val = e.target.value;
-                    const found = shareableWallets.find(w => w.publicKey === val) || null;
+                    const found =
+                      shareableWallets.find((w) => w.publicKey === val) || null;
                     setGrantWallet(found);
                     setGrantAddApprovers(false);
                     setGrantViewers([]);
                     if (appUser) {
                       setGrantApprovers([appUser.username]);
                       setGrantInitiators([appUser.username]);
-                      setGrantUserFullnames({ [appUser.username]: `${appUser.firstName} ${appUser.lastName}` });
+                      setGrantUserFullnames({
+                        [appUser.username]: `${appUser.firstName} ${appUser.lastName}`,
+                      });
                     }
                   }}
                 >
@@ -2246,11 +2482,18 @@ export default function SharedAccessLanding() {
                 <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b7d0df] bg-[#f7fbff] p-3 min-h-[3rem] items-center">
                   {grantViewers.length > 0 ? (
                     grantViewers.map((username, idx) => (
-                      <span key={username} className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium">
+                      <span
+                        key={username}
+                        className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                         <button
                           type="button"
-                          onClick={() => setGrantViewers(prev => prev.filter((_, i) => i !== idx))}
+                          onClick={() =>
+                            setGrantViewers((prev) =>
+                              prev.filter((_, i) => i !== idx),
+                            )
+                          }
                           className="text-red-500 hover:text-red-700 font-bold ml-1 leading-none"
                         >
                           ×
@@ -2258,7 +2501,9 @@ export default function SharedAccessLanding() {
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-primary-400">Name of viewers appear here</span>
+                    <span className="text-sm text-primary-400">
+                      Name of viewers appear here
+                    </span>
                   )}
                 </div>
               </div>
@@ -2289,29 +2534,35 @@ export default function SharedAccessLanding() {
                 {grantViewerErr && (
                   <p className="text-xs text-red-500">{grantViewerErr}</p>
                 )}
-                {grantWallet && !grantWallet.isPrimaryWallet && !grantWallet.primaryWallet && grantWallet.walletType !== 2 && (
-                  <label className="flex items-center gap-2 text-sm text-primary-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={grantAddApprovers}
-                      onChange={(e) => {
-                        setGrantAddApprovers(e.target.checked);
-                        if (e.target.checked) {
-                          setGrantStep(1);
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-[#b5cfe4] text-primary-800 focus:ring-primary-800"
-                    />
-                    Grant approver access
-                  </label>
-                )}
+                {grantWallet &&
+                  !grantWallet.isPrimaryWallet &&
+                  !grantWallet.primaryWallet &&
+                  grantWallet.walletType !== 2 && (
+                    <label className="flex items-center gap-2 text-sm text-primary-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={grantAddApprovers}
+                        onChange={(e) => {
+                          setGrantAddApprovers(e.target.checked);
+                          if (e.target.checked) {
+                            setGrantStep(1);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-[#b5cfe4] text-primary-800 focus:ring-primary-800"
+                      />
+                      Grant approver access
+                    </label>
+                  )}
               </div>
 
               <Button
                 label="Proceed"
                 onclick={() => {
                   if (!grantAddApprovers && grantViewers.length === 0) {
-                    showNotification('error', 'Please add at least one user to grant access');
+                    showNotification(
+                      'error',
+                      'Please add at least one user to grant access',
+                    );
                     return;
                   }
                   if (grantAddApprovers) {
@@ -2341,9 +2592,14 @@ export default function SharedAccessLanding() {
                   <select
                     className="h-10 w-full rounded-md border border-[#b5cfe4] bg-white px-2 text-sm text-primary-800 outline-none"
                     value={grantNoOfApprovalsNeeded}
-                    onChange={(e) => setGrantNoOfApprovalsNeeded(Number(e.target.value))}
+                    onChange={(e) =>
+                      setGrantNoOfApprovalsNeeded(Number(e.target.value))
+                    }
                   >
-                    {Array.from({ length: grantNoOfApprovers - 1 }, (_, i) => i + 2).map((val) => (
+                    {Array.from(
+                      { length: grantNoOfApprovers - 1 },
+                      (_, i) => i + 2,
+                    ).map((val) => (
                       <option key={val} value={val}>
                         {val}
                       </option>
@@ -2376,22 +2632,30 @@ export default function SharedAccessLanding() {
               </div>
 
               <div className="rounded-xl bg-[#f5f9fc] border border-primary-200 p-4 text-center text-xs text-primary-700 font-medium">
-                {grantNoOfApprovalsNeeded} approvals required out of {grantNoOfApprovers} approvers
+                {grantNoOfApprovalsNeeded} approvals required out of{' '}
+                {grantNoOfApprovers} approvers
               </div>
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-primary-700">
-                  Enter the usernames of all accounts that require approver access
-                  to this wallet
+                  Enter the usernames of all accounts that require approver
+                  access to this wallet
                 </label>
                 <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b7d0df] bg-[#f7fbff] p-3 min-h-[3rem] items-center">
                   {grantApprovers.length > 0 ? (
                     grantApprovers.map((username, idx) => (
-                      <span key={username} className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium">
+                      <span
+                        key={username}
+                        className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                         <button
                           type="button"
-                          onClick={() => setGrantApprovers(prev => prev.filter((_, i) => i !== idx))}
+                          onClick={() =>
+                            setGrantApprovers((prev) =>
+                              prev.filter((_, i) => i !== idx),
+                            )
+                          }
                           className="text-red-500 hover:text-red-700 font-bold ml-1 leading-none"
                         >
                           ×
@@ -2399,7 +2663,9 @@ export default function SharedAccessLanding() {
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-primary-400">Name of approvers appear here</span>
+                    <span className="text-sm text-primary-400">
+                      Name of approvers appear here
+                    </span>
                   )}
                 </div>
               </div>
@@ -2442,11 +2708,17 @@ export default function SharedAccessLanding() {
                   label="Proceed"
                   onclick={() => {
                     if (grantApprovers.length === 0) {
-                      showNotification('error', 'Please add at least one user to grant access');
+                      showNotification(
+                        'error',
+                        'Please add at least one user to grant access',
+                      );
                       return;
                     }
                     if (grantApprovers.length < grantNoOfApprovers) {
-                      showNotification('error', 'Please add the required number of approvers');
+                      showNotification(
+                        'error',
+                        'Please add the required number of approvers',
+                      );
                       return;
                     }
                     setGrantStep(2);
@@ -2467,18 +2739,25 @@ export default function SharedAccessLanding() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-primary-700">
-                  Enter the usernames of all accounts that require initiator access
-                  to this wallet
+                  Enter the usernames of all accounts that require initiator
+                  access to this wallet
                 </label>
                 <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b7d0df] bg-[#f7fbff] p-3 min-h-[3rem] items-center">
                   {grantInitiators.length > 0 ? (
                     grantInitiators.map((username, idx) => (
-                      <span key={username} className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium">
+                      <span
+                        key={username}
+                        className="inline-flex items-center gap-1 rounded bg-[#dfeaf4] px-2 py-1 text-sm text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                         {username !== appUser?.username && (
                           <button
                             type="button"
-                            onClick={() => setGrantInitiators(prev => prev.filter((_, i) => i !== idx))}
+                            onClick={() =>
+                              setGrantInitiators((prev) =>
+                                prev.filter((_, i) => i !== idx),
+                              )
+                            }
                             className="text-red-500 hover:text-red-700 font-bold ml-1 leading-none"
                           >
                             ×
@@ -2487,7 +2766,9 @@ export default function SharedAccessLanding() {
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-primary-400">Name of initiators appear here</span>
+                    <span className="text-sm text-primary-400">
+                      Name of initiators appear here
+                    </span>
                   )}
                 </div>
               </div>
@@ -2530,15 +2811,24 @@ export default function SharedAccessLanding() {
                   label="Proceed"
                   onclick={() => {
                     if (grantInitiators.length === 0) {
-                      showNotification('error', 'Please add at least one user to grant access');
+                      showNotification(
+                        'error',
+                        'Please add at least one user to grant access',
+                      );
                       return;
                     }
                     if (grantApprovers.length < grantNoOfApprovers) {
-                      showNotification('error', 'Please add the required number of approvers');
+                      showNotification(
+                        'error',
+                        'Please add the required number of approvers',
+                      );
                       return;
                     }
                     if (grantApprovers.length === 0) {
-                      showNotification('error', 'You cannot have initiators without approvers');
+                      showNotification(
+                        'error',
+                        'You cannot have initiators without approvers',
+                      );
                       return;
                     }
                     setActiveModal('confirm');
@@ -2582,8 +2872,11 @@ export default function SharedAccessLanding() {
                     Viewer Access
                   </label>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    {grantViewers.map(username => (
-                      <span key={username} className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium">
+                    {grantViewers.map((username) => (
+                      <span
+                        key={username}
+                        className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                       </span>
                     ))}
@@ -2597,8 +2890,11 @@ export default function SharedAccessLanding() {
                     Approver Access
                   </label>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    {grantApprovers.map(username => (
-                      <span key={username} className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium">
+                    {grantApprovers.map((username) => (
+                      <span
+                        key={username}
+                        className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                       </span>
                     ))}
@@ -2612,8 +2908,11 @@ export default function SharedAccessLanding() {
                     Initiator Access
                   </label>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    {grantInitiators.map(username => (
-                      <span key={username} className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium">
+                    {grantInitiators.map((username) => (
+                      <span
+                        key={username}
+                        className="rounded bg-[#dfeaf4] px-2 py-1 text-primary-800 font-medium"
+                      >
                         {username} [{grantUserFullnames[username] || ''}]
                       </span>
                     ))}
@@ -2646,7 +2945,9 @@ export default function SharedAccessLanding() {
                   />
                 </div>
                 {grantPasswordErr && (
-                  <p className="text-xs text-red-500 mt-1 px-1 font-semibold">{grantPasswordErr}</p>
+                  <p className="text-xs text-red-500 mt-1 px-1 font-semibold">
+                    {grantPasswordErr}
+                  </p>
                 )}
               </div>
             </div>
@@ -2681,7 +2982,9 @@ export default function SharedAccessLanding() {
 
             <p className="text-base text-primary-700">
               You have successfully enabled shared access on your wallet{' '}
-              <span className="font-semibold text-primary-800">{grantWallet?.alias || grantWallet?.publicKey}</span>
+              <span className="font-semibold text-primary-800">
+                {grantWallet?.alias || grantWallet?.publicKey}
+              </span>
             </p>
 
             <Button
@@ -2706,19 +3009,33 @@ export default function SharedAccessLanding() {
 
             <div className="space-y-3 rounded-xl border border-[#d2e2f1] bg-[#f1f6fb] space-y-6 p-4 text-primary-800">
               <div className="flex flex-col items-center justify-between space-y-4">
-                <span className="font-medium font-montserratSemiBold">Wallet</span>
-                <span className="text-primary-700">{selectedRow?.wallet ?? '-'}</span>
+                <span className="font-medium font-montserratSemiBold">
+                  Wallet
+                </span>
+                <span className="text-primary-700">
+                  {selectedRow?.wallet ?? '-'}
+                </span>
               </div>
               <div className="flex flex-col items-center justify-between space-y-4">
-                <span className="font-medium font-montserratSemiBold">Description</span>
-                <span className="text-primary-700">{selectedRow?.description ?? '-'}</span>
+                <span className="font-medium font-montserratSemiBold">
+                  Description
+                </span>
+                <span className="text-primary-700">
+                  {selectedRow?.description ?? '-'}
+                </span>
               </div>
               <div className="flex flex-col items-center justify-between space-y-4">
-                <span className="font-medium font-montserratSemiBold">Owner</span>
-                <span className="text-primary-700">{selectedRow?.owner ?? '-'}</span>
+                <span className="font-medium font-montserratSemiBold">
+                  Owner
+                </span>
+                <span className="text-primary-700">
+                  {selectedRow?.owner ?? '-'}
+                </span>
               </div>
               <div className="flex flex-col items-center justify-between space-y-4">
-                <span className="font-medium font-montserratSemiBold">Permissions</span>
+                <span className="font-medium font-montserratSemiBold">
+                  Permissions
+                </span>
                 <span className="text-primary-700">
                   {selectedRow && selectedRow.permissions.length > 0
                     ? `You have ${selectedRow.permissions.map((p) => p.toLowerCase()).join(' and ')} access on this wallet`
@@ -2733,7 +3050,9 @@ export default function SharedAccessLanding() {
                 onclick={() => {
                   if (selectedRow) {
                     setActiveModal(null);
-                    navigate(`/dashboard/wallet?wallet=${selectedRow.publicKey}&rel=shared`);
+                    navigate(
+                      `/dashboard/wallet?wallet=${selectedRow.publicKey}&rel=shared`,
+                    );
                   }
                 }}
                 additionalClasses="w-full hover:bg-primary-900"
@@ -2743,7 +3062,9 @@ export default function SharedAccessLanding() {
                 onclick={() => {
                   setActiveModal(null);
                   if (selectedRow) {
-                    navigate(`/dashboard/history?wallet=${selectedRow.publicKey}&rel=shared`);
+                    navigate(
+                      `/dashboard/history?wallet=${selectedRow.publicKey}&rel=shared`,
+                    );
                   } else {
                     navigate('/dashboard/history');
                   }
@@ -2845,24 +3166,41 @@ export default function SharedAccessLanding() {
                 <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b3d0e7] bg-primary-100 p-3 min-h-[3rem] items-center">
                   {modifyViewers.length > 0 ? (
                     modifyViewers.map((perm, idx) =>
-                      renderPermissionChip(perm, idx, modifyViewers, setModifyViewers, 'Viewer')
+                      renderPermissionChip(
+                        perm,
+                        idx,
+                        modifyViewers,
+                        setModifyViewers,
+                        'Viewer',
+                      ),
                     )
                   ) : (
-                    <span className="text-sm text-primary-800">Name of viewers appear here</span>
+                    <span className="text-sm text-primary-800">
+                      Name of viewers appear here
+                    </span>
                   )}
                 </div>
               </div>
 
               {(() => {
-                const walletObj = appUser?.userWallets.find(w => w.publicKey === selectedRow?.publicKey);
-                if (walletObj && !walletObj.isPrimaryWallet && !walletObj.primaryWallet && walletObj.walletType !== 2) {
+                const walletObj = appUser?.userWallets.find(
+                  (w) => w.publicKey === selectedRow?.publicKey,
+                );
+                if (
+                  walletObj &&
+                  !walletObj.isPrimaryWallet &&
+                  !walletObj.primaryWallet &&
+                  walletObj.walletType !== 2
+                ) {
                   return (
                     <div className="mt-4">
                       <label className="flex items-center gap-2 text-sm text-primary-700 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={modifyAddApprovers}
-                          onChange={(e) => handleModifyAddApproversChange(e.target.checked)}
+                          onChange={(e) =>
+                            handleModifyAddApproversChange(e.target.checked)
+                          }
                           className="h-4 w-4 rounded border-[#b5cfe4] text-primary-800 focus:ring-primary-800"
                         />
                         Grant approver access
@@ -2936,9 +3274,14 @@ export default function SharedAccessLanding() {
                       <select
                         className="h-10 w-full rounded-md border border-[#b5cfe4] bg-white px-2 text-sm text-primary-800 outline-none"
                         value={modifyNoOfApprovalsNeeded}
-                        onChange={(e) => setModifyNoOfApprovalsNeeded(Number(e.target.value))}
+                        onChange={(e) =>
+                          setModifyNoOfApprovalsNeeded(Number(e.target.value))
+                        }
                       >
-                        {Array.from({ length: modifyNoOfApprovers - 1 }, (_, i) => i + 2).map((val) => (
+                        {Array.from(
+                          { length: modifyNoOfApprovers - 1 },
+                          (_, i) => i + 2,
+                        ).map((val) => (
                           <option key={val} value={val}>
                             {val}
                           </option>
@@ -2972,15 +3315,16 @@ export default function SharedAccessLanding() {
                     </div>
                   </div>
                   <div className="text-center text-xs text-primary-700 font-medium">
-                    {modifyNoOfApprovalsNeeded} approvals required out of {modifyNoOfApprovers} approvers
+                    {modifyNoOfApprovalsNeeded} approvals required out of{' '}
+                    {modifyNoOfApprovers} approvers
                   </div>
                 </div>
                 <div></div>
 
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-primary-700">
-                    Enter the usernames of all accounts that require approver access
-                    to this wallet
+                    Enter the usernames of all accounts that require approver
+                    access to this wallet
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -3011,10 +3355,18 @@ export default function SharedAccessLanding() {
                   <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b3d0e7] bg-primary-100 p-3 min-h-[3rem] items-center">
                     {modifyApprovers.length > 0 ? (
                       modifyApprovers.map((perm, idx) =>
-                        renderPermissionChip(perm, idx, modifyApprovers, setModifyApprovers, 'Approver')
+                        renderPermissionChip(
+                          perm,
+                          idx,
+                          modifyApprovers,
+                          setModifyApprovers,
+                          'Approver',
+                        ),
                       )
                     ) : (
-                      <span className="text-sm text-primary-400">Name of approvers appear here</span>
+                      <span className="text-sm text-primary-400">
+                        Name of approvers appear here
+                      </span>
                     )}
                   </div>
                 </div>
@@ -3024,13 +3376,18 @@ export default function SharedAccessLanding() {
             <Button
               label="Proceed"
               onclick={() => {
-                const activeApprovers = modifyApprovers.filter(p => p.permissionState !== PermissionState.Revoked);
+                const activeApprovers = modifyApprovers.filter(
+                  (p) => p.permissionState !== PermissionState.Revoked,
+                );
                 if (activeApprovers.length === 0) {
                   showNotification('error', 'Please add approvers');
                   return;
                 }
                 if (activeApprovers.length < modifyNoOfApprovers) {
-                  showNotification('error', 'Please add the required number of approvers');
+                  showNotification(
+                    'error',
+                    'Please add the required number of approvers',
+                  );
                   return;
                 }
                 setActiveModal('initiators');
@@ -3111,10 +3468,18 @@ export default function SharedAccessLanding() {
                 <div className="flex flex-wrap gap-2 rounded-lg border border-dashed border-[#b3d0e7] bg-primary-100 p-3 min-h-[3rem] items-center">
                   {modifyInitiators.length > 0 ? (
                     modifyInitiators.map((perm, idx) =>
-                      renderPermissionChip(perm, idx, modifyInitiators, setModifyInitiators, 'Initiator')
+                      renderPermissionChip(
+                        perm,
+                        idx,
+                        modifyInitiators,
+                        setModifyInitiators,
+                        'Initiator',
+                      ),
                     )
                   ) : (
-                    <span className="text-sm text-primary-400">Name of initiators appear here</span>
+                    <span className="text-sm text-primary-400">
+                      Name of initiators appear here
+                    </span>
                   )}
                 </div>
               </div>
@@ -3165,16 +3530,23 @@ export default function SharedAccessLanding() {
                     Viewer Access
                   </div>
                   <div className="space-y-2 text-sm w-2/3 text-primary-800">
-                    {modifyViewers.map(v => (
-                      <div key={v.targetUsername} className="flex items-center justify-between font-medium">
-                        <span>{v.targetUsername} [{v.fullName}]</span>
-                        <span className={
-                          v.permissionState === PermissionState.Added
-                            ? "text-green-500 font-semibold"
-                            : v.permissionState === PermissionState.Revoked
-                              ? "text-red-500 font-semibold"
-                              : "text-primary-500"
-                        }>
+                    {modifyViewers.map((v) => (
+                      <div
+                        key={v.targetUsername}
+                        className="flex items-center justify-between font-medium"
+                      >
+                        <span>
+                          {v.targetUsername} [{v.fullName}]
+                        </span>
+                        <span
+                          className={
+                            v.permissionState === PermissionState.Added
+                              ? 'text-green-500 font-semibold'
+                              : v.permissionState === PermissionState.Revoked
+                                ? 'text-red-500 font-semibold'
+                                : 'text-primary-500'
+                          }
+                        >
                           {v.permissionState || 'Active'}
                         </span>
                       </div>
@@ -3189,16 +3561,23 @@ export default function SharedAccessLanding() {
                     Approver Access
                   </div>
                   <div className="space-y-2 text-sm w-2/3 text-primary-800">
-                    {modifyApprovers.map(a => (
-                      <div key={a.targetUsername} className="flex items-center justify-between font-medium">
-                        <span>{a.targetUsername} [{a.fullName}]</span>
-                        <span className={
-                          a.permissionState === PermissionState.Added
-                            ? "text-green-500 font-semibold"
-                            : a.permissionState === PermissionState.Revoked
-                              ? "text-red-500 font-semibold"
-                              : "text-primary-500"
-                        }>
+                    {modifyApprovers.map((a) => (
+                      <div
+                        key={a.targetUsername}
+                        className="flex items-center justify-between font-medium"
+                      >
+                        <span>
+                          {a.targetUsername} [{a.fullName}]
+                        </span>
+                        <span
+                          className={
+                            a.permissionState === PermissionState.Added
+                              ? 'text-green-500 font-semibold'
+                              : a.permissionState === PermissionState.Revoked
+                                ? 'text-red-500 font-semibold'
+                                : 'text-primary-500'
+                          }
+                        >
                           {a.permissionState || 'Active'}
                         </span>
                       </div>
@@ -3213,16 +3592,23 @@ export default function SharedAccessLanding() {
                     Initiator Access
                   </div>
                   <div className="space-y-2 text-sm w-2/3 text-primary-800">
-                    {modifyInitiators.map(i => (
-                      <div key={i.targetUsername} className="flex items-center justify-between font-medium">
-                        <span>{i.targetUsername} [{i.fullName}]</span>
-                        <span className={
-                          i.permissionState === PermissionState.Added
-                            ? "text-green-500 font-semibold"
-                            : i.permissionState === PermissionState.Revoked
-                              ? "text-red-500 font-semibold"
-                              : "text-primary-500"
-                        }>
+                    {modifyInitiators.map((i) => (
+                      <div
+                        key={i.targetUsername}
+                        className="flex items-center justify-between font-medium"
+                      >
+                        <span>
+                          {i.targetUsername} [{i.fullName}]
+                        </span>
+                        <span
+                          className={
+                            i.permissionState === PermissionState.Added
+                              ? 'text-green-500 font-semibold'
+                              : i.permissionState === PermissionState.Revoked
+                                ? 'text-red-500 font-semibold'
+                                : 'text-primary-500'
+                          }
+                        >
                           {i.permissionState || 'Active'}
                         </span>
                       </div>
@@ -3236,7 +3622,9 @@ export default function SharedAccessLanding() {
                   No. of Approvals Required
                 </div>
                 <div className="text-base text-primary-800 font-semibold">
-                  {modifyAddApprovers ? `${modifyNoOfApprovalsNeeded}/${modifyNoOfApprovers}` : '0'}
+                  {modifyAddApprovers
+                    ? `${modifyNoOfApprovalsNeeded}/${modifyNoOfApprovers}`
+                    : '0'}
                 </div>
               </div>
 
@@ -3254,7 +3642,9 @@ export default function SharedAccessLanding() {
                   />
                 </div>
                 {modifyPasswordErr && (
-                  <p className="text-xs text-red-500 mt-1 px-1 font-semibold">{modifyPasswordErr}</p>
+                  <p className="text-xs text-red-500 mt-1 px-1 font-semibold">
+                    {modifyPasswordErr}
+                  </p>
                 )}
               </div>
             </div>
@@ -3289,7 +3679,9 @@ export default function SharedAccessLanding() {
               </p>
               <p className="mt-3 text-base text-primary-700">
                 Your request to modify shared access on wallet{' '}
-                <span className="font-semibold text-primary-800">{selectedRow?.wallet || selectedRow?.publicKey}</span>{' '}
+                <span className="font-semibold text-primary-800">
+                  {selectedRow?.wallet || selectedRow?.publicKey}
+                </span>{' '}
                 has been successfully submitted.
               </p>
               <p className="mt-2 text-base text-primary-700">
@@ -3493,7 +3885,9 @@ export default function SharedAccessLanding() {
                 className="h-12 w-full rounded-md border border-[#cfe0ee] bg-white px-3 text-primary-800 outline-none"
               />
               {disablePasswordErr && (
-                <p className="text-left text-sm text-red-500">{disablePasswordErr}</p>
+                <p className="text-left text-sm text-red-500">
+                  {disablePasswordErr}
+                </p>
               )}
             </div>
             <div className="flex flex-col gap-2 pt-2">
@@ -3527,7 +3921,9 @@ export default function SharedAccessLanding() {
             {disableTxData?.messages && disableTxData.messages.length > 0 && (
               <div className="rounded-xl border border-primary-100 bg-primary-100 p-4 text-left">
                 {disableTxData.messages.map((msg: string, idx: number) => (
-                  <p key={idx} className="text-sm text-red-800 mb-1">{msg}</p>
+                  <p key={idx} className="text-sm text-red-800 mb-1">
+                    {msg}
+                  </p>
                 ))}
               </div>
             )}
@@ -3881,7 +4277,9 @@ export default function SharedAccessLanding() {
                   <div className="flex space-x-2 justify-between w-full">
                     {activeFilters.length > 0 && (
                       <div className={styles.activeFiltersRow}>
-                        <span className={styles.activeFiltersLabel}>Active:</span>
+                        <span className={styles.activeFiltersLabel}>
+                          Active:
+                        </span>
                         {activeFilters.map((chip) => (
                           <span key={chip.label} className={styles.filterChip}>
                             {chip.label}
@@ -3901,7 +4299,9 @@ export default function SharedAccessLanding() {
                       <input
                         type="checkbox"
                         checked={includeSignedTransactions}
-                        onChange={(e) => setIncludeSignedTransactions(e.target.checked)}
+                        onChange={(e) =>
+                          setIncludeSignedTransactions(e.target.checked)
+                        }
                         className="form-checkbox h-4 w-4 text-primary-600 rounded border-[#bdd0dd]"
                       />
                       <span>Include transaction I have already signed</span>
@@ -3910,7 +4310,11 @@ export default function SharedAccessLanding() {
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-[#d3dfe9] bg-white">
-                  <CustomTable<SharedAccessActivityRow & { _record: SharedAccessApprovalRecord }>
+                  <CustomTable<
+                    SharedAccessActivityRow & {
+                      _record: SharedAccessApprovalRecord;
+                    }
+                  >
                     className="p-0 bg-white spacing"
                     data={activityRows}
                     onRowClick={(row) => {
