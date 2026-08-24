@@ -177,7 +177,12 @@ jobs:
   migrate:
     name: DB migrate (backend)
     needs: [resolve, changes, build]
-    if: ${{ needs.changes.outputs.backend == 'true' }}
+    # DISABLED: GORM AutoMigrate from a GitHub runner takes >20 min because each of
+    # its ~800 catalog round-trips crosses the public internet, and this org is on
+    # the Free plan (2000 private-repo minutes/month). Migrations run on the server
+    # at boot for now. To re-enable, set repo variable RUN_CI_MIGRATION to '1'
+    # (ideally alongside a self-hosted runner so the DB need not be internet-facing).
+    if: ${{ needs.changes.outputs.backend == 'true' && vars.RUN_CI_MIGRATION == '1' }}
     runs-on: ubuntu-latest
     # GORM AutoMigrate re-inspects all ~107 models on every run, so this is slow
     # by nature. The cap stops a lock-blocked migration from hanging the pipeline.
@@ -297,7 +302,7 @@ jobs:
           # hold the frontends hostage, so the gate is applied per-component here
           # rather than on the whole matrix job.
           if [ "$FLAG" = "backend" ] && [ "$changed" = "true" ]; then
-            if [ "$MIGRATE_RESULT" != "success" ] && [ "$MIGRATE_RESULT" != "skipped" ]; then
+            if [ "$MIGRATE_RESULT" != "success" ] && [ "$MIGRATE_RESULT" != "skipped" ] && [ -n "$MIGRATE_RESULT" ]; then
               echo "::error::DB migration did not succeed (result=$MIGRATE_RESULT) - not deploying the api. The previous version keeps serving."
               exit 1
             fi
