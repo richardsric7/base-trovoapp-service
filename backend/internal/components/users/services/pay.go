@@ -38,6 +38,15 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	var destinationUser *userModels.User
 	var err error
 	walletHasViewOnlyAccess := true
+
+	if userModels.IsInternalBalanceAsset(paymentInfo.AssetCode, paymentInfo.AssetIssuer, gc) {
+		return paymentInfo, destinationUser, &tErrors.CustomError{
+			Param:      "assetCode",
+			Err:        "error-asset-not-sendable",
+			ErrMessage: "This asset cannot be sent directly.",
+		}
+	}
+
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 
 	//check if destination is a wallet with memo

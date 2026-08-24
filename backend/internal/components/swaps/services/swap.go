@@ -75,6 +75,13 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	swapInfo.DestinationAssetIssuer = strings.ToUpper(swapInfo.DestinationAssetIssuer)
 	swapInfo.SourceAssetCode = strings.ToUpper(swapInfo.SourceAssetCode)
 	swapInfo.SourceAssetIssuer = strings.ToUpper(swapInfo.SourceAssetIssuer)
+	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer, gc) {
+		return &tErrors.CustomError{
+			Param:      "assetCode",
+			Err:        "error-asset-not-sendable",
+			ErrMessage: "This asset cannot be swapped directly.",
+		}
+	}
 	if e := ValidateSwapSendInfo(swapInfo); e != nil {
 		return e
 	}
@@ -322,6 +329,13 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	swapInfo.DestinationAssetIssuer = strings.ToUpper(swapInfo.DestinationAssetIssuer)
 	swapInfo.SourceAssetCode = strings.ToUpper(swapInfo.SourceAssetCode)
 	swapInfo.SourceAssetIssuer = strings.ToUpper(swapInfo.SourceAssetIssuer)
+	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer, gc) {
+		return &tErrors.CustomError{
+			Param:      "assetCode",
+			Err:        "error-asset-not-sendable",
+			ErrMessage: "This asset cannot be swapped directly.",
+		}
+	}
 	if e := ValidateSwapReceiveInfo(swapInfo); e != nil {
 		return e
 	}

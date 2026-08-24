@@ -17,6 +17,7 @@ import (
 	"trovo-wallet-api/internal/middleware"
 
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -80,7 +81,6 @@ func postCallbacks1lHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 
 	}
 }
-
 
 // postCallbacksDojaWebhookHandler godoc
 // @Summary POST /v1/callbacks/doja/webhook
@@ -508,7 +508,6 @@ func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 	}
 }
 
-
 // postCallbacksFlutterwaveWebhookHandler godoc
 // @Summary POST /v1/callbacks/flutterwave/webhook
 // @Tags callbacks
@@ -755,7 +754,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data [%+v]. Err: %v\n", event, err)
 			}
 			//save payment invoices
-			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", float64(event.Data.Amount), gc)
+			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", &user.Username, &user.PublicKey, nil, nil, nil, float64(event.Data.Amount), gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err)
@@ -767,6 +766,87 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 
 			msg := fmt.Sprintf("Payment of %v%v for account activation has been confirmed. %v of Gas and %v%v has been dispensed to your wallet %v. Please check your pending asset to accept the TROV utility token.", event.Data.Currency, event.Data.Amount, gasToDispense, trovToDispense, "TROV", user.Username)
 			user.SendPushMessage(title, msg, "", dataPayload, gc)
+		}
+
+		//Condition to process asset purchase
+		if strings.EqualFold(event.MetaData.Product, "ASSET PURCHASE") && strings.EqualFold(event.Data.Status, "successful") {
+
+			var invoice userModels.FiatPaymentInvoice
+			invoiceErr := gc.DB.Where("id = ? AND status = ? AND payment_type = ?", event.Data.TxRef, "PENDING", "ASSET PURCHASE").First(&invoice).Error
+			if invoiceErr != nil {
+				// not found, or already processed by an earlier delivery of this webhook - nothing to do
+				log.Printf("[FLUTTERWAVE WEBHOOK] no pending asset purchase invoice found for tx_ref [%v]: %v\n", event.Data.TxRef, invoiceErr)
+				user.InvalidateUserCache(gc)
+				c.JSON(http.StatusOK, "success")
+				return
+			}
+
+			if invoice.Transaction == nil || invoice.TransactionSignature == nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] has no signed transaction to submit\n", invoice.ID))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] has no signed transaction to submit\n", invoice.ID)
+				c.JSON(http.StatusOK, "success")
+				return
+			}
+
+			var subscription userModels.TokenizedAssetSubscription
+			subErr := gc.DB.Where("id = ?", invoice.ID).First(&subscription).Error
+			if subErr != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] no tokenized asset subscription found for asset purchase invoice [%v]: %v\n", invoice.ID, subErr))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] no tokenized asset subscription found for asset purchase invoice [%v]: %v\n", invoice.ID, subErr)
+				c.JSON(http.StatusOK, "success")
+				return
+			}
+
+			// resolve the actual invoice owner rather than assuming it matches the webhook's
+			// MetaData.UserID-derived `user` - that field is caller-supplied and only used above for
+			// the activation flow, so it isn't a reliable stand-in for who this invoice belongs to
+			subscriber, subscriberErr := userModels.Username(subscription.SubscriberUsername).GetSimpleUser(gc.DB, gc)
+			if subscriberErr != nil {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to load subscriber [%v] for asset purchase invoice [%v]: %v\n", subscription.SubscriberUsername, invoice.ID, subscriberErr))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] unable to load subscriber [%v] for asset purchase invoice [%v]: %v\n", subscription.SubscriberUsername, invoice.ID, subscriberErr)
+				c.JSON(http.StatusOK, "success")
+				return
+			}
+
+			if len(subscription.TransactionID) == 0 {
+
+				txnHash, submitErr := network.SubmitXdrWithSignature(gc.BantuExpansionClient, subscriber.PrimarySigner, *invoice.Transaction, *invoice.TransactionSignature)
+				if submitErr != nil {
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error submitting asset purchase invoice [%v] to blockchain: %v\n", invoice.ID, submitErr))
+					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error submitting asset purchase invoice [%v] to blockchain: %v\n", invoice.ID, submitErr)
+					// leave the invoice PENDING - it may still be resubmitted (a duplicated webhook
+					// delivery, or a manual retry); recovery otherwise relies on the 2-day expiry sweep
+					c.JSON(http.StatusOK, "success")
+					return
+				}
+
+				subscription.TransactionID = txnHash
+				gc.DB.Model(&userModels.TokenizedAssetSubscription{}).Where("id = ?", subscription.ID).Update("transaction_id", txnHash)
+
+				saveErr := userServices.SaveUserPaymentData(subscriber.Username, invoice.ServiceProvider, invoice.PaymentType, txnHash, invoice.Amount, gc)
+				if saveErr != nil {
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data for asset purchase invoice [%v]: %v\n", invoice.ID, saveErr))
+					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data for asset purchase invoice [%v]: %v\n", invoice.ID, saveErr)
+				}
+
+				gc.DB.Model(&userModels.FiatPaymentInvoice{}).Where("id = ?", invoice.ID).Update("status", "COMPLETED")
+
+				if invoice.TransactionSource != nil {
+					gc.ReleaseInUseChannelAccount(*invoice.TransactionSource)
+				}
+
+				subscriber.InvalidateUserCache(gc)
+
+				walletAlias := ""
+				if invoice.WalletAlias != nil {
+					walletAlias = *invoice.WalletAlias
+				}
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "assetSubscription"
+				title := fmt.Sprintf("Asset purchase payment of %v%v now completed.", event.Data.Currency, event.Data.Amount)
+				msg := fmt.Sprintf("Your payment of %v%v for %v has been confirmed and dispensed to your wallet %v.", event.Data.Currency, event.Data.Amount, subscription.AssetCode, walletAlias)
+				subscriber.SendPushMessage(title, msg, "", dataPayload, gc)
+			}
 		}
 		user.InvalidateUserCache(gc)
 		c.JSON(http.StatusOK, "success")

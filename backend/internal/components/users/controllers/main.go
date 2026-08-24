@@ -232,6 +232,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.POST("/v1/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan, gc))
 
+		router.POST("/v1/tokenization/subscriptions/fiat/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan, gc))
+
 		router.POST("/v1/shared-access/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan, gc))
 
 		router.POST("/v1/tokenization/early-exit/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {

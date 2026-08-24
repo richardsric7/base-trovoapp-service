@@ -1,6 +1,7 @@
 package users
 
 import (
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 )
@@ -65,4 +66,35 @@ func (c CountryCode) GetIssuingHouseFee(issuingHouseID uint64, gc *sharedconfig.
 func (c CountryCode) GetAssetMgtFee(assetManagerID uint64, gc *sharedconfig.GlobalConfig) (cConfig AssetManager) {
 	gc.DB.Where("id = ? AND Asset_Manager_Country = ?", assetManagerID, string(c)).First(&cConfig)
 	return
+}
+
+// IsInternalBalanceAsset reports whether the given asset (code + issuer) is any country's
+// internal balance token, by reverse-lookup across all CountryConfig rows.
+func IsInternalBalanceAsset(code, issuer string, gc *sharedconfig.GlobalConfig) bool {
+	if len(code) == 0 || len(issuer) == 0 {
+		return false
+	}
+
+	var count int64
+	gc.DB.Model(&CountryConfig{}).
+		Where("internal_balance_token_code = ? AND internal_token_issuer = ?", strings.ToUpper(code), issuer).
+		Count(&count)
+
+	return count > 0
+}
+
+// IsInternalBalanceAssetCode reports whether the given code is any country's internal balance
+// token code, by reverse-lookup across all CountryConfig rows. Use this where only a ticker/code
+// is available (no issuer), such as external withdrawal-by-ticker entry points.
+func IsInternalBalanceAssetCode(code string, gc *sharedconfig.GlobalConfig) bool {
+	if len(code) == 0 {
+		return false
+	}
+
+	var count int64
+	gc.DB.Model(&CountryConfig{}).
+		Where("internal_balance_token_code = ?", strings.ToUpper(code)).
+		Count(&count)
+
+	return count > 0
 }

@@ -148,6 +148,7 @@ type TokenizedAsset struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 *string                         `json:"walletToHoldAssetsNotForSale"`
+	FundsHoldingWalletPublicKey                  *string                         `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -673,6 +674,7 @@ type TokenizedAssetJSONInput struct {
 	NumberOfTokenToBeSold                        float64   `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64   `json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string    `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
+	FundsHoldingWalletPublicKey                  string    `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64   `json:"pricePerToken"`
 	SalesStart                                   time.Time `json:"salesStart"`
 	SalesEnd                                     time.Time `json:"salesEnd"`
@@ -1224,6 +1226,7 @@ type TokenizedAssetJSON struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string                          `json:"walletToHoldAssetsNotForSale"`
+	FundsHoldingWalletPublicKey                  string                          `json:"fundsHoldingWalletPublicKey"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -1964,6 +1967,8 @@ type TokenizedAssetSubscription struct {
 	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 	TransactionID      string         `json:"transactionId"`
+	PaymentAssetCode   string         `json:"paymentAssetCode"`
+	PaymentAssetIssuer string         `json:"paymentAssetIssuer"`
 }
 type ExpressionOfInterest struct {
 	ID                 uint64         `gorm:"" json:"-" form:"-"`
@@ -1995,7 +2000,28 @@ type TokenizedAssetSubscriptionInput struct {
 	SignatureRequired    int      `json:"signatureRequired"`
 	Commit               int      `json:"commit"`
 	ReturnedDescription  string   `json:"-"`
+	PaymentAssetCode     string   `json:"paymentAssetCode"`   //optional: stablecoin to pay in. Defaults to CNGN.
+	PaymentAssetIssuer   string   `json:"paymentAssetIssuer"` //optional: never trusted verbatim, always re-resolved server-side.
 }
+
+// FiatTokenizedAssetSubscriptionInput drives the two-call fiat asset purchase flow
+// (SubscribeToTokenizedAssetByFiat). ID is required on every call: it is set as the primary key of both
+// the created FiatPaymentInvoice and TokenizedAssetSubscription rows, and is expected to double as the
+// payment provider's transaction reference so postCallbacksFlutterwaveWebhookHandler can find its way
+// back to the right invoice once fiat payment is confirmed. There is no client-supplied payment asset or
+// wallet public key here (unlike TokenizedAssetSubscriptionInput) - the payment asset is always resolved
+// server-side to the country's internal balance token, and the wallet is always the caller's own wallet
+// resolved from the authenticated request, never a client-supplied value.
+type FiatTokenizedAssetSubscriptionInput struct {
+	ID                   string  `json:"id"`
+	Amount               float64 `json:"amount"` // fiat amount in tokenized asset quote currency
+	TransactionSignature string  `json:"transactionSignature"`
+
+	// server-populated, not client input
+	TokenizedAssetID   string `json:"-"`
+	SubscriberUsername string `json:"-"`
+}
+
 type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	TokenizedAssetID           string   `json:"tokenizedAssetId"`
 	PurchaserUsername          string   `json:"purchaserUsername"`
@@ -2010,6 +2036,8 @@ type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	Memo                       string   `json:"memo"`
 	SignatureRequired          int      `json:"signatureRequired"`
 	Commit                     int      `json:"commit"`
+	PaymentAssetCode           string   `json:"paymentAssetCode"`
+	PaymentAssetIssuer         string   `json:"paymentAssetIssuer"`
 }
 
 func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPrimarySalesPurchaseInputForServiceLink) {
@@ -2026,6 +2054,8 @@ func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.Gl
 	si.Memo = i.Memo
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
+	si.PaymentAssetCode = i.PaymentAssetCode
+	si.PaymentAssetIssuer = i.PaymentAssetIssuer
 	return si
 }
 
@@ -2043,6 +2073,8 @@ func (i *TokenizedAssetPrimarySalesPurchaseInputForServiceLink) ToSubscriptionIn
 	si.Memo = i.Memo
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
+	si.PaymentAssetCode = i.PaymentAssetCode
+	si.PaymentAssetIssuer = i.PaymentAssetIssuer
 	return si
 }
 
@@ -2779,6 +2811,13 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
 			} else {
 				t.WalletToHoldAssetsNotForSale = nil
+			}
+
+			if len(ti.FundsHoldingWalletPublicKey) > 0 {
+
+				t.FundsHoldingWalletPublicKey = &ti.FundsHoldingWalletPublicKey
+			} else {
+				t.FundsHoldingWalletPublicKey = nil
 			}
 
 		}
@@ -5249,6 +5288,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.WalletToHoldAssetsNotForSale != nil {
 		t.WalletToHoldAssetsNotForSale = *ti.WalletToHoldAssetsNotForSale
 	}
+	if ti.FundsHoldingWalletPublicKey != nil {
+		t.FundsHoldingWalletPublicKey = *ti.FundsHoldingWalletPublicKey
+	}
 	t.PricePerToken = ti.PricePerToken
 	t.SalesStart = ti.SalesStart
 	t.SalesEnd = ti.SalesEnd
@@ -6511,6 +6553,8 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	tas.Price = ta.PricePerToken
 	tas.SubscriberUsername = subscriberUsername
+	tas.PaymentAssetCode = input.PaymentAssetCode
+	tas.PaymentAssetIssuer = input.PaymentAssetIssuer
 	return *tas
 }
 
