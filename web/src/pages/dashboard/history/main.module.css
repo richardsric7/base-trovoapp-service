@@ -15,6 +15,9 @@
 
 .topRow {
   margin-bottom: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .headerText {
@@ -60,6 +63,12 @@
 
 .select:focus {
   border-color: #1f4f94;
+}
+
+.select:disabled {
+  background-color: #f5f7fa;
+  color: #a0aec0;
+  cursor: not-allowed;
 }
 
 .selectIcon {
@@ -555,7 +564,7 @@
     flex-direction: row;
   }
 
-  .modalActions > * {
+  .modalActions>* {
     flex: 1;
   }
 

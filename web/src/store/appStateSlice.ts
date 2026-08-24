@@ -12,7 +12,21 @@ export type AppStateSlice = {
   activeAsset?: string,
   activeTokenizedAsset?: TokenizedAsset,
   tokenizationData?: TokenizationData,
+  availableFinancialAssetTypes: string[],
 }
+
+export const AVAILABLE_FINANCIAL_ASSET_TYPES = [
+  '1114',
+  '1115',
+  '1121',
+  '1122',
+  '1123',
+  '1124',
+  '1125',
+  '1174',
+  '1180',
+  '1182',
+];
 
 const initialState: AppStateSlice = {
   hideBalances: 0,
@@ -20,6 +34,7 @@ const initialState: AppStateSlice = {
   activeWallet: undefined,
   activeAsset: undefined,
   activeTokenizedAsset: undefined,
+  availableFinancialAssetTypes: AVAILABLE_FINANCIAL_ASSET_TYPES,
 };
 export const appStateSlice = createSlice({
   name: 'appState',

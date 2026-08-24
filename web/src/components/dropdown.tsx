@@ -26,9 +26,9 @@ export default function Dropdown({
     defaultValue ?? null,
   );
   useEffect(() => {
-    // Update the component when myProp changes
+    // Keep internal selection in sync when parent default changes.
     setSelectedItem(defaultValue ?? null);
-  }, [selectedItem]);
+  }, [defaultValue]);
 
   const dropdownItems = options?.map((item: DropdownItem) => (
     <TEDropdownItem
@@ -40,7 +40,7 @@ export default function Dropdown({
         type="button"
         className="block w-full cursor-pointer hover:bg-primary-200 bg-primary-100 whitespace-nowrap px-4 py-2 text-sm text-left font-normal pointer-events-auto active:text-primary-800 focus:hover:bg-primary-200 focus:text-primary-800 focus:outline-none active:no-underline"
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-          e.preventDefault;
+          e.preventDefault();
           onSelect(item);
           setSelectedItem(item);
         }}
